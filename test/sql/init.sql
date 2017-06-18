@@ -1,6 +1,6 @@
-CREATE EXTENSION ddl;
+create extension datalink;
 
-\dx ddl
+\dx datalink
 
-\dx+ ddl
+\dx+ datalink
 

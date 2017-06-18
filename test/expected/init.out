@@ -1,0 +1,32 @@
+create extension datalink;
+\dx datalink
+                    List of installed extensions
+   Name   | Version |  Schema  |             Description             
+----------+---------+----------+-------------------------------------
+ datalink | 0.1     | datalink | SQL/MED Datalink like functionality
+(1 row)
+
+\dx+ datalink
+              Objects in extension "datalink"
+                    Object Description                     
+-----------------------------------------------------------
+ event trigger datalink_event_trigger
+ function datalink.dl_class_adminable(regclass)
+ function datalink.dl_event_trigger()
+ function datalink.dl_sql_advice()
+ function datalink.dlvalue(text,datalink.dl_linktype,text)
+ table datalink.dl_optionsdef
+ type datalink.datalink
+ type datalink.dl_integrity
+ type datalink.dl_lcp
+ type datalink.dl_link_control
+ type datalink.dl_linktype
+ type datalink.dl_on_unlink
+ type datalink.dl_options
+ type datalink.dl_read_access
+ type datalink.dl_recovery
+ type datalink.dl_write_access
+ view datalink.dl_columns
+ view datalink.dl_triggers
+(18 rows)
+

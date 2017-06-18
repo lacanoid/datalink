@@ -1,0 +1,19 @@
+\pset null _null_
+SET client_min_messages = warning;
+create table sample_urls (
+  id serial,
+  url text
+);
+insert into sample_urls (url)
+values 
+  ('http://www.ljudmila.org'),
+  ('https://www.guthub.org'),
+  ('file:///tmp/a');
+select * from sample_urls;
+ id |           url           
+----+-------------------------
+  1 | http://www.ljudmila.org
+  2 | https://www.guthub.org
+  3 | file:///tmp/a
+(3 rows)
+

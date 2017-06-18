@@ -27,5 +27,6 @@ This of course requires superuser privileges.
 Using
 -----
 
-To be written.
+To be written. In the meantime, see tests for examples.
+
 
