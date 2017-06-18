@@ -175,7 +175,7 @@ SELECT 'TRIGGER'::text AS advice_type,
     case when links>0 then
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '::text 
                ||  regclass::text) 
-               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger()'::text, ''::text) 
+               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()'::text, ''::text) 
     else ''
     end AS sql_advice
    FROM datalink.dl_triggers
@@ -210,4 +210,50 @@ on ddl_command_end
 execute procedure dl_event_trigger();
 
 ---------------------------------------------------
+-- referential integrity triggers
+---------------------------------------------------
+
+CREATE FUNCTION dl_ri_trigger() RETURNS trigger
+    LANGUAGE plperlu SECURITY DEFINER
+    AS $_X$;
+=pod
+
+This is a trigger function used for updating reference counts on datalinks.
+It should be enabled on all tables which have datalink columns.
+
+=cut
+
+ my $p=spi_prepare('SELECT column_name,control_options FROM datalink.dl_columns WHERE regclass = $1','oid');
+ my $rv=spi_exec_prepared($p,$_TD->{relid});
+ spi_freeplan($p);
+
+ my %d;    # datalink changes
+
+ my $qref;
+ my $qunref;
+ 
+ for my $i (@{$rv->{rows}}) {
+  my $c = $i->{column_name};
+  next if !$c;
+  if($_TD->{event} eq 'DELETE' || $_TD->{event} eq 'UPDATE') {
+   if(defined($_TD->{old}{$c})) { 
+#     elog(NOTICE,"dl_unref($_TD->{old}{$c})");
+     if(!$qunref) { $qunref=spi_prepare('SELECT datalink.dl_unref($1,$2,$3,$4)','datalink.datalink','datalink.dl_options','regclass','name'); }
+     spi_exec_prepared($qunref,$_TD->{old}{$c},$i->{control_options},$_TD->{relid},$c);
+#    $d{$_TD->{old}{$c}}--; 
+   }
+  }
+  if($_TD->{event} eq 'INSERT' || $_TD->{event} eq 'UPDATE') {
+   if(defined($_TD->{new}{$c})) { 
+#    elog(NOTICE,"dl_ref($_TD->{new}{$c},$i->{control_options})");
+    if(!$qref) { $qref = spi_prepare('SELECT datalink.dl_ref($1,$2,$3,$4)','datalink.datalink','datalink.dl_options','regclass','name'); }
+    spi_exec_prepared($qref,$_TD->{new}{$c},$i->{control_options},$_TD->{relid},$c);
+#    $d{$_TD->{new}{$c}}++;
+   }
+  }
+ }
+ 
+if($_TD->{event} eq 'DELETE') { return "SKIP"; }
+return "MODIFY";
+$_X$;
 

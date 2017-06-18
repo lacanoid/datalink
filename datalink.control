@@ -1,8 +1,8 @@
 comment = 'SQL/MED Datalink like functionality'
 default_version = 0.1
 relocatable = false
-#requires = 'plperlu'
-#superuser = YES
+requires = 'plperlu'
+superuser = YES
 schema = 'datalink'
 
 

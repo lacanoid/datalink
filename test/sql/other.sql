@@ -1,6 +1,7 @@
 \pset null _null_
 
 SET client_min_messages = warning;
+SET search_path = public,datalink;
 
 create table sample_urls (
   id serial,
@@ -15,4 +16,10 @@ values
 
 select * from sample_urls;
 
+create table sample_datalinks (
+  url text,
+  link datalink
+);
+
+select * from dl_triggers;
 

@@ -1,4 +1,4 @@
-create extension datalink;
+create extension datalink cascade;
 
 \dx datalink
 
