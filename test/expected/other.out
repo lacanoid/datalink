@@ -1,5 +1,5 @@
 \pset null _null_
-SET client_min_messages = warning;
+SET client_min_messages = notice;
 SET search_path = public,datalink;
 create table sample_urls (
   id serial,
@@ -7,24 +7,57 @@ create table sample_urls (
 );
 insert into sample_urls (url)
 values 
+  ('http://www.mozilla.org');
+insert into sample_urls (url)
+values 
   ('http://www.ljudmila.org'),
-  ('https://www.guthub.org'),
+  ('https://www.github.org'),
   ('file:///tmp/a');
 select * from sample_urls;
  id |           url           
 ----+-------------------------
-  1 | http://www.ljudmila.org
-  2 | https://www.guthub.org
-  3 | file:///tmp/a
-(3 rows)
+  1 | http://www.mozilla.org
+  2 | http://www.ljudmila.org
+  3 | https://www.github.org
+  4 | file:///tmp/a
+(4 rows)
 
 create table sample_datalinks (
   url text,
   link datalink
 );
+NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
 select * from dl_triggers;
  owner |     regclass     | links | mco |       tgname        
 -------+------------------+-------+-----+---------------------
  root  | sample_datalinks |     1 |   0 | ~RI_DatalinkTrigger
 (1 row)
 
+select column_name,control_options FROM datalink.dl_columns;
+ column_name | control_options 
+-------------+-----------------
+ link        |               0
+(1 row)
+
+insert into sample_datalinks (link)
+values (dlvalue('http://www.archive.org','URL','Sample datalink'));
+NOTICE:  DATALINK: dl_ref('http://www.archive.org',0,sample_datalinks,link)
+insert into sample_datalinks (link)
+values (dlvalue('http://guthub.org','URL','Another sample datalink'));
+NOTICE:  DATALINK: dl_ref('http://guthub.org',0,sample_datalinks,link)
+insert into sample_datalinks (url,link)
+select url,dlvalue(url) 
+  from sample_urls;
+NOTICE:  DATALINK: dl_ref('http://www.mozilla.org',0,sample_datalinks,link)
+NOTICE:  DATALINK: dl_ref('http://www.ljudmila.org',0,sample_datalinks,link)
+NOTICE:  DATALINK: dl_ref('https://www.github.org',0,sample_datalinks,link)
+NOTICE:  DATALINK: dl_ref('file:///tmp/a',0,sample_datalinks,link)
+update sample_datalinks
+   set link = null
+ where url like 'file:%';
+NOTICE:  DATALINK: dl_unref('file:///tmp/a',0,sample_datalinks,link)
+delete from sample_datalinks
+ where url like 'https:%';
+NOTICE:  DATALINK: dl_unref('https://www.github.org',0,sample_datalinks,link)
+ 
+ 

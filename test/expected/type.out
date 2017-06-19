@@ -19,6 +19,24 @@ select dlvalue('/tmp','FS','Example file datalink');
  (file:///tmp,,"Example file datalink")
 (1 row)
 
+select dlcomment(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
+    dlcomment     
+------------------
+ Example datalink
+(1 row)
+
+select dlurlcomplete(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
+      dlurlcomplete      
+-------------------------
+ http://www.ljudmila.org
+(1 row)
+
+select dlurlcompleteonly(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
+    dlurlcompleteonly    
+-------------------------
+ http://www.ljudmila.org
+(1 row)
+
 select dlnewcopy(dlvalue('http://www.ljudmila.org'),0);
           dlnewcopy          
 -----------------------------

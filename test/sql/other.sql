@@ -32,6 +32,9 @@ select column_name,control_options FROM datalink.dl_columns;
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));
 
+insert into sample_datalinks (link)
+values (dlvalue('http://guthub.org','URL','Another sample datalink'));
+
 insert into sample_datalinks (url,link)
 select url,dlvalue(url) 
   from sample_urls;

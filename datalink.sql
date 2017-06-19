@@ -20,30 +20,61 @@ CREATE TYPE datalink AS (
 	comment text
 );
 
-CREATE FUNCTION dlvalue(uri text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+---------------------------------------------------
+-- datalink functions
+---------------------------------------------------
+
+CREATE FUNCTION dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE plpgsql IMMUTABLE
     AS $$
 begin
  if linktype = 'FS' then
-  uri := 'file://'||uri;
+  url := 'file://'||url;
  end if;
- return row(uri,null::uuid,comment);
+ return row(url,null::uuid,comment);
 end
 $$;
+COMMENT ON FUNCTION dlvalue(text,dl_linktype,text) 
+IS 'SQL/MED - construct a DATALINK value';
+
+---------------------------------------------------
+
+CREATE FUNCTION dlcomment(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $$ select ($1).comment $$;
+
+COMMENT ON FUNCTION dlcomment(datalink) 
+IS 'SQL/MED - returns the comment value, if it exists, from a DATALINK value';
+
+---------------------------------------------------
+
+CREATE FUNCTION dlurlcomplete(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select ($1).url $_$;
+
+COMMENT ON FUNCTION dlurlcomplete(datalink) 
+IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
+
+---------------------------------------------------
+
+CREATE FUNCTION dlurlcompleteonly(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select ($1).url $_$;
+
+COMMENT ON FUNCTION dlurlcompleteonly(datalink) 
+IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
+
 
 ---------------------------------------------------
 -- link control options
 ---------------------------------------------------
 
-CREATE TYPE dl_integrity AS ENUM (
-    'NONE','SELECTIVE','ALL'
-);
 CREATE TYPE dl_link_control AS ENUM (
     'NO','FILE'
 );
-CREATE TYPE dl_on_unlink AS ENUM (
-    'NONE','RESTORE','DELETE'
+CREATE TYPE dl_integrity AS ENUM (
+    'NONE','SELECTIVE','ALL'
 );
 CREATE TYPE dl_read_access AS ENUM (
     'FS','DB'
@@ -52,6 +83,9 @@ CREATE TYPE dl_write_access AS ENUM (
     'FS','BLOCKED',
     'ADMIN NOT REQUIRING TOKEN FOR UPDATE',
     'ADMIN REQUIRING TOKEN FOR UPDATE'
+);
+CREATE TYPE dl_on_unlink AS ENUM (
+    'NONE','RESTORE','DELETE'
 );
 CREATE TYPE dl_recovery AS ENUM (
     'NO','YES'
@@ -237,7 +271,7 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION dlpreviouscopy(link datalink, has_token integer) 
-IS 'returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
 
 ---------------------------------------------------
 
@@ -254,7 +288,7 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION dlnewcopy(link datalink, has_token integer) 
-IS 'returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
 
 ---------------------------------------------------
 -- referential integrity triggers
@@ -270,7 +304,7 @@ declare
  lco datalink.dl_lco;
  r record;
 begin 
- raise notice 'DATALINK: dl_ref(''%'',%,%,%)',$1,$2,$3,$4;
+ raise notice 'DATALINK: dl_ref(''%'',%,%,%)',($1).url,$2,$3,$4;
  if link_options > 0 then
   lco = datalink.dl_link_control_options(link_options);
   if lco.link_control = 'FILE' then
@@ -294,7 +328,7 @@ RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
 begin
- raise notice 'DATALINK: dl_unref(''%'',%,%,%)',$1,$2,$3,$4;
+ raise notice 'DATALINK: dl_unref(''%'',%,%,%)',($1).url,$2,$3,$4;
  return $1;
 end$_$;
 
