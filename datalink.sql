@@ -7,8 +7,6 @@
 SET client_min_messages = warning;
 
 ---------------------------------------------------
-
----------------------------------------------------
 -- datalink type
 ---------------------------------------------------
 
@@ -26,14 +24,15 @@ CREATE TYPE datalink AS (
 
 CREATE FUNCTION dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
 RETURNS datalink
-    LANGUAGE plpgsql IMMUTABLE
+    LANGUAGE sql IMMUTABLE
     AS $$
-begin
- if linktype = 'FS' then
-  url := 'file://'||url;
- end if;
- return row(url,null::uuid,comment);
-end
+select row(
+       case linktype
+         when 'FS' then 'file://' || $1
+         when 'URL' then $1
+       end,
+       null::uuid,
+       $3)::datalink.datalink
 $$;
 COMMENT ON FUNCTION dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - construct a DATALINK value';
@@ -81,8 +80,10 @@ CREATE TYPE dl_read_access AS ENUM (
 );
 CREATE TYPE dl_write_access AS ENUM (
     'FS','BLOCKED',
-    'ADMIN NOT REQUIRING TOKEN FOR UPDATE',
-    'ADMIN REQUIRING TOKEN FOR UPDATE'
+    'ADMIN',
+    -- 'ADMIN NOT REQUIRING TOKEN FOR UPDATE',
+    'ADMIN TOKEN'
+    -- 'ADMIN REQUIRING TOKEN FOR UPDATE'
 );
 CREATE TYPE dl_on_unlink AS ENUM (
     'NONE','RESTORE','DELETE'
@@ -99,9 +100,109 @@ CREATE TYPE dl_lco AS (
 	on_unlink dl_on_unlink
 );
 comment on type dl_lco is 'Datalink Link Control Options';
+CREATE DOMAIN dl_options AS integer;
 
 ---------------------------------------------------
--- event triggers
+-- helper functions
+---------------------------------------------------
+
+CREATE FUNCTION dl_options(
+	link_control dl_link_control DEFAULT 'NO'::dl_link_control, 
+	integrity dl_integrity DEFAULT 'NONE'::dl_integrity, 
+	read_access dl_read_access DEFAULT 'FS'::dl_read_access, 
+	write_access dl_write_access DEFAULT 'FS'::dl_write_access, 
+	recovery dl_recovery DEFAULT 'NO'::dl_recovery, 
+	on_unlink dl_on_unlink DEFAULT 'NONE'::dl_on_unlink) 
+RETURNS dl_options
+LANGUAGE sql IMMUTABLE
+AS $_$
+ select cast (
+   (case $1
+     when 'FILE' then 1
+     when 'NO' then 0
+     else 0
+   end) +
+   16 * (  
+   (case $2
+     when 'ALL' then 2
+     when 'SELECTIVE' then 1
+     when 'NONE' then 0
+     else 0
+   end) +
+   16 * (  
+   (case $3
+     when 'DB' then 1
+     when 'FS' then 0
+     else 0
+   end) + 
+   16 * (  
+   (case $4
+     when 'BLOCKED' then 3
+     when 'ADMIN TOKEN' then 2
+     when 'ADMIN' then 1
+     when 'FS' then 0
+     else 0
+   end) +
+   16 * (
+   (case $5
+     when 'YES' then 1
+     when 'NO' then 0
+     else 0
+   end) +
+   16 * (
+   (case $6
+     when 'DELETE' then 2
+     when 'RESTORE' then 1
+     when 'NONE' then 0
+     else 0
+   end)
+   ))))) as datalink.dl_options)
+$_$;
+
+COMMENT ON FUNCTION dl_options(
+  dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
+IS 'Calculate dl_options from individual options';
+
+---------------------------------------------------
+
+CREATE FUNCTION dl_lco(dl_options) 
+RETURNS dl_lco
+LANGUAGE sql IMMUTABLE
+    AS $_$
+select row(case $1 & 15
+		     when 0 then 'NO'
+             when 1 then 'FILE'
+           end,
+           case ($1 >> 4) & 15
+		     when 0 then 'NONE'
+             when 1 then 'SELECTIVE'
+             when 2 then 'ALL'
+           end,
+		   case ($1 >> 8) & 15
+		     when 0 then 'FS'
+             when 1 then 'DB'
+           end,
+		   case ($1 >> 12) & 15
+		     when 0 then 'FS'
+             when 1 then 'BLOCKED'
+		     when 2 then 'ADMIN'
+             when 3 then 'ADMIN TOKEN'
+           end,
+           case ($1 >> 16) & 15
+		     when 0 then 'NO'
+             when 1 then 'YES'
+           end,
+           case ($1 >> 20) & 15
+		     when 0 then 'NONE'
+             when 1 then 'RESTORE'
+             when 2 then 'DELETE'
+           end
+        ) :: datalink.dl_lco
+$_$;
+
+COMMENT ON FUNCTION dl_lco(dl_options)
+IS 'Calculate dl_lco from dl_options';
+
 ---------------------------------------------------
 
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
@@ -120,7 +221,9 @@ where c.oid=$1
 $_$;
 
 ---------------------------------------------------
-CREATE DOMAIN dl_options AS integer;
+-- definition tables
+---------------------------------------------------
+
 CREATE TABLE dl_optionsdef (
     schema_name name NOT NULL,
     table_name name NOT NULL,
@@ -132,6 +235,8 @@ IS 'Current link control options; this should really go to pg_attribute.atttypmo
 ALTER TABLE ONLY dl_optionsdef
     ADD CONSTRAINT dl_optionsdef_pkey PRIMARY KEY (schema_name, table_name, column_name);
 
+---------------------------------------------------
+-- views
 ---------------------------------------------------
 
 CREATE VIEW dl_columns AS
@@ -217,6 +322,8 @@ SELECT 'TRIGGER'::text AS advice_type,
 $$;
 
 ---------------------------------------------------
+-- event triggers
+---------------------------------------------------
 
 CREATE FUNCTION dl_event_trigger() RETURNS event_trigger
     LANGUAGE plpgsql
@@ -299,26 +406,27 @@ RETURNS datalink
 LANGUAGE plpgsql
     AS $_$
 declare
- newlink datalink.datalink;
- token datalink.dl_token;
  lco datalink.dl_lco;
  r record;
+ has_token integer;
 begin 
  raise notice 'DATALINK: dl_ref(''%'',%,%,%)',($1).url,$2,$3,$4;
+ has_token := 0;
  if link_options > 0 then
-  lco = datalink.dl_link_control_options(link_options);
+  lco = datalink.dl_lco(link_options);
   if lco.link_control = 'FILE' then
     -- check if reference exists
-    r := datalink.curl_head(link);
+    has_token := 1;
+    r := datalink.curl_head(link.url);
     if not r.ok then
       raise exception 'Referenced file does not exit' 
             using errcode = 'HW003', detail = link;
     end if;
   end if;
   
-  newlink := datalink.dlpreviouscopy(link,0);
+  link := datalink.dlpreviouscopy(link,has_token);
  end if;
- return newlink;
+ return link;
 end$_$;
 
 ---------------------------------------------------
@@ -363,7 +471,7 @@ begin
     if tg_op in ('DELETE','UPDATE') then
        link := jsonb_populate_record(link,ro->r.column_name);
        if link.url is not null then
-         perform datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
+         link := datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
        end if;
     end if;
   
@@ -371,13 +479,143 @@ begin
     if tg_op in ('INSERT','UPDATE') then
        link := jsonb_populate_record(link,rn->r.column_name);
        if link.url is not null then
-         perform datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
+         link := datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
+         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link::text));
        end if;
     end if;
 
   end loop;
 
   if tg_op = 'DELETE' then return old; end if;
+
+  new := jsonb_populate_record(new,rn);
   return new;   
 end
 $_X$;
+
+---------------------------------------------------
+-- curl functions
+---------------------------------------------------
+
+CREATE FUNCTION curl_get(
+  url text, head boolean DEFAULT false, 
+  OUT ok boolean, OUT response_code integer, OUT response_body text, OUT retcode integer, OUT error text) 
+RETURNS record
+LANGUAGE plperlu
+AS $_$
+my ($url,$head)=@_;
+
+use strict;
+use warnings;
+use WWW::Curl::Easy;
+
+my $curl = WWW::Curl::Easy->new;
+my %r;
+  
+$curl->setopt(CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+$curl->setopt(CURLOPT_URL, $url);
+$curl->setopt(CURLOPT_HEADER,$head?1:0);
+$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+
+# A filehandle, reference to a scalar or reference to a typeglob can be used here.
+my $response_body;
+if($head) { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
+else      { $curl->setopt(CURLOPT_WRITEHEADER,\$response_body); }
+
+# Starts the actual request
+my $retcode = $curl->perform;
+
+# Looking at the results...
+$r{ok} = ($retcode==0)?'yes':'no';
+$r{retcode} = $retcode;
+$r{response_code} = $curl->getinfo(CURLINFO_HTTP_CODE);
+$r{response_body} = $response_body;
+if(!$r{ok}) { $r{error} = $curl->strerror($retcode); }
+
+return \%r;
+$_$;
+
+---------------------------------------------------
+
+CREATE FUNCTION curl_head(
+   url text, 
+   OUT ok boolean, OUT response_code integer, OUT response_body text, OUT retcode integer, OUT error text) 
+RETURNS record
+LANGUAGE plperlu
+AS $_$
+my ($url)=@_;
+
+use strict;
+use warnings;
+use WWW::Curl::Easy;
+
+my $curl = WWW::Curl::Easy->new;
+my %r;
+  
+$curl->setopt(CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+$curl->setopt(CURLOPT_URL, $url);
+$curl->setopt(CURLOPT_TIMEOUT, 5);
+$curl->setopt(CURLOPT_HEADER,1);
+$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+
+# A filehandle, reference to a scalar or reference to a typeglob can be used here.
+my $response_body;
+$curl->setopt(CURLOPT_WRITEHEADER,\$response_body);
+
+# Starts the actual request
+my $retcode = $curl->perform;
+
+# Looking at the results...
+$r{ok} = ($retcode==0)?'yes':'no';
+$r{retcode} = $retcode;
+$r{response_code} = $curl->getinfo(CURLINFO_HTTP_CODE);
+$r{response_body} = $response_body;
+if(!$r{ok}) { $r{error} = $curl->strerror($retcode); }
+
+return \%r;
+$_$;
+
+---------------------------------------------------
+-- admin functions
+---------------------------------------------------
+
+CREATE FUNCTION dl_chattr(
+  dl_schema_name name, 
+  dl_table_name name, 
+  dl_columnt_name name, 
+  dl_options dl_options) 
+RETURNS dl_options
+    LANGUAGE plpgsql
+    AS $_$declare
+ my_id regclass;
+begin
+ select into my_id regclass
+ from dl_columns
+ where schema_name=$1
+   and table_name=$2
+   and column_name=$3; 
+
+ if not found then
+      raise exception 'Not a datalink column' 
+            using errcode = 'DL0101', detail = my_id;
+ end if; 
+
+ update dl_optionsdef 
+ set control_options = $4
+ where schema_name=$1
+   and table_name=$2
+   and column_name=$3;
+
+ if not found then
+  insert into dl_optionsdef (schema_name,table_name,column_name,control_options)
+  values ($1,$2,$3,$4);
+ end if;
+
+ return $4;
+end;
+$_$;
+
+COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_options dl_options) 
+IS 'Set attributes for datalink column (buggy)';
+
+

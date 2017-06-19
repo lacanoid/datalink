@@ -6,6 +6,7 @@ SET search_path=datalink;
 select dlvalue('http://www.ljudmila.org');
 select dlvalue('http://www.ljudmila.org','URL','Example datalink');
 select dlvalue('/tmp','FS','Example file datalink');
+select dlvalue('file:///tmp','URL','Example file datalink #2');
 
 select dlcomment(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
 select dlurlcomplete(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
@@ -16,4 +17,9 @@ select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
 
 select dlpreviouscopy(dlvalue('http://www.ljudmila.org'),0);
 select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+
+select dl_options(link_control=>'FILE');
+select dl_options(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
+select * from dl_lco(dl_options(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
+select * from dl_lco(dl_options(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
 

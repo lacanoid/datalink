@@ -1,5 +1,7 @@
 create extension datalink cascade;
 NOTICE:  installing required extension "uuid-ossp"
+NOTICE:  installing required extension "plperlu"
+set search_path=datalink;
 \dx datalink
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
@@ -8,36 +10,41 @@ NOTICE:  installing required extension "uuid-ossp"
 (1 row)
 
 \dx+ datalink
-                         Objects in extension "datalink"
-                               Object Description                                
----------------------------------------------------------------------------------
+                                      Objects in extension "datalink"
+                                            Object Description                                             
+-----------------------------------------------------------------------------------------------------------
  event trigger datalink_event_trigger
- function datalink.dl_class_adminable(regclass)
- function datalink.dlcomment(datalink.datalink)
- function datalink.dl_event_trigger()
- function datalink.dlnewcopy(datalink.datalink,integer)
- function datalink.dl_newtoken()
- function datalink.dlpreviouscopy(datalink.datalink,integer)
- function datalink.dl_ref(datalink.datalink,datalink.dl_options,regclass,name)
- function datalink.dl_ri_trigger()
- function datalink.dl_sql_advice()
- function datalink.dl_unref(datalink.datalink,datalink.dl_options,regclass,name)
- function datalink.dlurlcomplete(datalink.datalink)
- function datalink.dlurlcompleteonly(datalink.datalink)
- function datalink.dlvalue(text,datalink.dl_linktype,text)
- table datalink.dl_optionsdef
- type datalink.datalink
- type datalink.dl_integrity
- type datalink.dl_lco
- type datalink.dl_link_control
- type datalink.dl_linktype
- type datalink.dl_on_unlink
- type datalink.dl_options
- type datalink.dl_read_access
- type datalink.dl_recovery
- type datalink.dl_token
- type datalink.dl_write_access
- view datalink.dl_columns
- view datalink.dl_triggers
-(28 rows)
+ function curl_get(text,boolean)
+ function curl_head(text)
+ function dl_chattr(name,name,name,dl_options)
+ function dl_class_adminable(regclass)
+ function dlcomment(datalink)
+ function dl_event_trigger()
+ function dl_lco(dl_options)
+ function dlnewcopy(datalink,integer)
+ function dl_newtoken()
+ function dl_options(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
+ function dlpreviouscopy(datalink,integer)
+ function dl_ref(datalink,dl_options,regclass,name)
+ function dl_ri_trigger()
+ function dl_sql_advice()
+ function dl_unref(datalink,dl_options,regclass,name)
+ function dlurlcomplete(datalink)
+ function dlurlcompleteonly(datalink)
+ function dlvalue(text,dl_linktype,text)
+ table dl_optionsdef
+ type datalink
+ type dl_integrity
+ type dl_lco
+ type dl_link_control
+ type dl_linktype
+ type dl_on_unlink
+ type dl_options
+ type dl_read_access
+ type dl_recovery
+ type dl_token
+ type dl_write_access
+ view dl_columns
+ view dl_triggers
+(33 rows)
 
