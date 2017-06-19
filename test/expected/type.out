@@ -19,3 +19,27 @@ select dlvalue('/tmp','FS','Example file datalink');
  (file:///tmp,,"Example file datalink")
 (1 row)
 
+select dlnewcopy(dlvalue('http://www.ljudmila.org'),0);
+          dlnewcopy          
+-----------------------------
+ (http://www.ljudmila.org,,)
+(1 row)
+
+select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+ ?column? 
+----------
+ t
+(1 row)
+
+select dlpreviouscopy(dlvalue('http://www.ljudmila.org'),0);
+       dlpreviouscopy        
+-----------------------------
+ (http://www.ljudmila.org,,)
+(1 row)
+
+select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+ ?column? 
+----------
+ t
+(1 row)
+

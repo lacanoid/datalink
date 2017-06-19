@@ -1,7 +1,8 @@
 comment = 'SQL/MED Datalink like functionality'
 default_version = 0.1
 relocatable = false
-requires = 'plperlu'
+#requires = 'plperlu'
+requires='uuid-ossp'
 superuser = YES
 schema = 'datalink'
 

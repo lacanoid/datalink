@@ -7,3 +7,9 @@ select dlvalue('http://www.ljudmila.org');
 select dlvalue('http://www.ljudmila.org','URL','Example datalink');
 select dlvalue('/tmp','FS','Example file datalink');
 
+select dlnewcopy(dlvalue('http://www.ljudmila.org'),0);
+select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+
+select dlpreviouscopy(dlvalue('http://www.ljudmila.org'),0);
+select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+

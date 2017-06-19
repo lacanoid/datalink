@@ -13,6 +13,7 @@ SET client_min_messages = warning;
 ---------------------------------------------------
 
 CREATE TYPE dl_linktype AS ENUM ('URL','FS');
+CREATE DOMAIN dl_token AS uuid;
 CREATE TYPE datalink AS (
 	url text,
 	token uuid,
@@ -55,7 +56,7 @@ CREATE TYPE dl_write_access AS ENUM (
 CREATE TYPE dl_recovery AS ENUM (
     'NO','YES'
 );
-CREATE TYPE dl_lcp AS (
+CREATE TYPE dl_lco AS (
 	link_control dl_link_control,
 	integrity dl_integrity,
 	read_access dl_read_access,
@@ -63,7 +64,7 @@ CREATE TYPE dl_lcp AS (
 	recovery dl_recovery,
 	on_unlink dl_on_unlink
 );
-comment on type dl_lcp is 'Datalink Link Control Options';
+comment on type dl_lco is 'Datalink Link Control Options';
 
 ---------------------------------------------------
 -- event triggers
@@ -210,50 +211,139 @@ on ddl_command_end
 execute procedure dl_event_trigger();
 
 ---------------------------------------------------
+-- SQL/MED update functions
+---------------------------------------------------
+
+CREATE FUNCTION dl_newtoken() RETURNS dl_token
+    LANGUAGE sql
+    AS $$
+select public.uuid_generate_v4()::dl_token;
+$$;
+
+---------------------------------------------------
+
+CREATE FUNCTION dlpreviouscopy(link datalink, has_token integer) RETURNS datalink
+    LANGUAGE plpgsql STRICT
+    AS $_$
+declare
+ token datalink.dl_token;
+begin 
+ if has_token > 0 then
+  token := link.token;
+  if token is null then token := datalink.dl_newtoken() ; end if;
+  link.token := token;
+ end if;
+ return link;
+end
+$_$;
+COMMENT ON FUNCTION dlpreviouscopy(link datalink, has_token integer) 
+IS 'returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+
+---------------------------------------------------
+
+CREATE FUNCTION dlnewcopy(link datalink, has_token integer) RETURNS datalink
+    LANGUAGE plpgsql STRICT
+    AS $_$
+declare
+ token datalink.dl_token;
+begin 
+ if has_token > 0 then
+  link.token := datalink.dl_newtoken();
+ end if;
+ return link;
+end
+$_$;
+COMMENT ON FUNCTION dlnewcopy(link datalink, has_token integer) 
+IS 'returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+
+---------------------------------------------------
 -- referential integrity triggers
 ---------------------------------------------------
 
+CREATE FUNCTION dl_ref(link datalink, link_options dl_options, regclass regclass, column_name name) 
+RETURNS datalink
+LANGUAGE plpgsql
+    AS $_$
+declare
+ newlink datalink.datalink;
+ token datalink.dl_token;
+ lco datalink.dl_lco;
+ r record;
+begin 
+ raise notice 'DATALINK: dl_ref(''%'',%,%,%)',$1,$2,$3,$4;
+ if link_options > 0 then
+  lco = datalink.dl_link_control_options(link_options);
+  if lco.link_control = 'FILE' then
+    -- check if reference exists
+    r := datalink.curl_head(link);
+    if not r.ok then
+      raise exception 'Referenced file does not exit' 
+            using errcode = 'HW003', detail = link;
+    end if;
+  end if;
+  
+  newlink := datalink.dlpreviouscopy(link,0);
+ end if;
+ return newlink;
+end$_$;
+
+---------------------------------------------------
+
+CREATE FUNCTION dl_unref(link datalink, link_options dl_options, regclass regclass, column_name name) 
+RETURNS datalink
+    LANGUAGE plpgsql
+    AS $_$
+begin
+ raise notice 'DATALINK: dl_unref(''%'',%,%,%)',$1,$2,$3,$4;
+ return $1;
+end$_$;
+
+
+---------------------------------------------------
+
 CREATE FUNCTION dl_ri_trigger() RETURNS trigger
-    LANGUAGE plperlu SECURITY DEFINER
-    AS $_X$;
-=pod
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $_X$
+declare
+  r record;
+  ro jsonb;
+  rn jsonb;
+  link datalink.datalink;
+begin
+  if tg_op in ('DELETE','UPDATE') then
+	ro := row_to_json(old)::jsonb;
+  end if;
+  
+  if tg_op in ('INSERT','UPDATE') then
+	rn := row_to_json(new)::jsonb;
+  end if;
 
-This is a trigger function used for updating reference counts on datalinks.
-It should be enabled on all tables which have datalink columns.
+  for r in
+  select column_name,control_options 
+    from datalink.dl_columns 
+   where regclass = tg_relid
 
-=cut
+  loop
 
- my $p=spi_prepare('SELECT column_name,control_options FROM datalink.dl_columns WHERE regclass = $1','oid');
- my $rv=spi_exec_prepared($p,$_TD->{relid});
- spi_freeplan($p);
+	link := null;
+    if tg_op in ('DELETE','UPDATE') then
+       link := jsonb_populate_record(link,ro->r.column_name);
+       if link.url is not null then
+         perform datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
+       end if;
+    end if;
+  
+	link := null;
+    if tg_op in ('INSERT','UPDATE') then
+       link := jsonb_populate_record(link,rn->r.column_name);
+       if link.url is not null then
+         perform datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
+       end if;
+    end if;
 
- my %d;    # datalink changes
+  end loop;
 
- my $qref;
- my $qunref;
- 
- for my $i (@{$rv->{rows}}) {
-  my $c = $i->{column_name};
-  next if !$c;
-  if($_TD->{event} eq 'DELETE' || $_TD->{event} eq 'UPDATE') {
-   if(defined($_TD->{old}{$c})) { 
-#     elog(NOTICE,"dl_unref($_TD->{old}{$c})");
-     if(!$qunref) { $qunref=spi_prepare('SELECT datalink.dl_unref($1,$2,$3,$4)','datalink.datalink','datalink.dl_options','regclass','name'); }
-     spi_exec_prepared($qunref,$_TD->{old}{$c},$i->{control_options},$_TD->{relid},$c);
-#    $d{$_TD->{old}{$c}}--; 
-   }
-  }
-  if($_TD->{event} eq 'INSERT' || $_TD->{event} eq 'UPDATE') {
-   if(defined($_TD->{new}{$c})) { 
-#    elog(NOTICE,"dl_ref($_TD->{new}{$c},$i->{control_options})");
-    if(!$qref) { $qref = spi_prepare('SELECT datalink.dl_ref($1,$2,$3,$4)','datalink.datalink','datalink.dl_options','regclass','name'); }
-    spi_exec_prepared($qref,$_TD->{new}{$c},$i->{control_options},$_TD->{relid},$c);
-#    $d{$_TD->{new}{$c}}++;
-   }
-  }
- }
- 
-if($_TD->{event} eq 'DELETE') { return "SKIP"; }
-return "MODIFY";
+  if tg_op = 'DELETE' then return old; end if;
+  return new;   
+end
 $_X$;
-
