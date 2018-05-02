@@ -25,7 +25,7 @@ select * from sample_urls;
 create table sample_datalinks (
   url text,
   link datalink
-);
+) with oids;
 NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
 select * from dl_triggers;
  owner |     regclass     | links | mco |       tgname        
@@ -91,7 +91,7 @@ NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',1,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  (file:///foo+bar/no_file,,"Sample file datalink 2")
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 16 at RAISE
-PL/pgSQL function dl_ri_trigger() line 35 at assignment
+PL/pgSQL function dl_ri_trigger() line 37 at assignment
 select (link).url, (link).token is not null as has_token from sample_datalinks2;
            url           | has_token 
 -------------------------+-----------

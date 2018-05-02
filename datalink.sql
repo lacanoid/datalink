@@ -477,7 +477,9 @@ begin
   
 	link := null;
     if tg_op in ('INSERT','UPDATE') then
-       link := jsonb_populate_record(link,rn->r.column_name);
+       if rn->>r.column_name is not null then
+         link := jsonb_populate_record(link,coalesce(rn->r.column_name,'{}'));
+       end if;
        if link.url is not null then
          link := datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link::text));

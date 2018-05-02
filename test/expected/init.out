@@ -9,42 +9,28 @@ set search_path=datalink;
  datalink | 0.1     | datalink | SQL/MED Datalink like functionality
 (1 row)
 
-\dx+ datalink
-                                      Objects in extension "datalink"
-                                            Object Description                                             
------------------------------------------------------------------------------------------------------------
- event trigger datalink_event_trigger
- function curl_get(text,boolean)
- function curl_head(text)
- function dl_chattr(name,name,name,dl_options)
- function dl_class_adminable(regclass)
- function dlcomment(datalink)
- function dl_event_trigger()
- function dl_lco(dl_options)
- function dlnewcopy(datalink,integer)
- function dl_newtoken()
- function dl_options(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
- function dlpreviouscopy(datalink,integer)
- function dl_ref(datalink,dl_options,regclass,name)
- function dl_ri_trigger()
- function dl_sql_advice()
- function dl_unref(datalink,dl_options,regclass,name)
- function dlurlcomplete(datalink)
- function dlurlcompleteonly(datalink)
- function dlvalue(text,dl_linktype,text)
- table dl_optionsdef
- type datalink
- type dl_integrity
- type dl_lco
- type dl_link_control
- type dl_linktype
- type dl_on_unlink
- type dl_options
- type dl_read_access
- type dl_recovery
- type dl_token
- type dl_write_access
- view dl_columns
- view dl_triggers
-(33 rows)
+select oid::regprocedure,obj_description(oid) from pg_proc p 
+ where pronamespace = 'datalink'::regnamespace
+ order by obj_description(oid) is null, cast(oid::regprocedure as text) collate "C";
+                                               oid                                                |                                                        obj_description                                                         
+--------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------
+ dl_chattr(name,name,name,dl_options)                                                             | Set attributes for datalink column (buggy)
+ dl_lco(dl_options)                                                                               | Calculate dl_lco from dl_options
+ dl_options(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | Calculate dl_options from individual options
+ dlcomment(datalink)                                                                              | SQL/MED - returns the comment value, if it exists, from a DATALINK value
+ dlnewcopy(datalink,integer)                                                                      | SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.
+ dlpreviouscopy(datalink,integer)                                                                 | SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
+ dlurlcomplete(datalink)                                                                          | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
+ dlurlcompleteonly(datalink)                                                                      | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
+ dlvalue(text,dl_linktype,text)                                                                   | SQL/MED - construct a DATALINK value
+ curl_get(text,boolean)                                                                           | 
+ curl_head(text)                                                                                  | 
+ dl_class_adminable(regclass)                                                                     | 
+ dl_event_trigger()                                                                               | 
+ dl_newtoken()                                                                                    | 
+ dl_ref(datalink,dl_options,regclass,name)                                                        | 
+ dl_ri_trigger()                                                                                  | 
+ dl_sql_advice()                                                                                  | 
+ dl_unref(datalink,dl_options,regclass,name)                                                      | 
+(18 rows)
 

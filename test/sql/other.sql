@@ -23,7 +23,7 @@ select * from sample_urls;
 create table sample_datalinks (
   url text,
   link datalink
-);
+) with oids;
 
 select * from dl_triggers;
 

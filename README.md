@@ -7,6 +7,8 @@ It is very much a prototype.
 Installation
 ------------
 
+You will need to install libwww-curl-perl first, as it is used by the extension.
+
 To build and install this module:
 
     make
@@ -22,7 +24,7 @@ And finally inside the database:
 
     CREATE EXTENSION datalink;
 
-This of course requires superuser privileges.
+This of requires superuser privileges.
 
 Using
 -----
