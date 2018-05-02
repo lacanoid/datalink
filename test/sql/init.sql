@@ -4,7 +4,10 @@ set search_path=datalink;
 
 \dx datalink
 
-select oid::regprocedure,obj_description(oid) from pg_proc p 
+select p.pronamespace::regnamespace,oid::regprocedure,obj_description(oid) from pg_proc p 
  where pronamespace = 'datalink'::regnamespace
- order by obj_description(oid) is null, cast(oid::regprocedure as text) collate "C";
+    or (pronamespace = 'pg_catalog'::regnamespace 
+        and proname like 'dl%'
+        and obj_description(oid) like 'SQL/MED%')
+ order by 1, obj_description(oid) is null, cast(oid::regprocedure as text) collate "C";
 

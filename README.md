@@ -29,6 +29,8 @@ This of requires superuser privileges.
 Using
 -----
 
-To be written. In the meantime, see tests for examples.
+To be written...
+
+In the meantime, see tests for some examples.
 
 

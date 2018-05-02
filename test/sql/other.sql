@@ -16,7 +16,8 @@ insert into sample_urls (url)
 values 
   ('http://www.ljudmila.org'),
   ('https://www.github.org'),
-  ('file:///tmp/a');
+  ('file:///tmp/a'),
+  ('http://www.debian.org');
 
 select * from sample_urls;
 
@@ -43,9 +44,16 @@ update sample_datalinks
    set link = null
  where url like 'file:%';
 
+update sample_datalinks
+   set link = null
+ where url like '%debian.org%';
+
 delete from sample_datalinks
  where url like 'https:%';
  
+update sample_datalinks
+   set link = dlvalue(url)
+ where link is null and url is not null;
  
 create table sample_datalinks2 (
   id serial,

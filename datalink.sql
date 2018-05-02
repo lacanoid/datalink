@@ -22,7 +22,7 @@ CREATE TYPE datalink AS (
 -- datalink functions
 ---------------------------------------------------
 
-CREATE FUNCTION dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
     AS $$
@@ -34,34 +34,34 @@ select row(
        null::uuid,
        $3)::datalink.datalink
 $$;
-COMMENT ON FUNCTION dlvalue(text,dl_linktype,text) 
+COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - construct a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dlcomment(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $$ select ($1).comment $$;
 
-COMMENT ON FUNCTION dlcomment(datalink) 
+COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dlurlcomplete(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select ($1).url $_$;
 
-COMMENT ON FUNCTION dlurlcomplete(datalink) 
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dlurlcompleteonly(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select ($1).url $_$;
 
-COMMENT ON FUNCTION dlurlcompleteonly(datalink) 
+COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
 
 
@@ -358,12 +358,12 @@ execute procedure dl_event_trigger();
 CREATE FUNCTION dl_newtoken() RETURNS dl_token
     LANGUAGE sql
     AS $$
-select public.uuid_generate_v4()::dl_token;
+select cast(public.uuid_generate_v4() as datalink.dl_token);
 $$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dlpreviouscopy(link datalink, has_token integer) RETURNS datalink
+CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) RETURNS datalink
     LANGUAGE plpgsql STRICT
     AS $_$
 declare
@@ -377,12 +377,12 @@ begin
  return link;
 end
 $_$;
-COMMENT ON FUNCTION dlpreviouscopy(link datalink, has_token integer) 
+COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) 
 IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dlnewcopy(link datalink, has_token integer) RETURNS datalink
+CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) RETURNS datalink
     LANGUAGE plpgsql STRICT
     AS $_$
 declare
@@ -394,7 +394,7 @@ begin
  return link;
 end
 $_$;
-COMMENT ON FUNCTION dlnewcopy(link datalink, has_token integer) 
+COMMENT ON FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) 
 IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
 
 ---------------------------------------------------
@@ -424,7 +424,7 @@ begin
     end if;
   end if;
   
-  link := datalink.dlpreviouscopy(link,has_token);
+  link := dlpreviouscopy(link,has_token);
  end if;
  return link;
 end$_$;
@@ -469,7 +469,9 @@ begin
 
 	link := null;
     if tg_op in ('DELETE','UPDATE') then
-       link := jsonb_populate_record(link,ro->r.column_name);
+       if ro->>r.column_name is not null then
+         link := jsonb_populate_record(link,ro->r.column_name);
+       end if;
        if link.url is not null then
          link := datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
        end if;
