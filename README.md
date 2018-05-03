@@ -29,8 +29,44 @@ This of requires superuser privileges.
 Using
 -----
 
-To be written...
+This extension lives mostly in `datalink` schema.
+SQL/MED standard compliant functions are installed in `pg_catalog` schema, 
+so they are accessible regardless of the search_path.
 
-In the meantime, see tests for some examples.
+DATALINK type:
+
+A special type `datalink.datalink` is provided. 
+It behaves like SQL/MED DATALINK type.
+When creating table columns of this type, 
+datalink triggers are automatically installed on the table.
+
+    create table sample_datalinks (
+    	id serial,
+    	url text,
+    	link datalink.datalink
+    );
+    
+    insert into sample_datalinks (link)
+            values (dlvalue('http://www.debian.org');
+            
+DATALINK functions:
+
+Constructors for values of type datalink:
+
+- `DLVALUE(url) → datalink` (for INSERT)
+- `DLNEWCOPY(url,tokenp) → datalink` (for UPDATE)
+- `DLPREVIOUSCOPY(url,tokenp) → datalink` (for UPDATE)
+
+Functions for extracting information from datalink type:
+
+- `DLURLCOMPLETE(datalink) → url`
+- `DLURLCOMPLETEONLY(datalink) → url`
+- `DLCOMMENT(datalink) → text`
+
+See also
+--------
+- tests contain some examples
+- https://wiki.postgresql.org/wiki/DATALINK
+- SQL/MED standard
 
 
