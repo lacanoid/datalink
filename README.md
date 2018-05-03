@@ -2,12 +2,40 @@ Datalink extension for PostgreSQL
 =================================
 
 This attempts to implements some of the SQL/MED datalink functionality on PostgreSQL.
-It is very much a prototype.
+It is very much a prototype and used for playing around.
+
+Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
+
+Currently, it implements the following:
+- SQL/MED DATALINK type (datalink.datalink)
+- SQL/MED DATALINK constructors DLVALUE,DLPREVIOUSCOPY and DLNEWCOPY
+- Some SQL/MED functions (see below for a list)
+- Event and other triggers to make all this 'just work'
+- `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
+- link control options (LCO) functions
+- token generator
+- LCO: NO LINK CONTROL
+- LCO: FILE LINK CONTROL - check if file exists with curl_head
+
+Missing:
+- Some SQL/MED functions: extract parts of URL
+- Some SQL/MED functions: extract file paths
+- no datalinker
+- LCO: READ ACCESS DB
+- LCO: WRITE ACCESS BLOCKED
+- LCO: WRITE ACCESS ADMIN
+- LCO: WRITE ACCESS ADMIN TOKEN
+- LCO: ON UNLINK RESTORE
+- LCO: ON UNLINK DELETE
+- LCO: RECOVERY YES
 
 Installation
 ------------
 
-You will need to install libwww-curl-perl first, as it is used by the extension.
+You will need to have 
+[WWW:Curl](http://search.cpan.org/~szbalint/WWW-Curl-4.17/lib/WWW/Curl.pm#WWW::Curl::Easy) 
+Perl package installed, as it is used by the extension.
+On Debian, you can install `libwww-curl-perl` package.
 
 To build and install this module:
 
@@ -24,7 +52,7 @@ And finally inside the database:
 
     CREATE EXTENSION datalink;
 
-This of requires superuser privileges.
+This requires superuser privileges.
 
 Using
 -----
@@ -59,8 +87,8 @@ DATALINK functions:
 Constructors for values of type datalink:
 
 - `DLVALUE(url[,link_type][,comment]) → datalink` (for INSERT)
-- `DLNEWCOPY(url,tokenp) → datalink` (for UPDATE)
-- `DLPREVIOUSCOPY(url,tokenp) → datalink` (for UPDATE)
+- `DLNEWCOPY(datalink,tokenp) → datalink` (for UPDATE)
+- `DLPREVIOUSCOPY(datalink,tokenp) → datalink` (for UPDATE)
 
 Functions for extracting information from datalink type:
 
