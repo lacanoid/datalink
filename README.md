@@ -2,8 +2,9 @@ Datalink extension for PostgreSQL
 =================================
 
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
-It is very much a prototype and used for playing around, to see how much of the standard
-can be implemented in high-level postgres, without having to resort to C.
+It is very much a prototype and used for playing around to see if this can be made useful.
+Also to see how much of the standard can be implemented in high-level postgres, 
+without having to resort to C.
 
 Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
 
