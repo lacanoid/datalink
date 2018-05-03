@@ -1,4 +1,4 @@
-comment = 'SQL/MED Datalink like functionality'
+comment = 'SQL/MED DATALINK like functionality'
 default_version = 0.1
 relocatable = false
 requires='uuid-ossp,plperlu'
