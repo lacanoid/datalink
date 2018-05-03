@@ -586,15 +586,18 @@ $_$;
 CREATE FUNCTION dl_chattr(
   dl_schema_name name, 
   dl_table_name name, 
-  dl_columnt_name name, 
+  dl_column_name name, 
   dl_options dl_options) 
 RETURNS dl_options
     LANGUAGE plpgsql
-    AS $_$declare
+    AS $_$
+declare
  my_id regclass;
+ e text;
+ n bigint;
 begin
  select into my_id regclass
- from dl_columns
+ from datalink.dl_columns
  where schema_name=$1
    and table_name=$2
    and column_name=$3; 
@@ -604,14 +607,21 @@ begin
             using errcode = 'DL0101', detail = my_id;
  end if; 
 
- update dl_optionsdef 
+ e := format('select count(%I) from %I.%I where %I is not null limit 1',
+   dl_column_name,dl_schema_name,dl_table_name,dl_column_name);
+ execute e into n;
+ if n > 0 then
+   raise exception 'Can''t change link control options; % non-null values present in column "%"',n,dl_column_name;
+ end if;
+ 
+ update datalink.dl_optionsdef 
  set control_options = $4
  where schema_name=$1
    and table_name=$2
    and column_name=$3;
 
  if not found then
-  insert into dl_optionsdef (schema_name,table_name,column_name,control_options)
+  insert into datalink.dl_optionsdef (schema_name,table_name,column_name,control_options)
   values ($1,$2,$3,$4);
  end if;
 
