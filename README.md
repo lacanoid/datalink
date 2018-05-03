@@ -2,15 +2,16 @@ Datalink extension for PostgreSQL
 =================================
 
 This attempts to implements some of the SQL/MED datalink functionality on PostgreSQL.
-It is very much a prototype and used for playing around.
+It is very much a prototype and used for playing around, to see how much of the standard
+can be implemented in high-level postgres, without having to resort to C.
 
 Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
 
 Currently, it implements the following:
 - SQL/MED DATALINK type (datalink.datalink)
-- SQL/MED DATALINK constructors DLVALUE,DLPREVIOUSCOPY and DLNEWCOPY
+- SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - Some SQL/MED functions (see below for a list)
-- Event and other triggers to make all this 'just work'
+- Event and other triggers to make all of this 'just work'
 - `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
 - link control options (LCO) functions
 - token generator
