@@ -331,9 +331,9 @@ CREATE FUNCTION dl_event_trigger() RETURNS event_trigger
 declare
  obj record;
 begin
- if tg_tag in ('CREATE TABLE','ALTER TABLE') 
+ --  RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
+ if tg_tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
  then
---   RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
    for obj in select * from datalink.dl_sql_advice()
    where advice_type = 'TRIGGER' and not valid
    loop

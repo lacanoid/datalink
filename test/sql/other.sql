@@ -25,3 +25,7 @@ select (link).url, (link).token is not null as has_token from sample_datalinks2;
 
 select dl_chattr('public','sample_datalinks2','link', dl_options(link_control=>'FILE'));
 
+create table sample_datalinks3
+    as 
+select *
+  from sample_datalinks;

@@ -42,3 +42,8 @@ select (link).url, (link).token is not null as has_token from sample_datalinks2;
 select dl_chattr('public','sample_datalinks2','link', dl_options(link_control=>'FILE'));
 ERROR:  Can't change link control options; 2 non-null values present in column "link"
 CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_options) line 22 at RAISE
+create table sample_datalinks3
+    as 
+select *
+  from sample_datalinks;
+NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks3 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
