@@ -2,27 +2,31 @@ Datalink extension for PostgreSQL
 =================================
 
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
-It is very much a prototype and used for playing around to see if this can be made useful.
+It is very much a prototype and meant for playing around to see if this can be made useful.
 Also to see how much of the standard can be implemented in high-level postgres, 
 without having to resort to C.
 
 Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
-
+ 
 Currently, it implements the following:
 - SQL/MED DATALINK type (datalink.datalink)
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
-- Some SQL/MED functions (see below for a list)
+- SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - Event and other triggers to make all of this 'just work'
 - `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
 - link control options (LCO) functions
 - token generator
 - plperlu interface to curl via WWW::Curl
+- DLCOMMENT function
 - LCO: NO LINK CONTROL
 - LCO: FILE LINK CONTROL - check if file exists with curl head
 
 Missing:
-- Some SQL/MED functions: extract parts of URL
-- Some SQL/MED functions: extract file paths
+- SQL/MED functions DLURLSCHEME, DLURLSERVER
+- SQL/MED functions DLURLPATH, DLURLPATHONLY
+- SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
+- SQL/MED functions DLREPLACECONTENT
+- DLLINKTYPE function
 - LCO: READ ACCESS DB
 - LCO: WRITE ACCESS BLOCKED
 - LCO: WRITE ACCESS ADMIN
