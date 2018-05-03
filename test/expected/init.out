@@ -6,7 +6,7 @@ set search_path=datalink;
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.1     | datalink | SQL/MED Datalink like functionality
+ datalink | 0.1     | datalink | SQL/MED DATALINK like functionality
 (1 row)
 
 select p.pronamespace::regnamespace,oid::regprocedure,obj_description(oid) from pg_proc p 
