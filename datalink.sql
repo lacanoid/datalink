@@ -417,7 +417,7 @@ begin
   if lco.link_control = 'FILE' then
     -- check if reference exists
     has_token := 1;
-    r := datalink.curl_head(link.url);
+    r := datalink.curl_get(link.url,true);
     if not r.ok then
       raise exception 'Referenced file does not exit' 
             using errcode = 'HW003', detail = link;
@@ -520,51 +520,12 @@ $curl->setopt(CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,$head?1:0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 
 # A filehandle, reference to a scalar or reference to a typeglob can be used here.
 my $response_body;
 if($head) { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 else      { $curl->setopt(CURLOPT_WRITEHEADER,\$response_body); }
-
-# Starts the actual request
-my $retcode = $curl->perform;
-
-# Looking at the results...
-$r{ok} = ($retcode==0)?'yes':'no';
-$r{retcode} = $retcode;
-$r{response_code} = $curl->getinfo(CURLINFO_HTTP_CODE);
-$r{response_body} = $response_body;
-if(!$r{ok}) { $r{error} = $curl->strerror($retcode); }
-
-return \%r;
-$_$;
-
----------------------------------------------------
-
-CREATE FUNCTION curl_head(
-   url text, 
-   OUT ok boolean, OUT response_code integer, OUT response_body text, OUT retcode integer, OUT error text) 
-RETURNS record
-LANGUAGE plperlu
-AS $_$
-my ($url)=@_;
-
-use strict;
-use warnings;
-use WWW::Curl::Easy;
-
-my $curl = WWW::Curl::Easy->new;
-my %r;
-  
-$curl->setopt(CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
-$curl->setopt(CURLOPT_URL, $url);
-$curl->setopt(CURLOPT_TIMEOUT, 5);
-$curl->setopt(CURLOPT_HEADER,1);
-$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
-
-# A filehandle, reference to a scalar or reference to a typeglob can be used here.
-my $response_body;
-$curl->setopt(CURLOPT_WRITEHEADER,\$response_body);
 
 # Starts the actual request
 my $retcode = $curl->perform;

@@ -1,7 +1,7 @@
 Datalink extension for PostgreSQL
 =================================
 
-This attempts to implements some of the SQL/MED datalink functionality on PostgreSQL.
+This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
 It is very much a prototype and used for playing around, to see how much of the standard
 can be implemented in high-level postgres, without having to resort to C.
 
@@ -15,13 +15,13 @@ Currently, it implements the following:
 - `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
 - link control options (LCO) functions
 - token generator
+- plperlu interface to curl via WWW::Curl
 - LCO: NO LINK CONTROL
-- LCO: FILE LINK CONTROL - check if file exists with curl_head
+- LCO: FILE LINK CONTROL - check if file exists with curl head
 
 Missing:
 - Some SQL/MED functions: extract parts of URL
 - Some SQL/MED functions: extract file paths
-- no datalinker
 - LCO: READ ACCESS DB
 - LCO: WRITE ACCESS BLOCKED
 - LCO: WRITE ACCESS ADMIN
@@ -29,12 +29,16 @@ Missing:
 - LCO: ON UNLINK RESTORE
 - LCO: ON UNLINK DELETE
 - LCO: RECOVERY YES
+- datalinker processes
+- URL type + functions
+- Transactional File IO functions + spaces
+- native postgres interface to curl
 
 Installation
 ------------
 
 You will need to have 
-[WWW:Curl](http://search.cpan.org/~szbalint/WWW-Curl-4.17/lib/WWW/Curl.pm#WWW::Curl::Easy) 
+[WWW::Curl](http://search.cpan.org/~szbalint/WWW-Curl-4.17/lib/WWW/Curl.pm#WWW::Curl::Easy) 
 Perl package installed, as it is used by the extension.
 On Debian, you can install `libwww-curl-perl` package.
 
