@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.1 lacanoid@ljudmila.org
+--  version 0.2 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -12,11 +12,7 @@ SET client_min_messages = warning;
 
 CREATE TYPE dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
-CREATE TYPE datalink AS (
-	url text,
-	token uuid,
-	comment text
-);
+CREATE DOMAIN pg_catalog.datalink AS jsonb;
 
 ---------------------------------------------------
 -- datalink functions
@@ -26,13 +22,19 @@ CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL',
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
     AS $$
-select row(
-       case linktype
-         when 'FS' then 'file://' || $1
-         when 'URL' then $1
-       end,
-       null::uuid,
-       $3)::datalink.datalink
+with link as (
+select jsonb_build_object('url',
+         case linktype
+           when 'FS' then 'file://' || $1
+           when 'URL' then $1
+         end) as js
+)
+select case 
+       when comment is null 
+       then link.js
+       else jsonb_set(link.js,array['text'],to_jsonb($3))
+       end :: pg_catalog.datalink
+  from link
 $$;
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - construct a DATALINK value';
@@ -41,7 +43,7 @@ IS 'SQL/MED - construct a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $$ select ($1).comment $$;
+AS $$ select $1->>'text' $$;
 
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - returns the comment value, if it exists, from a DATALINK value';
@@ -50,7 +52,7 @@ IS 'SQL/MED - returns the comment value, if it exists, from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select ($1).url $_$;
+AS $_$ select $1->>'url' $_$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
@@ -59,11 +61,10 @@ IS 'SQL/MED - returns the data location attribute from a DATALINK value with a l
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select ($1).url $_$;
+AS $_$ select $1->>'url' $_$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
-
 
 ---------------------------------------------------
 -- link control options
@@ -263,7 +264,7 @@ CREATE VIEW dl_columns AS
      LEFT JOIN dl_optionsdef ad ON 
       (((ad.schema_name = s.nspname) AND (ad.table_name = c.relname) AND (ad.column_name = a.attname))))
   WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
-         (tn.nspname = 'datalink'::name) AND (t.typname = 'datalink'::name) AND
+         t.oid = 'pg_catalog.datalink'::regtype AND
           (NOT a.attisdropped))
   ORDER BY s.nspname, c.relname, a.attnum;
 
@@ -332,6 +333,8 @@ declare
  obj record;
 begin
  --  RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
+  
+
  if tg_tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
  then
    for obj in select * from datalink.dl_sql_advice()
@@ -370,9 +373,10 @@ declare
  token datalink.dl_token;
 begin 
  if has_token > 0 then
-  token := link.token;
+  token := link->>'token';
   if token is null then token := datalink.dl_newtoken() ; end if;
-  link.token := token;
+  link := jsonb_set(link,'{token}',to_jsonb(token));
+--  link.token := token;
  end if;
  return link;
 end
@@ -389,7 +393,9 @@ declare
  token datalink.dl_token;
 begin 
  if has_token > 0 then
-  link.token := datalink.dl_newtoken();
+  token := datalink.dl_newtoken();
+  link := jsonb_set(link,'{token}',to_jsonb(token));
+--  link.token := datalink.dl_newtoken();
  end if;
  return link;
 end
@@ -409,18 +415,21 @@ declare
  lco datalink.dl_lco;
  r record;
  has_token integer;
+ url text;
 begin 
- raise notice 'DATALINK: dl_ref(''%'',%,%,%)',($1).url,$2,$3,$4;
+ url := dlurlcomplete($1);
+ raise notice 'DATALINK: dl_ref(''%'',%,%,%)',url,$2,$3,$4;
  has_token := 0;
  if link_options > 0 then
   lco = datalink.dl_lco(link_options);
   if lco.link_control = 'FILE' then
     -- check if reference exists
     has_token := 1;
-    r := datalink.curl_get(link.url,true);
+    r := datalink.curl_get(url,true);
     if not r.ok then
       raise exception 'Referenced file does not exit' 
-            using errcode = 'HW003', detail = link;
+            using errcode = 'HW003', 
+                  detail = format('[%s.%I] %s',regclass::text,column_name,url);
     end if;
   end if;
   
@@ -436,7 +445,7 @@ RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
 begin
- raise notice 'DATALINK: dl_unref(''%'',%,%,%)',($1).url,$2,$3,$4;
+ raise notice 'DATALINK: dl_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
  return $1;
 end$_$;
 
@@ -450,7 +459,7 @@ declare
   r record;
   ro jsonb;
   rn jsonb;
-  link datalink.datalink;
+  link pg_catalog.datalink;
 begin
   if tg_op in ('DELETE','UPDATE') then
 	ro := row_to_json(old)::jsonb;
@@ -469,22 +478,18 @@ begin
 
 	link := null;
     if tg_op in ('DELETE','UPDATE') then
-       if ro->>r.column_name is not null then
-         link := jsonb_populate_record(link,ro->r.column_name);
-       end if;
-       if link.url is not null then
+	   link := ro->r.column_name;
+       if dlurlcomplete(link) is not null then
          link := datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
        end if;
     end if;
   
 	link := null;
     if tg_op in ('INSERT','UPDATE') then
-       if rn->>r.column_name is not null then
-         link := jsonb_populate_record(link,coalesce(rn->r.column_name,'{}'));
-       end if;
-       if link.url is not null then
+       link := rn->r.column_name;
+       if dlurlcomplete(link) is not null then
          link := datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
-         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link::text));
+         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link));
        end if;
     end if;
 

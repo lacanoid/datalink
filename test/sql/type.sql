@@ -13,10 +13,10 @@ select dlurlcomplete(dlvalue('http://www.ljudmila.org','URL','Example datalink')
 select dlurlcompleteonly(dlvalue('http://www.ljudmila.org','URL','Example datalink'));
 
 select dlnewcopy(dlvalue('http://www.ljudmila.org'),0);
-select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
 
 select dlpreviouscopy(dlvalue('http://www.ljudmila.org'),0);
-select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1)).token is not null;
+select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
 
 select dl_options(link_control=>'FILE');
 select dl_options(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
