@@ -518,6 +518,8 @@ use strict;
 use warnings;
 use WWW::Curl::Easy;
 
+$head = ($head eq't')?1:0;
+
 my $curl = WWW::Curl::Easy->new;
 my %r;
   
@@ -528,9 +530,10 @@ $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
 if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 
 # A filehandle, reference to a scalar or reference to a typeglob can be used here.
+my $response_header;
 my $response_body;
-if($head) { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
-else      { $curl->setopt(CURLOPT_WRITEHEADER,\$response_body); }
+if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
+else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 
 # Starts the actual request
 my $retcode = $curl->perform;
@@ -539,8 +542,9 @@ my $retcode = $curl->perform;
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{retcode} = $retcode;
 $r{response_code} = $curl->getinfo(CURLINFO_HTTP_CODE);
-$r{response_body} = $response_body;
-if(!$r{ok}) { $r{error} = $curl->strerror($retcode); }
+if($head) { $r{response_body} = $response_header; }
+else      { $r{response_body} = $response_body; }
+if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 
 return \%r;
 $_$;
