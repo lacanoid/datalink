@@ -30,7 +30,7 @@ values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',1,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] file:///foo+bar/no_file
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_ri_trigger() line 35 at assignment
 select dl_chattr('public','sample_datalinks2','link', dl_options(link_control=>'FILE'));
 ERROR:  Can't change link control options; 2 non-null values present in column "link"
@@ -43,7 +43,7 @@ values (dlvalue('http://blah','URL','Broken datalink'));
 NOTICE:  DATALINK: dl_ref('http://blah',1,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] http://blah
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_ri_trigger() line 35 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
       dlurlcomplete      | has_token 

@@ -13,6 +13,7 @@ SET client_min_messages = warning;
 CREATE TYPE dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
+CREATE DOMAIN dl_url AS text CHECK (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
 ---------------------------------------------------
 -- datalink functions
@@ -24,10 +25,10 @@ RETURNS datalink
     AS $$
 with link as (
 select jsonb_build_object('url',
-         case linktype
+         cast(case linktype
            when 'FS' then 'file://' || $1
            when 'URL' then $1
-         end) as js
+         end as datalink.dl_url)) as js
 )
 select case 
        when comment is null 
@@ -419,6 +420,7 @@ declare
 begin 
  url := dlurlcomplete($1);
  raise notice 'DATALINK: dl_ref(''%'',%,%,%)',url,$2,$3,$4;
+
  has_token := 0;
  if link_options > 0 then
   lco = datalink.dl_lco(link_options);
