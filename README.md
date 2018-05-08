@@ -92,6 +92,9 @@ datalink triggers are automatically installed on the table.
     insert into sample_datalinks (link)
             values (dlvalue('http://www.debian.org'));
             
+    select dlurlcomplete(link)
+      from sample_datalinks;
+            
 DATALINK functions:
 
 Constructors for values of type datalink:
