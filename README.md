@@ -9,7 +9,7 @@ without having to resort to C.
 Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
  
 Currently, it implements the following:
-- SQL/MED DATALINK type (datalink.datalink)
+- SQL/MED DATALINK type
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - Event and other triggers to make all of this 'just work'
@@ -78,7 +78,7 @@ as values are assigned to datalink columns.
 
 DATALINK type:
 
-A special type `datalink.datalink` is provided. 
+A special type DATALINK is provided. 
 It behaves like SQL/MED DATALINK type.
 When creating table columns of this type, 
 datalink triggers are automatically installed on the table.
@@ -86,7 +86,7 @@ datalink triggers are automatically installed on the table.
     create table sample_datalinks (
     	id serial,
     	url text,
-    	link datalink.datalink
+    	link datalink
     );
     
     insert into sample_datalinks (link)
