@@ -297,6 +297,7 @@ CREATE VIEW dl_triggers AS
      JOIN pg_class c0 ON ((c0.oid = COALESCE(c.relid, t.oid))))
      JOIN pg_user u ON ((u.usesysid = c0.relowner)))
   ORDER BY ((COALESCE(c.relid, t.oid))::regclass)::text;
+grant select on dl_triggers to public;
 
 ---------------------------------------------------
 
@@ -604,4 +605,6 @@ $_$;
 COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_options dl_options) 
 IS 'Set attributes for datalink column (buggy)';
 
+
+grant usage on schema datalink to public;
 
