@@ -67,25 +67,25 @@ select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not n
  t
 (1 row)
 
-select dl_options(link_control=>'FILE');
- dl_options 
-------------
-          1
+select dl_lco(link_control=>'FILE');
+ dl_lco 
+--------
+      1
 (1 row)
 
-select dl_options(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
- dl_options 
-------------
-      12577
+select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
+ dl_lco 
+--------
+  12577
 (1 row)
 
-select * from dl_lco(dl_options(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
  link_control | integrity | read_access | write_access | recovery | on_unlink 
 --------------+-----------+-------------+--------------+----------+-----------
  FILE         | ALL       | DB          | ADMIN TOKEN  | NO       | NONE
 (1 row)
 
-select * from dl_lco(dl_options(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
  link_control | integrity | read_access | write_access | recovery | on_unlink 
 --------------+-----------+-------------+--------------+----------+-----------
  FILE         | ALL       | FS          | FS           | YES      | RESTORE

@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.2 lacanoid@ljudmila.org
+--  version 0.3 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -93,7 +93,7 @@ CREATE TYPE dl_on_unlink AS ENUM (
 CREATE TYPE dl_recovery AS ENUM (
     'NO','YES'
 );
-CREATE TYPE dl_lco AS (
+CREATE TYPE dl_link_control_options AS (
 	link_control dl_link_control,
 	integrity dl_integrity,
 	read_access dl_read_access,
@@ -101,21 +101,23 @@ CREATE TYPE dl_lco AS (
 	recovery dl_recovery,
 	on_unlink dl_on_unlink
 );
-comment on type dl_lco is 'Datalink Link Control Options';
-CREATE DOMAIN dl_options AS integer;
+comment on type dl_link_control_options is 'Datalink Link Control Options';
+
+CREATE DOMAIN dl_lco AS integer;
+comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
 
 ---------------------------------------------------
 -- helper functions
 ---------------------------------------------------
 
-CREATE FUNCTION dl_options(
+CREATE FUNCTION dl_lco(
 	link_control dl_link_control DEFAULT 'NO'::dl_link_control, 
 	integrity dl_integrity DEFAULT 'NONE'::dl_integrity, 
 	read_access dl_read_access DEFAULT 'FS'::dl_read_access, 
 	write_access dl_write_access DEFAULT 'FS'::dl_write_access, 
 	recovery dl_recovery DEFAULT 'NO'::dl_recovery, 
 	on_unlink dl_on_unlink DEFAULT 'NONE'::dl_on_unlink) 
-RETURNS dl_options
+RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
  select cast (
@@ -158,17 +160,17 @@ AS $_$
      when 'NONE' then 0
      else 0
    end)
-   ))))) as datalink.dl_options)
+   ))))) as datalink.dl_lco)
 $_$;
 
-COMMENT ON FUNCTION dl_options(
+COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
-IS 'Calculate dl_options from individual options';
+IS 'Calculate dl_lco from individual options';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_lco(dl_options) 
-RETURNS dl_lco
+CREATE FUNCTION dl_link_control_options(dl_lco) 
+RETURNS dl_link_control_options
 LANGUAGE sql IMMUTABLE
     AS $_$
 select row(case $1 & 15
@@ -199,11 +201,11 @@ select row(case $1 & 15
              when 1 then 'RESTORE'
              when 2 then 'DELETE'
            end
-        ) :: datalink.dl_lco
+        ) :: datalink.dl_link_control_options
 $_$;
 
-COMMENT ON FUNCTION dl_lco(dl_options)
-IS 'Calculate dl_lco from dl_options';
+COMMENT ON FUNCTION dl_link_control_options(dl_lco)
+IS 'Calculate dl_link_control_options from dl_lco';
 
 ---------------------------------------------------
 
@@ -230,10 +232,10 @@ CREATE TABLE dl_optionsdef (
     schema_name name NOT NULL,
     table_name name NOT NULL,
     column_name name NOT NULL,
-    control_options dl_options DEFAULT 0 NOT NULL
+    control_options dl_lco DEFAULT 0 NOT NULL
 );
 COMMENT ON TABLE dl_optionsdef 
-IS 'Current link control options; this should really go to pg_attribute.atttypmod';
+IS 'Current link control options';
 ALTER TABLE ONLY dl_optionsdef
     ADD CONSTRAINT dl_optionsdef_pkey PRIMARY KEY (schema_name, table_name, column_name);
 
@@ -409,12 +411,12 @@ IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that th
 -- referential integrity triggers
 ---------------------------------------------------
 
-CREATE FUNCTION dl_ref(link datalink, link_options dl_options, regclass regclass, column_name name) 
+CREATE FUNCTION dl_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
 LANGUAGE plpgsql
     AS $_$
 declare
- lco datalink.dl_lco;
+ lco datalink.dl_link_control_options;
  r record;
  has_token integer;
  url text;
@@ -424,7 +426,7 @@ begin
 
  has_token := 0;
  if link_options > 0 then
-  lco = datalink.dl_lco(link_options);
+  lco = datalink.dl_link_control_options(link_options);
   if lco.link_control = 'FILE' then
     -- check if reference exists
     has_token := 1;
@@ -443,7 +445,7 @@ end$_$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_unref(link datalink, link_options dl_options, regclass regclass, column_name name) 
+CREATE FUNCTION dl_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
@@ -560,8 +562,8 @@ CREATE FUNCTION dl_chattr(
   dl_schema_name name, 
   dl_table_name name, 
   dl_column_name name, 
-  dl_options dl_options) 
-RETURNS dl_options
+  dl_lco dl_lco) 
+RETURNS dl_lco
     LANGUAGE plpgsql
     AS $_$
 declare
@@ -602,7 +604,7 @@ begin
 end;
 $_$;
 
-COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_options dl_options) 
+COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_lco dl_lco) 
 IS 'Set attributes for datalink column (buggy)';
 
 

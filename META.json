@@ -2,7 +2,7 @@
    "name": "datalink",
    "abstract": "SQL/MED DATALINK type and functions",
    "description": "A toy implementation SQL/MED datalinks",
-   "version": "0.2",
+   "version": "0.3",
    "maintainer": [
       "Ziga Kranjec <ziga@ljudmila.org>"
    ],
@@ -24,7 +24,7 @@
      "pgddl": {
        "file": "datalink.sql",
        "docfile": "README.md",
-       "version": "0.1",
+       "version": "0.3",
        "abstract": "SQL/MED DATALINK type and functions"
      }
    },

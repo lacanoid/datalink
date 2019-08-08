@@ -6,7 +6,7 @@ set search_path=datalink;
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.2     | datalink | SQL/MED DATALINK type and functions
+ datalink | 0.3     | datalink | SQL/MED DATALINK type and functions
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
@@ -17,24 +17,24 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
         and proname like 'dl%'
         and obj_description(p.oid) like 'SQL/MED%')
  order by 1, obj_description(p.oid) is null, cast(p.oid::regprocedure as text) collate "C";
- pronamespace |                                               oid                                                | lanname |                                                        obj_description                                                         
---------------+--------------------------------------------------------------------------------------------------+---------+--------------------------------------------------------------------------------------------------------------------------------
- pg_catalog   | dlcomment(datalink)                                                                              | sql     | SQL/MED - returns the comment value, if it exists, from a DATALINK value
- pg_catalog   | dlnewcopy(datalink,integer)                                                                      | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.
- pg_catalog   | dlpreviouscopy(datalink,integer)                                                                 | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
- pg_catalog   | dlurlcomplete(datalink)                                                                          | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
- pg_catalog   | dlurlcompleteonly(datalink)                                                                      | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
- pg_catalog   | dlvalue(text,dl_linktype,text)                                                                   | sql     | SQL/MED - construct a DATALINK value
- datalink     | dl_chattr(name,name,name,dl_options)                                                             | plpgsql | Set attributes for datalink column (buggy)
- datalink     | dl_lco(dl_options)                                                                               | sql     | Calculate dl_lco from dl_options
- datalink     | dl_options(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_options from individual options
- datalink     | curl_get(text,boolean)                                                                           | plperlu | 
- datalink     | dl_class_adminable(regclass)                                                                     | sql     | 
- datalink     | dl_event_trigger()                                                                               | plpgsql | 
- datalink     | dl_newtoken()                                                                                    | sql     | 
- datalink     | dl_ref(datalink,dl_options,regclass,name)                                                        | plpgsql | 
- datalink     | dl_ri_trigger()                                                                                  | plpgsql | 
- datalink     | dl_sql_advice()                                                                                  | sql     | 
- datalink     | dl_unref(datalink,dl_options,regclass,name)                                                      | plpgsql | 
+ pronamespace |                                             oid                                              | lanname |                                                        obj_description                                                         
+--------------+----------------------------------------------------------------------------------------------+---------+--------------------------------------------------------------------------------------------------------------------------------
+ pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - returns the comment value, if it exists, from a DATALINK value
+ pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.
+ pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
+ pg_catalog   | dlurlcomplete(datalink)                                                                      | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
+ pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
+ pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | sql     | SQL/MED - construct a DATALINK value
+ datalink     | dl_chattr(name,name,name,dl_lco)                                                             | plpgsql | Set attributes for datalink column (buggy)
+ datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_lco from individual options
+ datalink     | dl_link_control_options(dl_lco)                                                              | sql     | Calculate dl_link_control_options from dl_lco
+ datalink     | curl_get(text,boolean)                                                                       | plperlu | 
+ datalink     | dl_class_adminable(regclass)                                                                 | sql     | 
+ datalink     | dl_event_trigger()                                                                           | plpgsql | 
+ datalink     | dl_newtoken()                                                                                | sql     | 
+ datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
+ datalink     | dl_ri_trigger()                                                                              | plpgsql | 
+ datalink     | dl_sql_advice()                                                                              | sql     | 
+ datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
 (17 rows)
 

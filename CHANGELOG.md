@@ -1,4 +1,8 @@
-Version 0.2alpha
+Version 0.3alpha
+----------------
+- rename: dl_lco -> dl_link_control_options, dl_options -> dl_lco
+
+Version 0.2
 -----------
 - datalink type move to pg_catalog
 - internally, datalink is now domain over jsonb

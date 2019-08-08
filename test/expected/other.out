@@ -6,7 +6,7 @@ create table sample_datalinks2 (
   link datalink
 );
 NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks2 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
-select dl_chattr('public','sample_datalinks2','link', dl_options(link_control=>'FILE'));
+select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
  dl_chattr 
 -----------
          1
@@ -30,11 +30,11 @@ values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',1,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] file:///foo+bar/no_file
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 19 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_ri_trigger() line 35 at assignment
-select dl_chattr('public','sample_datalinks2','link', dl_options(link_control=>'FILE'));
+select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
 ERROR:  Can't change link control options; 2 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_options) line 22 at RAISE
+CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_lco) line 22 at RAISE
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
 NOTICE:  DATALINK: dl_ref('https://www.debian.org',1,sample_datalinks2,link)
@@ -43,7 +43,7 @@ values (dlvalue('http://blah','URL','Broken datalink'));
 NOTICE:  DATALINK: dl_ref('http://blah',1,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] http://blah
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_options,regclass,name) line 19 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_ri_trigger() line 35 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
       dlurlcomplete      | has_token 
@@ -58,6 +58,6 @@ create table sample_datalinks3
 select *
   from sample_datalinks;
 NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks3 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
-select dl_chattr('public','sample_datalinks3','link', dl_options(link_control=>'FILE'));
+select dl_chattr('public','sample_datalinks3','link', dl_lco(link_control=>'FILE'));
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_options) line 22 at RAISE
+CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_lco) line 22 at RAISE
