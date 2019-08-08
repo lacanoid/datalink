@@ -34,6 +34,7 @@ Missing:
 - LCO: ON UNLINK RESTORE
 - LCO: ON UNLINK DELETE
 - LCO: RECOVERY YES
+- no permissions control of any kind - this needs major consideration
 - datalinker processes
 - URL type + functions
 - Transactional File IO functions + spaces
