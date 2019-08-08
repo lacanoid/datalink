@@ -228,16 +228,16 @@ $_$;
 -- definition tables
 ---------------------------------------------------
 
-CREATE TABLE dl_optionsdef (
+CREATE TABLE dl_options (
     schema_name name NOT NULL,
     table_name name NOT NULL,
     column_name name NOT NULL,
     control_options dl_lco DEFAULT 0 NOT NULL
 );
-COMMENT ON TABLE dl_optionsdef 
+COMMENT ON TABLE dl_options 
 IS 'Current link control options';
-ALTER TABLE ONLY dl_optionsdef
-    ADD CONSTRAINT dl_optionsdef_pkey PRIMARY KEY (schema_name, table_name, column_name);
+ALTER TABLE ONLY dl_options
+    ADD CONSTRAINT dl_options_pkey PRIMARY KEY (schema_name, table_name, column_name);
 
 ---------------------------------------------------
 -- views
@@ -264,7 +264,7 @@ CREATE VIEW dl_columns AS
      LEFT JOIN pg_attrdef def ON (((c.oid = def.adrelid) AND (a.attnum = def.adnum))))
      LEFT JOIN pg_type t ON ((t.oid = a.atttypid)))
      JOIN pg_namespace tn ON ((tn.oid = t.typnamespace)))
-     LEFT JOIN dl_optionsdef ad ON 
+     LEFT JOIN dl_options ad ON 
       (((ad.schema_name = s.nspname) AND (ad.table_name = c.relname) AND (ad.column_name = a.attname))))
   WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
          t.oid = 'pg_catalog.datalink'::regtype AND
@@ -589,14 +589,14 @@ begin
    raise exception 'Can''t change link control options; % non-null values present in column "%"',n,dl_column_name;
  end if;
  
- update datalink.dl_optionsdef 
+ update datalink.dl_options 
  set control_options = $4
  where schema_name=$1
    and table_name=$2
    and column_name=$3;
 
  if not found then
-  insert into datalink.dl_optionsdef (schema_name,table_name,column_name,control_options)
+  insert into datalink.dl_options (schema_name,table_name,column_name,control_options)
   values ($1,$2,$3,$4);
  end if;
 
