@@ -111,7 +111,7 @@ Functions for extracting information from datalink type:
 
 See also
 --------
-- [Slides on design](docs/datalink.pdf) of DATALINK for Postgres
+- [Slides on design](docs/datalink.pdf) of datalink for Postgres
 - tests contain some examples
 - https://wiki.postgresql.org/wiki/DATALINK
 - SQL/MED standard
