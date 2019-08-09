@@ -80,14 +80,14 @@ select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_acce
 (1 row)
 
 select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
- link_control | integrity | read_access | write_access | recovery | on_unlink 
---------------+-----------+-------------+--------------+----------+-----------
- FILE         | ALL       | DB          | ADMIN TOKEN  | NO       | NONE
+  lco  | link_control | integrity | read_access | write_access | recovery | on_unlink 
+-------+--------------+-----------+-------------+--------------+----------+-----------
+ 12577 | FILE         | ALL       | DB          | ADMIN TOKEN  | NO       | NONE
 (1 row)
 
 select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
- link_control | integrity | read_access | write_access | recovery | on_unlink 
---------------+-----------+-------------+--------------+----------+-----------
- FILE         | ALL       | FS          | FS           | YES      | RESTORE
+   lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
+---------+--------------+-----------+-------------+--------------+----------+-----------
+ 1114145 | FILE         | ALL       | FS          | FS           | YES      | RESTORE
 (1 row)
 

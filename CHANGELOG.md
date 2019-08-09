@@ -1,6 +1,8 @@
 Version 0.3alpha
 ----------------
-- rename: dl_lco -> dl_link_control_options, dl_options -> dl_lco
+- rename: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_options
+- added dl_link_control_options table with valid options
+- added casts for control options
 
 Version 0.2
 -----------

@@ -87,24 +87,33 @@ CREATE TYPE dl_write_access AS ENUM (
     'ADMIN TOKEN'
     -- 'ADMIN REQUIRING TOKEN FOR UPDATE'
 );
-CREATE TYPE dl_on_unlink AS ENUM (
-    'NONE','RESTORE','DELETE'
-);
 CREATE TYPE dl_recovery AS ENUM (
     'NO','YES'
 );
-CREATE TYPE dl_link_control_options AS (
-	link_control dl_link_control,
+CREATE TYPE dl_on_unlink AS ENUM (
+    'NONE','RESTORE','DELETE'
+);
+
+create cast (text as dl_link_control) with inout as implicit;
+create cast (text as dl_integrity) with inout as implicit;
+create cast (text as dl_read_access) with inout as implicit;
+create cast (text as dl_write_access) with inout as implicit;
+create cast (text as dl_recovery) with inout as implicit;
+create cast (text as dl_on_unlink) with inout as implicit;
+
+CREATE DOMAIN dl_lco AS integer;
+comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
+
+CREATE TABLE dl_link_control_options (
+       	lco dl_lco primary key,
+    	link_control dl_link_control,
 	integrity dl_integrity,
 	read_access dl_read_access,
 	write_access dl_write_access,
 	recovery dl_recovery,
 	on_unlink dl_on_unlink
 );
-comment on type dl_link_control_options is 'Datalink Link Control Options';
-
-CREATE DOMAIN dl_lco AS integer;
-comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
+comment on table dl_link_control_options is 'Datalink Link Control Options';
 
 ---------------------------------------------------
 -- helper functions
@@ -173,7 +182,8 @@ CREATE FUNCTION dl_link_control_options(dl_lco)
 RETURNS dl_link_control_options
 LANGUAGE sql IMMUTABLE
     AS $_$
-select row(case $1 & 15
+select row($1,
+           case $1 & 15
 		     when 0 then 'NO'
              when 1 then 'FILE'
            end,
@@ -208,6 +218,38 @@ COMMENT ON FUNCTION dl_link_control_options(dl_lco)
 IS 'Calculate dl_link_control_options from dl_lco';
 
 ---------------------------------------------------
+-- init options table
+---------------------------------------------------
+
+insert into dl_link_control_options 
+with l as (
+select datalink.dl_lco(link_control=>lc::datalink.dl_link_control,
+                       integrity=>itg::datalink.dl_integrity,
+                       read_access=>ra::datalink.dl_read_access,
+                       write_access=>wa::datalink.dl_write_access,
+                       recovery=>rec::datalink.dl_recovery,
+                       on_unlink=>unl::datalink.dl_on_unlink
+                       ),* 
+from
+    unnest(array['NO','FILE']) as lc,
+    unnest(array['NONE','SELECTIVE','ALL']) as itg,
+    unnest(array['FS','DB']) as ra,
+    unnest(array['FS','BLOCKED','ADMIN','ADMIN TOKEN']) as wa,
+    unnest(array['NO','YES']) as rec,
+    unnest(array['NONE','RESTORE','DELETE']) as unl
+)
+-- valid option combinations per SQL/MED 2011 
+select * from l
+ where dl_lco = 0
+    or lc='FILE' and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+    or lc='FILE' and itg='ALL' and (
+       ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+       or
+       ra='FS' and wa='BLOCKED' and unl='RESTORE'
+       or
+       ra='DB' and wa<>'FS' and unl<>'NONE'
+    )
+;
 
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
     LANGUAGE sql
@@ -232,7 +274,7 @@ CREATE TABLE dl_options (
     schema_name name NOT NULL,
     table_name name NOT NULL,
     column_name name NOT NULL,
-    control_options dl_lco DEFAULT 0 NOT NULL
+    lco dl_lco DEFAULT 0 NOT NULL
 );
 COMMENT ON TABLE dl_options 
 IS 'Current link control options';
@@ -248,7 +290,7 @@ CREATE VIEW dl_columns AS
     s.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
-    COALESCE((ad.control_options)::integer, 0) AS control_options,
+    COALESCE((ad.lco)::integer, 0) AS lco,
     a.attnotnull AS not_null,
     col_description(c.oid, (a.attnum)::integer) AS comment,
     a.attislocal AS islocal,
@@ -284,7 +326,7 @@ CREATE VIEW dl_triggers AS
         ), classes AS (
          SELECT dl_columns.relid,
             count(*) AS count,
-            max(dl_columns.control_options) AS mco
+            max(dl_columns.lco) AS mco
            FROM dl_columns dl_columns
           WHERE dl_class_adminable((dl_columns.relid)::regclass)
           GROUP BY dl_columns.relid
@@ -475,7 +517,7 @@ begin
   end if;
 
   for r in
-  select column_name,control_options 
+  select column_name,lco 
     from datalink.dl_columns 
    where regclass = tg_relid
 
@@ -485,7 +527,7 @@ begin
     if tg_op in ('DELETE','UPDATE') then
 	   link := ro->r.column_name;
        if dlurlcomplete(link) is not null then
-         link := datalink.dl_unref(link,r.control_options,tg_relid,r.column_name);
+         link := datalink.dl_unref(link,r.lco,tg_relid,r.column_name);
        end if;
     end if;
   
@@ -493,7 +535,7 @@ begin
     if tg_op in ('INSERT','UPDATE') then
        link := rn->r.column_name;
        if dlurlcomplete(link) is not null then
-         link := datalink.dl_ref(link,r.control_options,tg_relid,r.column_name);
+         link := datalink.dl_ref(link,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link));
        end if;
     end if;
@@ -590,13 +632,13 @@ begin
  end if;
  
  update datalink.dl_options 
- set control_options = $4
+ set lco = $4
  where schema_name=$1
    and table_name=$2
    and column_name=$3;
 
  if not found then
-  insert into datalink.dl_options (schema_name,table_name,column_name,control_options)
+  insert into datalink.dl_options (schema_name,table_name,column_name,lco)
   values ($1,$2,$3,$4);
  end if;
 

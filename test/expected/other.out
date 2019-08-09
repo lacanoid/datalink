@@ -6,28 +6,29 @@ create table sample_datalinks2 (
   link datalink
 );
 NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks2 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
  dl_chattr 
 -----------
-         1
+        17
 (1 row)
 
-select sql_identifier,control_options FROM datalink.dl_columns;
-     sql_identifier     | control_options 
-------------------------+-----------------
- sample_datalinks.link  |               0
- sample_datalinks2.link |               1
+select sql_identifier,lco,dlco.*
+  from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
+     sql_identifier     | lco | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+------------------------+-----+-----+--------------+-----------+-------------+--------------+----------+-----------
+ sample_datalinks.link  |   0 |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks2.link |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
 (2 rows)
 
 insert into sample_datalinks2 (link)
 values (dlvalue('http://www.ljudmila.org','URL','Sample datalink'));
-NOTICE:  DATALINK: dl_ref('http://www.ljudmila.org',1,sample_datalinks2,link)
+NOTICE:  DATALINK: dl_ref('http://www.ljudmila.org',17,sample_datalinks2,link)
 insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));
-NOTICE:  DATALINK: dl_ref('file:///etc/',1,sample_datalinks2,link)
+NOTICE:  DATALINK: dl_ref('file:///etc/',17,sample_datalinks2,link)
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
-NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',1,sample_datalinks2,link)
+NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',17,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] file:///foo+bar/no_file
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
@@ -37,10 +38,10 @@ ERROR:  Can't change link control options; 2 non-null values present in column "
 CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_lco) line 22 at RAISE
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
-NOTICE:  DATALINK: dl_ref('https://www.debian.org',1,sample_datalinks2,link)
+NOTICE:  DATALINK: dl_ref('https://www.debian.org',17,sample_datalinks2,link)
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
-NOTICE:  DATALINK: dl_ref('http://blah',1,sample_datalinks2,link)
+NOTICE:  DATALINK: dl_ref('http://blah',17,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  [sample_datalinks2.link] http://blah
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE

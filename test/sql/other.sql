@@ -8,9 +8,10 @@ create table sample_datalinks2 (
   link datalink
 );
 
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 
-select sql_identifier,control_options FROM datalink.dl_columns;
+select sql_identifier,lco,dlco.*
+  from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
 
 insert into sample_datalinks2 (link)
 values (dlvalue('http://www.ljudmila.org','URL','Sample datalink'));

@@ -28,7 +28,7 @@ create table sample_datalinks (
 
 select * from dl_triggers;
 
-select column_name,control_options FROM datalink.dl_columns;
+select column_name,lco FROM datalink.dl_columns;
 
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));
