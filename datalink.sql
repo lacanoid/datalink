@@ -270,16 +270,18 @@ $_$;
 -- definition tables
 ---------------------------------------------------
 
-CREATE TABLE dl_options (
+CREATE TABLE dl_column_options (
     schema_name name NOT NULL,
     table_name name NOT NULL,
     column_name name NOT NULL,
     lco dl_lco DEFAULT 0 NOT NULL
 );
-COMMENT ON TABLE dl_options 
+COMMENT ON TABLE dl_column_options 
 IS 'Current link control options';
-ALTER TABLE ONLY dl_options
-    ADD CONSTRAINT dl_options_pkey PRIMARY KEY (schema_name, table_name, column_name);
+ALTER TABLE ONLY dl_column_options
+    ADD CONSTRAINT dl_column_options_pkey PRIMARY KEY (schema_name, table_name, column_name);
+ALTER TABLE ONLY dl_column_options
+    ADD CONSTRAINT dl_column_options_valid foreign key (lco) references dl_link_control_options(lco);
 
 ---------------------------------------------------
 -- views
@@ -306,7 +308,7 @@ CREATE VIEW dl_columns AS
      LEFT JOIN pg_attrdef def ON (((c.oid = def.adrelid) AND (a.attnum = def.adnum))))
      LEFT JOIN pg_type t ON ((t.oid = a.atttypid)))
      JOIN pg_namespace tn ON ((tn.oid = t.typnamespace)))
-     LEFT JOIN dl_options ad ON 
+     LEFT JOIN dl_column_options ad ON 
       (((ad.schema_name = s.nspname) AND (ad.table_name = c.relname) AND (ad.column_name = a.attname))))
   WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
          t.oid = 'pg_catalog.datalink'::regtype AND
@@ -550,6 +552,71 @@ end
 $_X$;
 
 ---------------------------------------------------
+-- uri functions
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION uri_get(url text, part text)
+ RETURNS text
+  LANGUAGE plperlu
+  AS $function$
+  use URI;
+  use File::Basename;
+
+my $u=URI->new($_[0]);
+my $part=$_[1]; lc($part);
+if($part eq 'scheme') { return $u->scheme(); }
+if($part eq 'path') { return $u->path(); }
+if($part eq 'basename') { return basename($u->path()); }
+if($part eq 'dirname') { return dirname($u->path()); }
+if($part eq 'authority') { return $u->authority(); }
+if($part eq 'path_query') { return $u->path_query(); }
+if($part eq 'query_form') { return $u->query_form(); }
+if($part eq 'query_keywords') { return $u->query_keywords(); }
+if($part eq 'userinfo') { return $u->userinfo(); }
+if($part eq 'host') { return $u->host(); }
+if($part eq 'domain') { my $d = $u->host(); $d=~s|^www\.||; return $d; }
+if($part eq 'port') { return $u->port(); }
+if($part eq 'host_port') { return $u->host_port(); }
+if($part eq 'query') { return $u->query(); }
+if($part eq 'fragment') { return $u->fragment(); }
+if($part eq 'token') { return $u->fragment(); }
+if($part eq 'canonical') { return $u->canonical(); }
+elog(ERROR,"Unknown part '$path'.");
+$function$
+;
+
+COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
+
+CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
+ RETURNS text
+  LANGUAGE plperlu
+  AS $function$
+  use URI;
+  my $u=URI->new($_[0]);
+  my $part=$_[1]; lc($part);
+  my $v=$_[2];
+  if($part eq 'scheme') { $u->scheme($v); }
+  elsif($part eq 'path') {  $u->path($v); }
+  elsif($part eq 'authority') {  $u->authority($v); }
+  elsif($part eq 'path_query') {  $u->path_query($v); }
+  elsif($part eq 'query_form') {  $u->query_form($v); }
+  elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
+  elsif($part eq 'userinfo') {  $u->userinfo($v); }
+  elsif($part eq 'host') {  $u->host($v); }
+  elsif($part eq 'port') {  $u->port($v); }
+  elsif($part eq 'host_port') {  $u->host_port($v); }
+  elsif($part eq 'query') {  $u->query($v); }
+  elsif($part eq 'fragment') {  $u->fragment($v); }
+  elsif($part eq 'token') {  $u->fragment($v); }
+  else { elog(ERROR,"Unknown part '$path'."); }
+  return $u->as_string;
+  $function$
+  ;
+
+COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
+
+
+---------------------------------------------------
 -- curl functions
 ---------------------------------------------------
 
@@ -631,14 +698,14 @@ begin
    raise exception 'Can''t change link control options; % non-null values present in column "%"',n,dl_column_name;
  end if;
  
- update datalink.dl_options 
+ update datalink.dl_column_options 
  set lco = $4
  where schema_name=$1
    and table_name=$2
    and column_name=$3;
 
  if not found then
-  insert into datalink.dl_options (schema_name,table_name,column_name,lco)
+  insert into datalink.dl_column_options (schema_name,table_name,column_name,lco)
   values ($1,$2,$3,$4);
  end if;
 
@@ -649,6 +716,30 @@ $_$;
 COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_lco dl_lco) 
 IS 'Set attributes for datalink column (buggy)';
 
-
 grant usage on schema datalink to public;
+
+---------------
+
+CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$select datalink.uri_get($1->>'url','host')$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink) IS 'SQL/MED - returns the file server from a DATALINK value with a linktype of URL';
+
+---------------
+
+CREATE OR REPLACE FUNCTION pg_catalog.dlurlscheme(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$select datalink.uri_get($1->>'url','scheme')$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink) IS 'SQL/MED - returns the scheme from a DATALINK value with a linktype of URL';
+
+---------------
+
+create table datalink.sample_datalinks ( id serial primary key, link datalink );
+select dl_chattr('datalink','sample_datalinks','link',17);
 

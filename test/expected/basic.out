@@ -30,16 +30,18 @@ create table sample_datalinks (
 ) with oids;
 NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
 select * from dl_triggers;
- owner |     regclass     | links | mco |       tgname        
--------+------------------+-------+-----+---------------------
- root  | sample_datalinks |     1 |   0 | ~RI_DatalinkTrigger
-(1 row)
+ owner |         regclass          | links | mco |       tgname        
+-------+---------------------------+-------+-----+---------------------
+ root  | datalink.sample_datalinks |     1 |  17 | ~RI_DatalinkTrigger
+ root  | sample_datalinks          |     1 |   0 | ~RI_DatalinkTrigger
+(2 rows)
 
 select column_name,lco FROM datalink.dl_columns;
  column_name | lco 
 -------------+-----
+ link        |  17
  link        |   0
-(1 row)
+(2 rows)
 
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));

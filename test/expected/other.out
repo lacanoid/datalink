@@ -14,11 +14,12 @@ select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE
 
 select sql_identifier,lco,dlco.*
   from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
-     sql_identifier     | lco | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
-------------------------+-----+-----+--------------+-----------+-------------+--------------+----------+-----------
- sample_datalinks.link  |   0 |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
- sample_datalinks2.link |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
-(2 rows)
+         sql_identifier         | lco | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+--------------------------------+-----+-----+--------------+-----------+-------------+--------------+----------+-----------
+ datalink.sample_datalinks.link |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ sample_datalinks.link          |   0 |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks2.link         |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+(3 rows)
 
 insert into sample_datalinks2 (link)
 values (dlvalue('http://www.ljudmila.org','URL','Sample datalink'));

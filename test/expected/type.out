@@ -91,3 +91,15 @@ select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'AL
  1114145 | FILE         | ALL       | FS          | FS           | YES      | RESTORE
 (1 row)
 
+select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+   dlurlserver    
+------------------
+ www.ljudmila.org
+(1 row)
+
+select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+ dlurlscheme 
+-------------
+ http
+(1 row)
+

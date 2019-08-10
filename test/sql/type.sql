@@ -23,3 +23,5 @@ select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_acce
 select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
 select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
 
+select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
