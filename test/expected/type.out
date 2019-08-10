@@ -103,3 +103,27 @@ select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
  http
 (1 row)
 
+select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+  dlurlpath   
+--------------
+ /foo/bar/baz
+(1 row)
+
+select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+ dlurlpathonly 
+---------------
+ /foo/bar/baz
+(1 row)
+
+select dllinktype(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+ dllinktype 
+------------
+ URL
+(1 row)
+
+select dllinktype(dlvalue('/etc/passwd','FS'));
+ dllinktype 
+------------
+ FS
+(1 row)
+

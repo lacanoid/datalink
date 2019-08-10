@@ -19,14 +19,16 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  order by 1, obj_description(p.oid) is null, cast(p.oid::regprocedure as text) collate "C";
  pronamespace |                                             oid                                              | lanname |                                                        obj_description                                                         
 --------------+----------------------------------------------------------------------------------------------+---------+--------------------------------------------------------------------------------------------------------------------------------
- pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - returns the comment value, if it exists, from a DATALINK value
- pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.
- pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql | SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
- pg_catalog   | dlurlcomplete(datalink)                                                                      | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
- pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql     | SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL
- pg_catalog   | dlurlscheme(datalink)                                                                        | sql     | SQL/MED - returns the scheme from a DATALINK value with a linktype of URL
- pg_catalog   | dlurlserver(datalink)                                                                        | sql     | SQL/MED - returns the file server from a DATALINK value with a linktype of URL
- pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | sql     | SQL/MED - construct a DATALINK value
+ pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
+ pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
+ pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
+ pg_catalog   | dlurlcomplete(datalink)                                                                      | sql     | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
+ pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql     | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
+ pg_catalog   | dlurlpath(datalink)                                                                          | sql     | SQL/MED - Returns the file path from a DATALINK value
+ pg_catalog   | dlurlpathonly(datalink)                                                                      | sql     | SQL/MED - Returns the file path from a DATALINK value
+ pg_catalog   | dlurlscheme(datalink)                                                                        | sql     | SQL/MED - Returns the scheme from a DATALINK value
+ pg_catalog   | dlurlserver(datalink)                                                                        | sql     | SQL/MED - Returns the file server from a DATALINK value
+ pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | sql     | SQL/MED - Construct a DATALINK value
  datalink     | dl_chattr(name,name,name,dl_lco)                                                             | plpgsql | Set attributes for datalink column (buggy)
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_lco from individual options
  datalink     | dl_link_control_options(dl_lco)                                                              | sql     | Calculate dl_link_control_options from dl_lco
@@ -40,5 +42,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_ri_trigger()                                                                              | plpgsql | 
  datalink     | dl_sql_advice()                                                                              | sql     | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
-(21 rows)
+(23 rows)
 

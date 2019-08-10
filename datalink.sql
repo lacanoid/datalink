@@ -38,7 +38,7 @@ select case
   from link
 $$;
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
-IS 'SQL/MED - construct a DATALINK value';
+IS 'SQL/MED - Construct a DATALINK value';
 
 ---------------------------------------------------
 
@@ -47,7 +47,7 @@ CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
 AS $$ select $1->>'text' $$;
 
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
-IS 'SQL/MED - returns the comment value, if it exists, from a DATALINK value';
+IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
@@ -56,7 +56,7 @@ CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
 AS $_$ select $1->>'url' $_$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
-IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
+IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
 ---------------------------------------------------
 
@@ -65,7 +65,7 @@ CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
 AS $_$ select $1->>'url' $_$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
-IS 'SQL/MED - returns the data location attribute from a DATALINK value with a link type of URL';
+IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
 ---------------------------------------------------
 -- link control options
@@ -430,7 +430,7 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) 
-IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
 
 ---------------------------------------------------
 
@@ -449,7 +449,7 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) 
-IS 'SQL/MED - returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
 
 ---------------------------------------------------
 -- referential integrity triggers
@@ -726,7 +726,7 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','host')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink) IS 'SQL/MED - returns the file server from a DATALINK value with a linktype of URL';
+COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink) IS 'SQL/MED - Returns the file server from a DATALINK value';
 
 ---------------
 
@@ -736,7 +736,37 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlscheme(datalink)
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','scheme')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink) IS 'SQL/MED - returns the scheme from a DATALINK value with a linktype of URL';
+COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink) IS 'SQL/MED - Returns the scheme from a DATALINK value';
+
+---------------
+
+CREATE OR REPLACE FUNCTION pg_catalog.dlurlpath(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$select datalink.uri_get($1->>'url','path')$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink) IS 'SQL/MED - Returns the file path from a DATALINK value';
+
+---------------
+
+CREATE OR REPLACE FUNCTION pg_catalog.dlurlpathonly(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$select datalink.uri_get($1->>'url','path')$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink) IS 'SQL/MED - Returns the file path from a DATALINK value';
+
+---------------
+
+CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$select case when $1->>'url' ilike 'file:%' then 'FS' else 'URL' end$function$;
+
+COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'Returns the link type (URL or FS) of a DATALINK value';
 
 ---------------
 

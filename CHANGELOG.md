@@ -5,6 +5,8 @@ Version 0.3alpha
 - added casts for control options
 - added uri_get() and uri_set() plperlu functions for power uri handling
 - added SQL/MED standard functions DLURLSERVER() and DLURLSCHEME()
+- added SQL/MED standard functions DLURLPATH() and DLURLPATHONLY()
+- added function DLLINKTYPE()
 
 Version 0.2
 -----------

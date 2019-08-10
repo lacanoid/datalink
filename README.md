@@ -6,27 +6,28 @@ It is very much a prototype and meant for playing around to see if this can be m
 Also to see how much of the standard can be implemented in high-level postgres, 
 without having to resort to C. It currently doesn't do anything very useful.
 
-Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl.
+Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl and for uri handling.
  
 Currently, it implements the following:
 - SQL/MED DATALINK type
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
+- SQL/MED functions DLURLSCHEME, DLURLSERVER
+- SQL/MED functions DLURLPATH, DLURLPATHONLY
+- DLLINKTYPE function
 - Event and other triggers to make all of this 'just work'
 - `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
 - link control options (LCO) functions
 - token generator
 - plperlu interface to curl via WWW::Curl
+- URI handling functions uri_get() and uri_set()
 - DLCOMMENT function
 - LCO: NO LINK CONTROL
 - LCO: FILE LINK CONTROL - check if file exists with curl head
 
 Missing:
-- SQL/MED functions DLURLSCHEME, DLURLSERVER
-- SQL/MED functions DLURLPATH, DLURLPATHONLY
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED functions DLREPLACECONTENT
-- DLLINKTYPE function
 - LCO: READ ACCESS DB
 - LCO: WRITE ACCESS BLOCKED
 - LCO: WRITE ACCESS ADMIN

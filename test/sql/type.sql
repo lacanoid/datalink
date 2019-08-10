@@ -25,3 +25,10 @@ select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'AL
 
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+
+select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+
+select dllinktype(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
+select dllinktype(dlvalue('/etc/passwd','FS'));
+
