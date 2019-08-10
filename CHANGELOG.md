@@ -1,12 +1,13 @@
 Version 0.3alpha
 ----------------
-- rename: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_options
+- rename: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_column_options
 - added dl_link_control_options table with valid options
 - added casts for control options
 - added uri_get() and uri_set() plperlu functions for power uri handling
 - added SQL/MED standard functions DLURLSERVER() and DLURLSCHEME()
 - added SQL/MED standard functions DLURLPATH() and DLURLPATHONLY()
 - added function DLLINKTYPE()
+- implemented some rudimentary linking for INTEGRITY ALL. Links are kept in table datalink.dl_linked_files.
 
 Version 0.2
 -----------

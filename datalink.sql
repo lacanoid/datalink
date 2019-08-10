@@ -184,30 +184,30 @@ LANGUAGE sql IMMUTABLE
     AS $_$
 select row($1,
            case $1 & 15
-		     when 0 then 'NO'
+             when 0 then 'NO'
              when 1 then 'FILE'
            end,
            case ($1 >> 4) & 15
-		     when 0 then 'NONE'
+             when 0 then 'NONE'
              when 1 then 'SELECTIVE'
              when 2 then 'ALL'
            end,
-		   case ($1 >> 8) & 15
-		     when 0 then 'FS'
+           case ($1 >> 8) & 15
+	     when 0 then 'FS'
              when 1 then 'DB'
            end,
-		   case ($1 >> 12) & 15
-		     when 0 then 'FS'
+           case ($1 >> 12) & 15
+             when 0 then 'FS'
              when 1 then 'BLOCKED'
-		     when 2 then 'ADMIN'
+             when 2 then 'ADMIN'
              when 3 then 'ADMIN TOKEN'
            end,
            case ($1 >> 16) & 15
-		     when 0 then 'NO'
+             when 0 then 'NO'
              when 1 then 'YES'
            end,
            case ($1 >> 20) & 15
-		     when 0 then 'NONE'
+             when 0 then 'NONE'
              when 1 then 'RESTORE'
              when 2 then 'DELETE'
            end
@@ -223,12 +223,9 @@ IS 'Calculate dl_link_control_options from dl_lco';
 
 insert into dl_link_control_options 
 with l as (
-select datalink.dl_lco(link_control=>lc::datalink.dl_link_control,
-                       integrity=>itg::datalink.dl_integrity,
-                       read_access=>ra::datalink.dl_read_access,
-                       write_access=>wa::datalink.dl_write_access,
-                       recovery=>rec::datalink.dl_recovery,
-                       on_unlink=>unl::datalink.dl_on_unlink
+select datalink.dl_lco(link_control=>lc,integrity=>itg,
+                       read_access=>ra,write_access=>wa,
+                       recovery=>rec,on_unlink=>unl
                        ),* 
 from
     unnest(array['NO','FILE']) as lc,
@@ -298,9 +295,8 @@ CREATE VIEW dl_columns AS
     a.attislocal AS islocal,
     a.attnum AS ord,
     cast(regclass(c.oid) as text)||'.'||quote_ident(a.attname) AS sql_identifier,
-    c.oid AS regclass,
-    a.atttypmod,
-    c.oid AS relid
+    c.oid::regclass AS regclass,
+    a.atttypmod
    FROM (((((((pg_class c
      JOIN pg_namespace s ON ((s.oid = c.relnamespace)))
      JOIN pg_attribute a ON ((c.oid = a.attrelid)))
@@ -319,30 +315,32 @@ CREATE VIEW dl_columns AS
 ---------------------------------------------------
 
 CREATE VIEW dl_triggers AS
- WITH triggers AS (
+ WITH
+ triggers AS (
          SELECT c0_1.oid,
             t0.tgname
            FROM (pg_trigger t0
              JOIN pg_class c0_1 ON ((t0.tgrelid = c0_1.oid)))
           WHERE ((t0.tgname = '~RI_DatalinkTrigger'::name) AND dl_class_adminable((c0_1.oid)::regclass))
-        ), classes AS (
-         SELECT dl_columns.relid,
+ ),
+ classes AS (
+         SELECT dl_columns.regclass,
             count(*) AS count,
             max(dl_columns.lco) AS mco
            FROM dl_columns dl_columns
-          WHERE dl_class_adminable((dl_columns.relid)::regclass)
-          GROUP BY dl_columns.relid
-        )
+          WHERE dl_class_adminable(dl_columns.regclass)
+          GROUP BY dl_columns.regclass
+ )
  SELECT u.usename AS owner,
-    (COALESCE(c.relid, t.oid))::regclass AS regclass,
+    (COALESCE(c.regclass, t.oid))::regclass AS regclass,
     COALESCE(c.count, (0)::bigint) AS links,
     c.mco,
     t.tgname
    FROM (((triggers t
-     FULL JOIN classes c ON ((t.oid = c.relid)))
-     JOIN pg_class c0 ON ((c0.oid = COALESCE(c.relid, t.oid))))
+     FULL JOIN classes c ON ((t.oid = c.regclass)))
+     JOIN pg_class c0 ON ((c0.oid = COALESCE(c.regclass, t.oid))))
      JOIN pg_user u ON ((u.usesysid = c0.relowner)))
-  ORDER BY ((COALESCE(c.relid, t.oid))::regclass)::text;
+  ORDER BY ((COALESCE(c.regclass, t.oid))::regclass)::text;
 grant select on dl_triggers to public;
 
 ---------------------------------------------------
@@ -369,6 +367,125 @@ SELECT 'TRIGGER'::text AS advice_type,
     end AS sql_advice
    FROM datalink.dl_triggers
 $$;
+
+---------------------------------------------------
+-- linked files
+---------------------------------------------------
+CREATE TYPE file_link_state AS ENUM (
+    'LINK','LINKED','ERROR','UNLINK'
+);
+create table dl_linked_files (
+  token dl_token not null unique,
+  txid bigint not null default txid_current(),
+  state file_link_state not null default 'LINK',
+  lco dl_lco not null,
+  regclass regclass,
+  attname name,
+  path text primary key,
+  fstat jsonb,
+  info jsonb
+);
+
+-----
+
+CREATE OR REPLACE FUNCTION datalink.file_stat(file_path text,
+  OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer, OUT uid integer, OUT gid integer,
+  OUT rdev integer, OUT size numeric, OUT atime timestamp without time zone,
+  OUT mtime timestamp without time zone, OUT ctime timestamp without time zone,
+  OUT blksize integer, OUT blocks bigint)
+ RETURNS record
+  LANGUAGE plperlu
+   STRICT
+   AS $function$
+   use Date::Format;
+
+my ($filename) = @_;
+unless(-e $filename) { return undef; }
+my (@s) = stat($filename);
+
+return {
+ 'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
+ 'uid'=>$s[4],'gid'=>$s[5],
+ 'rdev'=>$s[6],'size'=>$s[7],
+ 'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
+ 'blksize'=>$s[11],'blocks'=>$s[12]
+};
+$function$;
+
+COMMENT ON FUNCTION datalink.file_stat(text) IS 'Return info record from stat(2)';
+-----
+
+create function file_link(file_path text,token dl_token,lco dl_lco,regclass regclass,attname name) returns boolean as
+$$
+declare
+ r record;
+ fstat jsonb;
+begin
+ raise notice 'DATALINK: file_link(''%'',%)',file_path,format('%s.%I',regclass::text,attname);
+
+ fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
+
+ if fstat is null then
+      raise exception 'Referenced file not valid' 
+            using errcode = 'HW007',
+                  detail = file_path;
+ end if;
+
+ select * into r
+   from datalink.dl_linked_files
+  where path = file_path
+    for update;
+ if not found then
+   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat)
+   values (token,file_path,lco,regclass,attname,fstat);
+   return true;
+ else
+  if r.state in ('LINK','LINKED') then
+      raise exception 'External file already linked' 
+            using errcode = 'HW002', 
+                  detail = format('from %s.%I',r.regclass::text,r.attname);
+  else
+      raise exception 'Datalink exception' 
+            using errcode = 'HW000', 
+                  detail = format('unknown link state %s',r.state);
+  end if;
+ end if;
+end
+$$ language plpgsql strict;
+
+create function file_unlink(file_path text,token dl_token,lco dl_lco,regclass regclass,attname name) returns boolean as
+$$
+declare
+ r record;
+begin
+ raise notice 'DATALINK: file_unlink(''%'',%)',file_path,format('%s.%I',regclass::text,attname);
+
+ select * into r
+   from datalink.dl_linked_files
+  where path = file_path
+    for update;
+ if not found then
+      raise exception 'External file not linked' 
+            using errcode = 'HW001', 
+                  detail = file_path;
+ else
+  if r.state = 'LINK' then
+   delete from datalink.dl_linked_files
+    where path = $1
+      and state = 'LINK';
+  elsif r.state = 'LINKED' then
+   update datalink.dl_linked_files
+      set state = 'UNLINK'
+    where path = $1 and state = 'LINKED';
+  else
+      raise exception 'Datalink exception' 
+            using errcode = 'HW000', 
+                  detail = format('unknown link state %s',r.state);
+  end if;
+ end if;
+ return true;
+end
+$$ language plpgsql strict;
 
 ---------------------------------------------------
 -- event triggers
@@ -480,10 +597,15 @@ begin
             using errcode = 'HW003', 
                   detail = format('[%s.%I] %s',regclass::text,column_name,url);
     end if;
-  end if;
+  end if; -- file link control,
   
   link := dlpreviouscopy(link,has_token);
- end if;
+
+  if lco.integrity = 'ALL' then
+    perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+  end if; -- integrity all
+
+ end if; -- link options
  return link;
 end$_$;
 
@@ -493,8 +615,19 @@ CREATE FUNCTION dl_unref(link datalink, link_options dl_lco, regclass regclass, 
 RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
+declare
+ lco datalink.dl_link_control_options;
 begin
  raise notice 'DATALINK: dl_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
+
+ if link_options > 0 then
+  lco = datalink.dl_link_control_options(link_options);
+
+  if lco.integrity = 'ALL' then
+    perform datalink.file_unlink(dlurlpathonly($1),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+  end if; -- integrity all
+ end if; -- link options
+ 
  return $1;
 end$_$;
 
@@ -508,7 +641,8 @@ declare
   r record;
   ro jsonb;
   rn jsonb;
-  link pg_catalog.datalink;
+  link1 pg_catalog.datalink;
+  link2 pg_catalog.datalink;
 begin
   if tg_op in ('DELETE','UPDATE') then
 	ro := row_to_json(old)::jsonb;
@@ -524,23 +658,26 @@ begin
    where regclass = tg_relid
 
   loop
+   link1 := null; link2 := null;
 
-	link := null;
+   if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
+   if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
+
+   if link1 is distinct from link2 then
+   
     if tg_op in ('DELETE','UPDATE') then
-	   link := ro->r.column_name;
-       if dlurlcomplete(link) is not null then
-         link := datalink.dl_unref(link,r.lco,tg_relid,r.column_name);
+       if dlurlcomplete(link1) is not null then
+         link1 := datalink.dl_unref(link1,r.lco,tg_relid,r.column_name);
        end if;
     end if;
   
-	link := null;
     if tg_op in ('INSERT','UPDATE') then
-       link := rn->r.column_name;
-       if dlurlcomplete(link) is not null then
-         link := datalink.dl_ref(link,r.lco,tg_relid,r.column_name);
-         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link));
+       if dlurlcomplete(link2) is not null then
+         link2 := datalink.dl_ref(link2,r.lco,tg_relid,r.column_name);
+         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
        end if;
     end if;
+   end if;
 
   end loop;
 

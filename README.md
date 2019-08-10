@@ -15,13 +15,13 @@ Currently, it implements the following:
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
 - DLLINKTYPE function
+- DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
 - `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
 - link control options (LCO) functions
 - token generator
 - plperlu interface to curl via WWW::Curl
 - URI handling functions uri_get() and uri_set()
-- DLCOMMENT function
 - LCO: NO LINK CONTROL
 - LCO: FILE LINK CONTROL - check if file exists with curl head
 
@@ -78,7 +78,8 @@ It takes care of adding datalink triggers to tables, which contain datalink colu
 Datalink triggers take care of referencing and dereferencing datalinks 
 as values are assigned to datalink columns.
 
-DATALINK type:
+DATALINK type
+=============
 
 A special type DATALINK is provided. 
 It behaves like SQL/MED DATALINK type.
@@ -97,7 +98,8 @@ datalink triggers are automatically installed on the table.
     select dlurlcomplete(link)
       from sample_datalinks;
             
-DATALINK functions:
+DATALINK functions
+==================
 
 Constructors for values of type datalink:
 
@@ -109,11 +111,16 @@ Functions for extracting information from datalink type:
 
 - `DLURLCOMPLETE(datalink) → url`
 - `DLURLCOMPLETEONLY(datalink) → url`
+- `DLURLPATH(datalink) → path`
+- `DLURLPATHONLY(datalink) → path`
+- `DLURLSERVER(datalink) → text`
+- `DLURLSCHEME(datalink) → text`
 - `DLCOMMENT(datalink) → text`
+- `DLLINKTYPE(datalink) → {URL,FS}`
 
 See also
 --------
 - [Slides on design](docs/datalink.pdf) of datalink for Postgres
 - tests contain some examples
 - https://wiki.postgresql.org/wiki/DATALINK
-- SQL/MED standard
+- [SQL/MED standard](http://www.wiscorp.com/sql20nn.zip)
