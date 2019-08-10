@@ -28,7 +28,7 @@ create table sample_datalinks (
   url text,
   link datalink
 ) with oids;
-NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()
+NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri()
 select * from dl_triggers;
  owner |         regclass          | links | mco |       tgname        
 -------+---------------------------+-------+-----+---------------------

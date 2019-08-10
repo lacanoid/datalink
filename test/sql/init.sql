@@ -11,5 +11,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
     or (pronamespace = 'pg_catalog'::regnamespace 
         and proname like 'dl%'
         and obj_description(p.oid) like 'SQL/MED%')
- order by 1, obj_description(p.oid) is null, cast(p.oid::regprocedure as text) collate "C";
+ order by 1, obj_description(p.oid) is null,
+       cast(p.oid::regprocedure as text) collate "C";
 

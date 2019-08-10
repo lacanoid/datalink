@@ -16,7 +16,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
     or (pronamespace = 'pg_catalog'::regnamespace 
         and proname like 'dl%'
         and obj_description(p.oid) like 'SQL/MED%')
- order by 1, obj_description(p.oid) is null, cast(p.oid::regprocedure as text) collate "C";
+ order by 1, obj_description(p.oid) is null,
+       cast(p.oid::regprocedure as text) collate "C";
  pronamespace |                                             oid                                              | lanname |                                                        obj_description                                                         
 --------------+----------------------------------------------------------------------------------------------+---------+--------------------------------------------------------------------------------------------------------------------------------
  pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
@@ -37,11 +38,11 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_set(text,text,text)                                                                      | plperlu | Set (replace) parts of URI
  datalink     | curl_get(text,boolean)                                                                       | plperlu | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql     | 
- datalink     | dl_event_trigger()                                                                           | plpgsql | 
  datalink     | dl_newtoken()                                                                                | sql     | 
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
- datalink     | dl_ri_trigger()                                                                              | plpgsql | 
  datalink     | dl_sql_advice()                                                                              | sql     | 
+ datalink     | dl_trigger_event()                                                                           | plpgsql | 
+ datalink     | dl_trigger_ri()                                                                              | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
  datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 

@@ -362,7 +362,7 @@ SELECT 'TRIGGER'::text AS advice_type,
     case when links>0 then
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '::text 
                ||  regclass::text) 
-               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_ri_trigger()'::text, ''::text) 
+               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri()'::text, ''::text) 
     else ''
     end AS sql_advice
    FROM datalink.dl_triggers
@@ -491,14 +491,15 @@ $$ language plpgsql strict;
 -- event triggers
 ---------------------------------------------------
 
-CREATE FUNCTION dl_event_trigger() RETURNS event_trigger
+CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
     LANGUAGE plpgsql
     AS $$
 declare
  obj record;
 begin
- --  RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
-  
+ -- RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
+
+ if tg_event = 'ddl_command_end' then
 
  if tg_tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
  then
@@ -510,14 +511,25 @@ begin
    end loop;
  end if;
 
+ elsif tg_event = 'sql_drop' then
+     RAISE NOTICE 'DATALINK DDL DROP: %',
+      (select json_agg(row_to_json(tdo))
+         from pg_event_trigger_dropped_objects() tdo
+	where object_type = 'table'
+       );
+ 
+ end if;
+
 end
 $$;
 
 ---------------------------------------------------
 
-create event trigger datalink_event_trigger
-on ddl_command_end
-execute procedure dl_event_trigger();
+create event trigger datalink_event_trigger_end
+on ddl_command_end execute procedure dl_trigger_event();
+
+create event trigger datalink_event_trigger_drop
+on sql_drop execute procedure dl_trigger_event();
 
 ---------------------------------------------------
 -- SQL/MED update functions
@@ -595,7 +607,7 @@ begin
     if not r.ok then
       raise exception 'Referenced file does not exit' 
             using errcode = 'HW003', 
-                  detail = format('[%s.%I] %s',regclass::text,column_name,url);
+                  detail = url;
     end if;
   end if; -- file link control,
   
@@ -634,7 +646,7 @@ end$_$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_ri_trigger() RETURNS trigger
+CREATE FUNCTION dl_trigger_ri() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $_X$
 declare
