@@ -1,5 +1,5 @@
-Version 0.3alpha
-----------------
+Version 0.3
+-----------
 - renames: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_column_options
 - better error reporting, per SQL spec with SQLSTATE
 - added dl_link_control_options table with valid options
