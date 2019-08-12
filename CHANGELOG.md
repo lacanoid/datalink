@@ -1,6 +1,7 @@
 Version 0.3alpha
 ----------------
 - renames: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_column_options
+- better error reporting, per SQL spec with SQLSTATE
 - added dl_link_control_options table with valid options
 - added implicit casts for control options
 - added uri_get() and uri_set() plperlu functions for power uri handling
@@ -9,7 +10,9 @@ Version 0.3alpha
 - added function DLLINKTYPE(). Returns 'FS' for local files, 'URL' otherwise.
 - implemented some rudimentary linking for INTEGRITY ALL. Links are kept in table datalink.dl_linked_files.
 - event trigger for DROP TABLE now unlinks linked files
-- removed dependancy on uuid-ossp
+- event trigger for DROP COLUMN now unlinks linked files
+- trigger for TRUNCATE now unlinks linked files
+- removed dependancy on extension uuid-ossp
 
 Version 0.2
 -----------

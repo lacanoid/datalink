@@ -1,0 +1,116 @@
+\pset null _null_
+SET client_min_messages = notice;
+SET search_path = public,datalink;
+create table sample_datalinks4 (
+  id serial,
+  link datalink
+);
+NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks4 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri();CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON sample_datalinks4 FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_ri();
+select dl_chattr('public','sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
+ dl_chattr 
+-----------
+        33
+(1 row)
+
+insert into sample_datalinks4 (link)
+values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
+NOTICE:  DATALINK: dl_ref('file:///etc/passwd',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/passwd
+insert into sample_datalinks4 (link)
+values (dlvalue('/etc/issue','FS','Sample file datalink 2'));
+NOTICE:  DATALINK: dl_ref('file:///etc/issue',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/issue
+insert into sample_datalinks4 (link)
+values (dlvalue('/etc/issue1','FS','Sample file datalink 3'));
+NOTICE:  DATALINK: dl_ref('file:///etc/issue1',33,sample_datalinks4,link)
+ERROR:  Referenced file does not exit
+DETAIL:  file:///etc/issue1
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
+PL/pgSQL function dl_trigger_ri() line 45 at assignment
+insert into sample_datalinks4 (link)
+values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
+NOTICE:  DATALINK: dl_ref('file:///etc/hosts',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/hosts
+insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
+NOTICE:  DATALINK: dl_ref('file:///etc/passwd',0,sample_datalinks3,link)
+NOTICE:  DATALINK: dl_ref('file:///etc/issue',0,sample_datalinks3,link)
+NOTICE:  DATALINK: dl_ref('file:///etc/hosts',0,sample_datalinks3,link)
+select state,regclass,attname,path
+  from datalink.dl_linked_files;
+ state |     regclass      | attname |    path     
+-------+-------------------+---------+-------------
+ LINK  | sample_datalinks4 | link    | /etc/passwd
+ LINK  | sample_datalinks4 | link    | /etc/issue
+ LINK  | sample_datalinks4 | link    | /etc/hosts
+(3 rows)
+
+delete from sample_datalinks4
+ where link->>'token' =
+(select token::text
+  from datalink.dl_linked_files
+ order by txid limit 1);
+NOTICE:  DATALINK: dl_unref('file:///etc/passwd',33,sample_datalinks4,link)
+NOTICE:  DATALINK UNLINK:/etc/passwd
+select state,regclass,attname,path
+  from datalink.dl_linked_files;
+ state |     regclass      | attname |    path    
+-------+-------------------+---------+------------
+ LINK  | sample_datalinks4 | link    | /etc/issue
+ LINK  | sample_datalinks4 | link    | /etc/hosts
+(2 rows)
+
+create table sample_datalinks5 (
+  id serial,
+  link datalink
+);
+NOTICE:  DATALINK DDL: CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON sample_datalinks5 FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri();CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON sample_datalinks5 FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_ri();
+select dl_chattr('public','sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
+ dl_chattr 
+-----------
+        33
+(1 row)
+
+insert into sample_datalinks5 (link)
+values (dlvalue('/etc/passwd','FS','Sample file datalink'));
+NOTICE:  DATALINK: dl_ref('file:///etc/passwd',33,sample_datalinks5,link)
+NOTICE:  DATALINK LINK:sample_datalinks5.link:/etc/passwd
+insert into sample_datalinks5 (link)
+values (dlvalue('/etc/issue','FS','Sample file datalink'));
+NOTICE:  DATALINK: dl_ref('file:///etc/issue',33,sample_datalinks5,link)
+NOTICE:  DATALINK LINK:sample_datalinks5.link:/etc/issue
+ERROR:  External file already linked
+DETAIL:  from sample_datalinks4.link
+CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 35 at RAISE
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at PERFORM
+PL/pgSQL function dl_trigger_ri() line 45 at assignment
+select state,regclass,attname,path
+  from datalink.dl_linked_files;
+ state |     regclass      | attname |    path     
+-------+-------------------+---------+-------------
+ LINK  | sample_datalinks4 | link    | /etc/issue
+ LINK  | sample_datalinks4 | link    | /etc/hosts
+ LINK  | sample_datalinks5 | link    | /etc/passwd
+(3 rows)
+
+drop table sample_datalinks5;
+NOTICE:  DATALINK UNLINK:/etc/passwd
+truncate sample_datalinks4;
+NOTICE:  DATALINK UNLINK:/etc/issue
+NOTICE:  DATALINK UNLINK:/etc/hosts
+insert into sample_datalinks4 (link)
+select link
+  from sample_datalinks3
+ where dllinktype(link)='FS';
+NOTICE:  DATALINK: dl_ref('file:///etc/passwd',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/passwd
+NOTICE:  DATALINK: dl_ref('file:///etc/issue',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/issue
+NOTICE:  DATALINK: dl_ref('file:///etc/hosts',33,sample_datalinks4,link)
+NOTICE:  DATALINK LINK:sample_datalinks4.link:/etc/hosts
+alter table sample_datalinks4
+ drop column link;
+NOTICE:  DATALINK UNLINK:/etc/passwd
+NOTICE:  DATALINK UNLINK:/etc/issue
+NOTICE:  DATALINK UNLINK:/etc/hosts
+NOTICE:  DATALINK DDL: DROP TRIGGER IF EXISTS "~RI_DatalinkTrigger" ON sample_datalinks4; DROP TRIGGER IF EXISTS "~RI_DatalinkTrigger2" ON sample_datalinks4; 

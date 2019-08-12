@@ -291,12 +291,13 @@ CREATE VIEW dl_columns AS
     a.attname AS column_name,
     COALESCE((ad.lco)::integer, 0) AS lco,
     a.attnotnull AS not_null,
-    col_description(c.oid, (a.attnum)::integer) AS comment,
     a.attislocal AS islocal,
     a.attnum AS ord,
-    cast(regclass(c.oid) as text)||'.'||quote_ident(a.attname) AS sql_identifier,
     c.oid::regclass AS regclass,
-    a.atttypmod
+    a.atttypmod,
+    a.attoptions,
+    a.attfdwoptions,
+    col_description(c.oid, (a.attnum)::integer) AS comment
    FROM (((((((pg_class c
      JOIN pg_namespace s ON ((s.oid = c.relnamespace)))
      JOIN pg_attribute a ON ((c.oid = a.attrelid)))
@@ -359,10 +360,16 @@ SELECT 'TRIGGER'::text AS advice_type,
     links,
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
              || ' ON ' || regclass::text || '; ', '') ||
+    COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname||'2') 
+             || ' ON ' || regclass::text || '; ', '') ||
     case when links>0 then
-     COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '::text 
+     COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
                ||  regclass::text) 
-               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri()'::text, ''::text) 
+               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri();', '')
+	       ||
+     COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON '
+               ||  regclass::text) 
+               || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_ri();', '') 
     else ''
     end AS sql_advice
    FROM datalink.dl_triggers
@@ -421,6 +428,7 @@ $$
 declare
  r record;
  fstat jsonb;
+ addr text;
 begin
  raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
 
@@ -432,14 +440,15 @@ begin
                   detail = file_path;
  end if;
 
-   select * into r
+ addr := array[fstat->>'dev',fstat->>'inode']::text;
+ select * into r
    from datalink.dl_linked_files
   where path = file_path
     for update;
  if not found then
   begin
    insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
-   values (token,file_path,lco,regclass,attname,fstat,array[fstat->>'dev',fstat->>'inode']::text);
+   values (token,file_path,lco,regclass,attname,fstat,addr);
    return true;
   exception
   when unique_violation
@@ -505,7 +514,7 @@ CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
 declare
  obj record;
 begin
- -- RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
+-- RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
 
  if tg_event = 'ddl_command_end' then
 
@@ -520,7 +529,7 @@ begin
  end if;
 
  elsif tg_event = 'sql_drop' then
-
+  -- unlink files referenced by dropped tables
   perform datalink.file_unlink(path,token,lco,regclass,attname)
      from datalink.dl_linked_files
     where regclass in 
@@ -528,8 +537,17 @@ begin
          from pg_event_trigger_dropped_objects() tdo
 	where object_type = 'table'
        );
- 
- end if;
+  -- unlink files referenced by dropped columns
+  perform datalink.file_unlink(f.path,f.token,f.lco,f.regclass,f.attname)
+    from
+      (select objid::regclass as regclass,
+              address_names[3] as attname
+         from pg_event_trigger_dropped_objects()
+	where object_type = 'table column'
+       ) as tdo
+    join dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname;
+
+end if;
 
 end
 $$;
@@ -671,6 +689,13 @@ declare
   link1 pg_catalog.datalink;
   link2 pg_catalog.datalink;
 begin
+  if tg_op = 'TRUNCATE' then
+    perform datalink.file_unlink(path,token,lco,regclass,attname)
+       from datalink.dl_linked_files
+      where regclass = tg_relid; 
+    return new;
+  end if;
+
   if tg_op in ('DELETE','UPDATE') then
 	ro := row_to_json(old)::jsonb;
   end if;
@@ -873,12 +898,14 @@ begin
   values ($1,$2,$3,$4);
  end if;
 
+ 
+
  return $4;
 end;
 $_$;
 
-COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_columnt_name name, dl_lco dl_lco) 
-IS 'Set attributes for datalink column (buggy)';
+COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_column_name name, dl_lco dl_lco) 
+IS 'Set link control options for datalink column (buggy)';
 
 grant usage on schema datalink to public;
 
@@ -895,7 +922,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink) IS 'SQL/MED - Returns the f
 ---------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlscheme(datalink)
- RETURNS text
+RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','scheme')$function$;

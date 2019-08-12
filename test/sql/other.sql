@@ -10,7 +10,7 @@ create table sample_datalinks2 (
 
 select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 
-select sql_identifier,lco,dlco.*
+select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
 /*
 insert into sample_datalinks2 (link)
@@ -39,3 +39,4 @@ select *
 
 select dl_chattr('public','sample_datalinks3','link', dl_lco(link_control=>'FILE'));
 
+delete from sample_datalinks3 where dllinktype(link)='FS';
