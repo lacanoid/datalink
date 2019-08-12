@@ -382,6 +382,7 @@ create table dl_linked_files (
   regclass regclass,
   attname name,
   path text primary key,
+  address text unique,
   fstat jsonb,
   info jsonb
 );
@@ -421,7 +422,7 @@ declare
  r record;
  fstat jsonb;
 begin
- raise notice 'DATALINK: file_link(''%'',%)',file_path,format('%s.%I',regclass::text,attname);
+ raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
 
  fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
 
@@ -431,13 +432,13 @@ begin
                   detail = file_path;
  end if;
 
- select * into r
+   select * into r
    from datalink.dl_linked_files
   where path = file_path
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat)
-   values (token,file_path,lco,regclass,attname,fstat);
+   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
+   values (token,file_path,lco,regclass,attname,fstat,array[fstat->>'dev',fstat->>'inode']::text);
    return true;
  else
   if r.state in ('LINK','LINKED') then
@@ -458,7 +459,7 @@ $$
 declare
  r record;
 begin
- raise notice 'DATALINK: file_unlink(''%'',%)',file_path,format('%s.%I',regclass::text,attname);
+ raise notice 'DATALINK UNLINK:%',file_path;
 
  select * into r
    from datalink.dl_linked_files
@@ -512,8 +513,11 @@ begin
  end if;
 
  elsif tg_event = 'sql_drop' then
-     RAISE NOTICE 'DATALINK DDL DROP: %',
-      (select json_agg(row_to_json(tdo))
+
+  perform datalink.file_unlink(path,token,lco,regclass,attname)
+     from datalink.dl_linked_files
+    where regclass in 
+      (select tdo.objid
          from pg_event_trigger_dropped_objects() tdo
 	where object_type = 'table'
        );
@@ -913,12 +917,11 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select case when $1->>'url' ilike 'file:%' then 'FS' else 'URL' end$function$;
+   AS $function$select case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end$function$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'Returns the link type (URL or FS) of a DATALINK value';
 
 ---------------
 
 create table datalink.sample_datalinks ( id serial primary key, link datalink );
-select dl_chattr('datalink','sample_datalinks','link',17);
-
+select dl_chattr('datalink','sample_datalinks','link',dl_lco(link_control=>'FILE',integrity=>'ALL'));

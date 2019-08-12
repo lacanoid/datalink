@@ -16,7 +16,7 @@ select sql_identifier,lco,dlco.*
   from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
          sql_identifier         | lco | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
 --------------------------------+-----+-----+--------------+-----------+-------------+--------------+----------+-----------
- datalink.sample_datalinks.link |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ datalink.sample_datalinks.link |  33 |  33 | FILE         | ALL       | FS          | FS           | NO       | NONE
  sample_datalinks.link          |   0 |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks2.link         |  17 |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
 (3 rows)
