@@ -9,6 +9,7 @@ Version 0.3alpha
 - added function DLLINKTYPE(). Returns 'FS' for local files, 'URL' otherwise.
 - implemented some rudimentary linking for INTEGRITY ALL. Links are kept in table datalink.dl_linked_files.
 - event trigger for DROP TABLE now unlinks linked files
+- removed dependancy on uuid-ossp
 
 Version 0.2
 -----------

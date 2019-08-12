@@ -437,9 +437,16 @@ begin
   where path = file_path
     for update;
  if not found then
+  begin
    insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
    values (token,file_path,lco,regclass,attname,fstat,array[fstat->>'dev',fstat->>'inode']::text);
    return true;
+  exception
+  when unique_violation
+  then raise exception 'External file already linked' 
+             using errcode = 'HW002', 
+                   detail = 'file with address (dev,inode) already linked';
+  end;
  else
   if r.state in ('LINK','LINKED') then
       raise exception 'External file already linked' 
@@ -539,10 +546,14 @@ on sql_drop execute procedure dl_trigger_event();
 -- SQL/MED update functions
 ---------------------------------------------------
 
+CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid
+    LANGUAGE c PARALLEL SAFE STRICT
+    AS '$libdir/uuid-ossp', $function$uuid_generate_v4$function$;
+
 CREATE FUNCTION dl_newtoken() RETURNS dl_token
     LANGUAGE sql
     AS $$
-select cast(public.uuid_generate_v4() as datalink.dl_token);
+select cast(datalink.uuid_generate_v4() as datalink.dl_token);
 $$;
 
 ---------------------------------------------------
