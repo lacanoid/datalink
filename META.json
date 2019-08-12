@@ -45,8 +45,9 @@
       "url": "http://pgxn.org/meta/spec.txt"
    },
    "tags": [
-      "administration",
-      "ddl",
-      "meta"
+      "datatype",
+      "function",
+      "sql med",
+      "external data"
    ]
 }
