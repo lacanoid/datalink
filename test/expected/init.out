@@ -5,7 +5,7 @@ set search_path=datalink;
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.3     | datalink | SQL/MED DATALINK type and functions
+ datalink | 0.4     | datalink | SQL/MED DATALINK type and functions
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
@@ -20,6 +20,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pronamespace |                                             oid                                              | lanname |                                                        obj_description                                                         
 --------------+----------------------------------------------------------------------------------------------+---------+--------------------------------------------------------------------------------------------------------------------------------
  pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
+ pg_catalog   | dllinktype(datalink)                                                                         | sql     | SQL/MED - Returns the link type (URL or FS) of a DATALINK value
  pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
  pg_catalog   | dlurlcomplete(datalink)                                                                      | sql     | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
@@ -41,10 +42,10 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
  datalink     | dl_sql_advice()                                                                              | sql     | 
  datalink     | dl_trigger_event()                                                                           | plpgsql | 
- datalink     | dl_trigger_ri()                                                                              | plpgsql | 
+ datalink     | dl_trigger_table()                                                                           | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
  datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
-(27 rows)
+(28 rows)
 

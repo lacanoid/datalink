@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.3 lacanoid@ljudmila.org
+--  version 0.4 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -10,13 +10,14 @@ SET client_min_messages = warning;
 -- datalink type
 ---------------------------------------------------
 
-CREATE TYPE dl_linktype AS ENUM ('URL','FS');
+CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
-CREATE DOMAIN pg_catalog.datalink AS jsonb;
 CREATE DOMAIN dl_url AS text CHECK (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+CREATE DOMAIN pg_catalog.datalink AS jsonb;
+COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
 
 ---------------------------------------------------
--- datalink functions
+-- SQL/MED datalink functions
 ---------------------------------------------------
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
@@ -252,13 +253,13 @@ CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
     LANGUAGE sql
     AS $_$
 select exists (select *
- from pg_class c
-join pg_user u on (u.usesysid=c.relowner)
-where c.oid=$1
-  and (u.usename = "current_user"() or 
+  from pg_class c
+  join pg_user u on (u.usesysid=c.relowner)
+ where c.oid=$1
+  and (u.usename = CURRENT_ROLE or 
   EXISTS ( SELECT pg_user.usesuper
-           FROM pg_user
-          WHERE pg_user.usename = "current_user"() AND pg_user.usesuper)
+             FROM pg_user
+            WHERE pg_user.usename = CURRENT_ROLE AND pg_user.usesuper)
   )
 )
 $_$;
@@ -365,11 +366,11 @@ SELECT 'TRIGGER'::text AS advice_type,
     case when links>0 then
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
                ||  regclass::text) 
-               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_ri();', '')
+               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();', '')
 	       ||
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON '
                ||  regclass::text) 
-               || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_ri();', '') 
+               || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();', '') 
     else ''
     end AS sql_advice
    FROM datalink.dl_triggers
@@ -523,7 +524,7 @@ begin
    for obj in select * from datalink.dl_sql_advice()
    where advice_type = 'TRIGGER' and not valid
    loop
-     RAISE NOTICE 'DATALINK DDL: %',obj.sql_advice;
+     RAISE NOTICE 'DATALINK DDL:% on %',obj.advice_type,obj.regclass;
      execute obj.sql_advice;
    end loop;
  end if;
@@ -679,7 +680,7 @@ end$_$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_trigger_ri() RETURNS trigger
+CREATE FUNCTION dl_trigger_table() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $_X$
 declare
@@ -876,8 +877,9 @@ begin
    and column_name=$3; 
 
  if not found then
-      raise exception 'Not a datalink column' 
-            using errcode = 'DL0101', detail = my_id;
+      raise exception 'Datalink exception' 
+            using errcode = 'HW000',
+	    detail = 'Not a DATALINK column';
  end if; 
 
  e := format('select count(%I) from %I.%I where %I is not null limit 1',
@@ -909,7 +911,9 @@ IS 'Set link control options for datalink column (buggy)';
 
 grant usage on schema datalink to public;
 
----------------
+---------------------------------------------------
+-- SQL/MED functions
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
@@ -949,7 +953,9 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlpathonly(datalink)
 
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink) IS 'SQL/MED - Returns the file path from a DATALINK value';
 
----------------
+---------------------------------------------------
+-- play tables
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
@@ -957,9 +963,10 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
    IMMUTABLE STRICT
    AS $function$select case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end$function$;
 
-COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'Returns the link type (URL or FS) of a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';
 
----------------
-
-create table datalink.sample_datalinks ( id serial primary key, link datalink );
+create table sample_datalinks ( id serial primary key, link datalink );
+grant select,insert,update,delete on sample_datalinks to public;
+grant usage on sequence sample_datalinks_id_seq to public;
 select dl_chattr('datalink','sample_datalinks','link',dl_lco(link_control=>'FILE',integrity=>'ALL'));
+

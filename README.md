@@ -3,7 +3,7 @@ Datalink extension for PostgreSQL
 
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
 It is very much a prototype and meant for playing around to see if this can be made useful.
-Also to see how much of the standard can be implemented in high-level postgres, 
+Also to see how much of the standard can be implemented in high-level postgres (and pgperlu :), 
 without having to resort to C. It currently doesn't do anything very useful.
 
 Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl and for uri handling.
@@ -22,13 +22,13 @@ Currently, it implements the following:
 - token generator
 - plperlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
-- LCO: NO LINK CONTROL
-- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with curl head
+- LCO: NO LINK CONTROL - only check for valid URLs
+- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
 
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
-- SQL/MED functions DLREPLACECONTENT
+- SQL/MED function DLREPLACECONTENT
 - LCO: READ ACCESS DB
 - LCO: WRITE ACCESS BLOCKED
 - LCO: WRITE ACCESS ADMIN
@@ -36,10 +36,11 @@ Missing:
 - LCO: ON UNLINK RESTORE
 - LCO: ON UNLINK DELETE
 - LCO: RECOVERY YES
-- no permissions control of any kind - this needs major consideration
+- no permissions control of any kind - this needs major considerations
 - datalinker processes
-- URL type + functions
-- Transactional File IO functions + spaces
+- native postgres URL type + functions
+- Transactional File IO functions + file spaces
+- foreign server support for file:// URLs (for files on other servers)
 - native postgres interface to curl
 
 Installation

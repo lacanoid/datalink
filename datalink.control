@@ -1,5 +1,5 @@
 comment = 'SQL/MED DATALINK type and functions'
-default_version = 0.3
+default_version = 0.4
 relocatable = false
 requires='plperlu'
 superuser = YES

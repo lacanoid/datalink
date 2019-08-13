@@ -1,3 +1,6 @@
+Version 0.4
+-----------
+
 Version 0.3
 -----------
 - renames: dl_lco -> dl_link_control_options, dl_options -> dl_lco, dl_optionsdef -> dl_column_options
