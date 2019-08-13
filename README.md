@@ -23,7 +23,8 @@ Currently, it implements the following:
 - plperlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
 - LCO: NO LINK CONTROL
-- LCO: FILE LINK CONTROL - check if file exists with curl head
+- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with curl head
+- LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
 
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
