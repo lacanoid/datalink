@@ -21,7 +21,7 @@ Currently, it implements the following:
 - link control options (LCO) functions
 - token generator
 - plperlu interface to curl via WWW::Curl
-- URI handling functions uri_get() and uri_set()
+- URI handling functions `uri_get()` and `uri_set()`
 - LCO: NO LINK CONTROL
 - LCO: FILE LINK CONTROL - check if file exists with curl head
 
