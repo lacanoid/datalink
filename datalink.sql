@@ -452,24 +452,17 @@ begin
  addr := array[fstat->>'dev',fstat->>'inode']::text;
  select * into r
    from datalink.dl_linked_files
-  where path = file_path
+  where path = file_path or address = addr
     for update;
  if not found then
-  begin
    insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
    values (token,file_path,lco,regclass,attname,fstat,addr);
    return true;
-  exception
-  when unique_violation
-  then raise exception 'External file already linked' 
-             using errcode = 'HW002', 
-                   detail = 'file with address (dev,inode) already linked';
-  end;
  else
   if r.state in ('LINK','LINKED') then
       raise exception 'External file already linked' 
             using errcode = 'HW002', 
-                  detail = format('from %s.%I',r.regclass::text,r.attname);
+                  detail = format('from %s.%I as ''%s''',r.regclass::text,r.attname,r.path);
   else
       raise exception 'Datalink exception' 
             using errcode = 'HW000', 

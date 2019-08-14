@@ -69,8 +69,8 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/etc/issue','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/etc/issue
 ERROR:  External file already linked
-DETAIL:  from sample_datalinks4.link
-CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 36 at RAISE
+DETAIL:  from sample_datalinks4.link as '/etc/issue'
+CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 29 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at PERFORM
 PL/pgSQL function dl_trigger_table() line 45 at assignment
