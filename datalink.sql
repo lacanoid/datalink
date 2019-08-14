@@ -115,6 +115,7 @@ CREATE TABLE dl_link_control_options (
 	on_unlink dl_on_unlink
 );
 comment on table dl_link_control_options is 'Datalink Link Control Options';
+grant select on dl_link_control_options to public;
 
 ---------------------------------------------------
 -- helper functions
@@ -183,6 +184,10 @@ CREATE FUNCTION dl_link_control_options(dl_lco)
 RETURNS dl_link_control_options
 LANGUAGE sql IMMUTABLE
     AS $_$
+select *
+  from datalink.dl_link_control_options
+ where lco = $1
+/*
 select row($1,
            case $1 & 15
              when 0 then 'NO'
@@ -213,10 +218,12 @@ select row($1,
              when 2 then 'DELETE'
            end
         ) :: datalink.dl_link_control_options
+*/
 $_$;
 
 COMMENT ON FUNCTION dl_link_control_options(dl_lco)
 IS 'Calculate dl_link_control_options from dl_lco';
+
 
 ---------------------------------------------------
 -- init options table
@@ -308,6 +315,7 @@ CREATE VIEW dl_columns AS
      JOIN pg_namespace tn ON ((tn.oid = t.typnamespace)))
      LEFT JOIN dl_column_options ad ON 
       (((ad.schema_name = s.nspname) AND (ad.table_name = c.relname) AND (ad.column_name = a.attname))))
+     LEFT JOIN dl_link_control_options lco ON (lco.lco=ad.lco)
   WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
          t.oid = 'pg_catalog.datalink'::regtype AND
           (NOT a.attisdropped))
@@ -852,6 +860,7 @@ if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 
 return \%r;
 $_$;
+revoke execute on function curl_get(text,boolean) from public;
 
 ---------------------------------------------------
 -- admin functions

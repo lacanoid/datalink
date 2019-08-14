@@ -79,16 +79,20 @@ select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_acce
   12577
 (1 row)
 
-select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED'));
-  lco  | link_control | integrity | read_access | write_access | recovery | on_unlink 
--------+--------------+-----------+-------------+--------------+----------+-----------
- 12577 | FILE         | ALL       | DB          | ADMIN TOKEN  | NO       | NONE
-(1 row)
-
-select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',recovery=>'YES',on_unlink=>'RESTORE'));
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					     read_access=>'DB',write_access=>'BLOCKED',
+					     recovery=>'YES',on_unlink=>'DELETE'));
    lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------+--------------+-----------+-------------+--------------+----------+-----------
- 1114145 | FILE         | ALL       | FS          | FS           | YES      | RESTORE
+ 2175265 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
+(1 row)
+
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					     read_access=>'DB',write_access=>'BLOCKED',
+					     recovery=>'YES',on_unlink=>'RESTORE'));
+   lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
+---------+--------------+-----------+-------------+--------------+----------+-----------
+ 1126689 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
 (1 row)
 
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
