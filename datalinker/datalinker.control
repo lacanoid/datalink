@@ -1,9 +1,0 @@
-comment = 'SQL/MED Datalinker'
-default_version = 0.2
-relocatable = false
-requires='uuid-ossp,plperlu,datalink'
-superuser = YES
-schema = 'datalink'
-
-
-

@@ -1,7 +1,7 @@
 Issues
 ======
 - create table as doesn't seem to install triggers
-- bug in dl_class_adminable
+- bug in dl_class_adminable?
 - renaming of datalink columns
 
 Todo
@@ -14,4 +14,4 @@ Todo
 - file path sanity checking (handle ..)
 - url sanity checking (handle ..)
 - dlvalue better error handling
-
+- permissions
