@@ -32,46 +32,34 @@ NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks
 select * from dl_triggers;
  owner |         regclass          | links | mco |       tgname        
 -------+---------------------------+-------+-----+---------------------
- root  | datalink.sample_datalinks |     1 |  33 | ~RI_DatalinkTrigger
+ root  | datalink.sample_datalinks |     1 |  21 | ~RI_DatalinkTrigger
  root  | sample_datalinks          |     1 |   0 | ~RI_DatalinkTrigger
 (2 rows)
 
 select column_name,lco FROM datalink.dl_columns;
  column_name | lco 
 -------------+-----
- link        |  33
+ link        |  21
  link        |   0
 (2 rows)
 
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));
-NOTICE:  DATALINK: dl_ref('http://www.archive.org',0,sample_datalinks,link)
 insert into sample_datalinks (link)
 values (dlvalue('http://guthub.org','URL','Another sample datalink'));
-NOTICE:  DATALINK: dl_ref('http://guthub.org',0,sample_datalinks,link)
 insert into sample_datalinks (url,link)
 select url,dlvalue(url) 
   from sample_urls;
-NOTICE:  DATALINK: dl_ref('http://www.mozilla.org',0,sample_datalinks,link)
-NOTICE:  DATALINK: dl_ref('http://www.ljudmila.org',0,sample_datalinks,link)
-NOTICE:  DATALINK: dl_ref('https://www.github.org',0,sample_datalinks,link)
-NOTICE:  DATALINK: dl_ref('file:///tmp/a',0,sample_datalinks,link)
-NOTICE:  DATALINK: dl_ref('http://www.debian.org',0,sample_datalinks,link)
 update sample_datalinks
    set link = null
  where url like 'file:%';
-NOTICE:  DATALINK: dl_unref('file:///tmp/a',0,sample_datalinks,link)
 update sample_datalinks
    set link = null
  where url like '%debian.org%';
-NOTICE:  DATALINK: dl_unref('http://www.debian.org',0,sample_datalinks,link)
 delete from sample_datalinks
  where url like 'https:%';
-NOTICE:  DATALINK: dl_unref('https://www.github.org',0,sample_datalinks,link)
  
 update sample_datalinks
    set link = dlvalue(url)
  where link is null and url is not null;
-NOTICE:  DATALINK: dl_ref('file:///tmp/a',0,sample_datalinks,link)
-NOTICE:  DATALINK: dl_ref('http://www.debian.org',0,sample_datalinks,link)
  

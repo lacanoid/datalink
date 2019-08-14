@@ -137,20 +137,20 @@ AS $_$
      when 'NO' then 0
      else 0
    end) +
-   16 * (  
+   10 * (  
    (case $2
      when 'ALL' then 2
      when 'SELECTIVE' then 1
      when 'NONE' then 0
      else 0
    end) +
-   16 * (  
+   10 * (  
    (case $3
      when 'DB' then 1
      when 'FS' then 0
      else 0
    end) + 
-   16 * (  
+   10 * (  
    (case $4
      when 'BLOCKED' then 3
      when 'ADMIN TOKEN' then 2
@@ -158,13 +158,13 @@ AS $_$
      when 'FS' then 0
      else 0
    end) +
-   16 * (
+   10 * (
    (case $5
      when 'YES' then 1
      when 'NO' then 0
      else 0
    end) +
-   16 * (
+   10 * (
    (case $6
      when 'DELETE' then 2
      when 'RESTORE' then 1
@@ -276,15 +276,14 @@ $_$;
 ---------------------------------------------------
 
 CREATE TABLE dl_column_options (
-    schema_name name NOT NULL,
-    table_name name NOT NULL,
+    regclass regclass NOT NULL,
     column_name name NOT NULL,
     lco dl_lco DEFAULT 0 NOT NULL
 );
 COMMENT ON TABLE dl_column_options 
 IS 'Current link control options';
 ALTER TABLE ONLY dl_column_options
-    ADD CONSTRAINT dl_column_options_pkey PRIMARY KEY (schema_name, table_name, column_name);
+    ADD CONSTRAINT dl_column_options_pkey PRIMARY KEY (regclass, column_name);
 ALTER TABLE ONLY dl_column_options
     ADD CONSTRAINT dl_column_options_valid foreign key (lco) references dl_link_control_options(lco);
 
@@ -314,7 +313,7 @@ CREATE VIEW dl_columns AS
      LEFT JOIN pg_type t ON ((t.oid = a.atttypid)))
      JOIN pg_namespace tn ON ((tn.oid = t.typnamespace)))
      LEFT JOIN dl_column_options ad ON 
-      (((ad.schema_name = s.nspname) AND (ad.table_name = c.relname) AND (ad.column_name = a.attname))))
+      ((ad.regclass = c.oid AND ad.column_name = a.attname)))
      LEFT JOIN dl_link_control_options lco ON (lco.lco=ad.lco)
   WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
          t.oid = 'pg_catalog.datalink'::regtype AND
@@ -439,7 +438,8 @@ declare
  fstat jsonb;
  addr text;
 begin
- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
+-- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
+ raise notice 'DATALINK LINK:%',file_path;
 
  fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
 
@@ -529,6 +529,7 @@ begin
 
  if tg_tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
  then
+  -- update triggers on tables with datalinks
    for obj in select * from datalink.dl_sql_advice()
    where advice_type = 'TRIGGER' and not valid
    loop
@@ -539,23 +540,33 @@ begin
 
  elsif tg_event = 'sql_drop' then
   -- unlink files referenced by dropped tables
-  perform datalink.file_unlink(path,token,lco,regclass,attname)
+  for obj in
+   select *
      from datalink.dl_linked_files
     where regclass in 
       (select tdo.objid
          from pg_event_trigger_dropped_objects() tdo
 	where object_type = 'table'
-       );
-  -- unlink files referenced by dropped columns
-  perform datalink.file_unlink(f.path,f.token,f.lco,f.regclass,f.attname)
-    from
+       )
+  loop
+    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
+    delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
+  end loop;
+
+-- unlink files referenced by dropped columns
+  for obj in
+    select *
+      from
       (select objid::regclass as regclass,
               address_names[3] as attname
          from pg_event_trigger_dropped_objects()
 	where object_type = 'table column'
        ) as tdo
-    join dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname;
-
+      join dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
+  loop
+    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
+    delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
+  end loop;
 end if;
 
 end
@@ -637,7 +648,7 @@ declare
  url text;
 begin 
  url := dlurlcomplete($1);
- raise notice 'DATALINK: dl_ref(''%'',%,%,%)',url,$2,$3,$4;
+-- raise notice 'DATALINK: dl_ref(''%'',%,%,%)',url,$2,$3,$4;
 
  has_token := 0;
  if link_options > 0 then
@@ -672,7 +683,7 @@ RETURNS datalink
 declare
  lco datalink.dl_link_control_options;
 begin
- raise notice 'DATALINK: dl_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
+-- raise notice 'DATALINK: dl_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
 
  if link_options > 0 then
   lco = datalink.dl_link_control_options(link_options);
@@ -867,23 +878,22 @@ revoke execute on function curl_get(text,boolean) from public;
 ---------------------------------------------------
 
 CREATE FUNCTION dl_chattr(
-  dl_schema_name name, 
-  dl_table_name name, 
-  dl_column_name name, 
-  dl_lco dl_lco) 
-RETURNS dl_lco
+  my_regclass regclass,
+  my_column_name name, 
+  my_lco dl_lco)
+RETURNS dl_link_control_options
     LANGUAGE plpgsql
     AS $_$
 declare
  my_id regclass;
  e text;
  n bigint;
+ my_options datalink.dl_link_control_options;
 begin
  select into my_id regclass
  from datalink.dl_columns
- where schema_name=$1
-   and table_name=$2
-   and column_name=$3; 
+ where regclass = my_regclass
+   and column_name = my_column_name; 
 
  if not found then
       raise exception 'Datalink exception' 
@@ -891,31 +901,38 @@ begin
 	    detail = 'Not a DATALINK column';
  end if; 
 
- e := format('select count(%I) from %I.%I where %I is not null limit 1',
-   dl_column_name,dl_schema_name,dl_table_name,dl_column_name);
+ select * into my_options
+    from datalink.dl_link_control_options
+   where lco = my_lco;
+
+ if not found then
+      raise exception 'Datalink exception' 
+            using errcode = 'HW000',
+	    detail = format('Invalid link control options (%s)',my_lco);
+ end if; 
+
+ e := format('select count(%I) from %s where %I is not null limit 1',
+   my_column_name,cast(my_regclass as text),my_column_name);
  execute e into n;
  if n > 0 then
-   raise exception 'Can''t change link control options; % non-null values present in column "%"',n,dl_column_name;
+   raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
  end if;
  
  update datalink.dl_column_options 
- set lco = $4
- where schema_name=$1
-   and table_name=$2
-   and column_name=$3;
+ set lco = my_lco
+ where regclass = my_regclass
+   and column_name = my_column_name;
 
  if not found then
-  insert into datalink.dl_column_options (schema_name,table_name,column_name,lco)
-  values ($1,$2,$3,$4);
+  insert into datalink.dl_column_options (regclass,column_name,lco)
+  values (my_regclass,my_column_name,my_lco);
  end if;
 
- 
-
- return $4;
+ return my_options;
 end;
 $_$;
 
-COMMENT ON FUNCTION dl_chattr(dl_schema_name name, dl_table_name name, dl_column_name name, dl_lco dl_lco) 
+COMMENT ON FUNCTION dl_chattr(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Set link control options for datalink column (buggy)';
 
 grant usage on schema datalink to public;
@@ -977,5 +994,5 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'SQL/MED - Returns the li
 create table sample_datalinks ( id serial primary key, link datalink );
 grant select,insert,update,delete on sample_datalinks to public;
 grant usage on sequence sample_datalinks_id_seq to public;
-select dl_chattr('datalink','sample_datalinks','link',dl_lco(link_control=>'FILE',integrity=>'ALL'));
+select dl_chattr('sample_datalinks','link',dl_lco(link_control=>'FILE',integrity=>'ALL'));
 

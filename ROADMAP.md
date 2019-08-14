@@ -1,7 +1,7 @@
 Issues
 ======
 - create table as doesn't seem to install triggers
-- renaming tables, columns
+- renaming datalink columns
 
 Todo
 ====

@@ -6,19 +6,19 @@ create table sample_datalinks2 (
   link datalink
 );
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
- dl_chattr 
------------
-        17
+select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
+             dl_chattr             
+-----------------------------------
+ (11,FILE,SELECTIVE,FS,FS,NO,NONE)
 (1 row)
 
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
          regclass          | column_name | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+-----+--------------+-----------+-------------+--------------+----------+-----------
- datalink.sample_datalinks | link        |  33 | FILE         | ALL       | FS          | FS           | NO       | NONE
+ datalink.sample_datalinks | link        |  21 | FILE         | ALL       | FS          | FS           | NO       | NONE
  sample_datalinks          | link        |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
- sample_datalinks2         | link        |  17 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ sample_datalinks2         | link        |  11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
 (3 rows)
 
 /*
@@ -27,23 +27,19 @@ values (dlvalue('http://en.wikipedia.org','URL','Sample datalink'));
 */
 insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));
-NOTICE:  DATALINK: dl_ref('file:///etc/',17,sample_datalinks2,link)
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
-NOTICE:  DATALINK: dl_ref('file:///foo+bar/no_file',17,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  file:///foo+bar/no_file
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 45 at assignment
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 ERROR:  Can't change link control options; 1 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_lco) line 23 at RAISE
+CONTEXT:  PL/pgSQL function dl_chattr(regclass,name,dl_lco) line 33 at RAISE
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
-NOTICE:  DATALINK: dl_ref('https://www.debian.org',17,sample_datalinks2,link)
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
-NOTICE:  DATALINK: dl_ref('http://blah',17,sample_datalinks2,link)
 ERROR:  Referenced file does not exit
 DETAIL:  http://blah
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
@@ -60,8 +56,7 @@ create table sample_datalinks3
 select *
   from sample_datalinks;
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
-select dl_chattr('public','sample_datalinks3','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('sample_datalinks3','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function dl_chattr(name,name,name,dl_lco) line 23 at RAISE
+CONTEXT:  PL/pgSQL function dl_chattr(regclass,name,dl_lco) line 33 at RAISE
 delete from sample_datalinks3 where dllinktype(link)='FS';
-NOTICE:  DATALINK: dl_unref('file:///tmp/a',0,sample_datalinks3,link)

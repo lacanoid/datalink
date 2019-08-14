@@ -8,7 +8,7 @@ create table sample_datalinks4 (
   link datalink
 );
 
-select dl_chattr('public','sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
+select dl_chattr('sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
@@ -41,7 +41,7 @@ create table sample_datalinks5 (
   link datalink
 );
 
-select dl_chattr('public','sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
+select dl_chattr('sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
@@ -63,4 +63,21 @@ select link
 
 alter table sample_datalinks4
  drop column link;
+
+truncate sample_datalinks4;
+alter table sample_datalinks4
+ add column link datalink;
+
+alter table sample_datalinks4
+ add column link2 datalink;
+select dl_chattr('sample_datalinks4','link2',dl_lco(link_control=>'FILE',integrity=>'ALL'));
+
+insert into sample_datalinks4 (link)
+select link
+  from sample_datalinks3
+ where dllinktype(link)='FS';
+
+update sample_datalinks4 set link2 = link;
+update sample_datalinks4 set link = link2;
+update sample_datalinks4 set link2 = null;
 

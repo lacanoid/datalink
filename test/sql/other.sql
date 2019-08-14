@@ -8,7 +8,7 @@ create table sample_datalinks2 (
   link datalink
 );
 
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
+select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
@@ -22,7 +22,7 @@ values (dlvalue('/etc/','FS','Sample file datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 
-select dl_chattr('public','sample_datalinks2','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
@@ -37,6 +37,6 @@ create table sample_datalinks3
 select *
   from sample_datalinks;
 
-select dl_chattr('public','sample_datalinks3','link', dl_lco(link_control=>'FILE'));
+select dl_chattr('sample_datalinks3','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 
 delete from sample_datalinks3 where dllinktype(link)='FS';

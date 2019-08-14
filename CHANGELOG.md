@@ -1,5 +1,9 @@
-Version 0.4
------------
+Version 0.4alpha
+----------------
+- reduced verbosity
+- dl_column_options and dl_chattr now use regclass instead of (schema_name,table_name)
+- changed ld_lco encoding to base 10 so that the options now display nicely as decimal digits in psql
+- trigger bugfixes
 
 Version 0.3
 -----------

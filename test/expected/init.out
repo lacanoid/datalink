@@ -30,7 +30,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlscheme(datalink)                                                                        | sql     | SQL/MED - Returns the scheme from a DATALINK value
  pg_catalog   | dlurlserver(datalink)                                                                        | sql     | SQL/MED - Returns the file server from a DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | sql     | SQL/MED - Construct a DATALINK value
- datalink     | dl_chattr(name,name,name,dl_lco)                                                             | plpgsql | Set link control options for datalink column (buggy)
+ datalink     | dl_chattr(regclass,name,dl_lco)                                                              | plpgsql | Set link control options for datalink column (buggy)
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_lco from individual options
  datalink     | dl_link_control_options(dl_lco)                                                              | sql     | Calculate dl_link_control_options from dl_lco
  datalink     | file_stat(text)                                                                              | plperlu | Return info record from stat(2)

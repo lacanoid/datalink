@@ -20,6 +20,9 @@ select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not n
 
 select dl_lco(link_control=>'FILE');
 select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
+select * from dl_link_control_options(dl_lco(link_control=>'NO'));
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
+select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL'));
 select * from dl_link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					     read_access=>'DB',write_access=>'BLOCKED',
 					     recovery=>'YES',on_unlink=>'DELETE'));
