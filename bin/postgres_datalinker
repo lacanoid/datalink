@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+
+use strict;
+use DBI;
+use IPC::Run 'run';
+use JSON;
+use Data::Dumper;
+use Time::HiRes;
+
+BEGIN {
+    $ENV{LC_ALL} = "C";
+}
+
+our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
+
+our %config = (
+    dsn => 'dbi:Pg:service=datalinker',
+    url_archive => "/var/www/datalink_url",
+    prefix => [
+	"/var/www/datalink_fs/",
+	"/tmp/"
+    ]
+);
+
+our $dbh = DBI->connect($config{dsn});
+if(!$dbh) { log_fatal("Database not available"); }
+
+our $json = JSON->new->allow_nonref;
+
+$dbh->do("set application_name='SQL/MED like datalinker'");
+$dbh->do("set search_path=datalink");
+
+my %q = (
+    'get_ready'=>$dbh->prepare(q{
+       select * 
+         from dl_linked_files 
+        where state in ('LINK','UNLINK')}),
+    'set_linked'=>$dbh->prepare(q{
+       update dl_linked_files 
+          set state = 'LINKED'
+        where token = $1}),
+    'delete'=>$dbh->prepare(q{
+       delete from dl_linked_files
+        where token = $1
+})
+);
+#if($q{get_ready}) { die "Can't prepare statement"; }
+
+log_msg("Ready!");
+
+while(1) {
+    my $rv = $q{get_ready}->execute;
+    if(!defined($rv)) { log_fatal("Can't execute main query. Bugs?"); }
+    while(my $data = $q{get_ready}->fetchrow_hashref) {
+	if(!$data->{token}) {
+	    log_err("No token in ",$data);
+	    next;
+	}
+#	log_msg("DATA",$data);
+	if($data->{state} eq 'LINK') {
+	    log_msg('LINK',$data->{path});
+	    $q{set_linked}->execute($data->{token});
+	}
+	elsif($data->{state} eq 'UNLINK') {
+	    log_msg('UNLINK',$data->{path});
+	    $q{delete}->execute($data->{token});
+	}
+	else {
+	    log_err("Unknown state in ",$data);
+	    next;
+	}
+    }
+    sleep 5;
+}
+
+
+
+sub wget {
+    my ($u)=@_;
+    my @c = @wget;
+    push @c,$u;
+
+    my $start_time = [Time::HiRes::gettimeofday()];
+
+    chdir($config{url_archive});
+    run [ @c ], '2>', \my $res;
+
+    my %rc;
+    while($res=~s/response\.\.\.\s*(\d+)//) {
+	$rc{$1}++;
+    }
+
+    my $diff = Time::HiRes::tv_interval($start_time);
+
+    return {'t'=>$diff, 'rc'=>\%rc };
+}
+
+sub log_msg {
+    my ($txt,$data)=@_;
+    print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+}
+
+sub log_err {
+    my ($txt,$data)=@_;
+    print STDERR "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+}
+
+sub log_fatal {
+    my ($txt)=@_;
+    die $txt;
+}
