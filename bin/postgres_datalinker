@@ -59,10 +59,12 @@ while(1) {
 #	log_msg("DATA",$data);
 	if($data->{state} eq 'LINK') {
 	    log_msg('LINK',$data->{path});
+	    file_link($data->{path});
 	    $q{set_linked}->execute($data->{token});
 	}
 	elsif($data->{state} eq 'UNLINK') {
 	    log_msg('UNLINK',$data->{path});
+	    file_unlink($data->{path});
 	    $q{delete}->execute($data->{token});
 	}
 	else {
@@ -73,7 +75,30 @@ while(1) {
     sleep 5;
 }
 
+sub file_link {
+    my ($path)=@_;
+    file_block($path);
+}
 
+sub file_unlink {
+    my ($path)=@_;
+    file_unblock($path);
+}
+
+sub file_block {
+    my ($path)=@_;
+    sys("chattr","+i",$path);
+}
+
+sub file_unblock {
+    my ($path)=@_;
+    sys("chattr","-i",$path);
+}
+
+sub sys {
+    log_msg("SYS",[@_]);
+    system(@_);
+}
 
 sub wget {
     my ($u)=@_;

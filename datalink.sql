@@ -6,6 +6,8 @@
 
 SET client_min_messages = warning;
 
+COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
+
 ---------------------------------------------------
 -- datalink type
 ---------------------------------------------------
