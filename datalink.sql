@@ -555,7 +555,7 @@ begin
          from pg_event_trigger_dropped_objects()
 	where object_type = 'table column'
        ) as tdo
-      join dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
+      join datalink.dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
     delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
