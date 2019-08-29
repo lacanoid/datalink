@@ -17,7 +17,7 @@ our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --
 our %config = (
     dsn => 'dbi:Pg:service=datalinker',
     db_owner => 'postgres.postgres',
-    db_mode => '440',
+    db_mode => '0440',
     url_archive => "/var/www/datalink_url",
     prefix => [
 	"/var/www/datalink_fs/",
@@ -70,6 +70,7 @@ while(1) {
 		    log_err("No token in ",$data);
 		    next;
 		}
+		if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
 		log_debug("DATA",$data);
 		if($data->{state} eq 'LINK') {
 		    log_msg('LINK:'.$data->{lco},$data->{path});
@@ -116,7 +117,7 @@ sub file_stat {
 sub file_link {
     my ($path,$opt)=@_;
     my $s = file_stat($path);
-    my $r = { own => $s->{uid}.":".$s->{gid}, mod => $s->{mode} };
+    my $r = { own => $s->{uid}.":".$s->{gid}, mod => sprintf("%#o",$s->{mode} & 0777) };
 
     if($opt->{recovery} eq 'YES') {
 	file_backup($path,$opt);
@@ -131,11 +132,13 @@ sub file_link {
 
 sub file_unlink {
     my ($path,$opt)=@_;
-    file_unblock($path);
+    file_unblock($path,$opt);
+    file_restore($path,$opt);
 }
 
 sub file_read_permission_db {
     my ($path,$opt)=@_;
+    log_debug('CHOWNMOD',$path);
     if(defined($config{db_owner})) {
 	sys("chown",$config{db_owner},$path);
     }
@@ -144,7 +147,19 @@ sub file_read_permission_db {
     }
 }
 
-sub path_full {
+sub file_restore {
+    my ($path,$opt)=@_;
+    my $info = $opt->{info};
+    log_debug('RESTORE',$info);
+    if(defined($info->{own})) {
+	sys("chown",$info->{own},$path);
+    }
+    if(defined($info->{mod})) {
+	sys("chmod",$info->{mod},$path);
+    }
+}
+
+sub path_backup {
     my ($path,$token)=@_;
     if($token) { return $path.'#'.$token; }
     else { return $path; }
@@ -153,8 +168,8 @@ sub path_full {
 sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
-	my $path_full = path_full($path,$opt->{token});
-	sys("cp","-a",$path,$path_full);
+	my $path_backup = path_backup($path,$opt->{token});
+	sys("cp","-a",$path,$path_backup);
     }
 }
 
@@ -169,8 +184,26 @@ sub file_unblock {
 }
 
 sub sys {
-    log_msg("SYS",[@_]);
-    system(@_);
+    my @args = @_;
+    my $err;
+    log_msg("SYS",[@args]);
+    system(@args) == 0
+	or log_err('SYSFAIL',"system @args failed: $?");
+
+    if ($? == -1) {
+	$err = "failed to execute: $!";
+    }
+    elsif ($? & 127) {
+	$err = sprintf "child died with signal %d, %s coredump",
+	($? & 127),  ($? & 128) ? 'with' : 'without';
+    }
+    else {
+	my $ex = $? >> 8;
+	if($ex > 0) {
+	    $err = sprintf "child exited with value %d", $ex;
+	}
+    }
+    if($err) { log_err('SYSERR',$err); }
 }
 
 sub wget {
