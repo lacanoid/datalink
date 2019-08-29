@@ -42,10 +42,11 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
  datalink     | dl_sql_advice()                                                                              | sql     | 
  datalink     | dl_trigger_event()                                                                           | plpgsql | 
+ datalink     | dl_trigger_lco()                                                                             | plpgsql | 
  datalink     | dl_trigger_table()                                                                           | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
  datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
-(28 rows)
+(29 rows)
 

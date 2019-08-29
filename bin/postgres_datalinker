@@ -5,16 +5,19 @@ use DBI;
 use IPC::Run 'run';
 use JSON;
 use Data::Dumper;
-use Time::HiRes;
+use Time::HiRes qw{usleep};
 
-BEGIN {
-    $ENV{LC_ALL} = "C";
-}
+BEGIN { $ENV{LC_ALL} = "C"; }
+
+our $opt_v = 0;  # verbosity
+our $opt_n = 10; # number of iterations in fast inner loop
 
 our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
 
 our %config = (
     dsn => 'dbi:Pg:service=datalinker',
+    db_owner => 'postgres.postgres',
+    db_mode => '440',
     url_archive => "/var/www/datalink_url",
     prefix => [
 	"/var/www/datalink_fs/",
@@ -29,69 +32,139 @@ our $json = JSON->new->allow_nonref;
 
 $dbh->do("set application_name='SQL/MED like datalinker'");
 $dbh->do("set search_path=datalink");
+$dbh->do('listen "datalink.linker_jobs"');
 
 my %q = (
-    'get_ready'=>$dbh->prepare(q{
+    'get_jobs'=>$dbh->prepare(q{
        select * 
          from dl_linked_files 
+         join dl_link_control_options lco using (lco)
         where state in ('LINK','UNLINK')}),
     'set_linked'=>$dbh->prepare(q{
        update dl_linked_files 
-          set state = 'LINKED'
+          set state = 'LINKED',
+              info = $2
         where token = $1}),
     'delete'=>$dbh->prepare(q{
        delete from dl_linked_files
         where token = $1
 })
 );
-#if($q{get_ready}) { die "Can't prepare statement"; }
 
-log_msg("Ready!");
+our $dbmeta = $dbh->selectrow_hashref(qq{
+  select current_database(), current_timestamp
+});
+    
+log_msg("START",$dbmeta);
 
 while(1) {
-    my $rv = $q{get_ready}->execute;
-    if(!defined($rv)) { log_fatal("Can't execute main query. Bugs?"); }
-    while(my $data = $q{get_ready}->fetchrow_hashref) {
-	if(!$data->{token}) {
-	    log_err("No token in ",$data);
-	    next;
-	}
-#	log_msg("DATA",$data);
-	if($data->{state} eq 'LINK') {
-	    log_msg('LINK',$data->{path});
-	    file_link($data->{path});
-	    $q{set_linked}->execute($data->{token});
-	}
-	elsif($data->{state} eq 'UNLINK') {
-	    log_msg('UNLINK',$data->{path});
-	    file_unlink($data->{path});
-	    $q{delete}->execute($data->{token});
-	}
-	else {
-	    log_err("Unknown state in ",$data);
-	    next;
+    log_debug('READY');
+    my $sleepy = 0;
+    while(!$sleepy) {
+	my $rv = $q{get_jobs}->execute;
+	if(!defined($rv)) { log_fatal("Can't execute main query. Bugs?"); }
+	$sleepy = $rv<=0;
+	if(!$sleepy) {
+	    while(my $data = $q{get_jobs}->fetchrow_hashref) {
+		if(!$data->{token}) {
+		    log_err("No token in ",$data);
+		    next;
+		}
+		log_debug("DATA",$data);
+		if($data->{state} eq 'LINK') {
+		    log_msg('LINK:'.$data->{lco},$data->{path});
+		    my $r=file_link($data->{path},$data);
+		    $q{set_linked}->execute($data->{token},$json->encode($r));
+		}
+		elsif($data->{state} eq 'UNLINK') {
+		    log_msg('UNLINK:'.$data->{lco},$data->{path});
+		    file_unlink($data->{path},$data);
+		    $q{delete}->execute($data->{token});
+		}
+		else {
+		    log_err("Unknown state in ",$data);
+		    next;
+		}
+	    }
 	}
     }
-    sleep 5;
+    for(my $i=0;$i<$opt_n;$i++) {
+	while(my $not = $dbh->pg_notifies) {
+	    log_debug('NOTIFY',$not);
+	    $sleepy = 0;
+	}
+	if($sleepy) {
+	    usleep(1000000 * 5.0/$opt_n);
+	}
+    }
+} # forever loop
+
+
+sub file_stat {
+    my ($path,$opt)=@_;
+    my (@s) = stat($path);
+
+    return {
+	'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
+	'uid'=>$s[4],'gid'=>$s[5],
+	'rdev'=>$s[6],'size'=>$s[7],
+#	'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
+	'blksize'=>$s[11],'blocks'=>$s[12]
+    };
 }
 
 sub file_link {
-    my ($path)=@_;
+    my ($path,$opt)=@_;
+    my $s = file_stat($path);
+    my $r = { own => $s->{uid}.":".$s->{gid}, mod => $s->{mode} };
+
+    if($opt->{recovery} eq 'YES') {
+	file_backup($path,$opt);
+    }
+    if($opt->{read_access} eq 'DB') {
+	file_read_permission_db($path,$opt);
+    }
+
     file_block($path);
+    return $r;
 }
 
 sub file_unlink {
-    my ($path)=@_;
+    my ($path,$opt)=@_;
     file_unblock($path);
 }
 
+sub file_read_permission_db {
+    my ($path,$opt)=@_;
+    if(defined($config{db_owner})) {
+	sys("chown",$config{db_owner},$path);
+    }
+    if(defined($config{db_mode})) {
+	sys("chmod",$config{db_mode},$path);
+    }
+}
+
+sub path_full {
+    my ($path,$token)=@_;
+    if($token) { return $path.'#'.$token; }
+    else { return $path; }
+}
+
+sub file_backup {
+    my ($path,$opt)=@_;
+    if($opt->{token}) {
+	my $path_full = path_full($path,$opt->{token});
+	sys("cp","-a",$path,$path_full);
+    }
+}
+
 sub file_block {
-    my ($path)=@_;
+    my ($path,$opt)=@_;
     sys("chattr","+i",$path);
 }
 
 sub file_unblock {
-    my ($path)=@_;
+    my ($path,$opt)=@_;
     sys("chattr","-i",$path);
 }
 
@@ -120,9 +193,18 @@ sub wget {
     return {'t'=>$diff, 'rc'=>\%rc };
 }
 
+#------------------------------
+
+sub log_debug {
+    my ($txt,$data)=@_;
+    if($opt_v) {
+	print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    }
+}
+
 sub log_msg {
     my ($txt,$data)=@_;
-    print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    print "$txt:".(ref($data)?$json->encode($data):$data)."\n";
 }
 
 sub log_err {

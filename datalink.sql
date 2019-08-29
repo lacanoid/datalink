@@ -299,6 +299,12 @@ CREATE VIEW dl_columns AS
     c.relname AS table_name,
     a.attname AS column_name,
     COALESCE((ad.lco)::integer, 0) AS lco,
+    lco.link_control,
+    lco.integrity,
+    lco.read_access,
+    lco.write_access,
+    lco.recovery,
+    lco.on_unlink,
     a.attnotnull AS not_null,
     a.attislocal AS islocal,
     a.attnum AS ord,
@@ -321,6 +327,21 @@ CREATE VIEW dl_columns AS
          t.oid = 'pg_catalog.datalink'::regtype AND
           (NOT a.attisdropped))
   ORDER BY s.nspname, c.relname, a.attnum;
+
+
+---------------------------------------------------
+
+CREATE VIEW column_options AS
+SELECT
+    regclass,
+    column_name,
+    link_control,
+    integrity,
+    read_access,
+    write_access,
+    recovery,
+    on_unlink
+ FROM datalink.dl_columns;
 
 
 ---------------------------------------------------
@@ -401,7 +422,8 @@ create table dl_linked_files (
   path text primary key,
   address text unique,
   fstat jsonb,
-  info jsonb
+  info jsonb,
+  err jsonb
 );
 
 -----
@@ -459,6 +481,7 @@ begin
  if not found then
    insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
    values (token,file_path,lco,regclass,attname,fstat,addr);
+   notify "datalink.linker_jobs";
    return true;
  else
   if r.state in ('LINK','LINKED') then
@@ -504,6 +527,7 @@ begin
                   detail = format('unknown link state %s',r.state);
   end if;
  end if;
+ notify "datalink.linker_jobs";
  return true;
 end
 $$ language plpgsql strict;
@@ -756,6 +780,29 @@ end
 $_X$;
 
 ---------------------------------------------------
+
+CREATE FUNCTION dl_trigger_lco() RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+declare
+ my_lco datalink.dl_lco;
+begin
+ my_lco := datalink.dl_lco(
+  link_control=>new.link_control,integrity=>new.integrity,
+  read_access=>new.read_access,write_access=>new.write_access,
+  recovery=>new.recovery,on_unlink=>new.on_unlink
+ );
+ perform datalink.dl_chattr(new.regclass,new.column_name,my_lco);
+ return new;
+end
+$$;
+
+CREATE TRIGGER "column_options_instead"
+INSTEAD OF UPDATE ON datalink.column_options
+FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_lco();
+
+---------------------------------------------------
 -- uri functions
 ---------------------------------------------------
 
@@ -989,5 +1036,10 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'SQL/MED - Returns the li
 create table sample_datalinks ( id serial primary key, link datalink );
 grant select,insert,update,delete on sample_datalinks to public;
 grant usage on sequence sample_datalinks_id_seq to public;
-select dl_chattr('sample_datalinks','link',dl_lco(link_control=>'FILE',integrity=>'ALL'));
 
+update datalink.column_options
+   set link_control='FILE', integrity='ALL',
+       read_access='FS', write_access='BLOCKED',
+       recovery='YES', on_unlink='RESTORE'
+ where regclass='sample_datalinks'::regclass and column_name='link';
+  
