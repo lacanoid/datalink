@@ -4,6 +4,7 @@ Version 0.4alpha
 - dl_column_options and dl_chattr now use regclass instead of (schema_name,table_name)
 - changed ld_lco encoding to base 10 so that the options now display nicely as decimal digits in psql
 - trigger bugfixes
+- added updatable view datalink.column_options to set link options with UPDATE;
 - added simple datalinker
 
 Version 0.3

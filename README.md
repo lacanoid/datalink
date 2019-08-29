@@ -17,8 +17,7 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
-- `dl_ref()` and `dl_unref()` functions through which datalink referencing is routed
-- link control options (LCO) functions
+- Setting link control options with "UPDATE DATALINK.COLUMN_OPTIONS"
 - token generator
 - plperlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
