@@ -1,0 +1,31 @@
+\pset null _null_
+SET client_min_messages = notice;
+SET search_path = public,datalink;
+create table sample_datalinks6 (
+  id serial,
+  link datalink,
+  link2 datalink
+);
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks6
+update datalink.column_options
+   set link_control='FILE', integrity='ALL',
+       read_access='FS', write_access='BLOCKED',
+       recovery='YES', on_unlink='RESTORE'
+ where regclass='sample_datalinks6'::regclass and column_name='link';
+update datalink.column_options
+   set link_control='FILE', integrity='ALL'
+ where regclass='sample_datalinks6'::regclass and column_name='link2';
+insert into sample_datalinks6 (link)
+values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 1'));
+NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+update sample_datalinks6 set link2 = link;
+NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+ERROR:  External file already linked
+DETAIL:  from sample_datalinks6.link as '/tmp/CHANGELOG.md'
+CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 30 at RAISE
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at PERFORM
+PL/pgSQL function dl_trigger_table() line 45 at assignment
+update sample_datalinks6 set link = link2;
+NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
+update sample_datalinks6 set link2 = null;
