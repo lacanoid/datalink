@@ -32,14 +32,14 @@ NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks
 select * from dl_triggers;
  owner |         regclass          | links |  mco   |       tgname        
 -------+---------------------------+-------+--------+---------------------
- root  | datalink.sample_datalinks |     1 | 113021 | ~RI_DatalinkTrigger
+ root  | datalink.sample_datalinks |     1 | 113121 | ~RI_DatalinkTrigger
  root  | sample_datalinks          |     1 |      0 | ~RI_DatalinkTrigger
 (2 rows)
 
 select column_name,lco FROM datalink.dl_columns;
  column_name |  lco   
 -------------+--------
- link        | 113021
+ link        | 113121
  link        |      0
 (2 rows)
 

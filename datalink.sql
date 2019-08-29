@@ -1039,7 +1039,7 @@ grant usage on sequence sample_datalinks_id_seq to public;
 
 update datalink.column_options
    set link_control='FILE', integrity='ALL',
-       read_access='FS', write_access='BLOCKED',
+       read_access='DB', write_access='BLOCKED',
        recovery='YES', on_unlink='RESTORE'
  where regclass='sample_datalinks'::regclass and column_name='link';
   
