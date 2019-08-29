@@ -21,22 +21,25 @@ Currently, it implements the following:
 - token generator
 - plperlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
+- simple datalinker
 - LCO: NO LINK CONTROL - only check for valid URLs
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
 
+With datalinker:
+- LCO: READ ACCESS DB - make file owned by database
+- LCO: WRITE ACCESS BLOCKED
+- LCO: RECOVERY YES - make a backup of a file
+- LCO: ON UNLINK RESTORE - restore file permissions upon unlink
+
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
-- LCO: READ ACCESS DB
-- LCO: WRITE ACCESS BLOCKED
 - LCO: WRITE ACCESS ADMIN
 - LCO: WRITE ACCESS ADMIN TOKEN
-- LCO: ON UNLINK RESTORE
 - LCO: ON UNLINK DELETE
-- LCO: RECOVERY YES
 - no permissions control of any kind - this needs major considerations
-- datalinker processes
+- datalinker daemon
 - native postgres URL type + functions
 - Transactional File IO functions + file spaces
 - foreign server support for file:// URLs (for files on other servers)
