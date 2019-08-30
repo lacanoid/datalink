@@ -609,7 +609,6 @@ begin
   token := link->>'token';
   if token is null then token := datalink.dl_newtoken() ; end if;
   link := jsonb_set(link,'{token}',to_jsonb(token));
---  link.token := token;
  end if;
  return link;
 end
@@ -628,7 +627,6 @@ begin
  if has_token > 0 then
   token := datalink.dl_newtoken();
   link := jsonb_set(link,'{token}',to_jsonb(token));
---  link.token := datalink.dl_newtoken();
  end if;
  return link;
 end
