@@ -111,7 +111,7 @@ to set them instead.
     update datalink.column_options
        set link_control='FILE', integrity='ALL',
            read_access='DB', write_access='BLOCKED',
-	   recovery='YES', on_unlink='RESTORE'
+           recovery='YES', on_unlink='RESTORE'
      where regclass='sample_datalinks'::regclass and column_name='link';
 
 Currently, only the superuser can change link control options.
