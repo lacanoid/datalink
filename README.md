@@ -6,7 +6,8 @@ It is very much a prototype and meant for playing around to see if this can be m
 Also to see how much of the standard can be implemented in high-level postgres (and pgperlu :), 
 without having to resort to C. It currently doesn't do anything very useful.
 
-Implemented with a mix of plpgsql and plperlu. Perl is used for interfacing with curl and for uri handling.
+This extension uses a number of advanced PostgreSQL features for implementation,
+including jsonb, all sorts of triggers, plperlu...
  
 Currently, it implements the following:
 - SQL/MED DATALINK type
@@ -17,14 +18,14 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
-- Setting link control options with "UPDATE DATALINK.COLUMN_OPTIONS"
-- token generator
+- Setting link control options with UPDATE DATALINK.COLUMN_OPTIONS
+- token generator (uses uuid-ossp)
 - plperlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
-- simple datalinker
 - LCO: NO LINK CONTROL - only check for valid URLs
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
+- simple datalinker to provide other LCOs, see below
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database
@@ -103,7 +104,7 @@ datalink triggers are automatically installed on the table.
       from sample_datalinks;
 
 
-SQL/MED syntax to set link control options is not supported,
+SQL/MED syntax to set link control options for a column is not supported,
 but you can use normal SQL UPDATE on table DATALINK.COLUMN_OPTIONS
 to set them instead.
 
@@ -111,7 +112,7 @@ to set them instead.
       set link_control='FILE', integrity='ALL',
           read_access='DB', write_access='BLOCKED',
 	  recovery='YES', on_unlink='RESTORE'
-    where regclass='sample_datalinks' and column_name='link';
+    where regclass='sample_datalinks'::regclass and column_name='link';
 
 Currently, only the superuser can change link control options.
             
