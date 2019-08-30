@@ -74,28 +74,12 @@ IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 -- link control options
 ---------------------------------------------------
 
-CREATE TYPE dl_link_control AS ENUM (
-    'NO','FILE'
-);
-CREATE TYPE dl_integrity AS ENUM (
-    'NONE','SELECTIVE','ALL'
-);
-CREATE TYPE dl_read_access AS ENUM (
-    'FS','DB'
-);
-CREATE TYPE dl_write_access AS ENUM (
-    'FS','BLOCKED',
-    'ADMIN',
-    -- 'ADMIN NOT REQUIRING TOKEN FOR UPDATE',
-    'ADMIN TOKEN'
-    -- 'ADMIN REQUIRING TOKEN FOR UPDATE'
-);
-CREATE TYPE dl_recovery AS ENUM (
-    'NO','YES'
-);
-CREATE TYPE dl_on_unlink AS ENUM (
-    'NONE','RESTORE','DELETE'
-);
+create type dl_link_control as enum ( 'NO','FILE' );
+create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
+create type dl_read_access as enum ( 'FS','DB' );
+create type dl_write_access as enum ( 'FS','BLOCKED', 'ADMIN', 'ADMIN TOKEN' );
+create type dl_recovery as enum ( 'NO','YES' );
+create type dl_on_unlink as enum ( 'NONE','RESTORE','DELETE' );
 
 create cast (text as dl_link_control) with inout as implicit;
 create cast (text as dl_integrity) with inout as implicit;
@@ -104,7 +88,7 @@ create cast (text as dl_write_access) with inout as implicit;
 create cast (text as dl_recovery) with inout as implicit;
 create cast (text as dl_on_unlink) with inout as implicit;
 
-CREATE DOMAIN dl_lco AS integer;
+create domain dl_lco as integer;
 comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
 
 CREATE TABLE dl_link_control_options (
@@ -615,7 +599,7 @@ $$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) RETURNS datalink
+CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer default 1) RETURNS datalink
     LANGUAGE plpgsql STRICT
     AS $_$
 declare
@@ -635,7 +619,7 @@ IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that th
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) RETURNS datalink
+CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer default 1) RETURNS datalink
     LANGUAGE plpgsql STRICT
     AS $_$
 declare
