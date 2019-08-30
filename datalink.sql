@@ -173,43 +173,10 @@ LANGUAGE sql IMMUTABLE
 select *
   from datalink.dl_link_control_options
  where lco = $1
-/*
-select row($1,
-           case $1 & 15
-             when 0 then 'NO'
-             when 1 then 'FILE'
-           end,
-           case ($1 >> 4) & 15
-             when 0 then 'NONE'
-             when 1 then 'SELECTIVE'
-             when 2 then 'ALL'
-           end,
-           case ($1 >> 8) & 15
-	     when 0 then 'FS'
-             when 1 then 'DB'
-           end,
-           case ($1 >> 12) & 15
-             when 0 then 'FS'
-             when 1 then 'BLOCKED'
-             when 2 then 'ADMIN'
-             when 3 then 'ADMIN TOKEN'
-           end,
-           case ($1 >> 16) & 15
-             when 0 then 'NO'
-             when 1 then 'YES'
-           end,
-           case ($1 >> 20) & 15
-             when 0 then 'NONE'
-             when 1 then 'RESTORE'
-             when 2 then 'DELETE'
-           end
-        ) :: datalink.dl_link_control_options
-*/
 $_$;
 
 COMMENT ON FUNCTION dl_link_control_options(dl_lco)
 IS 'Calculate dl_link_control_options from dl_lco';
-
 
 ---------------------------------------------------
 -- init options table
@@ -312,7 +279,6 @@ CREATE VIEW dl_columns AS
           (NOT a.attisdropped))
   ORDER BY s.nspname, c.relname, a.attnum;
 
-
 ---------------------------------------------------
 
 CREATE VIEW column_options AS
@@ -326,7 +292,6 @@ SELECT
     recovery,
     on_unlink
  FROM datalink.dl_columns;
-
 
 ---------------------------------------------------
 
@@ -410,10 +375,11 @@ create table dl_linked_files (
   err jsonb
 );
 
------
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION datalink.file_stat(file_path text,
-  OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer, OUT uid integer, OUT gid integer,
+  OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
+  OUT uid integer, OUT gid integer,
   OUT rdev integer, OUT size numeric, OUT atime timestamp without time zone,
   OUT mtime timestamp without time zone, OUT ctime timestamp without time zone,
   OUT blksize integer, OUT blocks bigint)
@@ -437,9 +403,14 @@ return {
 $function$;
 
 COMMENT ON FUNCTION datalink.file_stat(text) IS 'Return info record from stat(2)';
------
 
-create function file_link(file_path text,token dl_token,lco dl_lco,regclass regclass,attname name) returns boolean as
+---------------------------------------------------
+
+create function file_link(file_path text,
+                          token dl_token,
+			  lco dl_lco,
+			  regclass regclass,attname name)
+returns boolean as
 $$
 declare
  r record;
@@ -481,7 +452,13 @@ begin
 end
 $$ language plpgsql strict;
 
-create function file_unlink(file_path text,token dl_token,lco dl_lco,regclass regclass,attname name) returns boolean as
+---------------------------------------------------
+
+create function file_unlink(file_path text,
+                            token dl_token,
+			    lco dl_lco,
+			    regclass regclass,attname name)
+returns boolean as
 $$
 declare
  r record;
@@ -556,7 +533,7 @@ begin
     delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
   end loop;
 
--- unlink files referenced by dropped columns
+  -- unlink files referenced by dropped columns
   for obj in
     select *
       from
@@ -697,7 +674,6 @@ begin
  return $1;
 end$_$;
 
-
 ---------------------------------------------------
 
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
@@ -820,6 +796,8 @@ $function$
 
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
 
+---------------------------------------------------
+
 CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
  RETURNS text
   LANGUAGE plperlu
@@ -848,7 +826,6 @@ CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
 
 COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
 
-
 ---------------------------------------------------
 -- curl functions
 ---------------------------------------------------
@@ -870,7 +847,8 @@ $head = ($head eq't')?1:0;
 my $curl = WWW::Curl::Easy->new;
 my %r;
   
-$curl->setopt(CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+$curl->setopt(CURLOPT_USERAGENT,
+              "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,$head?1:0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
@@ -971,9 +949,10 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','host')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink) IS 'SQL/MED - Returns the file server from a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
+     IS 'SQL/MED - Returns the file server from a DATALINK value';
 
----------------
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
@@ -981,9 +960,10 @@ RETURNS text
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','scheme')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink) IS 'SQL/MED - Returns the scheme from a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
+     IS 'SQL/MED - Returns the scheme from a DATALINK value';
 
----------------
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlpath(datalink)
  RETURNS text
@@ -991,9 +971,10 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlpath(datalink)
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','path')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink) IS 'SQL/MED - Returns the file path from a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
+     IS 'SQL/MED - Returns the file path from a DATALINK value';
 
----------------
+---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
@@ -1001,10 +982,9 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlpathonly(datalink)
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','path')$function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink) IS 'SQL/MED - Returns the file path from a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
+     IS 'SQL/MED - Returns the file path from a DATALINK value';
 
----------------------------------------------------
--- play tables
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
@@ -1013,7 +993,12 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
    IMMUTABLE STRICT
    AS $function$select case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end$function$;
 
-COMMENT ON FUNCTION pg_catalog.dllinktype(datalink) IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';
+COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
+     IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';
+
+---------------------------------------------------
+-- play tables
+---------------------------------------------------
 
 create table sample_datalinks ( id serial primary key, link datalink );
 grant select,insert,update,delete on sample_datalinks to public;
