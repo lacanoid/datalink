@@ -33,12 +33,12 @@ With datalinker:
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 
 Missing:
+- all this is currently superuser only
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - LCO: WRITE ACCESS ADMIN
 - LCO: WRITE ACCESS ADMIN TOKEN
 - LCO: ON UNLINK DELETE
-- no permissions control of any kind - this needs major considerations
 - datalinker daemon
 - native postgres URL type + functions
 - Transactional File IO functions + file spaces
@@ -101,6 +101,19 @@ datalink triggers are automatically installed on the table.
             
     select dlurlcomplete(link)
       from sample_datalinks;
+
+
+SQL/MED syntax to set link control options is not supported,
+but you can use normal SQL UPDATE on table DATALINK.COLUMN_OPTIONS
+to set them instead.
+
+   update datalink.column_options
+      set link_control='FILE', integrity='ALL',
+          read_access='DB', write_access='BLOCKED',
+	  recovery='YES', on_unlink='RESTORE'
+    where regclass='sample_datalinks' and column_name='link';
+
+Currently, only the superuser can change link control options.
             
 DATALINK functions
 ==================

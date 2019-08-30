@@ -13,6 +13,9 @@ Todo
 - link state handling: unlink -> linked, error -> ?
 - file path sanity checking (handle ..)
 - url sanity checking (handle ..)
-- token decodin from url
+- token decoding from url
+- better URL syntax checking
+- URL canonization
 - dlvalue better error handling
+- make this work for non-superusers
 - permissions
