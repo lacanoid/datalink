@@ -13,5 +13,6 @@ Todo
 - link state handling: unlink -> linked, error -> ?
 - file path sanity checking (handle ..)
 - url sanity checking (handle ..)
+- token decodin from url
 - dlvalue better error handling
 - permissions
