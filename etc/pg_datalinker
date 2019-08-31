@@ -1,8 +1,8 @@
 #! /bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          varnish
-# Required-Start:    $local_fs $remote_fs $network
+# Provides:          pg_datalinker
+# Required-Start:    $local_fs $remote_fs $networkOB
 # Required-Stop:     $local_fs $remote_fs $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -13,7 +13,7 @@
 # Source function library
 . /lib/lsb/init-functions
 
-NAME=datalinker
+NAME=pg_datalinker
 DESC="SQL/MED datalinker"
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/sbin/postgresql_datalinker
@@ -93,7 +93,7 @@ status_datalinker() {
 }
 
 configtest() {
-    $DAEMON ${DAEMON_OPTS} -C -n /tmp > /dev/null
+    $DAEMON ${DAEMON_OPTS} -C > /dev/null
 }
 
 
