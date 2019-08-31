@@ -1,7 +1,7 @@
 comment = 'SQL/MED DATALINK type and functions'
 default_version = 0.5
 relocatable = false
-requires='plperlu'
+requires='plpgsql,plperlu'
 superuser = YES
 schema = 'datalink'
 
