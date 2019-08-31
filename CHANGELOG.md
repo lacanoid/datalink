@@ -1,3 +1,7 @@
+Version 0.5alpha
+----------------
+- bugfixes
+
 Version 0.4
 -----------
 - added updatable view datalink.column_options to set link options with UPDATE;

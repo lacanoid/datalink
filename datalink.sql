@@ -459,6 +459,7 @@ begin
            regclass=my_regclass,
 	   attname=my_attname
      where path = file_path and state='UNLINK';
+    return true;
      else -- cannot link again
       raise exception 'External file already linked' 
             using errcode = 'HW002', 

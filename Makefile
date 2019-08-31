@@ -1,7 +1,7 @@
 PG_CONFIG = pg_config
 PKG_CONFIG = pkg-config
 
-extension_version = 0.4
+extension_version = 0.5
 
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
