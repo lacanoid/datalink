@@ -431,17 +431,33 @@ begin
    values (token,file_path,lco,regclass,attname,addr);
    notify "datalink.linker_jobs";
    return true;
- else
+ else -- found
   if r.state in ('LINK','LINKED') then
       raise exception 'External file already linked' 
             using errcode = 'HW002', 
                   detail = format('from %s.%I as ''%s''',r.regclass::text,r.attname,r.path);
+
+  elsif r.state in ('UNLINK') then
+
+     if  r.token is not distinct from token and r.lco is not distinct from lco
+     then -- same file and protection
+    update datalink.dl_linked_files
+       set state='LINKED',
+           regclass=regclass,
+	   attname=attname
+     where path = file_path and state='UNLINK';
+     else -- cannot link again
+      raise exception 'External file already linked' 
+            using errcode = 'HW002', 
+                  detail = format('file is waiting for unlink ''%s''',r.path);
+     end if;
+
   else
       raise exception 'Datalink exception' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
   end if;
- end if;
+ end if; -- if found
 end
 $$ language plpgsql strict;
 
@@ -468,13 +484,22 @@ begin
                   detail = file_path;
  else
   if r.state = 'LINK' then
-   delete from datalink.dl_linked_files
-    where path = $1
+   update datalink.dl_linked_files
+      set state = 'UNLINK',
+          token = cast(info->>'token' as datalink.dl_token),
+	  lco = cast(info->>'lco' as datalink.dl_lco)
+    where path = $1 and info is not null
       and state = 'LINK';
+
+   delete from datalink.dl_linked_files
+    where path = $1 and info is null
+      and state = 'LINK';
+
   elsif r.state = 'LINKED' then
    update datalink.dl_linked_files
       set state = 'UNLINK'
     where path = $1 and state = 'LINKED';
+
   else
       raise exception 'Datalink exception' 
             using errcode = 'HW000', 
