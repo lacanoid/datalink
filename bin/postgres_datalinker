@@ -7,15 +7,16 @@ use IPC::Run 'run';
 use Getopt::Std;
 use Time::HiRes qw{usleep};
 
-BEGIN { $ENV{LC_ALL} = "C"; }
+#---------------------------------------
 
 our $opt_v = 0;  # verbosity
-our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_D = 0;  # really delete linked files with ON UNLINK DELETE
+our $opt_C = 0;  # only check configuration
+our $opt_n = 10; # number of iterations in fast inner loop
 
 getopt('');
 
-our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
+#---------------------------------------
 
 our %config = (
     appname => 'SQL/MED like datalinker',
@@ -29,14 +30,24 @@ our %config = (
     ]
 );
 
+#---------------------------------------
+
+our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
+
+BEGIN { $ENV{LC_ALL} = "C"; }
+
 our $dbh = DBI->connect($config{dsn});
 if(!$dbh) { log_fatal("Database not available"); }
 
 our $json = JSON->new->allow_nonref;
 
+#---------------------------------------
+
 $dbh->do("set application_name='".$config{appname}."'");
 $dbh->do("set search_path=datalink");
 $dbh->do('listen "datalink.linker_jobs"');
+
+#---------------------------------------
 
 my %q = (
     'get_jobs'=>$dbh->prepare(q{
@@ -57,18 +68,21 @@ my %q = (
     })
 );
 
+#---------------------------------------
+
 our $dbmeta = $dbh->selectrow_hashref(qq{
   select current_database(), current_timestamp,
-         (select count(*) from pg_stat_activity
-           where application_name='}.$config{appname}.q{')
-         as nl
+         (select count(*) from pg_stat_activity 
+           where application_name='}.$config{appname}.q{') as nl
 });
     
 log_msg("START",$dbmeta);
 
 if($dbmeta->{nl}>1) {
-    log_err("DUPE","There seems to be a dataliker already running!");
+    log_err("PROCDUPE","There seems to be a datalinker already running!");
 }
+
+#---------------------------------------
 
 while(1) {
     log_debug('READY');
@@ -79,24 +93,27 @@ while(1) {
 	$sleepy = $rv<=0;
 	if(!$sleepy) {
 	    while(my $data = $q{get_jobs}->fetchrow_hashref) {
-		if(!$data->{token}) {
-		    log_err("No token in ",$data);
-		    next;
-		}
+		if(!$data->{path}) { log_err("INPUT","No path in ",$data); next; }
+		if(!$data->{token}) { log_err("INPUT","No token in ",$data); next; }
+
+		my $path = $data->{path};
+
+		if(!path_valid_prefix($path)) { log_err("PREFIX","Bad path prefix"); next; }
+		
 		if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
 		log_debug("DATA",$data);
 		if($data->{state} eq 'LINK') {
-		    log_msg('LINK:'.$data->{lco},$data->{path});
-		    my $r=file_link($data->{path},$data);
-		    $q{set_linked}->execute($data->{path},$json->encode($r));
+		    log_msg('LINK:'.$data->{lco},$path);
+		    my $r=file_link($path,$data);
+		    $q{set_linked}->execute($path,$json->encode($r));
 		}
 		elsif($data->{state} eq 'UNLINK') {
-		    log_msg('UNLINK:'.$data->{lco},$data->{path});
-		    file_unlink($data->{path},$data);
-		    $q{delete}->execute($data->{path});
+		    log_msg('UNLINK:'.$data->{lco},$path);
+		    file_unlink($path,$data);
+		    $q{delete}->execute($path);
 		}
 		else {
-		    log_err("Unknown state in ",$data);
+		    log_err("STATE","Unknown state in ",$data);
 		    next;
 		}
 	    }
@@ -117,6 +134,12 @@ log_msg('END');
 exit;
 
 ########################################
+# configuration
+
+sub config_load {}
+sub config_check {}
+
+########################################
 # path management
 
 sub path_backup {
@@ -125,8 +148,13 @@ sub path_backup {
     else { return $path; }
 }
 
-sub path_valid {
-    
+sub path_valid_prefix {
+    my ($path)=@_;
+    my $prefix;
+    for $prefix (@{$config{prefix}}) {
+	if(rindex($path,$prefix,0)==0) { return 1 }
+    }
+    return 0
 }
 
 ########################################
@@ -278,7 +306,7 @@ sub log_msg {
 
 sub log_err {
     my ($txt,$data)=@_;
-    print STDERR "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
 }
 
 sub log_fatal {
