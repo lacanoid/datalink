@@ -4,10 +4,10 @@ Datalink extension for PostgreSQL
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
 It is very much a prototype and meant for playing around to see if this can be made useful.
 Also to see how much of the standard can be implemented in high-level postgres (and pgperlu :), 
-without having to resort to C. It currently doesn't do anything very useful.
+without having to resort to C. It currently doesn't do anything very useful yet.
 
 This extension uses a number of advanced PostgreSQL features for implementation,
-including jsonb, all sorts of triggers, plperlu...
+including jsonb, event and instead-of triggers, listen/notify, plperlu...
  
 Currently, it implements the following:
 - SQL/MED DATALINK type
