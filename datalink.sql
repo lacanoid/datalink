@@ -513,6 +513,11 @@ begin
       set state = 'UNLINK'
     where path = $1 and state = 'LINKED';
 
+  elsif r.state = 'ERROR' then
+   delete from datalink.dl_linked_files
+    where path = $1
+      and state = 'ERROR';
+
   else
       raise exception 'Datalink exception' 
             using errcode = 'HW000', 
