@@ -15,6 +15,7 @@ Todo
 - url sanity checking (handle ..)
 - token decoding in dlvalue
 - better URL syntax checking
+- maybe loose Curl and check for files only
 - URL canonization
 - dlvalue better error handling
 - make this work for non-superusers

@@ -201,11 +201,9 @@ select * from l
  where dl_lco = 0
     or lc='FILE' and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
     or lc='FILE' and itg='ALL' and (
-       ra='FS' and wa='FS' and unl='NONE' and rec='NO'
-       or
-       ra='FS' and wa='BLOCKED' and unl='RESTORE'
-       or
-       ra='DB' and wa<>'FS' and unl<>'NONE'
+          ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+       or ra='FS' and wa='BLOCKED' and unl='RESTORE'
+       or ra='DB' and wa<>'FS' and unl<>'NONE'
     )
 ;
 
@@ -456,8 +454,7 @@ begin
      then -- same file and protection
     update datalink.dl_linked_files
        set state='LINKED',
-           regclass=my_regclass,
-	   attname=my_attname
+           regclass=my_regclass, attname=my_attname
      where path = file_path and state='UNLINK';
     return true;
      else -- cannot link again
@@ -730,25 +727,18 @@ begin
     return new;
   end if;
 
-  if tg_op in ('DELETE','UPDATE') then
-	ro := row_to_json(old)::jsonb;
-  end if;
-  
-  if tg_op in ('INSERT','UPDATE') then
-	rn := row_to_json(new)::jsonb;
-  end if;
+  if tg_op in ('DELETE','UPDATE') then ro := row_to_json(old)::jsonb; end if;  
+  if tg_op in ('INSERT','UPDATE') then rn := row_to_json(new)::jsonb; end if;
 
   -- unlink old values
   for r in
   select column_name,lco 
     from datalink.dl_columns 
    where regclass = tg_relid
-
   loop
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
-
    if link1 is distinct from link2 then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
@@ -756,7 +746,6 @@ begin
        end if;
     end if;
    end if;
-
   end loop; -- unlink old values
 
   -- link new values
@@ -764,12 +753,10 @@ begin
   select column_name,lco 
     from datalink.dl_columns 
    where regclass = tg_relid
-
   loop
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
-
    if link1 is distinct from link2 then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
@@ -782,7 +769,6 @@ begin
   end loop; -- link new values
 
   if tg_op = 'DELETE' then return old; end if;
-
   new := jsonb_populate_record(new,rn);
   return new;   
 end

@@ -30,7 +30,7 @@ values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 ERROR:  Referenced file does not exit
 DETAIL:  file:///foo+bar/no_file
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
-PL/pgSQL function dl_trigger_table() line 59 at assignment
+PL/pgSQL function dl_trigger_table() line 49 at assignment
 -- select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
@@ -46,7 +46,7 @@ values (dlvalue('http://blah','URL','Broken datalink'));
 ERROR:  Referenced file does not exit
 DETAIL:  http://blah
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
-PL/pgSQL function dl_trigger_table() line 59 at assignment
+PL/pgSQL function dl_trigger_table() line 49 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
      dlurlcomplete      | has_token 
 ------------------------+-----------
