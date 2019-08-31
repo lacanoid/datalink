@@ -231,7 +231,11 @@ sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
 	my $path_backup = path_backup($path,$opt->{token});
-	sys("cp","-a",$path,$path_backup);
+	if(-f $path_backup) {
+	    log_err("EXISTS","File exists:$path_backup");
+	} else {
+	    sys("cp","-a",$path,$path_backup);
+	}
     }
 }
 

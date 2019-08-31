@@ -214,6 +214,8 @@ CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
     AS $_$
 select case
        when current_setting('is_superuser')::boolean then true
+       when (select rolsuper
+               from pg_roles where oid = current_role::regrole) then true
        else (select relowner = current_role::regrole
                from pg_class where oid = $1)
        end
@@ -532,7 +534,7 @@ CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
 declare
  obj record;
 begin
--- RAISE NOTICE 'DATALINK % trigger: %', tg_event, tg_tag;
+-- RAISE NOTICE 'DATALINK EVENT [%] TAG [%] ROLE % %', tg_event, tg_tag, current_role, current_setting('is_superuser');
 
  if tg_event = 'ddl_command_end' then
 
