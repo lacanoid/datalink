@@ -40,9 +40,9 @@ Missing:
 - LCO: WRITE ACCESS ADMIN
 - LCO: WRITE ACCESS ADMIN TOKEN
 - LCO: ON UNLINK DELETE
-- datalinker daemon
-- native postgres URL type + functions
 - Transactional File IO functions + file spaces
+- init.d / systemd scripts for datalinker
+- native postgres URL type + functions
 - foreign server support for file:// URLs (for files on other servers)
 - native postgres interface to curl
 

@@ -2,19 +2,23 @@
 
 use strict;
 use DBI;
-use IPC::Run 'run';
 use JSON;
-use Data::Dumper;
+use IPC::Run 'run';
+use Getopt::Std;
 use Time::HiRes qw{usleep};
 
 BEGIN { $ENV{LC_ALL} = "C"; }
 
 our $opt_v = 0;  # verbosity
 our $opt_n = 10; # number of iterations in fast inner loop
+our $opt_D = 0;  # really delete linked files with ON UNLINK DELETE
+
+getopt('');
 
 our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
 
 our %config = (
+    appname => 'SQL/MED like datalinker',
     dsn => 'dbi:Pg:service=datalinker',
     db_owner => 'postgres.postgres',
     db_mode => '0440',
@@ -30,7 +34,7 @@ if(!$dbh) { log_fatal("Database not available"); }
 
 our $json = JSON->new->allow_nonref;
 
-$dbh->do("set application_name='SQL/MED like datalinker'");
+$dbh->do("set application_name='".$config{appname}."'");
 $dbh->do("set search_path=datalink");
 $dbh->do('listen "datalink.linker_jobs"');
 
@@ -39,23 +43,32 @@ my %q = (
        select * 
          from dl_linked_files 
          join dl_link_control_options lco using (lco)
-        where state in ('LINK','UNLINK')}),
+        where state in ('LINK','UNLINK')
+    }),
     'set_linked'=>$dbh->prepare(q{
        update dl_linked_files 
           set state = 'LINKED',
               info = $2
-        where token = $1}),
+        where path = $1
+    }),
     'delete'=>$dbh->prepare(q{
        delete from dl_linked_files
-        where token = $1
-})
+        where path = $1
+    })
 );
 
 our $dbmeta = $dbh->selectrow_hashref(qq{
-  select current_database(), current_timestamp
+  select current_database(), current_timestamp,
+         (select count(*) from pg_stat_activity
+           where application_name='}.$config{appname}.q{')
+         as nl
 });
     
 log_msg("START",$dbmeta);
+
+if($dbmeta->{nl}>1) {
+    log_err("DUPE","There seems to be a dataliker already running!");
+}
 
 while(1) {
     log_debug('READY');
@@ -75,12 +88,12 @@ while(1) {
 		if($data->{state} eq 'LINK') {
 		    log_msg('LINK:'.$data->{lco},$data->{path});
 		    my $r=file_link($data->{path},$data);
-		    $q{set_linked}->execute($data->{token},$json->encode($r));
+		    $q{set_linked}->execute($data->{path},$json->encode($r));
 		}
 		elsif($data->{state} eq 'UNLINK') {
 		    log_msg('UNLINK:'.$data->{lco},$data->{path});
 		    file_unlink($data->{path},$data);
-		    $q{delete}->execute($data->{token});
+		    $q{delete}->execute($data->{path});
 		}
 		else {
 		    log_err("Unknown state in ",$data);
@@ -100,6 +113,24 @@ while(1) {
     }
 } # forever loop
 
+log_msg('END');
+exit;
+
+########################################
+# path management
+
+sub path_backup {
+    my ($path,$token)=@_;
+    if($token) { return $path.'#'.$token; }
+    else { return $path; }
+}
+
+sub path_valid {
+    
+}
+
+########################################
+# file management
 
 sub file_stat {
     my ($path,$opt)=@_;
@@ -107,8 +138,7 @@ sub file_stat {
 
     return {
 	'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
-	'uid'=>$s[4],'gid'=>$s[5],
-	'rdev'=>$s[6],'size'=>$s[7],
+	'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
 #	'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
 	'blksize'=>$s[11],'blocks'=>$s[12]
     };
@@ -117,7 +147,12 @@ sub file_stat {
 sub file_link {
     my ($path,$opt)=@_;
     my $s = file_stat($path);
-    my $r = { own => $s->{uid}.":".$s->{gid}, mod => sprintf("%#o",$s->{mode} & 0777) };
+    my $r = { own => $s->{uid}.":".$s->{gid}, 
+	      mod => sprintf("%#o",$s->{mode} & 0777),
+	      lco => $opt->{lco},
+              token => $opt->{token},
+              addr => '{'.$s->{dev}.','.$s->{inode}.'}'
+    };
 
     if($opt->{recovery} eq 'YES') {
 	file_backup($path,$opt);
@@ -138,7 +173,7 @@ sub file_unlink {
 
 sub file_read_permission_db {
     my ($path,$opt)=@_;
-    log_debug('CHOWNMOD',$path);
+    log_debug('CHOWNMOD',$opt);
     if(defined($config{db_owner})) {
 	sys("chown",$config{db_owner},$path);
     }
@@ -159,12 +194,6 @@ sub file_restore {
     }
 }
 
-sub path_backup {
-    my ($path,$token)=@_;
-    if($token) { return $path.'#'.$token; }
-    else { return $path; }
-}
-
 sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
@@ -182,6 +211,9 @@ sub file_unblock {
     my ($path,$opt)=@_;
     sys("chattr","-i",$path);
 }
+
+########################################
+# run sys commands
 
 sub sys {
     my @args = @_;
@@ -206,6 +238,9 @@ sub sys {
     if($err) { log_err('SYSERR',$err); }
 }
 
+########################################
+# run wget to arhive webpages (not used yet)
+
 sub wget {
     my ($u)=@_;
     my @c = @wget;
@@ -226,7 +261,8 @@ sub wget {
     return {'t'=>$diff, 'rc'=>\%rc };
 }
 
-#------------------------------
+########################################
+# logging
 
 sub log_debug {
     my ($txt,$data)=@_;

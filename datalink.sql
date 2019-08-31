@@ -212,16 +212,11 @@ select * from l
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
     LANGUAGE sql
     AS $_$
-select exists (select *
-  from pg_class c
-  join pg_user u on (u.usesysid=c.relowner)
- where c.oid=$1
-  and (u.usename = CURRENT_ROLE or 
-  EXISTS ( SELECT pg_user.usesuper
-             FROM pg_user
-            WHERE pg_user.usename = CURRENT_ROLE AND pg_user.usesuper)
-  )
-)
+select case
+       when current_setting('is_superuser')::boolean then true
+       else (select relowner = current_role::regrole
+               from pg_class where oid = $1)
+       end
 $_$;
 
 ---------------------------------------------------
@@ -245,7 +240,7 @@ ALTER TABLE ONLY dl_column_options
 ---------------------------------------------------
 
 CREATE VIEW dl_columns AS
- SELECT u.usename AS table_owner,
+ SELECT c.relowner::regrole AS table_owner,
     s.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
@@ -259,24 +254,20 @@ CREATE VIEW dl_columns AS
     a.attnotnull AS not_null,
     a.attislocal AS islocal,
     a.attnum AS ord,
-    c.oid::regclass AS regclass,
     a.atttypmod,
     a.attoptions,
     a.attfdwoptions,
+    c.oid::regclass AS regclass,
     col_description(c.oid, (a.attnum)::integer) AS comment
-   FROM (((((((pg_class c
-     JOIN pg_namespace s ON ((s.oid = c.relnamespace)))
-     JOIN pg_attribute a ON ((c.oid = a.attrelid)))
-     JOIN pg_user u ON ((c.relowner = u.usesysid)))
-     LEFT JOIN pg_attrdef def ON (((c.oid = def.adrelid) AND (a.attnum = def.adnum))))
-     LEFT JOIN pg_type t ON ((t.oid = a.atttypid)))
-     JOIN pg_namespace tn ON ((tn.oid = t.typnamespace)))
-     LEFT JOIN dl_column_options ad ON 
-      ((ad.regclass = c.oid AND ad.column_name = a.attname)))
-     LEFT JOIN dl_link_control_options lco ON (lco.lco=ad.lco)
-  WHERE ((c.relkind = 'r'::"char") AND (a.attnum > 0) AND 
-         t.oid = 'pg_catalog.datalink'::regtype AND
-          (NOT a.attisdropped))
+   FROM pg_class c
+     JOIN pg_namespace s ON (s.oid = c.relnamespace)
+     JOIN pg_attribute a ON (c.oid = a.attrelid)
+     LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
+     LEFT JOIN pg_type t ON (t.oid = a.atttypid)
+     LEFT JOIN dl_column_options ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
+     LEFT JOIN dl_link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
+  WHERE t.oid = 'pg_catalog.datalink'::regtype
+    AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
 
 ---------------------------------------------------
@@ -291,7 +282,10 @@ SELECT
     write_access,
     recovery,
     on_unlink
- FROM datalink.dl_columns;
+ FROM datalink.dl_columns
+WHERE datalink.dl_class_adminable(regclass);
+
+grant select on column_options to public;
 
 ---------------------------------------------------
 
@@ -312,16 +306,15 @@ CREATE VIEW dl_triggers AS
           WHERE dl_class_adminable(dl_columns.regclass)
           GROUP BY dl_columns.regclass
  )
- SELECT u.usename AS owner,
+ SELECT  c0.relowner::regrole::name AS owner,
     (COALESCE(c.regclass, t.oid))::regclass AS regclass,
     COALESCE(c.count, (0)::bigint) AS links,
     c.mco,
     t.tgname
-   FROM (((triggers t
-     FULL JOIN classes c ON ((t.oid = c.regclass)))
-     JOIN pg_class c0 ON ((c0.oid = COALESCE(c.regclass, t.oid))))
-     JOIN pg_user u ON ((u.usesysid = c0.relowner)))
-  ORDER BY ((COALESCE(c.regclass, t.oid))::regclass)::text;
+   FROM triggers t
+     FULL JOIN classes c ON (t.oid = c.regclass)
+     JOIN pg_class c0 ON (c0.oid = COALESCE(c.regclass, t.oid))
+  ORDER BY COALESCE(c.regclass, t.oid)::regclass::text;
 grant select on dl_triggers to public;
 
 ---------------------------------------------------
@@ -434,8 +427,8 @@ begin
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,fstat,address)
-   values (token,file_path,lco,regclass,attname,fstat,addr);
+   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,address)
+   values (token,file_path,lco,regclass,attname,addr);
    notify "datalink.linker_jobs";
    return true;
  else
@@ -498,7 +491,7 @@ $$ language plpgsql strict;
 ---------------------------------------------------
 
 CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 declare
  obj record;

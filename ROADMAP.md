@@ -1,5 +1,6 @@
 Issues
 ======
+- trigger for users are broken
 - create table as doesn't seem to install triggers
 - bug in dl_class_adminable?
 - renaming of datalink columns
@@ -13,7 +14,7 @@ Todo
 - link state handling: unlink -> linked, error -> ?
 - file path sanity checking (handle ..)
 - url sanity checking (handle ..)
-- token decoding from url
+- token decoding in dlvalue
 - better URL syntax checking
 - URL canonization
 - dlvalue better error handling
