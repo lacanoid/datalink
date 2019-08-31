@@ -204,6 +204,7 @@ sub file_unlink {
     file_unblock($path,$opt);
     file_restore($path,$opt);
     if($opt->{info} && $opt->{info}{del}) {
+	file_delete($path,$opt);
     }
 }
 
