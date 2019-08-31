@@ -737,7 +737,7 @@ begin
 	rn := row_to_json(new)::jsonb;
   end if;
 
-  -- unlink old
+  -- unlink old values
   for r in
   select column_name,lco 
     from datalink.dl_columns 
@@ -756,9 +756,9 @@ begin
     end if;
    end if;
 
-  end loop; -- unlink old
+  end loop; -- unlink old values
 
-  -- link new
+  -- link new values
   for r in
   select column_name,lco 
     from datalink.dl_columns 
@@ -778,7 +778,7 @@ begin
     end if;
    end if;
 
-  end loop; -- link new
+  end loop; -- link new values
 
   if tg_op = 'DELETE' then return old; end if;
 

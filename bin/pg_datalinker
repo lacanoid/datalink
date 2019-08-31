@@ -184,6 +184,7 @@ sub file_link {
 	      mod => sprintf("%#o",$s->{mode} & 0777),
 	      lco => $opt->{lco},
               token => $opt->{token},
+	      del => ($opt->{on_unlink} eq 'DELETE'),
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
@@ -191,7 +192,7 @@ sub file_link {
 	file_backup($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
-	file_read_permission_db($path,$opt);
+	file_read_access_db($path,$opt);
     }
 
     file_block($path);
@@ -202,9 +203,11 @@ sub file_unlink {
     my ($path,$opt)=@_;
     file_unblock($path,$opt);
     file_restore($path,$opt);
+    if($opt->{info} && $opt->{info}{del}) {
+    }
 }
 
-sub file_read_permission_db {
+sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
     if(defined($config{db_owner})) {
@@ -218,12 +221,29 @@ sub file_read_permission_db {
 sub file_restore {
     my ($path,$opt)=@_;
     my $info = $opt->{info};
-    log_debug('RESTORE',$info);
-    if(defined($info->{own})) {
-	sys("chown",$info->{own},$path);
+    log_debug('RESTORE',$opt);
+    if($info) {
+	if(defined($info->{own})) {
+	    sys("chown",$info->{own},$path);
+	}
+	if(defined($info->{mod})) {
+	    sys("chmod",$info->{mod},$path);
+	}
     }
-    if(defined($info->{mod})) {
-	sys("chmod",$info->{mod},$path);
+}
+
+sub file_delete {
+    my ($path,$opt)=@_;
+    my $info = $opt->{info};
+    if($info && $info->{del}) {
+	if($opt_D) {
+	    log_debug('DELETE',$opt);
+	    if(defined($info->{own})) {
+		sys("rm",$path);
+	    }
+	} else {
+	    log_msg('NODEL',"Refusing to delete '$path'. Hint: use -D datalinker option.");
+	}
     }
 }
 
