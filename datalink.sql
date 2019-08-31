@@ -91,7 +91,7 @@ create cast (text as dl_on_unlink) with inout as implicit;
 create domain dl_lco as integer;
 comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
 
-CREATE TABLE dl_link_control_options (
+CREATE TABLE link_control_options (
        	lco dl_lco primary key,
     	link_control dl_link_control,
 	integrity dl_integrity,
@@ -100,8 +100,8 @@ CREATE TABLE dl_link_control_options (
 	recovery dl_recovery,
 	on_unlink dl_on_unlink
 );
-comment on table dl_link_control_options is 'Datalink Link Control Options';
-grant select on dl_link_control_options to public;
+comment on table link_control_options is 'Datalink Link Control Options';
+grant select on link_control_options to public;
 
 ---------------------------------------------------
 -- helper functions
@@ -138,8 +138,8 @@ AS $_$
    end) + 
    10 * (  
    (case $4
-     when 'BLOCKED' then 3
-     when 'ADMIN TOKEN' then 2
+     when 'BLOCKED' then 2
+     when 'ADMIN TOKEN' then 3
      when 'ADMIN' then 1
      when 'FS' then 0
      else 0
@@ -166,23 +166,23 @@ IS 'Calculate dl_lco from individual options';
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_link_control_options(dl_lco) 
-RETURNS dl_link_control_options
+CREATE FUNCTION link_control_options(dl_lco) 
+RETURNS link_control_options
 LANGUAGE sql IMMUTABLE
     AS $_$
 select *
-  from datalink.dl_link_control_options
+  from datalink.link_control_options
  where lco = $1
 $_$;
 
-COMMENT ON FUNCTION dl_link_control_options(dl_lco)
-IS 'Calculate dl_link_control_options from dl_lco';
+COMMENT ON FUNCTION link_control_options(dl_lco)
+IS 'Calculate link_control_options from dl_lco';
 
 ---------------------------------------------------
 -- init options table
 ---------------------------------------------------
 
-insert into dl_link_control_options 
+insert into link_control_options 
 with l as (
 select datalink.dl_lco(link_control=>lc,integrity=>itg,
                        read_access=>ra,write_access=>wa,
@@ -192,7 +192,7 @@ from
     unnest(array['NO','FILE']) as lc,
     unnest(array['NONE','SELECTIVE','ALL']) as itg,
     unnest(array['FS','DB']) as ra,
-    unnest(array['FS','BLOCKED','ADMIN','ADMIN TOKEN']) as wa,
+    unnest(array['FS','BLOCKED' /* ,'ADMIN','ADMIN TOKEN' */]) as wa,
     unnest(array['NO','YES']) as rec,
     unnest(array['NONE','RESTORE','DELETE']) as unl
 )
@@ -225,17 +225,17 @@ $_$;
 -- definition tables
 ---------------------------------------------------
 
-CREATE TABLE dl_column_options (
+CREATE TABLE dl_attlco (
     regclass regclass NOT NULL,
     column_name name NOT NULL,
     lco dl_lco DEFAULT 0 NOT NULL
 );
-COMMENT ON TABLE dl_column_options 
+COMMENT ON TABLE dl_attlco 
 IS 'Current link control options';
-ALTER TABLE ONLY dl_column_options
-    ADD CONSTRAINT dl_column_options_pkey PRIMARY KEY (regclass, column_name);
-ALTER TABLE ONLY dl_column_options
-    ADD CONSTRAINT dl_column_options_valid foreign key (lco) references dl_link_control_options(lco);
+ALTER TABLE ONLY dl_attlco
+    ADD CONSTRAINT dl_attlco_pkey PRIMARY KEY (regclass, column_name);
+ALTER TABLE ONLY dl_attlco
+    ADD CONSTRAINT dl_attlco_valid foreign key (lco) references link_control_options(lco);
 
 ---------------------------------------------------
 -- views
@@ -266,8 +266,8 @@ CREATE VIEW dl_columns AS
      JOIN pg_attribute a ON (c.oid = a.attrelid)
      LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
      LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-     LEFT JOIN dl_column_options ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
-     LEFT JOIN dl_link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
+     LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
+     LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
   WHERE t.oid = 'pg_catalog.datalink'::regtype
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
@@ -376,7 +376,7 @@ select path,state,
        lco.on_unlink,
        regclass,attname,err
   from datalink.dl_linked_files  lf
-  join datalink.dl_link_control_options lco on lco.lco=coalesce(lf.lco,0)
+  join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
  where datalink.dl_class_adminable(regclass);
 
 grant select on linked_files to public;
@@ -567,7 +567,7 @@ begin
        )
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
-    delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
+    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
   end loop;
 
   -- unlink files referenced by dropped columns
@@ -582,7 +582,7 @@ begin
       join datalink.dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
-    delete from datalink.dl_column_options where regclass=obj.regclass and column_name=obj.attname;
+    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
   end loop;
 end if;
 
@@ -657,7 +657,7 @@ RETURNS datalink
 LANGUAGE plpgsql
     AS $_$
 declare
- lco datalink.dl_link_control_options;
+ lco datalink.link_control_options;
  r record;
  has_token integer;
  url text;
@@ -667,8 +667,8 @@ begin
 
  has_token := 0;
  if link_options > 0 then
-  lco = datalink.dl_link_control_options(link_options);
-  if lco.link_control = 'FILE' then
+  lco = datalink.link_control_options(link_options);
+  if lco.integrity <> 'NONE' then
     -- check if reference exists
     has_token := 1;
     r := datalink.curl_get(url,true);
@@ -696,12 +696,12 @@ RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
 declare
- lco datalink.dl_link_control_options;
+ lco datalink.link_control_options;
 begin
 -- raise notice 'DATALINK: dl_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
 
  if link_options > 0 then
-  lco = datalink.dl_link_control_options(link_options);
+  lco = datalink.link_control_options(link_options);
 
   if lco.integrity = 'ALL' then
     perform datalink.file_unlink(dlurlpathonly($1),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
@@ -802,7 +802,7 @@ begin
   read_access=>new.read_access,write_access=>new.write_access,
   recovery=>new.recovery,on_unlink=>new.on_unlink
  );
- perform datalink.dl_chattr(old.regclass,old.column_name,my_lco);
+ perform datalink.modlco(old.regclass,old.column_name,my_lco);
  return new;
 end
 $$;
@@ -931,18 +931,18 @@ revoke execute on function curl_get(text,boolean) from public;
 -- admin functions
 ---------------------------------------------------
 
-CREATE FUNCTION dl_chattr(
+CREATE FUNCTION modlco(
   my_regclass regclass,
   my_column_name name, 
   my_lco dl_lco)
-RETURNS dl_link_control_options
+RETURNS link_control_options
     LANGUAGE plpgsql
     AS $_$
 declare
  my_id regclass;
  e text;
  n bigint;
- my_options datalink.dl_link_control_options;
+ my_options datalink.link_control_options;
 begin
  select into my_id regclass
  from datalink.dl_columns
@@ -956,7 +956,7 @@ begin
  end if; 
 
  select * into my_options
-    from datalink.dl_link_control_options
+    from datalink.link_control_options
    where lco = my_lco;
 
  if not found then
@@ -972,13 +972,13 @@ begin
    raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
  end if;
  
- update datalink.dl_column_options 
+ update datalink.dl_attlco 
  set lco = my_lco
  where regclass = my_regclass
    and column_name = my_column_name;
 
  if not found then
-  insert into datalink.dl_column_options (regclass,column_name,lco)
+  insert into datalink.dl_attlco (regclass,column_name,lco)
   values (my_regclass,my_column_name,my_lco);
  end if;
 
@@ -986,7 +986,7 @@ begin
 end;
 $_$;
 
-COMMENT ON FUNCTION dl_chattr(my_regclass regclass, my_column_name name, my_lco dl_lco) 
+COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Set link control options for datalink column (buggy)';
 
 grant usage on schema datalink to public;
@@ -1057,7 +1057,7 @@ grant select,insert,update,delete on sample_datalinks to public;
 grant usage on sequence sample_datalinks_id_seq to public;
 
 update datalink.column_options
-   set link_control='FILE', integrity='ALL',
+   set integrity='ALL',
        read_access='DB', write_access='BLOCKED',
        recovery='YES', on_unlink='RESTORE'
  where regclass='sample_datalinks'::regclass and column_name='link';

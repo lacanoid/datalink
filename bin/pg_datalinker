@@ -53,7 +53,7 @@ my %q = (
     'get_jobs'=>$dbh->prepare(q{
        select * 
          from dl_linked_files 
-         join dl_link_control_options lco using (lco)
+         join link_control_options lco using (lco)
         where state in ('LINK','UNLINK')
     }),
     'set_linked'=>$dbh->prepare(q{

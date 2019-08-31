@@ -30,20 +30,19 @@ Currently, it implements the following:
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database
 - LCO: WRITE ACCESS BLOCKED
-- LCO: RECOVERY YES - make a backup of a file
+- LCO: RECOVERY YES - make backups of linked files
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
+- LCO: ON UNLINK DELETE - delete file when no longer referenced
 
 Missing:
-- all this is currently superuser only
+- init.d / systemd scripts for datalinker
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - LCO: WRITE ACCESS ADMIN
 - LCO: WRITE ACCESS ADMIN TOKEN
-- LCO: ON UNLINK DELETE
 - Transactional File IO functions + file spaces
-- init.d / systemd scripts for datalinker
-- native postgres URL type + functions
 - foreign server support for file:// URLs (for files on other servers)
+- native postgres URL type + functions
 - native postgres interface to curl
 
 Installation

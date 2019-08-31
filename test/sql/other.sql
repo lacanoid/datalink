@@ -14,7 +14,7 @@ update datalink.column_options
  where regclass='sample_datalinks2'::regclass and column_name='link';
 
 select regclass,column_name,dlco.*
-  from datalink.dl_columns left join datalink.dl_link_control_options dlco using (lco);
+  from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
 /*
 insert into sample_datalinks2 (link)
 values (dlvalue('http://en.wikipedia.org','URL','Sample datalink'));
