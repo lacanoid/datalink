@@ -1,9 +1,7 @@
 Issues
 ======
-- triggers for users are not installed
 - create table as doesn't seem to install triggers
 - renaming of datalink columns
-- table trigger must first unlink all, then link all
 
 Todo
 ====
