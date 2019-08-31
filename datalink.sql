@@ -737,6 +737,7 @@ begin
 	rn := row_to_json(new)::jsonb;
   end if;
 
+  -- unlink old
   for r in
   select column_name,lco 
     from datalink.dl_columns 
@@ -744,18 +745,31 @@ begin
 
   loop
    link1 := null; link2 := null;
-
    if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
 
    if link1 is distinct from link2 then
-   
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_unref(link1,r.lco,tg_relid,r.column_name);
        end if;
     end if;
-  
+   end if;
+
+  end loop; -- unlink old
+
+  -- link new
+  for r in
+  select column_name,lco 
+    from datalink.dl_columns 
+   where regclass = tg_relid
+
+  loop
+   link1 := null; link2 := null;
+   if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
+   if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
+
+   if link1 is distinct from link2 then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
          link2 := datalink.dl_ref(link2,r.lco,tg_relid,r.column_name);
@@ -764,7 +778,7 @@ begin
     end if;
    end if;
 
-  end loop;
+  end loop; -- link new
 
   if tg_op = 'DELETE' then return old; end if;
 

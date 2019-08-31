@@ -34,6 +34,6 @@ update sample_datalinks6
    set link = dlnewcopy(link);
 
 update sample_datalinks6 set link2 = link, link = null;
--- update sample_datalinks6 set link2 = null, link = link2;
+update sample_datalinks6 set link2 = null, link = link2;
 
 
