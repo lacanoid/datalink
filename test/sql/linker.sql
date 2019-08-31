@@ -26,3 +26,14 @@ update sample_datalinks6 set link2 = link;
 update sample_datalinks6 set link = link2;
 update sample_datalinks6 set link2 = null;
 
+truncate sample_datalinks6;
+insert into sample_datalinks6 (link)
+values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
+
+update sample_datalinks6
+   set link = dlnewcopy(link);
+
+update sample_datalinks6 set link2 = link, link = null;
+-- update sample_datalinks6 set link2 = null, link = link2;
+
+

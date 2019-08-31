@@ -368,6 +368,17 @@ create table dl_linked_files (
   err jsonb
 );
 
+create view linked_files as
+select path,state,
+       lco.recovery,
+       lco.on_unlink,
+       regclass,attname,err
+  from datalink.dl_linked_files  lf
+  join datalink.dl_link_control_options lco on lco.lco=coalesce(lf.lco,0)
+ where datalink.dl_class_adminable(regclass);
+
+grant select on linked_files to public;
+
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION datalink.file_stat(file_path text,
@@ -400,9 +411,9 @@ COMMENT ON FUNCTION datalink.file_stat(text) IS 'Return info record from stat(2)
 ---------------------------------------------------
 
 create function file_link(file_path text,
-                          token dl_token,
-			  lco dl_lco,
-			  regclass regclass,attname name)
+                          my_token dl_token,
+			  my_lco dl_lco,
+			  my_regclass regclass,my_attname name)
 returns boolean as
 $$
 declare
@@ -428,7 +439,7 @@ begin
     for update;
  if not found then
    insert into datalink.dl_linked_files (token,path,lco,regclass,attname,address)
-   values (token,file_path,lco,regclass,attname,addr);
+   values (my_token,file_path,my_lco,my_regclass,my_attname,addr);
    notify "datalink.linker_jobs";
    return true;
  else -- found
@@ -439,12 +450,12 @@ begin
 
   elsif r.state in ('UNLINK') then
 
-     if  r.token is not distinct from token and r.lco is not distinct from lco
+     if  r.token is not distinct from my_token and r.lco is not distinct from my_lco
      then -- same file and protection
     update datalink.dl_linked_files
        set state='LINKED',
-           regclass=regclass,
-	   attname=attname
+           regclass=my_regclass,
+	   attname=my_attname
      where path = file_path and state='UNLINK';
      else -- cannot link again
       raise exception 'External file already linked' 
@@ -764,11 +775,12 @@ declare
  my_lco datalink.dl_lco;
 begin
  my_lco := datalink.dl_lco(
-  link_control=>new.link_control,integrity=>new.integrity,
+  link_control=>cast(case new.integrity when 'NONE' then 'NO' else 'FILE' end as datalink.dl_link_control),
+  integrity=>new.integrity,
   read_access=>new.read_access,write_access=>new.write_access,
   recovery=>new.recovery,on_unlink=>new.on_unlink
  );
- perform datalink.dl_chattr(new.regclass,new.column_name,my_lco);
+ perform datalink.dl_chattr(old.regclass,old.column_name,my_lco);
  return new;
 end
 $$;

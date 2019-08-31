@@ -58,9 +58,10 @@ my %q = (
     }),
     'set_linked'=>$dbh->prepare(q{
        update dl_linked_files 
-          set state = 'LINKED',
-              info = $2
-        where path = $1
+          set state = $2,
+              info  = $3,
+              err   = $4
+        where path  = $1
     }),
     'delete'=>$dbh->prepare(q{
        delete from dl_linked_files
@@ -79,7 +80,7 @@ our $dbmeta = $dbh->selectrow_hashref(qq{
 log_msg("START",$dbmeta);
 
 if($dbmeta->{nl}>1) {
-    log_err("PROCDUPE","There seems to be a datalinker already running!");
+    log_err("SYSDUP","There seems to be a datalinker already running!");
 }
 
 #---------------------------------------
@@ -98,14 +99,18 @@ while(1) {
 
 		my $path = $data->{path};
 
-		if(!path_valid_prefix($path)) { log_err("PREFIX","Bad path prefix"); next; }
+		if(!path_valid_prefix($path)) { 
+		    log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
+		    $q{set_linked}->execute($path,'ERROR',undef,'{"errcode":"PREFIX"}');
+		    next; 
+		}
 		
 		if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
 		log_debug("DATA",$data);
 		if($data->{state} eq 'LINK') {
 		    log_msg('LINK:'.$data->{lco},$path);
 		    my $r=file_link($path,$data);
-		    $q{set_linked}->execute($path,$json->encode($r));
+		    $q{set_linked}->execute($path,'LINKED',$json->encode($r),undef);
 		}
 		elsif($data->{state} eq 'UNLINK') {
 		    log_msg('UNLINK:'.$data->{lco},$path);

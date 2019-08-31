@@ -29,3 +29,15 @@ PL/pgSQL function dl_trigger_table() line 45 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
 update sample_datalinks6 set link2 = null;
+truncate sample_datalinks6;
+insert into sample_datalinks6 (link)
+values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
+NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+update sample_datalinks6
+   set link = dlnewcopy(link);
+NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
+NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+update sample_datalinks6 set link2 = link, link = null;
+NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
+NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+-- update sample_datalinks6 set link2 = null, link = link2;

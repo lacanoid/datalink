@@ -37,8 +37,8 @@ update datalink.column_options
  where regclass='sample_datalinks2'::regclass and column_name='link';
 ERROR:  Can't change link control options; 1 non-null values present in column "link"
 CONTEXT:  PL/pgSQL function dl_chattr(regclass,name,dl_lco) line 33 at RAISE
-SQL statement "SELECT datalink.dl_chattr(new.regclass,new.column_name,my_lco)"
-PL/pgSQL function dl_trigger_lco() line 10 at PERFORM
+SQL statement "SELECT datalink.dl_chattr(old.regclass,old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_lco() line 11 at PERFORM
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
@@ -65,6 +65,6 @@ update datalink.column_options
  where regclass='sample_datalinks3'::regclass and column_name='link';
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
 CONTEXT:  PL/pgSQL function dl_chattr(regclass,name,dl_lco) line 33 at RAISE
-SQL statement "SELECT datalink.dl_chattr(new.regclass,new.column_name,my_lco)"
-PL/pgSQL function dl_trigger_lco() line 10 at PERFORM
+SQL statement "SELECT datalink.dl_chattr(old.regclass,old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_lco() line 11 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';
