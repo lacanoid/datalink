@@ -6,7 +6,6 @@ create table sample_datalinks2 (
   link datalink
 );
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
--- select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
  where regclass='sample_datalinks2'::regclass and column_name='link';
@@ -19,10 +18,6 @@ select regclass,column_name,dlco.*
  sample_datalinks2         | link        |     11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
 (3 rows)
 
-/*
-insert into sample_datalinks2 (link)
-values (dlvalue('http://en.wikipedia.org','URL','Sample datalink'));
-*/
 insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));
 insert into sample_datalinks2 (link)
@@ -31,14 +26,9 @@ ERROR:  Referenced file does not exit
 DETAIL:  file:///foo+bar/no_file
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
--- select dl_chattr('sample_datalinks2','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
  where regclass='sample_datalinks2'::regclass and column_name='link';
-ERROR:  Can't change link control options; 1 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 33 at RAISE
-SQL statement "SELECT datalink.modlco(old.regclass,old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_lco() line 11 at PERFORM
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
@@ -59,12 +49,11 @@ create table sample_datalinks3
 select *
   from sample_datalinks;
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
--- select dl_chattr('sample_datalinks3','link', dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
  where regclass='sample_datalinks3'::regclass and column_name='link';
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 33 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 34 at RAISE
 SQL statement "SELECT datalink.modlco(old.regclass,old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_lco() line 11 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

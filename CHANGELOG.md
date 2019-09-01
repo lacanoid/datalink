@@ -1,6 +1,7 @@
 Version 0.5alpha
 ----------------
 - renames: dl_link_control_options -> link_control_options, dl_chattr() -> modlco(), dl_column_options -> dl_attlco
+- skip changing link contorl options in datalink.modlco() when options not actually changed
 - bugfixes
 
 Version 0.4

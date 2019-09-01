@@ -1,14 +1,16 @@
 Issues
 ======
-- create table as doesn't seem to install triggers
+- "create table as" doesn't seem to install triggers
 - renaming of datalink columns
+- delete entries from dl_attlco on table/column drop
 
 Todo
 ====
+- dlurlpath() and dlurlcomplete() must include token
 - replace link with one with different token
 - optimize triggers (do not run them if mco=0)
 - remove dl_link_control from dl_link_control_options (it is implied by dl_integrity)
-- update trigger on dl_columns to call modlco()
+- update trigger on dl_columns to call datalink.modlco()
 - dl_ref and dl_unref redundant?
 - link state handling: unlink -> linked, error -> ?
 - file path sanity checking (handle ..)

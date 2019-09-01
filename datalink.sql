@@ -925,12 +925,12 @@ RETURNS link_control_options
     LANGUAGE plpgsql
     AS $_$
 declare
- my_id regclass;
+ co record;
  e text;
  n bigint;
  my_options datalink.link_control_options;
 begin
- select into my_id regclass
+ select into co *
  from datalink.dl_columns
  where regclass = my_regclass
    and column_name = my_column_name; 
@@ -951,29 +951,30 @@ begin
 	    detail = format('Invalid link control options (%s)',my_lco);
  end if; 
 
- e := format('select count(%I) from %s where %I is not null limit 1',
-   my_column_name,cast(my_regclass as text),my_column_name);
- execute e into n;
- if n > 0 then
-   raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
- end if;
+ if my_lco is distinct from co.lco then
+   e := format('select count(%I) from %s where %I is not null limit 1',
+     my_column_name,cast(my_regclass as text),my_column_name);
+   execute e into n;
+   if n > 0 then
+     raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
+   end if;
  
- update datalink.dl_attlco 
- set lco = my_lco
- where regclass = my_regclass
-   and column_name = my_column_name;
+   update datalink.dl_attlco 
+      set lco = my_lco
+    where regclass = my_regclass and column_name = my_column_name;
 
- if not found then
-  insert into datalink.dl_attlco (regclass,column_name,lco)
-  values (my_regclass,my_column_name,my_lco);
- end if;
+   if not found then
+     insert into datalink.dl_attlco (regclass,column_name,lco)
+     values (my_regclass,my_column_name,my_lco);
+   end if;
+ end if; -- lco has changed
 
  return my_options;
 end;
 $_$;
 
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
-IS 'Set link control options for datalink column (buggy)';
+IS 'Modify link control options for datalink column';
 
 grant usage on schema datalink to public;
 
