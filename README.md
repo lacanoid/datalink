@@ -91,9 +91,9 @@ When creating table columns of this type,
 datalink triggers are automatically installed on the table.
 
     create table sample_datalinks (
-                 id serial,
-                 url text,
-                 link datalink
+           id serial,
+           url text,
+           link datalink
     );
     
     insert into sample_datalinks (link)
