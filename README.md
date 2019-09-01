@@ -4,7 +4,11 @@ Datalink extension for PostgreSQL
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
 It is very much a prototype and meant for playing around to see if this can be made useful.
 Also to see how much of the standard can be implemented in high-level postgres (and pgperlu :), 
-without having to resort to C. It currently doesn't do anything very useful yet.
+without having to resort to C. It implements a number of SQL/MED specified datalink behaviours.
+
+It comes with a special deamon `pg_datalinker`, which handles all file manipulations,
+but the extension can be used without it, albeit with some loss of functionality.
+The extension by itself does not perform any file system operations. 
 
 This extension uses a number of advanced PostgreSQL features for implementation,
 including jsonb, event and instead-of triggers, listen/notify, plperlu...
@@ -19,13 +23,13 @@ Currently, it implements the following:
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
 - Setting link control options with UPDATE DATALINK.COLUMN_OPTIONS
-- token generator (uses uuid-ossp)
-- plperlu interface to curl via WWW::Curl
+- Token generator (uses uuid-ossp)
+- PlPerlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`
 - LCO: NO LINK CONTROL - only check for valid URLs
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
-- simple datalinker to provide other LCOs, see below
+- Simple datalinker to provide other LCOs, see below
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database
@@ -35,15 +39,11 @@ With datalinker:
 - LCO: ON UNLINK DELETE - delete file when no longer referenced
 
 Missing:
-- init.d / systemd scripts for datalinker
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - LCO: WRITE ACCESS ADMIN
 - LCO: WRITE ACCESS ADMIN TOKEN
-- Transactional File IO functions + file spaces
-- foreign server support for file:// URLs (for files on other servers)
-- native postgres URL type + functions
-- native postgres interface to curl
+- Foreign server support for file:// URLs (for files on other servers)
 
 Installation
 ------------

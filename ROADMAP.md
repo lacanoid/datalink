@@ -2,7 +2,13 @@ Issues
 ======
 - "create table as" doesn't seem to install triggers
 - renaming of datalink columns
-- delete entries from dl_attlco on table/column drop
+
+Wanted
+=======
+- Transactional File IO functions + file spaces
+- init.d / systemd scripts for datalinker
+- Native postgres URL type + functions
+- Native postgres interface to curl
 
 Todo
 ====
