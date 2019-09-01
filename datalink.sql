@@ -564,7 +564,15 @@ begin
        )
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
-    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
+  end loop;
+
+  -- remove entries from datalink.dl_attlco for dropped tables
+  for obj in
+   select objid
+     from pg_event_trigger_dropped_objects() tdo
+    where object_type = 'table'
+  loop
+    delete from datalink.dl_attlco where regclass=obj.objid;
   end loop;
 
   -- unlink files referenced by dropped columns
@@ -581,6 +589,19 @@ begin
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
     delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
   end loop;
+
+  -- remove entries from datalink.dl_attlco for dropped tables columns
+  for obj in
+    select *
+      from
+      (select objid::regclass as regclass,
+              address_names[3] as attname
+         from pg_event_trigger_dropped_objects()
+	where object_type = 'table column'
+       ) as tdo
+  loop
+    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
+  end loop;
 end if;
 
 end
@@ -588,8 +609,9 @@ $$;
 
 ---------------------------------------------------
 
-create event trigger datalink_event_trigger_end
-on ddl_command_end execute procedure dl_trigger_event();
+create event trigger datalink_event_trigger_end on ddl_command_end
+when tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
+execute procedure dl_trigger_event();
 
 create event trigger datalink_event_trigger_drop
 on sql_drop execute procedure dl_trigger_event();
