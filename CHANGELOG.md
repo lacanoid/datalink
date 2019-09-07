@@ -1,12 +1,12 @@
 Version 0.5alpha
 ----------------
 - renames: dl_link_control_options -> link_control_options, dl_chattr() -> modlco(), dl_column_options -> dl_attlco
-- skip changing link contorl options in datalink.modlco() when options not actually changed
+- skip changing link control options in datalink.modlco() when options not actually changed
 - bugfixes
 
 Version 0.4
 -----------
-- added updatable view datalink.column_options to set link options with UPDATE;
+- added updatable view datalink.column_options to set link options with UPDATE
 - added simple datalinker, but you have to run it manually
 - reduced verbosity
 - dl_column_options and dl_chattr now use regclass instead of (schema_name,table_name)
