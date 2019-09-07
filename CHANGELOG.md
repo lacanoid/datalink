@@ -31,7 +31,7 @@ Version 0.3
 
 Version 0.2
 -----------
-- datalink type move to pg_catalog
+- datalink type moved to pg_catalog
 - internally, datalink is now domain over jsonb
 - the head parameter to curl_get actually works now
 
