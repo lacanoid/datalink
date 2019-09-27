@@ -7,7 +7,7 @@ Version 0.5alpha
 
 Version 0.4
 -----------
-- added updatable view datalink.column_options to set link options with UPDATE;
+- added updatable view datalink.column_options to set link options with UPDATE
 - added simple datalinker, but you have to run it manually
 - reduced verbosity
 - dl_column_options and dl_chattr now use regclass instead of (schema_name,table_name)
@@ -32,7 +32,7 @@ Version 0.3
 
 Version 0.2
 -----------
-- datalink type move to pg_catalog
+- datalink type moved to pg_catalog
 - internally, datalink is now domain over jsonb
 - the head parameter to curl_get actually works now
 
