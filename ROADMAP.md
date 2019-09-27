@@ -12,17 +12,20 @@ Wanted
 
 Todo
 ====
-- dlurlpath() and dlurlcomplete() must include token
 - replace link with one with different token
-- optimize triggers (do not run them if mco=0)
+- much better error handling in datalinker
+- dlurlpath() and dlurlcomplete() must include token
+- optimize triggers (do not install them if mco=0)
 - remove dl_link_control from dl_link_control_options (it is implied by dl_integrity)
 - update trigger on dl_columns to call datalink.modlco()
 - dl_ref and dl_unref redundant?
-- link state handling: unlink -> linked, error -> ?
+- better link state handling: unlink -> linked, error -> ?
 - file path sanity checking (handle ..)
 - url sanity checking (handle ..)
-- token decoding in dlvalue
+- token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - better URL syntax checking
+- allow backups for recovery=yes, read_access=fs LCO
+- block files only on write_access=blocked
 - maybe loose Curl and check for files only
 - URL canonization
 - dlvalue better error handling

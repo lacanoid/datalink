@@ -40,7 +40,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_class_adminable(regclass)                                                                 | sql     | 
  datalink     | dl_newtoken()                                                                                | sql     | 
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
- datalink     | dl_sql_advice()                                                                              | sql     | 
+ datalink     | dl_trigger_advice()                                                                          | sql     | 
  datalink     | dl_trigger_event()                                                                           | plpgsql | 
  datalink     | dl_trigger_lco()                                                                             | plpgsql | 
  datalink     | dl_trigger_table()                                                                           | plpgsql | 

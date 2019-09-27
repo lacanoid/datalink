@@ -289,43 +289,41 @@ grant select on column_options to public;
 
 ---------------------------------------------------
 
-CREATE VIEW dl_triggers AS
- WITH
- triggers AS (
-         SELECT c0_1.oid,
-            t0.tgname
-           FROM (pg_trigger t0
-             JOIN pg_class c0_1 ON ((t0.tgrelid = c0_1.oid)))
-          WHERE ((t0.tgname = '~RI_DatalinkTrigger'::name) AND dl_class_adminable((c0_1.oid)::regclass))
- ),
- classes AS (
-         SELECT dl_columns.regclass,
-            count(*) AS count,
-            max(dl_columns.lco) AS mco
-           FROM dl_columns dl_columns
-          WHERE dl_class_adminable(dl_columns.regclass)
-          GROUP BY dl_columns.regclass
- )
- SELECT  c0.relowner::regrole::name AS owner,
-    (COALESCE(c.regclass, t.oid))::regclass AS regclass,
-    COALESCE(c.count, (0)::bigint) AS links,
-    c.mco,
-    t.tgname
-   FROM triggers t
-     FULL JOIN classes c ON (t.oid = c.regclass)
-     JOIN pg_class c0 ON (c0.oid = COALESCE(c.regclass, t.oid))
-  ORDER BY COALESCE(c.regclass, t.oid)::regclass::text;
-grant select on dl_triggers to public;
-
----------------------------------------------------
-
-CREATE FUNCTION dl_sql_advice(
-    OUT advice_type text, OUT owner name, OUT regclass regclass, 
+CREATE FUNCTION dl_trigger_advice(
+    OUT owner name, OUT regclass regclass, 
     OUT valid boolean, OUT identifier name, OUT links bigint, OUT sql_advice text) 
     RETURNS SETOF record
     LANGUAGE sql
     AS $$
-SELECT 'TRIGGER'::text AS advice_type,
+WITH
+ triggers AS (
+         SELECT c0_1.oid,
+                t0.tgname
+           FROM pg_trigger t0
+           JOIN pg_class c0_1 ON t0.tgrelid = c0_1.oid
+          WHERE t0.tgname = '~RI_DatalinkTrigger'::name
+	    AND dl_class_adminable(c0_1.oid)
+ ),
+ classes AS (
+         SELECT dl_columns.regclass,
+                count(*) AS count,
+                max(dl_columns.lco) AS mco
+           FROM dl_columns dl_columns
+          WHERE dl_class_adminable(dl_columns.regclass)
+          GROUP BY dl_columns.regclass
+ ),
+ dl_triggers AS (
+         SELECT c0.relowner::regrole::name AS owner,
+                (COALESCE(c.regclass, t.oid))::regclass AS regclass,
+                COALESCE(c.count, (0)::bigint) AS links,
+                c.mco,
+                t.tgname
+           FROM triggers t
+           FULL JOIN classes c ON (t.oid = c.regclass)
+           JOIN pg_class c0 ON (c0.oid = COALESCE(c.regclass, t.oid))
+          ORDER BY COALESCE(c.regclass, t.oid)::regclass::text
+ )
+SELECT 
     owner,
     regclass AS regclass,
     not (tgname is null or links = 0) as valid,
@@ -345,7 +343,7 @@ SELECT 'TRIGGER'::text AS advice_type,
                || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();', '') 
     else ''
     end AS sql_advice
-   FROM datalink.dl_triggers
+   FROM dl_triggers
 $$;
 
 ---------------------------------------------------
@@ -544,10 +542,10 @@ begin
  if tg_tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
  then
   -- update triggers on tables with datalinks
-   for obj in select * from datalink.dl_sql_advice()
-   where advice_type = 'TRIGGER' and not valid
+   for obj in select * from datalink.dl_trigger_advice()
+   where not valid
    loop
-     RAISE NOTICE 'DATALINK DDL:% on %',obj.advice_type,obj.regclass;
+     RAISE NOTICE 'DATALINK DDL:% on %','TRIGGER',obj.regclass;
      execute obj.sql_advice;
    end loop;
  end if;
@@ -850,7 +848,7 @@ if($part eq 'query') { return $u->query(); }
 if($part eq 'fragment') { return $u->fragment(); }
 if($part eq 'token') { return $u->fragment(); }
 if($part eq 'canonical') { return $u->canonical(); }
-elog(ERROR,"Unknown part '$path'.");
+elog(ERROR,"Unknown part '$part'.");
 $function$
 ;
 
