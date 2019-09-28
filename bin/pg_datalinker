@@ -243,7 +243,7 @@ sub file_delete {
 		sys("rm",$path);
 	    }
 	} else {
-	    log_msg('NODEL',"Refusing to delete '$path'. Hint: use -D datalinker option.");
+	    log_msg('NO DELETE',"Refusing to delete '$path'. Hint: use -D datalinker option.");
 	}
     }
 }
@@ -253,7 +253,7 @@ sub file_backup {
     if($opt->{token}) {
 	my $path_backup = path_backup($path,$opt->{token});
 	if(-f $path_backup) {
-	    log_err("EXISTS","File exists:$path_backup");
+	    log_err("COPY EXISTS","File exists:$path_backup");
 	} else {
 	    sys("cp","-a",$path,$path_backup);
 	}

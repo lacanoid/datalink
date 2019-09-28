@@ -14,7 +14,8 @@ COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 
 CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
-CREATE DOMAIN dl_url AS text CHECK (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+CREATE DOMAIN dl_url AS text; --  CHECK (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+CREATE DOMAIN dl_file_path AS text;
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
 
@@ -634,10 +635,18 @@ CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer defau
     LANGUAGE plpgsql STRICT
     AS $_$
 declare
- token datalink.dl_token;
+ token  datalink.dl_token;
+ t1     text;
+ u1     text;
 begin 
  if has_token > 0 then
-  token := link->>'token';
+  u1 := link->>'url';
+  t1 := datalink.uri_get(u1,'token');
+  if t1 is not null then
+    token := t1::datalink.dl_token;
+    link := jsonb_set(link,'{url}',to_jsonb(datalink.uri_set(u1,'token',null)));
+  end if;
+  if token is null then token := link->>'token'; end if;
   if token is null then token := datalink.dl_newtoken() ; end if;
   link := jsonb_set(link,'{token}',to_jsonb(token));
  end if;
@@ -830,8 +839,10 @@ use URI;
 use File::Basename;
 
 my $u=URI->new($_[0]);
+my ($filename, $dirs, $suffix) = fileparse($u->path());
 my $part=$_[1]; lc($part);
-if($part eq 'scheme') { return $u->scheme(); }
+
+if($part eq 'scheme') { return $u->has_recognized_scheme?$u->scheme():undef; }
 if($part eq 'authority') { return $u->authority(); }
 if($part eq 'userinfo') { return $u->userinfo(); }
 if($part eq 'host') { return $u->host(); }
@@ -840,7 +851,9 @@ if($part eq 'port') { return $u->port(); }
 if($part eq 'host_port') { return $u->host_port(); }
 if($part eq 'path') { return $u->path(); }
 if($part eq 'dirname') { return dirname($u->path()); }
-if($part eq 'basename') { return basename($u->path()); }
+if($part eq 'filename') { return basename($u->path()); }
+if($part eq 'basename') { return (fileparse($u->path()))[0]; }
+if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
 if($part eq 'path_query') { return $u->path_query(); }
 if($part eq 'query') { return $u->query(); }
 if($part eq 'query_form') { return $u->query_form(); }
@@ -1059,6 +1072,11 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';
+
+---------------------------------------------------
+
+-- alter domain dl_url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 
 ---------------------------------------------------
 -- play tables

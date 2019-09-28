@@ -6,7 +6,7 @@ extension_version = 0.5
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
 
-REGRESS = init type basic other link linker
+REGRESS = init type basic other link linker uri
 REGRESS_OPTS = --inputdir=test
 
 PGXS := $(shell $(PG_CONFIG) --pgxs)
