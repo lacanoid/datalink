@@ -426,7 +426,7 @@ begin
  fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
 
  if fstat is null then
-      raise exception 'Referenced file not valid' 
+      raise exception 'datalink exception - referenced file not valid' 
             using errcode = 'HW007',
                   detail = file_path;
  end if;
@@ -443,9 +443,9 @@ begin
    return true;
  else -- found
   if r.state in ('LINK','LINKED') then
-      raise exception 'External file already linked' 
-            using errcode = 'HW002', 
-                  detail = format('from %s.%I as ''%s''',r.regclass::text,r.attname,r.path);
+    raise exception 'datalink exception - external file already linked' 
+      using errcode = 'HW002', 
+      detail = format('from %s.%I as ''%s''',r.regclass::text,r.attname,r.path);
 
   elsif r.state in ('UNLINK') then
 
@@ -457,13 +457,13 @@ begin
      where path = file_path and state='UNLINK';
     return true;
      else -- cannot link again
-      raise exception 'External file already linked' 
-            using errcode = 'HW002', 
-                  detail = format('file is waiting for unlink ''%s''',r.path);
+      raise exception 'datalink exception - external file already linked' 
+        using errcode = 'HW002', 
+        detail = format('file is waiting for unlink ''%s''',r.path);
      end if;
 
   else
-      raise exception 'Datalink exception' 
+      raise exception 'datalink exception' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
   end if;
@@ -489,7 +489,7 @@ begin
   where path = file_path
     for update;
  if not found then
-      raise exception 'External file not linked' 
+      raise exception 'datalink exception - external file not linked' 
             using errcode = 'HW001', 
                   detail = file_path;
  else
@@ -516,7 +516,7 @@ begin
       and state = 'ERROR';
 
   else
-      raise exception 'Datalink exception' 
+      raise exception 'datalink exception' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
   end if;
@@ -632,7 +632,7 @@ $$;
 ---------------------------------------------------
 
 CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer default 1) RETURNS datalink
-    LANGUAGE plpgsql STRICT
+    LANGUAGE plpgsql
     AS $_$
 declare
  token  datalink.dl_token;
@@ -643,7 +643,16 @@ begin
   u1 := link->>'url';
   t1 := datalink.uri_get(u1,'token');
   if t1 is not null then
-    token := t1::datalink.dl_token;
+    begin
+      token := t1::datalink.dl_token;
+    exception
+      when sqlstate '22P02' then
+        raise exception 'datalink exception - invalid write token'
+        using errcode = 'HW004', 
+              detail = SQLERRM;
+      when others then
+        raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
+    end;
     link := jsonb_set(link,'{url}',to_jsonb(datalink.uri_set(u1,'token',null)));
   end if;
   if token is null then token := link->>'token'; end if;
@@ -654,6 +663,12 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) 
+IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+
+CREATE FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer default 1) RETURNS datalink
+    LANGUAGE sql
+    AS $_$select pg_catalog.dlpreviouscopy(pg_catalog.dlvalue($1),$2)$_$;
+COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer) 
 IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
 
 ---------------------------------------------------
@@ -672,6 +687,12 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) 
+IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+
+CREATE FUNCTION pg_catalog.dlnewcopy(url text, has_token integer default 1) RETURNS datalink
+    LANGUAGE sql
+    AS $_$select pg_catalog.dlnewcopy(pg_catalog.dlvalue($1),$2)$_$;
+COMMENT ON FUNCTION pg_catalog.dlnewcopy(url text, has_token integer) 
 IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
 
 ---------------------------------------------------
@@ -699,7 +720,7 @@ begin
     has_token := 1;
     r := datalink.curl_get(url,true);
     if not r.ok then
-      raise exception 'Referenced file does not exit' 
+      raise exception 'datalink exception - referenced file does not exit' 
             using errcode = 'HW003', 
                   detail = url;
     end if;
@@ -842,22 +863,34 @@ my $u=URI->new($_[0]);
 my $part=$_[1]; lc($part);
 
 # common
- if($part eq 'scheme') { return $u->has_recognized_scheme?$u->scheme():undef; }
- if($part eq 'path') { return $u->path(); }
- if($part eq 'fragment') { return $u->fragment(); }
+ if($part eq 'path') { return $u->path; }
+ if($part eq 'fragment') { return $u->fragment; }
+my $scheme=$u->scheme;
+ if($part eq 'scheme') { return $u->has_recognized_scheme?$scheme:undef; }
 
 my $v = eval {
- if($part eq 'authority') { return $u->authority(); }
+ if($part eq 'authority') { return $u->authority; }
  if($part eq 'user') { return $u->user(); }
  if($part eq 'userinfo') { return $u->userinfo(); }
- if($part eq 'host') { return $u->host(); }
- if($part eq 'server') { return $u->host(); }
- if($part eq 'domain') { my $d = $u->host(); $d=~s|^[^\.]*\.||; return $d; }
- if($part eq 'port') { return $u->port(); }
+ if($part eq 'host') { return $u->host; }
+ if($part eq 'server') { return $u->host; }
+ if($part eq 'domain') { my $d = $u->host; $d=~s|^[^\.]*\.||; return $d; }
+ if($part eq 'port') { return $u->port; }
  if($part eq 'host_port') { return $u->host_port(); }
- if($part eq 'dirname') { return dirname($u->path()); }
- if($part eq 'filename') { return basename($u->path()); }
- if($part eq 'basename') { return (fileparse($u->path()))[0]; }
+ if($part eq 'dirname') { return dirname($u->path); }
+if(!($scheme eq 'data')) {
+ if($part eq 'basename') { return basename($u->path()); }
+ if($part eq 'filename') { return (fileparse($u->path()))[0]; }
+ if($part eq 'media_type') { return undef; }
+ if($part eq 'dirname') { return dirname($u->path); }
+} else { # data:
+ if($part eq 'basename') { return undef; }
+ if($part eq 'filename') { return undef; }
+ if($part eq 'media_type') { return $u->media_type; }
+ if($part eq 'dirname') { return $u->media_type; }
+}
+ if($part eq 'dir') { return $u->dir; }
+ if($part eq 'file') { return $u->file; }
  if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
  if($part eq 'path_query') { return $u->path_query(); }
  if($part eq 'query') { return $u->query(); }
@@ -983,7 +1016,7 @@ begin
    and column_name = my_column_name; 
 
  if not found then
-      raise exception 'Datalink exception' 
+      raise exception 'datalink exception' 
             using errcode = 'HW000',
 	    detail = 'Not a DATALINK column';
  end if; 
@@ -993,7 +1026,7 @@ begin
    where lco = my_lco;
 
  if not found then
-      raise exception 'Datalink exception' 
+      raise exception 'datalink exception' 
             using errcode = 'HW000',
 	    detail = format('Invalid link control options (%s)',my_lco);
  end if; 

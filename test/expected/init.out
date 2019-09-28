@@ -22,7 +22,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlcomment(datalink)                                                                          | sql     | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
  pg_catalog   | dllinktype(datalink)                                                                         | sql     | SQL/MED - Returns the link type (URL or FS) of a DATALINK value
  pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
+ pg_catalog   | dlnewcopy(text,integer)                                                                      | sql     | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
+ pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql     | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
  pg_catalog   | dlurlcomplete(datalink)                                                                      | sql     | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql     | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlpath(datalink)                                                                          | sql     | SQL/MED - Returns the file path from a DATALINK value
@@ -48,5 +50,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
  datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
-(29 rows)
+(31 rows)
 

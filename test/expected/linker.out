@@ -20,7 +20,7 @@ values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
 update sample_datalinks6 set link2 = link;
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
-ERROR:  External file already linked
+ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks6.link as '/tmp/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 30 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"

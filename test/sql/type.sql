@@ -23,6 +23,8 @@ select key,case when key is distinct from 'token' then value end as value
   from jsonb_each(dlpreviouscopy(dlvalue('/tmp/file1','FS','Previous copy'),1));
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),0);
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),1);
+select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1);
+select dlpreviouscopy('file:///tmp/file1#krneki',1);
 
 select dl_lco(link_control=>'FILE');
 select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');

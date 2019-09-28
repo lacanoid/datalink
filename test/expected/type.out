@@ -94,6 +94,16 @@ select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',
  {"url": "file:///tmp/file1", "token": "e5ed6a45-dc2f-42d2-a746-10c368677121"}
 (1 row)
 
+select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1);
+                                dlpreviouscopy                                 
+-------------------------------------------------------------------------------
+ {"url": "file:///tmp/file1", "token": "e5ed6a45-dc2f-42d2-a746-10c368677121"}
+(1 row)
+
+select dlpreviouscopy('file:///tmp/file1#krneki',1);
+ERROR:  datalink exception - invalid write token
+DETAIL:  invalid input syntax for type uuid: "krneki"
+CONTEXT:  PL/pgSQL function dlpreviouscopy(datalink,integer) line 15 at RAISE
 select dl_lco(link_control=>'FILE');
  dl_lco 
 --------

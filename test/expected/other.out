@@ -22,7 +22,7 @@ insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
-ERROR:  Referenced file does not exit
+ERROR:  datalink exception - referenced file does not exit
 DETAIL:  file:///foo+bar/no_file
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
@@ -33,7 +33,7 @@ insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
-ERROR:  Referenced file does not exit
+ERROR:  datalink exception - referenced file does not exit
 DETAIL:  http://blah
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment

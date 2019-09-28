@@ -4,9 +4,11 @@ Version 0.5alpha
 - skip changing link control options in datalink.modlco() when options not actually changed
 - removed dl_triggers view and renamed dl_sql_advice() -> dl_trigger_advice()
 - improved url validity checking with uri_get()
-- improved uri processing
+- improved uri_get() function
 - dlpreviouscopy() now looks for token in embedded in url
-- new test for url
+- dlpreviouscopy() works for text arguments
+- better error reporting, per SQL spec with SQLSTATE
+- new tests in url.sql
 - bugfixes
 
 Version 0.4
