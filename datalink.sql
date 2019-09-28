@@ -138,9 +138,9 @@ AS $_$
    end) + 
    10 * (  
    (case $4
-     when 'BLOCKED' then 2
      when 'ADMIN TOKEN' then 3
-     when 'ADMIN' then 1
+     when 'ADMIN' then 2
+     when 'BLOCKED' then 1
      when 'FS' then 0
      else 0
    end) +
@@ -192,7 +192,7 @@ from
     unnest(array['NO','FILE']) as lc,
     unnest(array['NONE','SELECTIVE','ALL']) as itg,
     unnest(array['FS','DB']) as ra,
-    unnest(array['FS','BLOCKED' /* ,'ADMIN','ADMIN TOKEN' */]) as wa,
+    unnest(array['FS','BLOCKED' ,'ADMIN' /* ,'ADMIN TOKEN' */]) as wa,
     unnest(array['NO','YES']) as rec,
     unnest(array['NONE','RESTORE','DELETE']) as unl
 )
@@ -826,28 +826,33 @@ CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text
   LANGUAGE plperlu
   AS $function$
-  use URI;
-  use File::Basename;
+use URI;
+use File::Basename;
 
 my $u=URI->new($_[0]);
 my $part=$_[1]; lc($part);
 if($part eq 'scheme') { return $u->scheme(); }
-if($part eq 'path') { return $u->path(); }
-if($part eq 'basename') { return basename($u->path()); }
-if($part eq 'dirname') { return dirname($u->path()); }
 if($part eq 'authority') { return $u->authority(); }
-if($part eq 'path_query') { return $u->path_query(); }
-if($part eq 'query_form') { return $u->query_form(); }
-if($part eq 'query_keywords') { return $u->query_keywords(); }
 if($part eq 'userinfo') { return $u->userinfo(); }
 if($part eq 'host') { return $u->host(); }
 if($part eq 'domain') { my $d = $u->host(); $d=~s|^www\.||; return $d; }
 if($part eq 'port') { return $u->port(); }
 if($part eq 'host_port') { return $u->host_port(); }
+if($part eq 'path') { return $u->path(); }
+if($part eq 'dirname') { return dirname($u->path()); }
+if($part eq 'basename') { return basename($u->path()); }
+if($part eq 'path_query') { return $u->path_query(); }
 if($part eq 'query') { return $u->query(); }
+if($part eq 'query_form') { return $u->query_form(); }
+if($part eq 'query_keywords') { return $u->query_keywords(); }
 if($part eq 'fragment') { return $u->fragment(); }
+# extras
 if($part eq 'token') { return $u->fragment(); }
-if($part eq 'canonical') { return $u->canonical(); }
+if($part eq 'canonical') {
+  if($u->query() eq '') { $u->query(undef); }
+  if($u->fragment() eq '') { $u->fragment(undef); }
+  my $c = $u->canonical; return "$c";
+}
 elog(ERROR,"Unknown part '$part'.");
 $function$
 ;
@@ -865,19 +870,19 @@ CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
   my $part=$_[1]; lc($part);
   my $v=$_[2];
   if($part eq 'scheme') { $u->scheme($v); }
-  elsif($part eq 'path') {  $u->path($v); }
   elsif($part eq 'authority') {  $u->authority($v); }
   elsif($part eq 'path_query') {  $u->path_query($v); }
-  elsif($part eq 'query_form') {  $u->query_form($v); }
-  elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
   elsif($part eq 'userinfo') {  $u->userinfo($v); }
   elsif($part eq 'host') {  $u->host($v); }
   elsif($part eq 'port') {  $u->port($v); }
   elsif($part eq 'host_port') {  $u->host_port($v); }
+  elsif($part eq 'path') {  $u->path($v); }
   elsif($part eq 'query') {  $u->query($v); }
+  elsif($part eq 'query_form') {  $u->query_form($v); }
+  elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
   elsif($part eq 'fragment') {  $u->fragment($v); }
   elsif($part eq 'token') {  $u->fragment($v); }
-  else { elog(ERROR,"Unknown part '$path'."); }
+  else { elog(ERROR,"Unknown part '$part'."); }
   return $u->as_string;
   $function$
   ;

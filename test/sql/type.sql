@@ -39,3 +39,29 @@ select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dllinktype(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dllinktype(dlvalue('/etc/passwd','FS'));
 
+\x
+with a as (
+  select 'http://ziga:pass@www.ljudmila.org:8888/foo/bar/baz.qux?a=1&b=2#x123' as uri
+)
+select
+ uri,
+ uri_get(uri,'scheme') as scheme,
+ uri_get(uri,'authority') as authority,
+ uri_get(uri,'userinfo') as userinfo,
+ uri_get(uri,'host') as host,
+ uri_get(uri,'port') as port,
+ uri_get(uri,'host_port') as host_port,
+ uri_get(uri,'domain') as domain,
+ uri_get(uri,'path') as path,
+ uri_get(uri,'dirname') as dirname,
+ uri_get(uri,'basename') as basename,
+ uri_get(uri,'path_query') as path_query,
+ uri_get(uri,'query') as query,
+ uri_get(uri,'query_form') as query_form,
+ uri_get(uri,'query_keywords') as query_keywords,
+ uri_get(uri,'fragment') as fragment,
+ uri_get(uri,'token') as token,
+ uri_get(uri,'canonical') as canonical
+from a;
+
+ 

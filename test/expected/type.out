@@ -76,7 +76,7 @@ select dl_lco(link_control=>'FILE');
 select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
  dl_lco 
 --------
-   2121
+   1121
 (1 row)
 
 select * from link_control_options(dl_lco(link_control=>'NO'));
@@ -102,7 +102,7 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					  recovery=>'YES',on_unlink=>'DELETE'));
   lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
 --------+--------------+-----------+-------------+--------------+----------+-----------
- 212121 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
+ 211121 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
 (1 row)
 
 select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
@@ -110,7 +110,7 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					  recovery=>'YES',on_unlink=>'RESTORE'));
   lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
 --------+--------------+-----------+-------------+--------------+----------+-----------
- 112121 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
+ 111121 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
 (1 row)
 
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
@@ -149,3 +149,48 @@ select dllinktype(dlvalue('/etc/passwd','FS'));
  FS
 (1 row)
 
+\x
+with a as (
+  select 'http://ziga:pass@www.ljudmila.org:8888/foo/bar/baz.qux?a=1&b=2#x123' as uri
+)
+select
+ uri,
+ uri_get(uri,'scheme') as scheme,
+ uri_get(uri,'authority') as authority,
+ uri_get(uri,'userinfo') as userinfo,
+ uri_get(uri,'host') as host,
+ uri_get(uri,'port') as port,
+ uri_get(uri,'host_port') as host_port,
+ uri_get(uri,'domain') as domain,
+ uri_get(uri,'path') as path,
+ uri_get(uri,'dirname') as dirname,
+ uri_get(uri,'basename') as basename,
+ uri_get(uri,'path_query') as path_query,
+ uri_get(uri,'query') as query,
+ uri_get(uri,'query_form') as query_form,
+ uri_get(uri,'query_keywords') as query_keywords,
+ uri_get(uri,'fragment') as fragment,
+ uri_get(uri,'token') as token,
+ uri_get(uri,'canonical') as canonical
+from a;
+-[ RECORD 1 ]--+--------------------------------------------------------------------
+uri            | http://ziga:pass@www.ljudmila.org:8888/foo/bar/baz.qux?a=1&b=2#x123
+scheme         | http
+authority      | ziga:pass@www.ljudmila.org:8888
+userinfo       | ziga:pass
+host           | www.ljudmila.org
+port           | 8888
+host_port      | www.ljudmila.org:8888
+domain         | ljudmila.org
+path           | /foo/bar/baz.qux
+dirname        | /foo/bar
+basename       | baz.qux
+path_query     | /foo/bar/baz.qux?a=1&b=2
+query          | a=1&b=2
+query_form     | 4
+query_keywords | _null_
+fragment       | x123
+token          | x123
+canonical      | http://ziga:pass@www.ljudmila.org:8888/foo/bar/baz.qux?a=1&b=2#x123
+
+ 

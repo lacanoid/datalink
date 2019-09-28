@@ -24,11 +24,11 @@ select * from sample_urls;
 create table sample_datalinks (
   url text,
   link datalink
-) with oids;
+);
 
-select * from dl_triggers;
-
-select column_name,lco FROM datalink.dl_columns;
+--select * from dl_triggers;
+--select column_name,lco FROM datalink.dl_columns;
+select * from datalink.column_options;
 
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));
