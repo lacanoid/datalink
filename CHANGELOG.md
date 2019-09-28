@@ -3,7 +3,9 @@ Version 0.5alpha
 - renames: dl_link_control_options -> link_control_options, dl_chattr() -> modlco(), dl_column_options -> dl_attlco
 - skip changing link control options in datalink.modlco() when options not actually changed
 - removed dl_triggers view and renamed dl_sql_advice() -> dl_trigger_advice()
-- dlpreviouscopy() now looks for token in url
+- improved url validity checking with uri_get()
+- improved uri processing
+- dlpreviouscopy() now looks for token in embedded in url
 - new test for url
 - bugfixes
 

@@ -14,7 +14,7 @@ COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 
 CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
-CREATE DOMAIN dl_url AS text; --  CHECK (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+CREATE DOMAIN dl_url AS text;
 CREATE DOMAIN dl_file_path AS text;
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
@@ -839,34 +839,43 @@ use URI;
 use File::Basename;
 
 my $u=URI->new($_[0]);
-my ($filename, $dirs, $suffix) = fileparse($u->path());
 my $part=$_[1]; lc($part);
 
-if($part eq 'scheme') { return $u->has_recognized_scheme?$u->scheme():undef; }
-if($part eq 'authority') { return $u->authority(); }
-if($part eq 'userinfo') { return $u->userinfo(); }
-if($part eq 'host') { return $u->host(); }
-if($part eq 'domain') { my $d = $u->host(); $d=~s|^www\.||; return $d; }
-if($part eq 'port') { return $u->port(); }
-if($part eq 'host_port') { return $u->host_port(); }
-if($part eq 'path') { return $u->path(); }
-if($part eq 'dirname') { return dirname($u->path()); }
-if($part eq 'filename') { return basename($u->path()); }
-if($part eq 'basename') { return (fileparse($u->path()))[0]; }
-if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
-if($part eq 'path_query') { return $u->path_query(); }
-if($part eq 'query') { return $u->query(); }
-if($part eq 'query_form') { return $u->query_form(); }
-if($part eq 'query_keywords') { return $u->query_keywords(); }
-if($part eq 'fragment') { return $u->fragment(); }
-# extras
-if($part eq 'token') { return $u->fragment(); }
-if($part eq 'canonical') {
+# common
+ if($part eq 'scheme') { return $u->has_recognized_scheme?$u->scheme():undef; }
+ if($part eq 'path') { return $u->path(); }
+ if($part eq 'fragment') { return $u->fragment(); }
+
+my $v = eval {
+ if($part eq 'authority') { return $u->authority(); }
+ if($part eq 'user') { return $u->user(); }
+ if($part eq 'userinfo') { return $u->userinfo(); }
+ if($part eq 'host') { return $u->host(); }
+ if($part eq 'server') { return $u->host(); }
+ if($part eq 'domain') { my $d = $u->host(); $d=~s|^[^\.]*\.||; return $d; }
+ if($part eq 'port') { return $u->port(); }
+ if($part eq 'host_port') { return $u->host_port(); }
+ if($part eq 'dirname') { return dirname($u->path()); }
+ if($part eq 'filename') { return basename($u->path()); }
+ if($part eq 'basename') { return (fileparse($u->path()))[0]; }
+ if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
+ if($part eq 'path_query') { return $u->path_query(); }
+ if($part eq 'query') { return $u->query(); }
+ if($part eq 'query_form') { return $u->query_form(); }
+ if($part eq 'query_keywords') { return $u->query_keywords(); }
+ if($part eq 'token') { return $u->fragment(); }
+ if($part eq 'canonical') {
   if($u->query() eq '') { $u->query(undef); }
   if($u->fragment() eq '') { $u->fragment(undef); }
   my $c = $u->canonical; return "$c";
-}
-elog(ERROR,"Unknown part '$part'.");
+ }
+};
+if($part eq 'canonical') { return $u->canonical->as_string; }
+return $v;
+
+elog(ERROR,"Unknown part '$_[1]'.");
+return undef;
+
 $function$
 ;
 

@@ -17,7 +17,7 @@ values
   ('http://www.ljudmila.org'),
   ('https://www.github.org'),
   ('file:///tmp/a'),
-  ('http://www.debian.org');
+  ('http://www.debian.org/');
 
 select * from sample_urls;
 
