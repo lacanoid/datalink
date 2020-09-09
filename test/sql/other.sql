@@ -10,7 +10,7 @@ create table sample_datalinks2 (
 
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks2'::regclass and column_name='link';
+ where table_name='sample_datalinks2' and column_name='link';
 
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
@@ -23,7 +23,7 @@ values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks2'::regclass and column_name='link';
+ where table_name='sample_datalinks2' and column_name='link';
 
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
@@ -40,6 +40,6 @@ select *
 
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks3'::regclass and column_name='link';
+ where table_name='sample_datalinks3' and column_name='link';
 
 delete from sample_datalinks3 where dllinktype(link)='FS';

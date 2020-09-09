@@ -11,10 +11,10 @@ update datalink.column_options
    set link_control='FILE', integrity='ALL',
        read_access='FS', write_access='BLOCKED',
        recovery='YES', on_unlink='RESTORE'
- where regclass='sample_datalinks6'::regclass and column_name='link';
+ where table_name='sample_datalinks6' and column_name='link';
 update datalink.column_options
    set link_control='FILE', integrity='ALL'
- where regclass='sample_datalinks6'::regclass and column_name='link2';
+ where table_name='sample_datalinks6' and column_name='link2';
 insert into sample_datalinks6 (link)
 values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
@@ -33,6 +33,19 @@ truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
+  from sample_datalinks6;
+      dlurlpath1       
+-----------------------
+ /tmp/CHANGELOG.md#xxx
+(1 row)
+
+select dlurlpathonly(link) from sample_datalinks6;
+   dlurlpathonly   
+-------------------
+ /tmp/CHANGELOG.md
+(1 row)
+
 update sample_datalinks6
    set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
@@ -43,3 +56,9 @@ NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
 update sample_datalinks6 set link2 = null, link = link2;
 NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+create table sample_datalinks7 as 
+select * 
+  from sample_datalinks6;
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
+truncate sample_datalinks6;
+NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md

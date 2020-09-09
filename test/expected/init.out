@@ -1,11 +1,12 @@
 create extension datalink cascade;
 NOTICE:  installing required extension "plperlu"
+NOTICE:  installing required extension "file_fdw"
 set search_path=datalink;
 \dx datalink
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.5     | datalink | SQL/MED DATALINK type and functions
+ datalink | 0.7     | datalink | SQL/MED DATALINK type and functions
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
@@ -44,7 +45,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql | 
  datalink     | dl_trigger_advice()                                                                          | sql     | 
  datalink     | dl_trigger_event()                                                                           | plpgsql | 
- datalink     | dl_trigger_lco()                                                                             | plpgsql | 
+ datalink     | dl_trigger_options()                                                                         | plpgsql | 
  datalink     | dl_trigger_table()                                                                           | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 

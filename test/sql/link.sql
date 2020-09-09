@@ -11,7 +11,7 @@ create table sample_datalinks4 (
 -- select dl_chattr('sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.column_options
    set link_control='FILE', integrity='ALL'
- where regclass='sample_datalinks4'::regclass and column_name='link';
+ where table_name='sample_datalinks4' and column_name='link';
 
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
@@ -47,7 +47,7 @@ create table sample_datalinks5 (
 -- select dl_chattr('sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.column_options
    set link_control='FILE', integrity='ALL'
- where regclass='sample_datalinks5'::regclass and column_name='link';
+ where table_name='sample_datalinks5' and column_name='link';
 
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
@@ -79,7 +79,7 @@ alter table sample_datalinks4
 -- select dl_chattr('sample_datalinks4','link2',dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.column_options
    set link_control='FILE', integrity='ALL'
- where regclass='sample_datalinks4'::regclass and column_name='link2';
+ where table_name='sample_datalinks4' and column_name='link2';
 
 insert into sample_datalinks4 (link)
 select link

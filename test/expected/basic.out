@@ -32,7 +32,7 @@ NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks
 --select * from dl_triggers;
 --select column_name,lco FROM datalink.dl_columns;
 select * from datalink.column_options;
-         regclass          | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+        table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
  sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE

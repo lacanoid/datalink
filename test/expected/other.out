@@ -8,7 +8,7 @@ create table sample_datalinks2 (
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks2'::regclass and column_name='link';
+ where table_name='sample_datalinks2' and column_name='link';
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
          regclass          | column_name |  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
@@ -28,7 +28,7 @@ CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAI
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks2'::regclass and column_name='link';
+ where table_name='sample_datalinks2' and column_name='link';
 insert into sample_datalinks2 (link)
 values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
@@ -51,9 +51,9 @@ select *
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
- where regclass='sample_datalinks3'::regclass and column_name='link';
+ where table_name='sample_datalinks3' and column_name='link';
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 34 at RAISE
-SQL statement "SELECT datalink.modlco(old.regclass,old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_lco() line 11 at PERFORM
+SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_options() line 11 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

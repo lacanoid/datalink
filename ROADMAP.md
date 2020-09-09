@@ -1,7 +1,6 @@
 Issues
 ======
-- "create table as" doesn't seem to install triggers
-- renaming of datalink columns
+- ALTER TABLE RENAME of datalink columns must update datalink.dl_attlco accordingly
 
 Wanted
 =======
@@ -13,6 +12,7 @@ Wanted
 Todo
 ====
 - replace link with one with different token
+- CLI tool for datalinker admin
 - much better error handling in datalinker
 - dlurlpath() and dlurlcomplete() must include token
 - optimize triggers (do not install them if mco=0)
@@ -26,7 +26,7 @@ Todo
 - better URL syntax checking
 - allow backups for recovery=yes, read_access=fs LCO
 - block files only on write_access=blocked
-- maybe loose Curl and check for files only
+- maybe: loose Curl and check for files only
 - URL canonization
 - dlvalue better error handling
 - make this work for non-superusers

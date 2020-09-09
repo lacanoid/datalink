@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.5 lacanoid@ljudmila.org
+--  version 0.7 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -93,8 +93,8 @@ create domain dl_lco as integer;
 comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
 
 CREATE TABLE link_control_options (
-       	lco dl_lco primary key,
-    	link_control dl_link_control,
+  lco dl_lco primary key,
+  link_control dl_link_control,
 	integrity dl_integrity,
 	read_access dl_read_access,
 	write_access dl_write_access,
@@ -275,7 +275,7 @@ CREATE VIEW dl_columns AS
 
 CREATE VIEW column_options AS
 SELECT
-    regclass,
+    cast(regclass as text) as table_name,
     column_name,
     link_control,
     integrity,
@@ -826,7 +826,7 @@ $_X$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_trigger_lco() RETURNS trigger
+CREATE FUNCTION dl_trigger_options() RETURNS trigger
     LANGUAGE plpgsql
 AS $$
 declare
@@ -838,7 +838,7 @@ begin
   read_access=>new.read_access,write_access=>new.write_access,
   recovery=>new.recovery,on_unlink=>new.on_unlink
  );
- perform datalink.modlco(old.regclass,old.column_name,my_lco);
+ perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
  return new;
 end
 $$;
@@ -846,7 +846,7 @@ $$;
 CREATE TRIGGER "column_options_instead"
 INSTEAD OF UPDATE ON datalink.column_options
 FOR EACH ROW
-EXECUTE PROCEDURE datalink.dl_trigger_lco();
+EXECUTE PROCEDURE datalink.dl_trigger_options();
 
 ---------------------------------------------------
 -- uri functions
@@ -1088,7 +1088,7 @@ CREATE OR REPLACE FUNCTION pg_catalog.dlurlpath(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1->>'url','path')$function$;
+   AS $function$select format('%s%s',datalink.uri_get($1->>'url','path'),'#'||($1->>'token'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
      IS 'SQL/MED - Returns the file path from a DATALINK value';
@@ -1132,5 +1132,5 @@ update datalink.column_options
    set integrity='ALL',
        read_access='DB', write_access='BLOCKED',
        recovery='YES', on_unlink='RESTORE'
- where regclass='sample_datalinks'::regclass and column_name='link';
+ where table_name='sample_datalinks' and column_name='link';
   

@@ -1,5 +1,10 @@
-Version 0.5alpha
-----------------
+Version 0.7
+-----------
+- column datalink.column_options.reglass replaced with 'table_name' of type text
+- DLURLPATH now includes token when present
+
+Version 0.5
+-----------
 - renames: dl_link_control_options -> link_control_options, dl_chattr() -> modlco(), dl_column_options -> dl_attlco
 - skip changing link control options in datalink.modlco() when options not actually changed
 - removed dl_triggers view and renamed dl_sql_advice() -> dl_trigger_advice()
