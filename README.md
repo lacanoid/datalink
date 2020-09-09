@@ -8,7 +8,7 @@ without having to resort to C. It implements a number of SQL/MED specified datal
 
 It comes with a special deamon `pg_datalinker`, which handles all file manipulations,
 but the extension can be used without it, albeit with some loss of functionality.
-The extension by itself does not perform any file system operations. 
+The extension by itself does not perform any file system changes. 
 
 This extension uses a number of advanced PostgreSQL features for implementation,
 including jsonb, event and instead-of triggers, listen/notify, plperlu...
@@ -32,11 +32,11 @@ Currently, it implements the following:
 - Simple datalinker to provide other LCOs, see below
 
 With datalinker:
-- LCO: READ ACCESS DB - make file owned by database
-- LCO: WRITE ACCESS BLOCKED
-- LCO: RECOVERY YES - make backups of linked files
+- LCO: READ ACCESS DB - make file owned by database (chown, chmod)
+- LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs)
+- LCO: RECOVERY YES - make backup copies of linked files
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
-- LCO: ON UNLINK DELETE - delete file when no longer referenced
+- LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -d option to pg_datalinker)
 
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
