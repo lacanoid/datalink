@@ -33,8 +33,7 @@ values (dlvalue('http://blah','URL','Broken datalink'));
 
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
 
-create table sample_datalinks3
-    as 
+create table sample_datalinks3 as 
 select *
   from sample_datalinks;
 

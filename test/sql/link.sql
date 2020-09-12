@@ -90,3 +90,6 @@ update sample_datalinks4 set link2 = link;
 update sample_datalinks4 set link = link2;
 update sample_datalinks4 set link2 = null;
 
+update datalink.column_options
+   set link_control='FILE', integrity='SELECTIVE', recovery='YES'
+ where table_name='sample_datalinks4' and column_name='link2';

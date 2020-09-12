@@ -1,7 +1,7 @@
 Version 0.7
 -----------
 - column datalink.column_options.reglass replaced with 'table_name' of type text
-- DLURLPATH now includes token when present
+- DLURLPATH now includes token when one is present
 
 Version 0.5
 -----------

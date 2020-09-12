@@ -36,7 +36,7 @@ With datalinker:
 - LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs)
 - LCO: RECOVERY YES - make backup copies of linked files
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
-- LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -d option to pg_datalinker)
+- LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
 
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE

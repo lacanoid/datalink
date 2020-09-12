@@ -722,7 +722,8 @@ begin
     if not r.ok then
       raise exception 'datalink exception - referenced file does not exit' 
             using errcode = 'HW003', 
-                  detail = url;
+                  detail = url,
+                  hint = 'make sure referenced file actually exists';
     end if;
   end if; -- file link control,
   
@@ -902,6 +903,7 @@ if(!($scheme eq 'data')) {
   if($u->fragment() eq '') { $u->fragment(undef); }
   my $c = $u->canonical; return "$c";
  }
+ else { elog(ERROR,"Unknown part '$part'."); }
 };
 if($part eq 'canonical') { return $u->canonical->as_string; }
 return $v;
@@ -1028,7 +1030,8 @@ begin
  if not found then
       raise exception 'datalink exception' 
             using errcode = 'HW000',
-	    detail = format('Invalid link control options (%s)',my_lco);
+	    detail = format('Invalid link control options (%s)',my_lco),
+      hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
  if my_lco is distinct from co.lco then

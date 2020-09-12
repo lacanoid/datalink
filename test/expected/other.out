@@ -24,6 +24,7 @@ insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 ERROR:  datalink exception - referenced file does not exit
 DETAIL:  file:///foo+bar/no_file
+HINT:  make sure referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 update datalink.column_options
@@ -35,6 +36,7 @@ insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
 ERROR:  datalink exception - referenced file does not exit
 DETAIL:  http://blah
+HINT:  make sure referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
@@ -44,8 +46,7 @@ select dlurlcomplete(link), (link)->>'token' is not null as has_token from sampl
  https://www.debian.org | t
 (2 rows)
 
-create table sample_datalinks3
-    as 
+create table sample_datalinks3 as 
 select *
   from sample_datalinks;
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
@@ -53,7 +54,7 @@ update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
 ERROR:  Can't change link control options; 6 non-null values present in column "link"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 34 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 35 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_options() line 11 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

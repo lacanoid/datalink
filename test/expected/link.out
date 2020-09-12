@@ -20,6 +20,7 @@ insert into sample_datalinks4 (link)
 values (dlvalue('/etc/issue1','FS','Sample file datalink 3'));
 ERROR:  datalink exception - referenced file does not exit
 DETAIL:  file:///etc/issue1
+HINT:  make sure referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
@@ -68,7 +69,7 @@ ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks4.link as '/etc/issue'
 CONTEXT:  PL/pgSQL function file_link(text,dl_token,dl_lco,regclass,name) line 30 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 29 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 select state,regclass,attname,path
   from datalink.dl_linked_files;
@@ -120,3 +121,12 @@ update sample_datalinks4 set link2 = null;
 NOTICE:  DATALINK UNLINK:/etc/passwd
 NOTICE:  DATALINK UNLINK:/etc/issue
 NOTICE:  DATALINK UNLINK:/etc/hosts
+update datalink.column_options
+   set link_control='FILE', integrity='SELECTIVE', recovery='YES'
+ where table_name='sample_datalinks4' and column_name='link2';
+ERROR:  datalink exception
+DETAIL:  Invalid link control options (10011)
+HINT:  see table datalink.link_control_options for valid link control options
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 24 at RAISE
+SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_options() line 11 at PERFORM
