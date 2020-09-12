@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.7 lacanoid@ljudmila.org
+--  version 0.11 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -9,67 +9,23 @@ SET client_min_messages = warning;
 COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 
 ---------------------------------------------------
+-- url type
+---------------------------------------------------
+
+alter extension uri set schema pg_catalog;
+-- CREATE DOMAIN dl_url AS text;
+CREATE DOMAIN dl_url AS uri;
+
+---------------------------------------------------
 -- datalink type
 ---------------------------------------------------
 
 CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
-CREATE DOMAIN dl_url AS text;
+
 CREATE DOMAIN dl_file_path AS text;
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
-
----------------------------------------------------
--- SQL/MED datalink functions
----------------------------------------------------
-
-CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
-RETURNS datalink
-    LANGUAGE sql IMMUTABLE
-    AS $$
-with link as (
-select jsonb_build_object('url',
-         cast(case linktype
-           when 'FS' then 'file://' || $1
-           when 'URL' then $1
-         end as datalink.dl_url)) as js
-)
-select case 
-       when comment is null 
-       then link.js
-       else jsonb_set(link.js,array['text'],to_jsonb($3))
-       end :: pg_catalog.datalink
-  from link
-$$;
-COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
-IS 'SQL/MED - Construct a DATALINK value';
-
----------------------------------------------------
-
-CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
-AS $$ select $1->>'text' $$;
-
-COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
-IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
-
----------------------------------------------------
-
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select $1->>'url' $_$;
-
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
-IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
-
----------------------------------------------------
-
-CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select $1->>'url' $_$;
-
-COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
-IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
 ---------------------------------------------------
 -- link control options
@@ -527,6 +483,125 @@ end
 $$ language plpgsql strict;
 
 ---------------------------------------------------
+-- uri functions
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION uri_get(url text, part text)
+ RETURNS text
+  LANGUAGE plperlu
+  AS $function$
+use URI;
+use File::Basename;
+
+my $u=URI->new($_[0]);
+my $part=$_[1]; lc($part);
+
+# common
+ if($part eq 'path') { return $u->path; }
+ if($part eq 'fragment') { return $u->fragment; }
+my $scheme=$u->scheme;
+ if($part eq 'scheme') { return $u->has_recognized_scheme?$scheme:undef; }
+
+my $v = eval {
+ if($part eq 'authority') { return $u->authority; }
+ if($part eq 'user') { return $u->user(); }
+ if($part eq 'userinfo') { return $u->userinfo(); }
+ if($part eq 'host') { return $u->host; }
+ if($part eq 'server') { return $u->host; }
+ if($part eq 'domain') { my $d = $u->host; $d=~s|^[^\.]*\.||; return $d; }
+ if($part eq 'port') { return $u->port; }
+ if($part eq 'host_port') { return $u->host_port(); }
+ if($part eq 'dirname') { return dirname($u->path); }
+if(!($scheme eq 'data')) {
+ if($part eq 'basename') { return basename($u->path()); }
+ if($part eq 'filename') { return (fileparse($u->path()))[0]; }
+ if($part eq 'media_type') { return undef; }
+ if($part eq 'dirname') { return dirname($u->path); }
+} else { # data:
+ if($part eq 'basename') { return undef; }
+ if($part eq 'filename') { return undef; }
+ if($part eq 'media_type') { return $u->media_type; }
+ if($part eq 'dirname') { return $u->media_type; }
+}
+ if($part eq 'dir') { return $u->dir; }
+ if($part eq 'file') { return $u->file; }
+ if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
+ if($part eq 'path_query') { return $u->path_query(); }
+ if($part eq 'query') { return $u->query(); }
+ if($part eq 'query_form') { return $u->query_form(); }
+ if($part eq 'query_keywords') { return $u->query_keywords(); }
+ if($part eq 'token') { return $u->fragment(); }
+ if($part eq 'canonical') {
+  if($u->query() eq '') { $u->query(undef); }
+  if($u->fragment() eq '') { $u->fragment(undef); }
+  my $c = $u->canonical; return "$c";
+ }
+ else { elog(ERROR,"Unknown part '$part'."); }
+};
+if($part eq 'canonical') { return $u->canonical->as_string; }
+return $v;
+
+elog(ERROR,"Unknown part '$_[1]'.");
+return undef;
+
+$function$
+;
+
+COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
+
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
+ RETURNS text
+  LANGUAGE sql
+  IMMUTABLE STRICT
+  AS $function$
+select case part
+       when 'scheme' then uri_scheme($1)
+       when 'server' then uri_host($1)
+       when 'userinfo' then uri_userinfo($1)
+       when 'host' then uri_host($1)
+       when 'path' then uri_path($1)
+       when 'query' then uri_query($1)
+       when 'fragment' then uri_fragment($1)
+       when 'canonical' then uri_normalize($1)::text
+       end
+$function$
+;
+
+COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
+
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
+ RETURNS text
+  LANGUAGE plperlu
+  AS $function$
+  use URI;
+  my $u=URI->new($_[0]);
+  my $part=$_[1]; lc($part);
+  my $v=$_[2];
+  if($part eq 'scheme') { $u->scheme($v); }
+  elsif($part eq 'authority') {  $u->authority($v); }
+  elsif($part eq 'path_query') {  $u->path_query($v); }
+  elsif($part eq 'userinfo') {  $u->userinfo($v); }
+  elsif($part eq 'host') {  $u->host($v); }
+  elsif($part eq 'port') {  $u->port($v); }
+  elsif($part eq 'host_port') {  $u->host_port($v); }
+  elsif($part eq 'path') {  $u->path($v); }
+  elsif($part eq 'query') {  $u->query($v); }
+  elsif($part eq 'query_form') {  $u->query_form($v); }
+  elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
+  elsif($part eq 'fragment') {  $u->fragment($v); }
+  elsif($part eq 'token') {  $u->fragment($v); }
+  else { elog(ERROR,"Unknown part '$part'."); }
+  return $u->as_string;
+  $function$
+  ;
+
+COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
+
+---------------------------------------------------
 -- event triggers
 ---------------------------------------------------
 
@@ -616,19 +691,51 @@ create event trigger datalink_event_trigger_drop
 on sql_drop execute procedure dl_trigger_event();
 
 ---------------------------------------------------
--- SQL/MED update functions
+-- token generator
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid
     LANGUAGE c PARALLEL SAFE STRICT
     AS '$libdir/uuid-ossp', $function$uuid_generate_v4$function$;
 
-CREATE FUNCTION dl_newtoken() RETURNS dl_token
-    LANGUAGE sql
-    AS $$
-select cast(datalink.uuid_generate_v4() as datalink.dl_token);
-$$;
+CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
+    AS $$select cast(datalink.uuid_generate_v4() as datalink.dl_token);$$;
 
+
+---------------------------------------------------
+-- SQL/MED datalink functions
+---------------------------------------------------
+
+CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+RETURNS datalink
+    LANGUAGE sql IMMUTABLE
+    AS $$
+with
+u as (
+select cast(case linktype
+            when 'FS' then format('file://%s',$1)
+            when 'URL' then $1::text
+            end
+	    as datalink.dl_url) as uri
+),
+link as ( 
+select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
+)
+select case 
+       when comment is null 
+       then link.js
+       else jsonb_set(link.js,array['text'],to_jsonb($3))
+       end :: pg_catalog.datalink
+  from link
+$$;
+CREATE FUNCTION pg_catalog.dlvalue(url dl_url, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+RETURNS datalink LANGUAGE sql IMMUTABLE AS $$select dlvalue($1::text, $2, $3)$$;
+
+COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
+IS 'SQL/MED - Construct a DATALINK value';
+
+---------------------------------------------------
+-- SQL/MED update functions
 ---------------------------------------------------
 
 CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer default 1) RETURNS datalink
@@ -850,103 +957,6 @@ FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_options();
 
 ---------------------------------------------------
--- uri functions
----------------------------------------------------
-
-CREATE OR REPLACE FUNCTION uri_get(url text, part text)
- RETURNS text
-  LANGUAGE plperlu
-  AS $function$
-use URI;
-use File::Basename;
-
-my $u=URI->new($_[0]);
-my $part=$_[1]; lc($part);
-
-# common
- if($part eq 'path') { return $u->path; }
- if($part eq 'fragment') { return $u->fragment; }
-my $scheme=$u->scheme;
- if($part eq 'scheme') { return $u->has_recognized_scheme?$scheme:undef; }
-
-my $v = eval {
- if($part eq 'authority') { return $u->authority; }
- if($part eq 'user') { return $u->user(); }
- if($part eq 'userinfo') { return $u->userinfo(); }
- if($part eq 'host') { return $u->host; }
- if($part eq 'server') { return $u->host; }
- if($part eq 'domain') { my $d = $u->host; $d=~s|^[^\.]*\.||; return $d; }
- if($part eq 'port') { return $u->port; }
- if($part eq 'host_port') { return $u->host_port(); }
- if($part eq 'dirname') { return dirname($u->path); }
-if(!($scheme eq 'data')) {
- if($part eq 'basename') { return basename($u->path()); }
- if($part eq 'filename') { return (fileparse($u->path()))[0]; }
- if($part eq 'media_type') { return undef; }
- if($part eq 'dirname') { return dirname($u->path); }
-} else { # data:
- if($part eq 'basename') { return undef; }
- if($part eq 'filename') { return undef; }
- if($part eq 'media_type') { return $u->media_type; }
- if($part eq 'dirname') { return $u->media_type; }
-}
- if($part eq 'dir') { return $u->dir; }
- if($part eq 'file') { return $u->file; }
- if($part eq 'suffix') { return (fileparse($u->path()))[2]; }
- if($part eq 'path_query') { return $u->path_query(); }
- if($part eq 'query') { return $u->query(); }
- if($part eq 'query_form') { return $u->query_form(); }
- if($part eq 'query_keywords') { return $u->query_keywords(); }
- if($part eq 'token') { return $u->fragment(); }
- if($part eq 'canonical') {
-  if($u->query() eq '') { $u->query(undef); }
-  if($u->fragment() eq '') { $u->fragment(undef); }
-  my $c = $u->canonical; return "$c";
- }
- else { elog(ERROR,"Unknown part '$part'."); }
-};
-if($part eq 'canonical') { return $u->canonical->as_string; }
-return $v;
-
-elog(ERROR,"Unknown part '$_[1]'.");
-return undef;
-
-$function$
-;
-
-COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
-
----------------------------------------------------
-
-CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
- RETURNS text
-  LANGUAGE plperlu
-  AS $function$
-  use URI;
-  my $u=URI->new($_[0]);
-  my $part=$_[1]; lc($part);
-  my $v=$_[2];
-  if($part eq 'scheme') { $u->scheme($v); }
-  elsif($part eq 'authority') {  $u->authority($v); }
-  elsif($part eq 'path_query') {  $u->path_query($v); }
-  elsif($part eq 'userinfo') {  $u->userinfo($v); }
-  elsif($part eq 'host') {  $u->host($v); }
-  elsif($part eq 'port') {  $u->port($v); }
-  elsif($part eq 'host_port') {  $u->host_port($v); }
-  elsif($part eq 'path') {  $u->path($v); }
-  elsif($part eq 'query') {  $u->query($v); }
-  elsif($part eq 'query_form') {  $u->query_form($v); }
-  elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
-  elsif($part eq 'fragment') {  $u->fragment($v); }
-  elsif($part eq 'token') {  $u->fragment($v); }
-  else { elog(ERROR,"Unknown part '$part'."); }
-  return $u->as_string;
-  $function$
-  ;
-
-COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
-
----------------------------------------------------
 -- curl functions
 ---------------------------------------------------
 
@@ -1031,7 +1041,7 @@ begin
       raise exception 'datalink exception' 
             using errcode = 'HW000',
 	    detail = format('Invalid link control options (%s)',my_lco),
-      hint = 'see table datalink.link_control_options for valid link control options';
+            hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
  if my_lco is distinct from co.lco then
@@ -1063,6 +1073,33 @@ grant usage on schema datalink to public;
 
 ---------------------------------------------------
 -- SQL/MED functions
+---------------------------------------------------
+
+CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $$ select $1->>'text' $$;
+
+COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
+IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
+
+---------------------------------------------------
+
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select $1->>'url' $_$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
+IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
+
+---------------------------------------------------
+
+CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select $1->>'url' $_$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
+IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
+
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)

@@ -1,3 +1,7 @@
+Version 0.11
+------------
+- use of pguri extension
+
 Version 0.7
 -----------
 - column datalink.column_options.reglass replaced with 'table_name' of type text

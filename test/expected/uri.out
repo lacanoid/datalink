@@ -1,43 +1,62 @@
 \pset null _null_
 SET client_min_messages = notice;
 SET search_path = public,datalink;
+alter table sample_urls alter url type datalink.dl_url;
 insert into sample_urls (url)
 values 
-  ('file://user@www.ljudmila.org/file1.jpg'),
+  ('file://user@fs1.arch.net/file1.jpg'),
   ('file://user@file-server/a/b/c/../../fileX.jpg'),
-  ('file://user@www.ljudmila.org/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321'),
+  ('file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321'),
   ('file://user:pass@host/fileA.txt'),
   ('ftp://user:pass@host/fileB.txt'),
   ('sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1'),
   ('mailto:lacanoid@ljudmila.org?subject=feedback'),
-  ('https://video.kulturnik.si/?qwhat=galerije&q=piran'),
-  ('data:text/html,lots of text...<p><a name%3D"bottom">bottom</a>?arg=val')
+  ('https://video.kulturnik.si/?qwhat=galerije&q=piran')
 ;
+insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
 select url,
        uri_get(url,'scheme') as scheme,
-       uri_get(url,'authority') as authority,
-       uri_get(url,'userinfo') as user,
-       uri_get(url,'server') as server,
+       uri_get(url,'userinfo') as userinfo,
+       uri_get(url,'host') as host,
        uri_get(url,'path') as path,
        uri_get(url,'query') as query,
        uri_get(url,'fragment') as fragment
   from sample_urls
 ;
-                                     url                                     | scheme |       authority       |   user    |        server         |                                          path                                           |         query          |               fragment               
------------------------------------------------------------------------------+--------+-----------------------+-----------+-----------------------+-----------------------------------------------------------------------------------------+------------------------+--------------------------------------
- http://www.mozilla.org                                                      | http   | www.mozilla.org       | _null_    | www.mozilla.org       |                                                                                         | _null_                 | _null_
- http://www.ljudmila.org                                                     | http   | www.ljudmila.org      | _null_    | www.ljudmila.org      |                                                                                         | _null_                 | _null_
- https://www.github.org                                                      | https  | www.github.org        | _null_    | www.github.org        |                                                                                         | _null_                 | _null_
- file:///tmp/a                                                               | file   |                       | _null_    |                       | /tmp/a                                                                                  | _null_                 | _null_
- http://www.debian.org/                                                      | http   | www.debian.org        | _null_    | www.debian.org        | /                                                                                       | _null_                 | _null_
- file://user@www.ljudmila.org/file1.jpg                                      | file   | user@www.ljudmila.org | _null_    | user@www.ljudmila.org | /file1.jpg                                                                              | _null_                 | _null_
- file://user@file-server/a/b/c/../../fileX.jpg                               | file   | user@file-server      | _null_    | user@file-server      | /a/b/c/../../fileX.jpg                                                                  | _null_                 | _null_
- file://user@www.ljudmila.org/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | file   | user@www.ljudmila.org | _null_    | user@www.ljudmila.org | /file1.jpg                                                                              | _null_                 | bb519e69-6bf1-4214-9b7a-4280702c6321
- file://user:pass@host/fileA.txt                                             | file   | user:pass@host        | _null_    | user:pass@host        | /fileA.txt                                                                              | _null_                 | _null_
- ftp://user:pass@host/fileB.txt                                              | ftp    | user:pass@host        | user:pass | host                  | /fileB.txt                                                                              | _null_                 | _null_
- sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1        | sftp   | user:pass@host        | user:pass | host                  | /fileC.txt                                                                              | _null_                 | 80653c50-908b-4f74-a7ca-398a6035a2d1
- mailto:lacanoid@ljudmila.org?subject=feedback                               | mailto | _null_                | _null_    | _null_                | lacanoid@ljudmila.org?subject=feedback                                                  | subject=feedback       | _null_
- https://video.kulturnik.si/?qwhat=galerije&q=piran                          | https  | video.kulturnik.si    | _null_    | video.kulturnik.si    | /                                                                                       | qwhat=galerije&q=piran | _null_
- data:text/html,lots of text...<p><a name%3D"bottom">bottom</a>?arg=val      | data   | _null_                | _null_    | _null_                | text/html,lots%20of%20text...%3Cp%3E%3Ca%20name%3D%22bottom%22%3Ebottom%3C/a%3E?arg=val | _null_                 | _null_
+                                   url                                   | scheme | userinfo  |        host        |                     path                      |         query          |               fragment               
+-------------------------------------------------------------------------+--------+-----------+--------------------+-----------------------------------------------+------------------------+--------------------------------------
+ http://www.mozilla.org                                                  | http   | _null_    | www.mozilla.org    |                                               | _null_                 | _null_
+ http://www.ljudmila.org                                                 | http   | _null_    | www.ljudmila.org   |                                               | _null_                 | _null_
+ https://www.github.org                                                  | https  | _null_    | www.github.org     |                                               | _null_                 | _null_
+ file:///tmp/a                                                           | file   | _null_    |                    | /tmp/a                                        | _null_                 | _null_
+ http://www.debian.org/                                                  | http   | _null_    | www.debian.org     | /                                             | _null_                 | _null_
+ file://user@fs1.arch.net/file1.jpg                                      | file   | user      | fs1.arch.net       | /file1.jpg                                    | _null_                 | _null_
+ file://user@file-server/a/b/c/../../fileX.jpg                           | file   | user      | file-server        | /a/b/c/../../fileX.jpg                        | _null_                 | _null_
+ file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | file   | user      | fs2.arch.net       | /file1.jpg                                    | _null_                 | bb519e69-6bf1-4214-9b7a-4280702c6321
+ file://user:pass@host/fileA.txt                                         | file   | user:pass | host               | /fileA.txt                                    | _null_                 | _null_
+ ftp://user:pass@host/fileB.txt                                          | ftp    | user:pass | host               | /fileB.txt                                    | _null_                 | _null_
+ sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | sftp   | user:pass | host               | /fileC.txt                                    | _null_                 | 80653c50-908b-4f74-a7ca-398a6035a2d1
+ mailto:lacanoid@ljudmila.org?subject=feedback                           | mailto | _null_    | _null_             | lacanoid@ljudmila.org                         | subject=feedback       | _null_
+ https://video.kulturnik.si/?qwhat=galerije&q=piran                      | https  | _null_    | video.kulturnik.si | /                                             | qwhat=galerije&q=piran | _null_
+ data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_    | _null_             | image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | _null_                 | _null_
+(14 rows)
+
+select url,dlpreviouscopy(url::text,0) from sample_urls;
+                                   url                                   |                                   dlpreviouscopy                                   
+-------------------------------------------------------------------------+------------------------------------------------------------------------------------
+ http://www.mozilla.org                                                  | {"url": "http://www.mozilla.org"}
+ http://www.ljudmila.org                                                 | {"url": "http://www.ljudmila.org"}
+ https://www.github.org                                                  | {"url": "https://www.github.org"}
+ file:///tmp/a                                                           | {"url": "file:///tmp/a"}
+ http://www.debian.org/                                                  | {"url": "http://www.debian.org/"}
+ file://user@fs1.arch.net/file1.jpg                                      | {"url": "file://user@fs1.arch.net/file1.jpg"}
+ file://user@file-server/a/b/c/../../fileX.jpg                           | {"url": "file://user@file-server/a/fileX.jpg"}
+ file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | {"url": "file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321"}
+ file://user:pass@host/fileA.txt                                         | {"url": "file://user:pass@host/fileA.txt"}
+ ftp://user:pass@host/fileB.txt                                          | {"url": "ftp://user:pass@host/fileB.txt"}
+ sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | {"url": "sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1"}
+ mailto:lacanoid@ljudmila.org?subject=feedback                           | {"url": "mailto:lacanoid@ljudmila.org?subject=feedback"}
+ https://video.kulturnik.si/?qwhat=galerije&q=piran                      | {"url": "https://video.kulturnik.si/?qwhat=galerije&q=piran"}
+ data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"url": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs="}
 (14 rows)
 

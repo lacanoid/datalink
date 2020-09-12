@@ -26,7 +26,7 @@ update datalink.column_options
  where table_name='sample_datalinks2' and column_name='link';
 
 insert into sample_datalinks2 (link)
-values (dlvalue('https://www.debian.org','URL','Sample HTTPS datalink'));
+values (dlvalue('https://www.debian.org/','URL','Sample HTTPS datalink'));
 
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));

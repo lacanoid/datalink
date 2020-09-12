@@ -1,12 +1,13 @@
 create extension datalink cascade;
 NOTICE:  installing required extension "plperlu"
 NOTICE:  installing required extension "file_fdw"
+NOTICE:  installing required extension "uri"
 set search_path=datalink;
 \dx datalink
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.7     | datalink | SQL/MED DATALINK type and functions
+ datalink | 0.11    | datalink | SQL/MED DATALINK type and functions
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
@@ -38,6 +39,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | link_control_options(dl_lco)                                                                 | sql     | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql | Modify link control options for datalink column
  datalink     | uri_get(text,text)                                                                           | plperlu | Get (extract) parts of URI
+ datalink     | uri_get(uri,text)                                                                            | sql     | Get (extract) parts of URI
  datalink     | uri_set(text,text,text)                                                                      | plperlu | Set (replace) parts of URI
  datalink     | curl_get(text,boolean)                                                                       | plperlu | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql     | 
@@ -51,5 +53,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
  datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
-(31 rows)
+(32 rows)
 
