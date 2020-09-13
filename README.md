@@ -22,11 +22,11 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
-- Setting link control options with UPDATE DATALINK.COLUMN_OPTIONS
+- Setting link control options (LCOs) with UPDATE DATALINK.COLUMN_OPTIONS
 - Token generator (uses uuid-ossp)
 - PlPerlu interface to curl via WWW::Curl
-- URI handling functions `uri_get()` and `uri_set()`
-- LCO: NO LINK CONTROL - only check for valid URLs
+- URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
+- LCO: NO LINK CONTROL - only check for valid URLs and normalize
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
 - Simple datalinker to provide other LCOs, see below
@@ -52,6 +52,9 @@ You will need to have
 [WWW::Curl](http://search.cpan.org/~szbalint/WWW-Curl-4.17/lib/WWW/Curl.pm#WWW::Curl::Easy) 
 Perl package installed, as it is used by the extension.
 On Debian, you can install `libwww-curl-perl` package.
+
+Recent versions also require [pguri](https://github.com/petere/pguri) extension, which must
+be installed separately.
 
 To build and install this module:
 

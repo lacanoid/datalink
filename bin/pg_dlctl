@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+
+our $prefixfile="/etc/postgresql-common/pg_datalinker.prefix";
+
+my $command = shift @ARGV;
+
+if($command eq 'list') {
+    sh('cat',$prefixfile);
+}
+

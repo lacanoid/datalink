@@ -1,11 +1,11 @@
 Version 0.11
 ------------
-- use of pguri extension
+- use of [pguri](https://github.com/petere/pguri) extension for better url handling
 
 Version 0.7
 -----------
 - column datalink.column_options.reglass replaced with 'table_name' of type text
-- DLURLPATH now includes token when one is present
+- dlurlpath() now includes token when one is present in datalink
 
 Version 0.5
 -----------
