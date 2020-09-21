@@ -259,14 +259,14 @@ WITH
            FROM pg_trigger t0
            JOIN pg_class c0_1 ON t0.tgrelid = c0_1.oid
           WHERE t0.tgname = '~RI_DatalinkTrigger'::name
-	    AND dl_class_adminable(c0_1.oid)
+	    AND datalink.dl_class_adminable(c0_1.oid)
  ),
  classes AS (
          SELECT dl_columns.regclass,
                 count(*) AS count,
                 max(dl_columns.lco) AS mco
-           FROM dl_columns dl_columns
-          WHERE dl_class_adminable(dl_columns.regclass)
+           FROM datalink.dl_columns dl_columns
+          WHERE datalink.dl_class_adminable(dl_columns.regclass)
           GROUP BY dl_columns.regclass
  ),
  dl_triggers AS (
@@ -505,8 +505,11 @@ my $scheme=$u->scheme;
 my $v = eval {
  if($part eq 'authority') { return $u->authority; }
  if($part eq 'user') { return $u->user(); }
- if($part eq 'userinfo') { return $u->userinfo(); }
- if($part eq 'host') { return $u->host; }
+ if($part eq 'userinfo') {
+  if($scheme eq 'file') { my $r=$u->host; $r=~s/@.*$//; return $r?$r:undef; }
+  return $u->userinfo();
+ }
+ if($part eq 'host') { my $r=$u->host; $r=~s/^.*@//; return $r; }
  if($part eq 'server') { return $u->host; }
  if($part eq 'domain') { my $d = $u->host; $d=~s|^[^\.]*\.||; return $d; }
  if($part eq 'port') { return $u->port; }
@@ -606,7 +609,7 @@ COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
 ---------------------------------------------------
 
 CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
-    LANGUAGE plpgsql SECURITY DEFINER
+LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 declare
  obj record;
