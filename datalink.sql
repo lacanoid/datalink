@@ -214,12 +214,14 @@ CREATE VIEW dl_columns AS
     c.relname AS table_name,
     a.attname AS column_name,
     COALESCE((ad.lco)::integer, 0) AS lco,
+/*
     lco.link_control,
     lco.integrity,
     lco.read_access,
     lco.write_access,
     lco.recovery,
     lco.on_unlink,
+*/
     a.attnotnull AS not_null,
     a.attislocal AS islocal,
     a.attnum AS ord,
@@ -234,7 +236,7 @@ CREATE VIEW dl_columns AS
      LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
      LEFT JOIN pg_type t ON (t.oid = a.atttypid)
      LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
-     LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
+  --   LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
   WHERE t.oid = 'pg_catalog.datalink'::regtype
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
@@ -629,6 +631,7 @@ LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 declare
  obj record;
+ js json;
 begin
 -- RAISE NOTICE 'DATALINK EVENT [%] TAG [%] ROLE % %', tg_event, tg_tag, current_role, current_setting('is_superuser');
 
@@ -643,6 +646,18 @@ begin
      RAISE NOTICE 'DATALINK DDL:% on %','TRIGGER',obj.regclass;
      execute obj.sql_advice;
    end loop;
+   if tg_tag = 'ALTER TABLE' then
+    with info as (
+      select classid::regclass,objid,objsubid,
+             command_tag,object_type,schema_name,object_identity,
+             in_extension
+        from pg_event_trigger_ddl_commands()
+    )
+  	select json_agg(row_to_json(info)) 
+       from info 
+       into js;
+--    RAISE NOTICE 'ALTER TABLE %',js;
+   end if;
  end if;
 
  elsif tg_event = 'sql_drop' then
