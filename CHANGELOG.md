@@ -1,3 +1,8 @@
+Version 0.12
+------------
+- added datalink.dl_lco(regclass,name) function
+- changed dl_write_access 'ADMIN TOKEN' option to 'TOKEN', meaning ADMIN REQUIRING TOKEN FOR UPDATE
+
 Version 0.11
 ------------
 - use of [pguri](https://github.com/petere/pguri) extension for better url handling

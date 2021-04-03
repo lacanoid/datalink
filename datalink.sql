@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.11 lacanoid@ljudmila.org
+--  version 0.12 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -34,7 +34,7 @@ COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing
 create type dl_link_control as enum ( 'NO','FILE' );
 create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
 create type dl_read_access as enum ( 'FS','DB' );
-create type dl_write_access as enum ( 'FS','BLOCKED', 'ADMIN', 'ADMIN TOKEN' );
+create type dl_write_access as enum ( 'FS','BLOCKED', 'ADMIN', 'TOKEN' );
 create type dl_recovery as enum ( 'NO','YES' );
 create type dl_on_unlink as enum ( 'NONE','RESTORE','DELETE' );
 
@@ -95,7 +95,7 @@ AS $_$
    end) + 
    10 * (  
    (case $4
-     when 'ADMIN TOKEN' then 3
+     when 'TOKEN' then 3
      when 'ADMIN' then 2
      when 'BLOCKED' then 1
      when 'FS' then 0
@@ -120,6 +120,17 @@ $_$;
 COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from individual options';
+
+create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
+as $$
+ select coalesce(
+   (select option_value::datalink.dl_lco
+      from pg_options_to_table((select attfdwoptions from pg_attribute where attrelid=$1 and attname=$2))
+     where option_name='dl_lco'),0)
+   from datalink.dl_columns where regclass = $1 and column_name = $2
+$$ language sql;
+COMMENT ON FUNCTION dl_lco(regclass, name) 
+IS 'Find dl_lco for a column';
 
 ---------------------------------------------------
 
@@ -149,7 +160,7 @@ from
     unnest(array['NO','FILE']) as lc,
     unnest(array['NONE','SELECTIVE','ALL']) as itg,
     unnest(array['FS','DB']) as ra,
-    unnest(array['FS','BLOCKED' ,'ADMIN' /* ,'ADMIN TOKEN' */]) as wa,
+    unnest(array['FS','BLOCKED','ADMIN','TOKEN']) as wa,
     unnest(array['NO','YES']) as rec,
     unnest(array['NONE','RESTORE','DELETE']) as unl
 )
@@ -162,6 +173,7 @@ select * from l
        or ra='FS' and wa='BLOCKED' and unl='RESTORE'
        or ra='DB' and wa<>'FS' and unl<>'NONE'
     )
+    and not (rec='NO' and unl='DELETE')
 ;
 
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
@@ -233,14 +245,18 @@ CREATE VIEW column_options AS
 SELECT
     cast(regclass as text) as table_name,
     column_name,
-    link_control,
-    integrity,
-    read_access,
-    write_access,
-    recovery,
-    on_unlink
- FROM datalink.dl_columns
+    lco.link_control,
+    lco.integrity,
+    lco.read_access,
+    lco.write_access,
+    lco.recovery,
+    lco.on_unlink
+ FROM datalink.dl_columns c
+ LEFT JOIN link_control_options lco ON lco.lco=coalesce(c.lco,0)
 WHERE datalink.dl_class_adminable(regclass);
+
+COMMENT ON VIEW column_options
+ IS 'Current link control options for datalink columns. You can set them here.';
 
 grant select on column_options to public;
 
@@ -1058,12 +1074,16 @@ begin
    update datalink.dl_attlco 
       set lco = my_lco
     where regclass = my_regclass and column_name = my_column_name;
-
    if not found then
      insert into datalink.dl_attlco (regclass,column_name,lco)
      values (my_regclass,my_column_name,my_lco);
    end if;
- end if; -- lco has changed
+   -- update fdwoptions with new lco
+   update pg_attribute 
+      set attfdwoptions=array['dl_lco='||my_lco]
+    where attrelid=my_regclass and attname=my_column_name;
+
+end if; -- lco has changed
 
  return my_options;
 end;
