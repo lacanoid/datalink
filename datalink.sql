@@ -221,8 +221,8 @@ CREATE VIEW dl_columns AS
     s.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
-    dl_lco(c.oid::regclass,a.attname::name) AS lco0,
-    COALESCE((ad.lco)::integer, 0) AS lco,
+    dl_lco(c.oid::regclass,a.attname::name) AS lco,
+--    COALESCE((ad.lco)::integer, 0) AS lco,
 /*
     lco.link_control,
     lco.integrity,
@@ -343,7 +343,8 @@ create table dl_linked_files (
   lco dl_lco not null,
   regclass regclass,
   attname name,
-  path text primary key,
+  attnum smallint,
+  path file_path primary key,
   address text unique,
   fstat jsonb,
   info jsonb,
@@ -354,9 +355,12 @@ create view linked_files as
 select path,state,
        lco.recovery,
        lco.on_unlink,
-       regclass,attname,err
+       regclass,
+       a.attname,
+       err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
+  join pg_attribute a on a.attrelid=lf.regclass and a.attnum=lf.attnum
  where datalink.dl_class_adminable(regclass);
 
 grant select on linked_files to public;
@@ -402,6 +406,7 @@ declare
  r record;
  fstat jsonb;
  addr text;
+ my_attnum smallint;
 begin
 -- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
  raise notice 'DATALINK LINK:%',file_path;
@@ -415,16 +420,20 @@ begin
  end if;
 
  addr := array[fstat->>'dev',fstat->>'inode']::text;
+
+ select attnum
+   from pg_attribute where attname=my_attname and attrelid=my_regclass
+   into my_attnum;
  select * into r
    from datalink.dl_linked_files
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,address)
-   values (my_token,file_path,my_lco,my_regclass,my_attname,addr);
+   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,attnum,address)
+   values (my_token,file_path,my_lco,my_regclass,my_attname,my_attnum,addr);
    notify "datalink.linker_jobs";
    return true;
- else -- found
+ else -- found in dl_linked_files
   if r.state in ('LINK','LINKED') then
     raise exception 'datalink exception - external file already linked' 
       using errcode = 'HW002', 
@@ -442,7 +451,7 @@ begin
      else -- cannot link again
       raise exception 'datalink exception - external file already linked' 
         using errcode = 'HW002', 
-        detail = format('file is waiting for unlink ''%s''',r.path);
+        detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
      end if;
 
   else

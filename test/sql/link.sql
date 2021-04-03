@@ -93,3 +93,15 @@ update sample_datalinks4 set link2 = null;
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE', recovery='YES'
  where table_name='sample_datalinks4' and column_name='link2';
+
+select * from column_options;
+alter table sample_datalinks4 rename link2 to link3;
+select * from column_options where table_name='sample_datalinks4';
+
+update sample_datalinks4 set link3 = link;
+
+select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
+alter table sample_datalinks4 rename link3 to link4;
+select * from column_options where table_name='sample_datalinks4';
+select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
+
