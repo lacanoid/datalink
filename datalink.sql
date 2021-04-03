@@ -23,7 +23,11 @@ CREATE DOMAIN dl_url AS uri;
 CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
 CREATE DOMAIN dl_token AS uuid;
 
-CREATE DOMAIN dl_file_path AS text;
+CREATE DOMAIN file_path AS text;
+COMMENT ON DOMAIN file_path IS 'Absolute file system path';
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_no_parent CHECK(value not like all('{../%,%/../%,%/..}'));
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(value like '/%');
+
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
 
@@ -51,11 +55,11 @@ comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
 CREATE TABLE link_control_options (
   lco dl_lco primary key,
   link_control dl_link_control,
-	integrity dl_integrity,
-	read_access dl_read_access,
-	write_access dl_write_access,
-	recovery dl_recovery,
-	on_unlink dl_on_unlink
+  integrity dl_integrity,
+  read_access dl_read_access,
+  write_access dl_write_access,
+  recovery dl_recovery,
+  on_unlink dl_on_unlink
 );
 comment on table link_control_options is 'Datalink Link Control Options';
 grant select on link_control_options to public;
@@ -127,7 +131,11 @@ as $$
    (select option_value::datalink.dl_lco
       from pg_options_to_table((select attfdwoptions from pg_attribute where attrelid=$1 and attname=$2))
      where option_name='dl_lco'),0)
-   from datalink.dl_columns where regclass = $1 and column_name = $2
+  from pg_attribute
+ where attrelid = $1 and attname = $2
+   and atttypid = 'pg_catalog.datalink'::regtype
+   and attnum > 0
+   and not attisdropped
 $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a column';
@@ -213,6 +221,7 @@ CREATE VIEW dl_columns AS
     s.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
+    dl_lco(c.oid::regclass,a.attname::name) AS lco0,
     COALESCE((ad.lco)::integer, 0) AS lco,
 /*
     lco.link_control,
@@ -231,11 +240,11 @@ CREATE VIEW dl_columns AS
     c.oid::regclass AS regclass,
     col_description(c.oid, (a.attnum)::integer) AS comment
    FROM pg_class c
-     JOIN pg_namespace s ON (s.oid = c.relnamespace)
-     JOIN pg_attribute a ON (c.oid = a.attrelid)
-     LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
-     LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-     LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
+   JOIN pg_namespace s ON (s.oid = c.relnamespace)
+   JOIN pg_attribute a ON (c.oid = a.attrelid)
+   LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
+   LEFT JOIN pg_type t ON (t.oid = a.atttypid)
+   LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
   --   LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
   WHERE t.oid = 'pg_catalog.datalink'::regtype
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
@@ -354,7 +363,7 @@ grant select on linked_files to public;
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.file_stat(file_path text,
+CREATE OR REPLACE FUNCTION datalink.file_stat(file_path file_path,
   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
   OUT uid integer, OUT gid integer,
   OUT rdev integer, OUT size numeric, OUT atime timestamp without time zone,
@@ -379,11 +388,11 @@ return {
 };
 $function$;
 
-COMMENT ON FUNCTION datalink.file_stat(text) IS 'Return info record from stat(2)';
+COMMENT ON FUNCTION datalink.file_stat(file_path) IS 'Return info record from stat(2)';
 
 ---------------------------------------------------
 
-create function file_link(file_path text,
+create function file_link(file_path file_path,
                           my_token dl_token,
 			  my_lco dl_lco,
 			  my_regclass regclass,my_attname name)
@@ -447,7 +456,7 @@ $$ language plpgsql strict;
 
 ---------------------------------------------------
 
-create function file_unlink(file_path text,
+create function file_unlink(file_path file_path,
                             token dl_token,
 			    lco dl_lco,
 			    regclass regclass,attname name)

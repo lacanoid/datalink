@@ -36,7 +36,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | sql     | SQL/MED - Construct a DATALINK value
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_lco from individual options
  datalink     | dl_lco(regclass,name)                                                                        | sql     | Find dl_lco for a column
- datalink     | file_stat(text)                                                                              | plperlu | Return info record from stat(2)
+ datalink     | file_stat(file_path)                                                                         | plperlu | Return info record from stat(2)
  datalink     | link_control_options(dl_lco)                                                                 | sql     | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql | Modify link control options for datalink column
  datalink     | uri_get(text,text)                                                                           | plperlu | Get (extract) parts of URI
@@ -51,8 +51,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_options()                                                                         | plpgsql | 
  datalink     | dl_trigger_table()                                                                           | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
- datalink     | file_link(text,dl_token,dl_lco,regclass,name)                                                | plpgsql | 
- datalink     | file_unlink(text,dl_token,dl_lco,regclass,name)                                              | plpgsql | 
+ datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql | 
+ datalink     | file_unlink(file_path,dl_token,dl_lco,regclass,name)                                         | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
 (33 rows)
 

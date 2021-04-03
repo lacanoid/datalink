@@ -2,6 +2,8 @@ Version 0.12
 ------------
 - added datalink.dl_lco(regclass,name) function
 - changed dl_write_access 'ADMIN TOKEN' option to 'TOKEN', meaning ADMIN REQUIRING TOKEN FOR UPDATE
+- renames: domain datalink.dl_file_path is now datalink.file_path
+- improved checks on domain datalink.file_path
 
 Version 0.11
 ------------

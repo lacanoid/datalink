@@ -31,3 +31,7 @@ select url,
 
 select url,dlpreviouscopy(url::text,0) from sample_urls;
 
+select 'foo/bar'::datalink.file_path;
+select '/foo/bar'::datalink.file_path;
+select '/foo/bar/..'::datalink.file_path;
+select '/foo/../bar'::datalink.file_path;

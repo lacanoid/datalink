@@ -60,3 +60,15 @@ select url,dlpreviouscopy(url::text,0) from sample_urls;
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"url": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs="}
 (14 rows)
 
+select 'foo/bar'::datalink.file_path;
+ERROR:  value for domain file_path violates check constraint "file_path_absolute"
+select '/foo/bar'::datalink.file_path;
+ file_path 
+-----------
+ /foo/bar
+(1 row)
+
+select '/foo/bar/..'::datalink.file_path;
+ERROR:  value for domain file_path violates check constraint "file_path_no_parent"
+select '/foo/../bar'::datalink.file_path;
+ERROR:  value for domain file_path violates check constraint "file_path_no_parent"
