@@ -32,5 +32,5 @@ Todo
 - dlvalue autodetect link type
 - use any string as link type
 - make this work for non-superusers
-- im0plicit cast datalink -> url
+- implicit cast datalink -> url
 - permissions
