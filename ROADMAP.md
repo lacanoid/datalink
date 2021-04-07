@@ -6,7 +6,7 @@ Wanted
 =======
 - Transactional File IO functions + file spaces
 - init.d / systemd scripts for datalinker
-- Native postgres URL type + functions
+- ✔︎ Native postgres URL type + functions
 - Native postgres interface to curl
 
 Todo
@@ -20,14 +20,17 @@ Todo
 - update trigger on dl_columns to call datalink.modlco()
 - dl_ref and dl_unref redundant?
 - better link state handling: unlink -> linked, error -> ?
-- file path sanity checking (handle ..)
-- url sanity checking (handle ..)
+- ✔︎ file path sanity checking (handle or forbid ..)
+- ✔︎ url sanity checking (handle ..)
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
-- better URL syntax checking
+- ✔︎ better URL syntax checking
 - allow backups for recovery=yes, read_access=fs LCO
 - block files only on write_access=blocked
 - maybe: loose Curl and check for files only
-- URL canonization
+- ✔︎ URL canonization
 - dlvalue better error handling
+- dlvalue autodetect link type
+- use any string as link type
 - make this work for non-superusers
+- im0plicit cast datalink -> url
 - permissions
