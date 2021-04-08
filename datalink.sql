@@ -244,7 +244,7 @@ CREATE VIEW dl_columns AS
    JOIN pg_attribute a ON (c.oid = a.attrelid)
    LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
    LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-   LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
+  --   LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
   --   LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
   WHERE t.oid = 'pg_catalog.datalink'::regtype
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
@@ -445,7 +445,9 @@ begin
      then -- same file and protection
     update datalink.dl_linked_files
        set state='LINKED',
-           regclass=my_regclass, attname=my_attname
+           regclass=my_regclass,
+	   attname=my_attname,
+	   attnum=my_attnum
      where path = file_path and state='UNLINK';
     return true;
      else -- cannot link again
@@ -1111,7 +1113,7 @@ begin
      insert into datalink.dl_attlco (regclass,column_name,lco)
      values (my_regclass,my_column_name,my_lco);
    end if;
-   -- update fdwoptions with new lco
+   -- update fdw options with new lco
    update pg_attribute 
       set attfdwoptions=array['dl_lco='||my_lco]
     where attrelid=my_regclass and attname=my_column_name;

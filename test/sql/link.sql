@@ -28,7 +28,7 @@ values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
 
 delete from sample_datalinks4
  where link->>'token' =
@@ -37,7 +37,7 @@ delete from sample_datalinks4
  order by txid limit 1);
 
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
 
 create table sample_datalinks5 (
   id serial,
@@ -56,7 +56,7 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/etc/issue','FS','Sample file datalink'));
 
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
 
 drop table sample_datalinks5;
 

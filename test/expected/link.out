@@ -28,7 +28,7 @@ values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/etc/hosts
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
  state |     regclass      | attname |    path     
 -------+-------------------+---------+-------------
  LINK  | sample_datalinks4 | link    | /etc/passwd
@@ -43,7 +43,7 @@ delete from sample_datalinks4
  order by txid limit 1);
 NOTICE:  DATALINK UNLINK:/etc/passwd
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
  state |     regclass      | attname |    path    
 -------+-------------------+---------+------------
  LINK  | sample_datalinks4 | link    | /etc/issue
@@ -72,7 +72,7 @@ SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::d
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 29 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 select state,regclass,attname,path
-  from datalink.dl_linked_files;
+  from datalink.linked_files;
  state |     regclass      | attname |    path     
 -------+-------------------+---------+-------------
  LINK  | sample_datalinks4 | link    | /etc/issue
