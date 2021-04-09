@@ -399,6 +399,7 @@ begin
    into my_attnum;
  select * into r
    from datalink.dl_linked_files
+   join pg_attribute a using (attrelid,attnum)
   where path = file_path or address = addr
     for update;
  if not found then
