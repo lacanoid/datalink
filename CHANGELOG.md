@@ -1,9 +1,11 @@
 Version 0.12
 ------------
 - added datalink.dl_lco(regclass,name) function
+- got rid of dl_attlco table, lco now stored in dl_lco fdw option for column
 - changed dl_write_access 'ADMIN TOKEN' option to 'TOKEN', meaning ADMIN REQUIRING TOKEN FOR UPDATE
 - renames: domain datalink.dl_file_path is now just datalink.file_path
-- improved checks on domain datalink.file_path. domain used in file functions.
+- improved checks on domain datalink.file_path
+- file_path domain used in args to file functions
 - alter table rename column fixes
 
 Version 0.11

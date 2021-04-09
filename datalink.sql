@@ -197,22 +197,6 @@ select case
 $_$;
 
 ---------------------------------------------------
--- definition tables
----------------------------------------------------
-
-CREATE TABLE dl_attlco (
-    regclass regclass NOT NULL,
-    column_name name NOT NULL,
-    lco dl_lco DEFAULT 0 NOT NULL
-);
-COMMENT ON TABLE dl_attlco 
-IS 'Current link control options';
-ALTER TABLE ONLY dl_attlco
-    ADD CONSTRAINT dl_attlco_pkey PRIMARY KEY (regclass, column_name);
-ALTER TABLE ONLY dl_attlco
-    ADD CONSTRAINT dl_attlco_valid foreign key (lco) references link_control_options(lco);
-
----------------------------------------------------
 -- views
 ---------------------------------------------------
 
@@ -222,15 +206,6 @@ CREATE VIEW dl_columns AS
     c.relname AS table_name,
     a.attname AS column_name,
     dl_lco(c.oid::regclass,a.attname::name) AS lco,
---    COALESCE((ad.lco)::integer, 0) AS lco,
-/*
-    lco.link_control,
-    lco.integrity,
-    lco.read_access,
-    lco.write_access,
-    lco.recovery,
-    lco.on_unlink,
-*/
     a.attnotnull AS not_null,
     a.attislocal AS islocal,
     a.attnum AS ord,
@@ -244,8 +219,6 @@ CREATE VIEW dl_columns AS
    JOIN pg_attribute a ON (c.oid = a.attrelid)
    LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
    LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-  --   LEFT JOIN dl_attlco ad ON (ad.regclass = c.oid AND ad.column_name = a.attname)
-  --   LEFT JOIN link_control_options lco ON (lco.lco=coalesce(ad.lco,0))
   WHERE t.oid = 'pg_catalog.datalink'::regtype
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
@@ -694,15 +667,6 @@ begin
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
   end loop;
 
-  -- remove entries from datalink.dl_attlco for dropped tables
-  for obj in
-   select objid
-     from pg_event_trigger_dropped_objects() tdo
-    where object_type = 'table'
-  loop
-    delete from datalink.dl_attlco where regclass=obj.objid;
-  end loop;
-
   -- unlink files referenced by dropped columns
   for obj in
     select *
@@ -715,21 +679,8 @@ begin
       join datalink.dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
-    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
   end loop;
 
-  -- remove entries from datalink.dl_attlco for dropped tables columns
-  for obj in
-    select *
-      from
-      (select objid::regclass as regclass,
-              address_names[3] as attname
-         from pg_event_trigger_dropped_objects()
-	where object_type = 'table column'
-       ) as tdo
-  loop
-    delete from datalink.dl_attlco where regclass=obj.regclass and column_name=obj.attname;
-  end loop;
 end if;
 
 end
@@ -1105,14 +1056,7 @@ begin
    if n > 0 then
      raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
    end if;
- 
-   update datalink.dl_attlco 
-      set lco = my_lco
-    where regclass = my_regclass and column_name = my_column_name;
-   if not found then
-     insert into datalink.dl_attlco (regclass,column_name,lco)
-     values (my_regclass,my_column_name,my_lco);
-   end if;
+
    -- update fdw options with new lco
    update pg_attribute 
       set attfdwoptions=array['dl_lco='||my_lco]
