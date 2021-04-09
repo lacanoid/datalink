@@ -441,10 +441,7 @@ $$ language plpgsql strict;
 
 ---------------------------------------------------
 
-create function file_unlink(file_path file_path,
-                            token dl_token,
-			    lco dl_lco,
-			    regclass regclass,attname name)
+create function file_unlink(file_path file_path)
 returns boolean as
 $$
 declare
@@ -465,22 +462,22 @@ begin
    update datalink.dl_linked_files
       set state = 'UNLINK',
           token = cast(info->>'token' as datalink.dl_token),
-	  lco = cast(info->>'lco' as datalink.dl_lco)
-    where path = $1 and info is not null
+	  lco   = cast(info->>'lco' as datalink.dl_lco)
+    where path  = $1 and info is not null
       and state = 'LINK';
 
    delete from datalink.dl_linked_files
-    where path = $1 and info is null
+    where path  = $1 and info is null
       and state = 'LINK';
 
   elsif r.state = 'LINKED' then
    update datalink.dl_linked_files
       set state = 'UNLINK'
-    where path = $1 and state = 'LINKED';
+    where path  = $1 and state = 'LINKED';
 
   elsif r.state = 'ERROR' then
    delete from datalink.dl_linked_files
-    where path = $1
+    where path  = $1
       and state = 'ERROR';
 
   else
@@ -657,7 +654,7 @@ begin
  elsif tg_event = 'sql_drop' then
   -- unlink files referenced by dropped tables
   for obj in
-   select f.*
+   select *
      from datalink.dl_linked_files f
     where attrelid in 
       (select tdo.objid
@@ -665,7 +662,7 @@ begin
 	where object_type = 'table'
        )
   loop
-    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.attrelid,obj.attname);
+    perform datalink.file_unlink(obj.path);
   end loop;
 
   -- unlink files referenced by dropped columns
@@ -679,7 +676,7 @@ begin
        ) as tdo
       join datalink.dl_linked_files f on f.attrelid=tdo.regclass and f.attname=tdo.attname
   loop
-    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
+    perform datalink.file_unlink(obj.path);
   end loop;
 
 end if;
@@ -865,7 +862,7 @@ begin
   lco = datalink.link_control_options(link_options);
 
   if lco.integrity = 'ALL' then
-    perform datalink.file_unlink(dlurlpathonly($1),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+    perform datalink.file_unlink(dlurlpathonly($1));
   end if; -- integrity all
  end if; -- link options
  
@@ -885,7 +882,7 @@ declare
   link2 pg_catalog.datalink;
 begin
   if tg_op = 'TRUNCATE' then
-    perform datalink.file_unlink(path,token,lco,attrelid,attname)
+    perform datalink.file_unlink(path)
        from datalink.dl_linked_files
       where attrelid = tg_relid; 
     return new;

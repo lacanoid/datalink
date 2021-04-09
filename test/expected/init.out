@@ -52,7 +52,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_table()                                                                           | plpgsql | 
  datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql | 
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql | 
- datalink     | file_unlink(file_path,dl_token,dl_lco,regclass,name)                                         | plpgsql | 
+ datalink     | file_unlink(file_path)                                                                       | plpgsql | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
 (33 rows)
 
