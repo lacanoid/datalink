@@ -723,9 +723,9 @@ select cast(case linktype
 link as ( 
 select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
 )
-select case 
-       when comment is null 
-       then link.js
+select case
+       when $1 is null or length($1)=0 then null
+       when comment is null then link.js
        else jsonb_set(link.js,array['text'],to_jsonb($3))
        end :: pg_catalog.datalink
   from link

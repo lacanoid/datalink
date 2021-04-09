@@ -15,7 +15,7 @@ Todo
 - CLI tool for datalinker admin
 - much better error handling in datalinker
 - dlurlpath() and dlurlcomplete() must include token
-- dlvalue(null) -> null
+- ✔︎ dlvalue(null) -> null, dlvalue('') -> null
 - optimize table triggers (do not install them if mco=0)
 - remove dl_link_control from dl_link_control_options (it is implied by dl_integrity)
 - update trigger on dl_columns to call datalink.modlco()
