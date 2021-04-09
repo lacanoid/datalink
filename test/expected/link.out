@@ -154,11 +154,11 @@ NOTICE:  DATALINK LINK:/etc/passwd
 NOTICE:  DATALINK LINK:/etc/issue
 NOTICE:  DATALINK LINK:/etc/hosts
 select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path     | state | recovery | on_unlink |     regclass      | attname |  err   
--------------+-------+----------+-----------+-------------------+---------+--------
- /etc/passwd | LINK  | NO       | NONE      | sample_datalinks4 | link3   | _null_
- /etc/issue  | LINK  | NO       | NONE      | sample_datalinks4 | link3   | _null_
- /etc/hosts  | LINK  | NO       | NONE      | sample_datalinks4 | link3   | _null_
+    path     | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+-------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /etc/passwd | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+ /etc/issue  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+ /etc/hosts  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
 (3 rows)
 
 alter table sample_datalinks4 rename link3 to link4;
@@ -170,11 +170,11 @@ select * from column_options where table_name='sample_datalinks4';
 (2 rows)
 
 select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path     | state | recovery | on_unlink |     regclass      | attname |  err   
--------------+-------+----------+-----------+-------------------+---------+--------
- /etc/passwd | LINK  | NO       | NONE      | sample_datalinks4 | link4   | _null_
- /etc/issue  | LINK  | NO       | NONE      | sample_datalinks4 | link4   | _null_
- /etc/hosts  | LINK  | NO       | NONE      | sample_datalinks4 | link4   | _null_
+    path     | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+-------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /etc/passwd | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+ /etc/issue  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+ /etc/hosts  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
 (3 rows)
 
 alter table sample_datalinks4 drop column link4;

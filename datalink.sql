@@ -12,7 +12,7 @@ COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 -- url type
 ---------------------------------------------------
 
-alter extension uri set schema pg_catalog;
+ALTER extension uri SET schema pg_catalog;
 -- CREATE DOMAIN dl_url AS text;
 CREATE DOMAIN dl_url AS uri;
 
@@ -325,6 +325,8 @@ create table dl_linked_files (
 
 create view linked_files as
 select path,state,
+       lco.read_access,
+       lco.write_access,
        lco.recovery,
        lco.on_unlink,
        a.attrelid::regclass as regclass,
