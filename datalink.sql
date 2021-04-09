@@ -315,7 +315,6 @@ create table dl_linked_files (
   state file_link_state not null default 'LINK',
   lco dl_lco not null,
   attrelid regclass,
-  attname name,
   attnum smallint,
   path file_path primary key,
   address text unique,
@@ -403,8 +402,8 @@ begin
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,attrelid,attname,attnum,address)
-   values (my_token,file_path,my_lco,my_regclass,my_attname,my_attnum,addr);
+   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address)
+   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr);
    notify "datalink.linker_jobs";
    return true;
  else -- found in dl_linked_files
@@ -420,7 +419,6 @@ begin
     update datalink.dl_linked_files
        set state='LINKED',
            attrelid=my_regclass,
-	   attname=my_attname,
 	   attnum=my_attnum
      where path = file_path and state='UNLINK';
     return true;

@@ -105,3 +105,4 @@ alter table sample_datalinks4 rename link3 to link4;
 select * from column_options where table_name='sample_datalinks4';
 select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
 
+alter table sample_datalinks4 drop column link4;
