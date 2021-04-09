@@ -314,7 +314,7 @@ create table dl_linked_files (
   txid bigint not null default txid_current(),
   state file_link_state not null default 'LINK',
   lco dl_lco not null,
-  regclass regclass,
+  attrelid regclass,
   attname name,
   attnum smallint,
   path file_path primary key,
@@ -328,13 +328,13 @@ create view linked_files as
 select path,state,
        lco.recovery,
        lco.on_unlink,
-       regclass,
+       a.attrelid::regclass as regclass,
        a.attname,
        err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
-  join pg_attribute a on a.attrelid=lf.regclass and a.attnum=lf.attnum
- where datalink.dl_class_adminable(regclass);
+  join pg_attribute a using (attrelid,attnum)
+ where datalink.dl_class_adminable(attrelid);
 
 grant select on linked_files to public;
 
@@ -402,7 +402,7 @@ begin
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,regclass,attname,attnum,address)
+   insert into datalink.dl_linked_files (token,path,lco,attrelid,attname,attnum,address)
    values (my_token,file_path,my_lco,my_regclass,my_attname,my_attnum,addr);
    notify "datalink.linker_jobs";
    return true;
@@ -410,7 +410,7 @@ begin
   if r.state in ('LINK','LINKED') then
     raise exception 'datalink exception - external file already linked' 
       using errcode = 'HW002', 
-      detail = format('from %s.%I as ''%s''',r.regclass::text,r.attname,r.path);
+      detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
 
   elsif r.state in ('UNLINK') then
 
@@ -418,7 +418,7 @@ begin
      then -- same file and protection
     update datalink.dl_linked_files
        set state='LINKED',
-           regclass=my_regclass,
+           attrelid=my_regclass,
 	   attname=my_attname,
 	   attnum=my_attnum
      where path = file_path and state='UNLINK';
@@ -656,15 +656,15 @@ begin
  elsif tg_event = 'sql_drop' then
   -- unlink files referenced by dropped tables
   for obj in
-   select *
-     from datalink.dl_linked_files
-    where regclass in 
+   select f.*
+     from datalink.dl_linked_files f
+    where attrelid in 
       (select tdo.objid
          from pg_event_trigger_dropped_objects() tdo
 	where object_type = 'table'
        )
   loop
-    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
+    perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.attrelid,obj.attname);
   end loop;
 
   -- unlink files referenced by dropped columns
@@ -676,7 +676,7 @@ begin
          from pg_event_trigger_dropped_objects()
 	where object_type = 'table column'
        ) as tdo
-      join datalink.dl_linked_files f on f.regclass=tdo.regclass and f.attname=tdo.attname
+      join datalink.dl_linked_files f on f.attrelid=tdo.regclass and f.attname=tdo.attname
   loop
     perform datalink.file_unlink(obj.path,obj.token,obj.lco,obj.regclass,obj.attname);
   end loop;
@@ -884,9 +884,9 @@ declare
   link2 pg_catalog.datalink;
 begin
   if tg_op = 'TRUNCATE' then
-    perform datalink.file_unlink(path,token,lco,regclass,attname)
+    perform datalink.file_unlink(path,token,lco,attrelid,attname)
        from datalink.dl_linked_files
-      where regclass = tg_relid; 
+      where attrelid = tg_relid; 
     return new;
   end if;
 
