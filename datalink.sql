@@ -712,25 +712,31 @@ CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
 RETURNS datalink
-    LANGUAGE sql IMMUTABLE
+    LANGUAGE plpgsql IMMUTABLE
     AS $$
-with
-u as (
-select cast(case linktype
+declare
+ r datalink;
+begin
+ with
+ u as (
+  select cast(case linktype
             when 'FS' then format('file://%s',$1)
             when 'URL' then $1::text
             end
 	    as datalink.dl_url) as uri
-),
-link as ( 
-select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
-)
-select case
-       when $1 is null or length($1)=0 then null
-       when comment is null then link.js
-       else jsonb_set(link.js,array['text'],to_jsonb($3))
-       end :: pg_catalog.datalink
-  from link
+ ),
+ link as ( 
+  select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
+ )
+ select case
+        when $1 is null or length($1)=0 then null
+        when comment is null then link.js
+        else jsonb_set(link.js,array['text'],to_jsonb($3))
+        end :: pg_catalog.datalink
+   from link
+   into r;
+ return r;
+end;
 $$;
 CREATE FUNCTION pg_catalog.dlvalue(url dl_url, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
 RETURNS datalink LANGUAGE sql IMMUTABLE AS $$select dlvalue($1::text, $2, $3)$$;

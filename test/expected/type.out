@@ -15,7 +15,24 @@ select dlvalue('');
 
 select dlvalue('foo');
 ERROR:  value for domain dl_url violates check constraint "dl_url_check"
-CONTEXT:  SQL function "dlvalue" statement 1
+CONTEXT:  SQL statement "with
+ u as (
+  select cast(case linktype
+            when 'FS' then format('file://%s',$1)
+            when 'URL' then $1::text
+            end
+	    as datalink.dl_url) as uri
+ ),
+ link as ( 
+  select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
+ )
+ select case
+        when $1 is null or length($1)=0 then null
+        when comment is null then link.js
+        else jsonb_set(link.js,array['text'],to_jsonb($3))
+        end :: pg_catalog.datalink
+   from link"
+PL/pgSQL function dlvalue(text,dl_linktype,text) line 5 at SQL statement
 select dlvalue('http://www.ljudmila.org/');
                dlvalue               
 -------------------------------------
