@@ -24,11 +24,14 @@ our %config = (
     db_owner => 'postgres.postgres',
     db_mode => '0440',
     url_archive => "/var/www/datalink_url",
+    prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => [
 	"/var/www/datalink_fs/",
 	"/tmp/"
     ]
 );
+
+config_load();
 
 #---------------------------------------
 
@@ -141,7 +144,15 @@ exit;
 ########################################
 # configuration
 
-sub config_load {}
+# load configuration
+sub config_load {
+    if($config{prefix_file}) {
+    } else {
+	log_fatal("config.prefix_file not set");
+    }
+    config_check();
+}
+# check if configuration is valid
 sub config_check {}
 
 ########################################
@@ -340,6 +351,10 @@ sub log_err {
 }
 
 sub log_fatal {
-    my ($txt)=@_;
-    die $txt;
+    my ($txt,$data)=@_;
+    print STDERR "FATAL:$txt:";
+    if($data) {
+	print (ref($data)?$json->encode($data):$data)."\n";
+    }
+    die;
 }
