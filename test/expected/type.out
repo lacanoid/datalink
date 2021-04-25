@@ -125,52 +125,6 @@ select dlpreviouscopy('file:///tmp/file1#krneki',1);
 ERROR:  datalink exception - invalid write token
 DETAIL:  invalid input syntax for type uuid: "krneki"
 CONTEXT:  PL/pgSQL function dlpreviouscopy(datalink,integer) line 15 at RAISE
-select dl_lco(link_control=>'FILE');
- dl_lco 
---------
-      1
-(1 row)
-
-select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
- dl_lco 
---------
-   1121
-(1 row)
-
-select * from link_control_options(dl_lco(link_control=>'NO'));
- lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
------+--------------+-----------+-------------+--------------+----------+-----------
-   0 | NO           | NONE      | FS          | FS           | NO       | NONE
-(1 row)
-
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
- lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
------+--------------+-----------+-------------+--------------+----------+-----------
-  11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
-(1 row)
-
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL'));
- lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
------+--------------+-----------+-------------+--------------+----------+-----------
-  21 | FILE         | ALL       | FS          | FS           | NO       | NONE
-(1 row)
-
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
-					  read_access=>'DB',write_access=>'BLOCKED',
-					  recovery=>'YES',on_unlink=>'DELETE'));
-  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
---------+--------------+-----------+-------------+--------------+----------+-----------
- 211121 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
-(1 row)
-
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
-					  read_access=>'DB',write_access=>'BLOCKED',
-					  recovery=>'YES',on_unlink=>'RESTORE'));
-  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
---------+--------------+-----------+-------------+--------------+----------+-----------
- 111121 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
-(1 row)
-
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
    dlurlserver    
 ------------------
@@ -268,5 +222,52 @@ select dllinktype(dlvalue('/etc/issue','foo'));
  dllinktype 
 ------------
  foo
+(1 row)
+
+SET search_path=datalink;
+select dl_lco(link_control=>'FILE');
+ dl_lco 
+--------
+      1
+(1 row)
+
+select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
+ dl_lco 
+--------
+   1121
+(1 row)
+
+select * from link_control_options(dl_lco(link_control=>'NO'));
+ lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+-----+--------------+-----------+-------------+--------------+----------+-----------
+   0 | NO           | NONE      | FS          | FS           | NO       | NONE
+(1 row)
+
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
+ lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+-----+--------------+-----------+-------------+--------------+----------+-----------
+  11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+(1 row)
+
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL'));
+ lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+-----+--------------+-----------+-------------+--------------+----------+-----------
+  21 | FILE         | ALL       | FS          | FS           | NO       | NONE
+(1 row)
+
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					  read_access=>'DB',write_access=>'BLOCKED',
+					  recovery=>'YES',on_unlink=>'DELETE'));
+  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
+--------+--------------+-----------+-------------+--------------+----------+-----------
+ 211121 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
+(1 row)
+
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					  read_access=>'DB',write_access=>'BLOCKED',
+					  recovery=>'YES',on_unlink=>'RESTORE'));
+  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
+--------+--------------+-----------+-------------+--------------+----------+-----------
+ 111121 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
 (1 row)
 

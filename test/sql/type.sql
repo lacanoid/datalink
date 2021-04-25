@@ -30,18 +30,6 @@ select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',
 select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1);
 select dlpreviouscopy('file:///tmp/file1#krneki',1);
 
-select dl_lco(link_control=>'FILE');
-select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
-select * from link_control_options(dl_lco(link_control=>'NO'));
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL'));
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
-					  read_access=>'DB',write_access=>'BLOCKED',
-					  recovery=>'YES',on_unlink=>'DELETE'));
-select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
-					  read_access=>'DB',write_access=>'BLOCKED',
-					  recovery=>'YES',on_unlink=>'RESTORE'));
-
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 
@@ -63,3 +51,18 @@ select dllinktype(dlvalue('/etc/issue'));
 select dllinktype(dlvalue('/etc/issue','FS'));
 select dllinktype(dlvalue('/etc/issue','FILE'));
 select dllinktype(dlvalue('/etc/issue','foo'));
+
+SET search_path=datalink;
+
+select dl_lco(link_control=>'FILE');
+select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
+select * from link_control_options(dl_lco(link_control=>'NO'));
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'SELECTIVE'));
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL'));
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					  read_access=>'DB',write_access=>'BLOCKED',
+					  recovery=>'YES',on_unlink=>'DELETE'));
+select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
+					  read_access=>'DB',write_access=>'BLOCKED',
+					  recovery=>'YES',on_unlink=>'RESTORE'));
+

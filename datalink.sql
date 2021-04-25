@@ -563,7 +563,7 @@ $function$
 
 CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text LANGUAGE SQL immutable strict AS $$
-  select uri_get($1::uri,$2)
+  select datalink.uri_get($1::uri,$2)
 $$;
 
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
