@@ -495,7 +495,7 @@ $$ language plpgsql strict;
 ---------------------------------------------------
 -- uri functions
 ---------------------------------------------------
-
+/*
 CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text
   LANGUAGE plperlu
@@ -559,6 +559,12 @@ return undef;
 
 $function$
 ;
+*/
+
+CREATE OR REPLACE FUNCTION uri_get(url text, part text)
+ RETURNS text LANGUAGE SQL immutable strict AS $$
+  select uri_get($1::uri,$2)
+$$;
 
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
 
@@ -577,6 +583,7 @@ select case part
        when 'path' then uri_path($1)
        when 'query' then uri_query($1)
        when 'fragment' then uri_fragment($1)
+       when 'token' then uri_fragment($1)
        when 'canonical' then uri_normalize($1)::text
        end
 $function$
