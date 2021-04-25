@@ -52,4 +52,14 @@ select dlurlpath(dlvalue('file:///foo/bar/baz#123'));
 select dlurlpathonly(dlvalue('file:///foo/bar/baz#123'));
 
 select dllinktype(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
-select dllinktype(dlvalue('/etc/passwd','FS'));
+select dllinktype(dlvalue('/etc/issue','FS'));
+
+select dlvalue('/etc/issue');
+select dlvalue('/etc/issue','URL');
+select dlvalue('/etc/issue','FS');
+select dlvalue('/etc/issue','FILE');
+select dlvalue('/etc/issue','foo');
+select dllinktype(dlvalue('/etc/issue'));
+select dllinktype(dlvalue('/etc/issue','FS'));
+select dllinktype(dlvalue('/etc/issue','FILE'));
+select dllinktype(dlvalue('/etc/issue','foo'));

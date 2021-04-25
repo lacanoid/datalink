@@ -20,12 +20,13 @@ CREATE DOMAIN dl_url AS uri;
 -- datalink type
 ---------------------------------------------------
 
-CREATE TYPE   dl_linktype AS ENUM ('URL','FS');
+CREATE DOMAIN dl_linktype AS text;
 CREATE DOMAIN dl_token AS uuid;
 
 CREATE DOMAIN file_path AS text;
 COMMENT ON DOMAIN file_path IS 'Absolute file system path';
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_no_parent CHECK(value not like all('{../%,%/../%,%/..}'));
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_parent    CHECK(value not like all('{../%,%/../%,%/..}'));
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_percent   CHECK(not value ~* '[%]');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(value like '/%');
 
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
@@ -710,36 +711,37 @@ CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
 -- SQL/MED datalink functions
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE plpgsql IMMUTABLE
     AS $$
 declare
- r datalink;
+ my_dl datalink;
+ my_uri text;
+ my_type text;
 begin
- with
- u as (
-  select cast(case linktype
-            when 'FS' then format('file://%s',$1)
-            when 'URL' then $1::text
-            end
-	    as datalink.dl_url) as uri
- ),
- link as ( 
-  select jsonb_build_object('url',datalink.uri_get(u.uri,'canonical')) as js from u
- )
- select case
-        when $1 is null or length($1)=0 then null
-        when comment is null then link.js
-        else jsonb_set(link.js,array['text'],to_jsonb($3))
-        end :: pg_catalog.datalink
-   from link
-   into r;
- return r;
+ if url is null or length(url)<=0 then return null; end if;
+ my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
+ my_uri := url;
+ my_uri := case my_type
+           when 'FS'   then format('file://%s',my_uri)
+           when 'FILE' then format('file://%s',my_uri)
+           when 'URL'  then my_uri::text
+	   else format('file://%s',my_uri)
+           end;
+ my_uri := my_uri::datalink.dl_url;
+ my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
+ if comment is not null then
+   my_dl:=jsonb_set(my_dl::jsonb,array['text'],to_jsonb(comment));
+ end if;
+ if my_type not in ('URL','FS') then
+    my_dl:=jsonb_set(my_dl::jsonb,array['type'],to_jsonb(my_type));
+ end if;
+ return my_dl;
 end;
 $$;
-CREATE FUNCTION pg_catalog.dlvalue(url dl_url, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
-RETURNS datalink LANGUAGE sql IMMUTABLE AS $$select dlvalue($1::text, $2, $3)$$;
+-- CREATE FUNCTION pg_catalog.dlvalue(url dl_url, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
+-- RETURNS datalink LANGUAGE sql IMMUTABLE AS $$select dlvalue($1::text, $2, $3)$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - Construct a DATALINK value';
@@ -1157,7 +1159,9 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end$function$;
+   AS $function$select coalesce($1->>'type',
+                                case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end
+			       )$function$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';

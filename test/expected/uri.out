@@ -69,6 +69,6 @@ select '/foo/bar'::datalink.file_path;
 (1 row)
 
 select '/foo/bar/..'::datalink.file_path;
-ERROR:  value for domain file_path violates check constraint "file_path_no_parent"
+ERROR:  value for domain file_path violates check constraint "file_path_parent"
 select '/foo/../bar'::datalink.file_path;
-ERROR:  value for domain file_path violates check constraint "file_path_no_parent"
+ERROR:  value for domain file_path violates check constraint "file_path_parent"

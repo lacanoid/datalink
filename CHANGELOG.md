@@ -9,8 +9,10 @@ Version 0.12
 - now uses attnum instead of attname in dl_linked_files
 - file_path domain used in args to file functions
 - alter table rename column works now
-- dlvalue(null) returns null, per SQL spec
-
+- dlvalue(null) returns null
+- autodetect link type in dlvalue()
+- enable use of any string as link type. These are returned by dllinktype().
+	
 Version 0.11
 ------------
 - use of [pguri](https://github.com/petere/pguri) extension for better url handling
