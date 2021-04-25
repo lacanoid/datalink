@@ -1,7 +1,7 @@
 \pset null _null_
 
 SET client_min_messages = warning;
-SET search_path=datalink;
+SET search_path=public;
 
 select dlvalue(null);
 select dlvalue('');

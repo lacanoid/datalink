@@ -12,6 +12,7 @@ Version 0.12
 - dlvalue(null) returns null
 - autodetect link type in dlvalue()
 - enable use of any string as link type. These are returned by dllinktype().
+- file path to url encoding
 	
 Version 0.11
 ------------

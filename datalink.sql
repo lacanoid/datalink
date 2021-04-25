@@ -728,13 +728,12 @@ declare
  my_type text;
 begin
  if url is null or length(url)<=0 then return null; end if;
- my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  my_uri := url;
+ my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  my_uri := case my_type
-           when 'FS'   then format('file://%s',my_uri)
-           when 'FILE' then format('file://%s',my_uri)
            when 'URL'  then my_uri::text
-	   else format('file://%s',my_uri)
+	   else format('file://%s',
+	               replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#'))
            end;
  my_uri := my_uri::datalink.dl_url;
  my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
