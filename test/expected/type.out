@@ -173,6 +173,30 @@ select dllinktype(dlvalue('/etc/issue','FS'));
  FS
 (1 row)
 
+select dlvalue('/etc/züöl');
+                dlvalue                
+---------------------------------------
+ {"url": "file:///etc/z%C3%BC%C3%B6l"}
+(1 row)
+
+select dlurlpath(dlvalue('/etc/züöl'));
+ dlurlpath 
+-----------
+ /etc/züöl
+(1 row)
+
+select dlvalue('/etc/foo[1](2)#3');
+                  dlvalue                   
+--------------------------------------------
+ {"url": "file:///etc/foo%5B1%5D%282%29#3"}
+(1 row)
+
+select dlurlpath(dlvalue('/etc/foo[1](2)#3'));
+   dlurlpath    
+----------------
+ /etc/foo[1](2)
+(1 row)
+
 select dlvalue('/etc/issue');
            dlvalue            
 ------------------------------
