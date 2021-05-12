@@ -580,7 +580,7 @@ select case part
        when 'server' then uri_host($1)
        when 'userinfo' then uri_userinfo($1)
        when 'host' then uri_host($1)
-       when 'path' then uri_path($1)
+       when 'path' then uri_unescape(uri_path($1))
        when 'query' then uri_query($1)
        when 'fragment' then uri_fragment($1)
        when 'token' then uri_fragment($1)
