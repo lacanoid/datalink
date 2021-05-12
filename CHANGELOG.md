@@ -1,14 +1,14 @@
 Version 0.12
 ------------
+- renames: domain datalink.dl_file_path is now just datalink.file_path
 - improved checks on domain datalink.file_path
+- file_path domain used in args to file functions
 - added datalink.dl_lco(regclass,name) function
 - got rid of dl_attlco table, lco now stored in dl_lco fdw option for column
-- changed dl_write_access 'ADMIN TOKEN' option to 'TOKEN', meaning ADMIN REQUIRING TOKEN FOR UPDATE
-- renames: domain datalink.dl_file_path is now just datalink.file_path
-- renames: dl_linked_files.regclass is now attrelid for easier join with pg_attribute
 - now uses attnum instead of attname in dl_linked_files
-- file_path domain used in args to file functions
 - alter table rename column works now
+- changed dl_write_access 'ADMIN TOKEN' option to 'TOKEN', meaning ADMIN REQUIRING TOKEN FOR UPDATE
+- renames: dl_linked_files.regclass is now attrelid for easier join with pg_attribute
 - dlvalue(null) returns null
 - autodetect link type in dlvalue()
 - enable use of any string as link type. These are returned by dllinktype().
