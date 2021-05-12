@@ -41,7 +41,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql | Modify link control options for datalink column
  datalink     | uri_get(text,text)                                                                           | sql     | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql     | Get (extract) parts of URI
- datalink     | uri_set(text,text,text)                                                                      | plperlu | Set (replace) parts of URI
+ datalink     | uri_set(uri,text,text)                                                                       | plperlu | Set (replace) parts of URI
  datalink     | curl_get(text,boolean)                                                                       | plperlu | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql     | 
  datalink     | dl_newtoken()                                                                                | sql     | 

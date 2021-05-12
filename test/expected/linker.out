@@ -24,7 +24,7 @@ ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks6.link as '/tmp/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 36 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 29 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 30 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/tmp/CHANGELOG.md
@@ -33,6 +33,13 @@ truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
 NOTICE:  DATALINK LINK:/tmp/CHANGELOG.md
+insert into sample_datalinks6 (link)
+values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
+ERROR:  INTEGRITY ALL can only be used with file URLs
+DETAIL:  http://www.debian.org/tmp/CHANGELOG.md
+HINT:  make sure you are using a file: URL scheme
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 32 at RAISE
+PL/pgSQL function dl_trigger_table() line 49 at assignment
 select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
   from sample_datalinks6;
       dlurlpath1       

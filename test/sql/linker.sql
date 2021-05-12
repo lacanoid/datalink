@@ -29,6 +29,8 @@ update sample_datalinks6 set link2 = null;
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
+insert into sample_datalinks6 (link)
+values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 
 select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
   from sample_datalinks6;

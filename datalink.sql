@@ -593,7 +593,7 @@ COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
+CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
  RETURNS text
   LANGUAGE plperlu
   AS $function$
@@ -619,7 +619,7 @@ CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
   $function$
   ;
 
-COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
+COMMENT ON FUNCTION uri_set(uri,text,text) IS 'Set (replace) parts of URI';
 
 ---------------------------------------------------
 -- event triggers
@@ -732,7 +732,7 @@ begin
  my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  my_uri := case my_type
            when 'URL'  then my_uri::text
-	   else format('file://%s',
+	         else format('file://%s',
 	               replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#'))
            end;
  my_uri := my_uri::datalink.dl_url;
@@ -778,7 +778,7 @@ begin
       when others then
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
-    link := jsonb_set(link,'{url}',to_jsonb(datalink.uri_set(u1,'token',null)));
+    link := jsonb_set(link,'{url}',to_jsonb(datalink.uri_set(u1::datalink.dl_url,'token',null)));
   end if;
   if token is null then token := link->>'token'; end if;
   if token is null then token := datalink.dl_newtoken() ; end if;
@@ -855,7 +855,14 @@ begin
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' then
-    perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+   if dlurlscheme($1)='file' then
+      perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+    else
+      raise exception 'INTEGRITY ALL can only be used with file URLs'
+            using errcode = 'HW005', 
+                  detail = url,
+                  hint = 'make sure you are using a file: URL scheme';
+    end if;
   end if; -- integrity all
 
  end if; -- link options
