@@ -30,8 +30,8 @@ Todo
 - maybe: loose Curl and check for files only
 - ✔︎ URL canonization
 - dlvalue better error handling
-- dlvalue autodetect link type
-- use any string as link type
+- ✔︎ dlvalue autodetect link type
+- ✔︎ use any string as link type
 - make this work for non-superusers
 - implicit cast datalink -> url
 - permissions
