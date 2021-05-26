@@ -11,7 +11,7 @@ but the extension can be used without it, albeit with some loss of functionality
 The extension by itself does not perform any file system changes. 
 
 This extension uses a number of advanced PostgreSQL features for implementation,
-including jsonb, event and instead-of triggers, listen/notify, plperlu...
+including transactions, jsonb, event and instead-of triggers, listen/notify, plperlu...
  
 Currently, it implements the following:
 - SQL/MED DATALINK type
