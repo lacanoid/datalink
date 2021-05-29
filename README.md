@@ -14,7 +14,7 @@ This extension uses a number of advanced PostgreSQL features for implementation,
 including transactions, jsonb, event and instead-of triggers, listen/notify, plperlu...
  
 Currently, it implements the following:
-- SQL/MED DATALINK type
+- SQL/MED DATALINK type, currently defined as domain over jsonb
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
