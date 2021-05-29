@@ -201,7 +201,7 @@ $_$;
 -- views
 ---------------------------------------------------
 
-CREATE VIEW dl_columns AS
+CREATE VIEW columns AS
  SELECT c.relowner::regrole AS table_owner,
     s.nspname AS schema_name,
     c.relname AS table_name,
@@ -236,7 +236,7 @@ SELECT
     lco.write_access,
     lco.recovery,
     lco.on_unlink
- FROM datalink.dl_columns c
+ FROM datalink.columns c
  LEFT JOIN link_control_options lco ON lco.lco=coalesce(c.lco,0)
 WHERE datalink.dl_class_adminable(regclass);
 
@@ -263,12 +263,12 @@ WITH
 	    AND datalink.dl_class_adminable(c0_1.oid)
  ),
  classes AS (
-         SELECT dl_columns.regclass,
+         SELECT columns.regclass,
                 count(*) AS count,
-                max(dl_columns.lco) AS mco
-           FROM datalink.dl_columns dl_columns
-          WHERE datalink.dl_class_adminable(dl_columns.regclass)
-          GROUP BY dl_columns.regclass
+                max(columns.lco) AS mco
+           FROM datalink.columns columns
+          WHERE datalink.dl_class_adminable(columns.regclass)
+          GROUP BY columns.regclass
  ),
  dl_triggers AS (
          SELECT c0.relowner::regrole::name AS owner,
@@ -916,7 +916,7 @@ begin
   -- unlink old values
   for r in
   select column_name,lco 
-    from datalink.dl_columns 
+    from datalink.columns 
    where regclass = tg_relid
   loop
    link1 := null; link2 := null;
@@ -934,7 +934,7 @@ begin
   -- link new values
   for r in
   select column_name,lco 
-    from datalink.dl_columns 
+    from datalink.columns 
    where regclass = tg_relid
   loop
    link1 := null; link2 := null;
@@ -1048,7 +1048,7 @@ declare
  my_options datalink.link_control_options;
 begin
  select into co *
- from datalink.dl_columns
+ from datalink.columns
  where regclass = my_regclass
    and column_name = my_column_name; 
 

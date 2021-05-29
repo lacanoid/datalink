@@ -43,6 +43,7 @@ our $dbh = DBI->connect($config{dsn});
 if(!$dbh) { log_fatal("Database not available"); }
 
 our $json = JSON->new->allow_nonref;
+our @err;
 
 #---------------------------------------
 
@@ -93,7 +94,7 @@ while(1) {
     my $sleepy = 0;
     while(!$sleepy) {
 	my $rv = $q{get_jobs}->execute;
-	if(!defined($rv)) { log_fatal("Can't execute main query. Bugs?"); }
+	if(!defined($rv)) { log_fatal("Can't execute main query.\nMake sure datalink extension is installed.\n"); }
 	$sleepy = $rv<=0;
 	if(!$sleepy) {
 	    while(my $data = $q{get_jobs}->fetchrow_hashref) {
@@ -107,13 +108,13 @@ while(1) {
 		    $q{set_linked}->execute($path,'ERROR',undef,'{"errcode":"PREFIX"}');
 		    next; 
 		}
-		
+		@err=();
 		if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
 		log_debug("DATA",$data);
 		if($data->{state} eq 'LINK') {
 		    log_msg('LINK:'.$data->{lco},$path);
 		    my $r=file_link($path,$data);
-		    $q{set_linked}->execute($path,'LINKED',$json->encode($r),undef);
+		    $q{set_linked}->execute($path,'LINKED',$json->encode($r),$json->encode(\@err));
 		}
 		elsif($data->{state} eq 'UNLINK') {
 		    log_msg('UNLINK:'.$data->{lco},$path);
@@ -347,6 +348,7 @@ sub log_msg {
 
 sub log_err {
     my ($txt,$data)=@_;
+    push @err,[$txt,$data];
     print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
 }
 
