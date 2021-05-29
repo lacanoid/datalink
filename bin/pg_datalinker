@@ -6,6 +6,7 @@ use JSON;
 use IPC::Run 'run';
 use Getopt::Std;
 use Time::HiRes qw{usleep};
+our $json = JSON->new->allow_nonref;
 
 #---------------------------------------
 
@@ -25,13 +26,13 @@ our %config = (
     db_mode => '0440',
     url_archive => "/var/www/datalink_url",
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
-    prefix => [
-	"/var/www/datalink_fs/",
-	"/tmp/"
-    ]
+    prefix => []
 );
 
+my $operation=shift @ARGV;
+if($operation eq 'init') { config_init(); exit; }
 config_load();
+if($operation eq 'list') { config_list(); exit; }
 
 #---------------------------------------
 
@@ -42,7 +43,6 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 our $dbh = DBI->connect($config{dsn});
 if(!$dbh) { log_fatal("Database not available"); }
 
-our $json = JSON->new->allow_nonref;
 our @err;
 
 #---------------------------------------
@@ -148,13 +148,36 @@ exit;
 # load configuration
 sub config_load {
     if($config{prefix_file}) {
+        if(-r $config{prefix_file}) {
+            my @l = file_get_lines($config{prefix_file});
+            $config{prefix}=\@l;
+        } else {
+            log_fatal("No prefix file in $config{prefix_file}\nHINT:Did you run pg_datalinker init?");
+        }
     } else {
-	log_fatal("config.prefix_file not set");
+  	  log_fatal("config.prefix_file not set");
     }
     config_check();
 }
 # check if configuration is valid
-sub config_check {}
+sub config_check {
+#    log_msg("CONFIG",$json->encode(\%config));
+}
+# config list [refixes]
+sub config_list {
+    for my $prefix (@{$config{prefix}}) {
+        print "$prefix\n";
+    }
+}
+# create inital system configuration if there is none
+sub config_init {
+    if($config{prefix_file}) {
+        my $data="/var/www/datalink\n";
+        file_put($config{prefix_file},$data);
+    } else {
+  	  log_fatal("config.prefix_file not set");
+    }
+}
 
 ########################################
 # path management
@@ -169,7 +192,7 @@ sub path_valid_prefix {
     my ($path)=@_;
     my $prefix;
     for $prefix (@{$config{prefix}}) {
-	if(rindex($path,$prefix,0)==0) { return 1 }
+ 	  if(rindex($path,$prefix,0)==0) { return 1 }
     }
     return 0
 }
@@ -282,6 +305,25 @@ sub file_unblock {
     sys("chattr","-i",$path);
 }
 
+sub file_get_lines {
+    my ($path)=@_;
+    if(open(Fg,'<',$path)) {
+        chomp(my @lines = <Fg>); close(Fg);
+        return @lines;
+    } else {
+        log_err("CANT READ","Cannot read file:$path");
+    }
+}
+
+sub file_put {
+    my ($path,$contents)=@_;
+    if(open(Fp,'>',$path)) {
+        print Fp $contents; close(Fp);
+    } else {
+        log_err("CANT WRITE","Cannot write to file:$path");
+    }
+}
+
 ########################################
 # run sys commands
 
@@ -354,7 +396,7 @@ sub log_err {
 
 sub log_fatal {
     my ($txt,$data)=@_;
-    print STDERR "FATAL:$txt:";
+    print STDERR "FATAL:$txt\n";
     if($data) {
 	print (ref($data)?$json->encode($data):$data)."\n";
     }

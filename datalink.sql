@@ -560,14 +560,12 @@ return undef;
 $function$
 ;
 */
-
 CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text LANGUAGE SQL immutable strict AS $$
   select datalink.uri_get($1::uri,$2)
 $$;
 
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
-
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
@@ -1183,6 +1181,17 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
 
 -- alter domain dl_url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
+
+---------------------------------------------------
+
+CREATE SERVER datalink_file_server FOREIGN DATA WRAPPER file_fdw;
+COMMENT ON SERVER datalink_file_server IS NULL;
+
+CREATE FOREIGN TABLE datalink.dl_fsprefix (
+	prefix text NULL
+)
+SERVER datalink_file_server
+OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
 ---------------------------------------------------
 -- play tables

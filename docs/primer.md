@@ -1,14 +1,18 @@
 Here are some examples on how to use datalink
 
-##Creating datalink values
+Creating datalink values
+------------------------
 
 You can create datalink values from URLs by using `dlvalue()` function.
 
- select dlvalue('http://www.github.io/');
-              dlvalue              
- ----------------------------------
-  {"url": "http://www.github.io/"}
- (1 row)
+    mydb=# select dlvalue('http://www.github.io/');
+                  dlvalue              
+    ----------------------------------
+     {"url": "http://www.github.io/"}
+    (1 row)
+
+Note that datalinks are internally stored as JSONB values.
+One can also think of datalinks as 'bookmarks' to internet resorces.
 
 URLs are checked for syntax and wrong ones throw errors.
 
@@ -18,33 +22,33 @@ URLs are checked for syntax and wrong ones throw errors.
 
 URLs are normalized before they are converted to datalinks.
 
- select dlvalue('http://www.github.io/a/b/c/d/../../e');
-                dlvalue                
- ---------------------------------------
-  {"url": "http://www.github.io/a/b/e"}
- (1 row)
+    mydb=select dlvalue('http://www.github.io/a/b/c/d/../../e');
+                    dlvalue                
+    ---------------------------------------
+     {"url": "http://www.github.io/a/b/e"}
+    (1 row)
 
 Use `dlurlcompleteonly()` function to convert a datalink back to URL.
 
- select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
-      dlurlcompleteonly      
- ----------------------------
-  http://www.github.io/a/b/e
- (1 row)
+    select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+          dlurlcompleteonly      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
 
 You can also use dlvalue() with absolute paths for file links.
 
- select dlvalue('/var/www/datalink/index.html');
-                     dlvalue                     
- ------------------------------------------------
-  {"url": "file:///var/www/datalink/index.html"}
- (1 row)
+    select dlvalue('/var/www/datalink/index.html');
+                        dlvalue                     
+    ------------------------------------------------
+     {"url": "file:///var/www/datalink/index.html"}
+    (1 row)
 
-Use `dlurlpatheonly()` function to get file path from a datalink.
+Use `dlurlpathonly()` function to get file path from a datalink.
 
- select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
-         dlurlpathonly         
- ------------------------------
-  /var/www/datalink/index.html
- (1 row)
+    select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+             dlurlpathonly         
+    ------------------------------
+     /var/www/datalink/index.html
+    (1 row)
 
