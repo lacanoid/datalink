@@ -13,7 +13,7 @@ update datalink.column_options
  where table_name='sample_datalinks2' and column_name='link';
 
 select regclass,column_name,dlco.*
-  from datalink.columns left join datalink.link_control_options dlco using (lco);
+  from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
 
 insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));

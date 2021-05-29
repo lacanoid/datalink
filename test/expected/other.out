@@ -10,7 +10,7 @@ update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
 select regclass,column_name,dlco.*
-  from datalink.columns left join datalink.link_control_options dlco using (lco);
+  from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
          regclass          | column_name |  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | 111121 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
