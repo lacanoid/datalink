@@ -841,6 +841,13 @@ begin
  if link_options > 0 then
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
+   if lco.integrity = 'ALL' and dlurlscheme($1)<>'file' then
+      raise exception 'INTEGRITY ALL can only be used with file URLs'
+            using errcode = 'HW005', 
+                  detail = url,
+                  hint = 'make sure you are using a file: URL scheme';
+   end if;
+
     -- check if reference exists
     has_token := 1;
     r := datalink.curl_get(url,true);
@@ -854,15 +861,8 @@ begin
   
   link := dlpreviouscopy(link,has_token);
 
-  if lco.integrity = 'ALL' then
-   if dlurlscheme($1)='file' then
+  if lco.integrity = 'ALL' and dlurlscheme($1)='file' then
       perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
-    else
-      raise exception 'INTEGRITY ALL can only be used with file URLs'
-            using errcode = 'HW005', 
-                  detail = url,
-                  hint = 'make sure you are using a file: URL scheme';
-    end if;
   end if; -- integrity all
 
  end if; -- link options

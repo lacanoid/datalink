@@ -21,7 +21,7 @@ values (dlvalue('/etc/issue1','FS','Sample file datalink 3'));
 ERROR:  datalink exception - referenced file does not exit
 DETAIL:  file:///etc/issue1
 HINT:  make sure referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 19 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 26 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
@@ -69,7 +69,7 @@ ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks4.link as '/etc/issue'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 36 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 30 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 select state,regclass,attname,path
   from datalink.linked_files;
