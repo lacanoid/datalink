@@ -12,7 +12,7 @@ You can create datalink values from URLs by using `dlvalue()` function.
     (1 row)
 
 Note that datalinks are internally stored as JSONB values.
-One can also think of datalinks as 'bookmarks' to internet resorces.
+One can also think of datalinks as 'bookmarks' to internet resources.
 
 URLs are checked for syntax and wrong ones throw errors.
 
