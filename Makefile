@@ -14,10 +14,12 @@ SCRIPTS = bin/pg_datalinker
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
-installcheck: testfile
+installcheck: testfiles
 
-testfile:
+testfiles:
 	cp CHANGELOG.md /tmp
+	touch /tmp/issue /tmp/hosts
+	bin/pg_datalinker add /tmp/
 
 datalink--$(extension_version).sql: datalink.sql
 	cat $^ >$@

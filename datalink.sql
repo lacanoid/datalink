@@ -332,9 +332,10 @@ select path,state,
        lco.on_unlink,
        a.attrelid::regclass as regclass,
        a.attname,
-       err
+       lf.err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
+  join pg_class c on c.oid = lf.attrelid
   join pg_attribute a using (attrelid,attnum)
  where datalink.dl_class_adminable(attrelid);
 
@@ -373,8 +374,8 @@ COMMENT ON FUNCTION datalink.file_stat(file_path) IS 'Return info record from st
 
 create function file_link(file_path file_path,
                           my_token dl_token,
-			  my_lco dl_lco,
-			  my_regclass regclass,my_attname name)
+			                    my_lco dl_lco,
+			                    my_regclass regclass,my_attname name)
 returns boolean as
 $$
 declare
@@ -382,10 +383,20 @@ declare
  fstat jsonb;
  addr text;
  my_attnum smallint;
+
 begin
 -- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
  raise notice 'DATALINK LINK:%',file_path;
 
+-- if (datalink.link_control_options(my_lco)).write_access >= 'BLOCKED' then
+   if not datalink.is_valid_prefix(file_path) THEN
+        raise exception 'datalink exception - invalid datalink value' 
+              using errcode = 'HY093',
+                    detail = format('unknown file volume (prefix) in %s',file_path),
+                    hint = 'run "pg_datalinker add" to add volumes'
+                    ;
+   end if;
+-- end if;
  fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
 
  if fstat is null then
@@ -850,7 +861,7 @@ begin
     has_token := 1;
     r := datalink.curl_get(url,true);
     if not r.ok then
-      raise exception 'datalink exception - referenced file does not exit' 
+      raise exception 'datalink exception - referenced file does not exist' 
             using errcode = 'HW003', 
                   detail = url,
                   hint = 'make sure referenced file actually exists';
@@ -1185,7 +1196,6 @@ alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 ---------------------------------------------------
 
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
-COMMENT ON SERVER datalink_file_server IS NULL;
 
 CREATE FOREIGN TABLE datalink.dl_fsprefix (
 	prefix text NULL

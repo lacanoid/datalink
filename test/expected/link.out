@@ -13,42 +13,57 @@ update datalink.column_options
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/etc/passwd
+ERROR:  datalink exception - invalid datalink value
+DETAIL:  unknown file volume (prefix) in /etc/passwd
+HINT:  run "pg_datalinker add" to add volumes
+CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
+PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
-values (dlvalue('/etc/issue','FS','Sample file datalink 2'));
-NOTICE:  DATALINK LINK:/etc/issue
+values (dlvalue('/tmp/issue','FS','Sample file datalink 2'));
+NOTICE:  DATALINK LINK:/tmp/issue
 insert into sample_datalinks4 (link)
-values (dlvalue('/etc/issue1','FS','Sample file datalink 3'));
-ERROR:  datalink exception - referenced file does not exit
-DETAIL:  file:///etc/issue1
+values (dlvalue('/tmp/issue1','FS','Sample file datalink 3'));
+ERROR:  datalink exception - referenced file does not exist
+DETAIL:  file:///tmp/issue1
 HINT:  make sure referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 26 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/etc/hosts
+ERROR:  datalink exception - invalid datalink value
+DETAIL:  unknown file volume (prefix) in /etc/hosts
+HINT:  run "pg_datalinker add" to add volumes
+CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
+PL/pgSQL function dl_trigger_table() line 49 at assignment
+insert into sample_datalinks4 (link)
+values (dlvalue('/tmp/hosts','FS','Sample file datalink 4'));
+NOTICE:  DATALINK LINK:/tmp/hosts
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 select state,regclass,attname,path
   from datalink.linked_files;
- state |     regclass      | attname |    path     
--------+-------------------+---------+-------------
- LINK  | sample_datalinks4 | link    | /etc/passwd
- LINK  | sample_datalinks4 | link    | /etc/issue
- LINK  | sample_datalinks4 | link    | /etc/hosts
-(3 rows)
+ state |     regclass      | attname |    path    
+-------+-------------------+---------+------------
+ LINK  | sample_datalinks4 | link    | /tmp/hosts
+ LINK  | sample_datalinks4 | link    | /tmp/issue
+(2 rows)
 
 delete from sample_datalinks4
  where link->>'token' =
 (select token::text
   from datalink.dl_linked_files
  order by txid limit 1);
-NOTICE:  DATALINK UNLINK:/etc/passwd
+NOTICE:  DATALINK UNLINK:/tmp/issue
 select state,regclass,attname,path
   from datalink.linked_files;
  state |     regclass      | attname |    path    
 -------+-------------------+---------+------------
- LINK  | sample_datalinks4 | link    | /etc/issue
- LINK  | sample_datalinks4 | link    | /etc/hosts
-(2 rows)
+ LINK  | sample_datalinks4 | link    | /tmp/hosts
+(1 row)
 
 create table sample_datalinks5 (
   id serial,
@@ -62,41 +77,38 @@ update datalink.column_options
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/etc/passwd
-insert into sample_datalinks5 (link)
-values (dlvalue('/etc/issue','FS','Sample file datalink'));
-NOTICE:  DATALINK LINK:/etc/issue
-ERROR:  datalink exception - external file already linked
-DETAIL:  from sample_datalinks4.link as '/etc/issue'
-CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 36 at RAISE
+ERROR:  datalink exception - invalid datalink value
+DETAIL:  unknown file volume (prefix) in /etc/passwd
+HINT:  run "pg_datalinker add" to add volumes
+CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
+insert into sample_datalinks5 (link)
+values (dlvalue('/tmp/issue','FS','Sample file datalink'));
+NOTICE:  DATALINK LINK:/tmp/issue
 select state,regclass,attname,path
   from datalink.linked_files;
- state |     regclass      | attname |    path     
--------+-------------------+---------+-------------
- LINK  | sample_datalinks4 | link    | /etc/issue
- LINK  | sample_datalinks4 | link    | /etc/hosts
- LINK  | sample_datalinks5 | link    | /etc/passwd
-(3 rows)
+ state |     regclass      | attname |    path    
+-------+-------------------+---------+------------
+ LINK  | sample_datalinks4 | link    | /tmp/hosts
+ LINK  | sample_datalinks5 | link    | /tmp/issue
+(2 rows)
 
 drop table sample_datalinks5;
-NOTICE:  DATALINK UNLINK:/etc/passwd
+NOTICE:  DATALINK UNLINK:/tmp/issue
 truncate sample_datalinks4;
-NOTICE:  DATALINK UNLINK:/etc/issue
-NOTICE:  DATALINK UNLINK:/etc/hosts
+NOTICE:  DATALINK UNLINK:/tmp/hosts
 insert into sample_datalinks4 (link)
 select link
   from sample_datalinks3
  where dllinktype(link)='FS';
-NOTICE:  DATALINK LINK:/etc/passwd
-NOTICE:  DATALINK LINK:/etc/issue
-NOTICE:  DATALINK LINK:/etc/hosts
+NOTICE:  DATALINK LINK:/tmp/issue
+NOTICE:  DATALINK LINK:/tmp/hosts
 alter table sample_datalinks4
  drop column link;
-NOTICE:  DATALINK UNLINK:/etc/passwd
-NOTICE:  DATALINK UNLINK:/etc/issue
-NOTICE:  DATALINK UNLINK:/etc/hosts
+NOTICE:  DATALINK UNLINK:/tmp/issue
+NOTICE:  DATALINK UNLINK:/tmp/hosts
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 truncate sample_datalinks4;
 alter table sample_datalinks4
@@ -113,14 +125,12 @@ select link
   from sample_datalinks3
  where dllinktype(link)='FS';
 update sample_datalinks4 set link2 = link;
-NOTICE:  DATALINK LINK:/etc/passwd
-NOTICE:  DATALINK LINK:/etc/issue
-NOTICE:  DATALINK LINK:/etc/hosts
+NOTICE:  DATALINK LINK:/tmp/issue
+NOTICE:  DATALINK LINK:/tmp/hosts
 update sample_datalinks4 set link = link2;
 update sample_datalinks4 set link2 = null;
-NOTICE:  DATALINK UNLINK:/etc/passwd
-NOTICE:  DATALINK UNLINK:/etc/issue
-NOTICE:  DATALINK UNLINK:/etc/hosts
+NOTICE:  DATALINK UNLINK:/tmp/issue
+NOTICE:  DATALINK UNLINK:/tmp/hosts
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE', recovery='YES'
  where table_name='sample_datalinks4' and column_name='link2';
@@ -150,16 +160,14 @@ select * from column_options where table_name='sample_datalinks4';
 (2 rows)
 
 update sample_datalinks4 set link3 = link;
-NOTICE:  DATALINK LINK:/etc/passwd
-NOTICE:  DATALINK LINK:/etc/issue
-NOTICE:  DATALINK LINK:/etc/hosts
+NOTICE:  DATALINK LINK:/tmp/issue
+NOTICE:  DATALINK LINK:/tmp/hosts
 select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path     | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
--------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
- /etc/passwd | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
- /etc/issue  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
- /etc/hosts  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
-(3 rows)
+    path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+ /tmp/hosts | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+(2 rows)
 
 alter table sample_datalinks4 rename link3 to link4;
 select * from column_options where table_name='sample_datalinks4';
@@ -170,14 +178,12 @@ select * from column_options where table_name='sample_datalinks4';
 (2 rows)
 
 select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path     | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
--------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
- /etc/passwd | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
- /etc/issue  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
- /etc/hosts  | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
-(3 rows)
+    path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+ /tmp/hosts | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+(2 rows)
 
 alter table sample_datalinks4 drop column link4;
-NOTICE:  DATALINK UNLINK:/etc/passwd
-NOTICE:  DATALINK UNLINK:/etc/issue
-NOTICE:  DATALINK UNLINK:/etc/hosts
+NOTICE:  DATALINK UNLINK:/tmp/issue
+NOTICE:  DATALINK UNLINK:/tmp/hosts

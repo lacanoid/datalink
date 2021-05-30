@@ -1,5 +1,8 @@
 Version 0.13
 ------------
+- added datalink.is_valid_prefix() function to check for valid prefixes
+- file_link() now throws an error if not valid file prefix
+- prefixes can be managed with pg_datalinker ( init, list, add, del ) command
 
 Version 0.12
 ------------
