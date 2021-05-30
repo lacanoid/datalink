@@ -16,9 +16,9 @@ One can also think of datalinks as 'bookmarks' to internet resources.
 
 URLs are checked for syntax and wrong ones throw errors.
 
- postgres=# select dlvalue('foo bar');
- ERROR:  invalid input syntax for type uri at or near " bar"
- CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at assignment
+    mydb=# select dlvalue('foo bar');
+    ERROR:  invalid input syntax for type uri at or near " bar"
+    CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at assignment
 
 URLs are normalized before they are converted to datalinks.
 
