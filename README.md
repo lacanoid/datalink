@@ -144,4 +144,4 @@ See also
 - tests contain some examples
 - https://wiki.postgresql.org/wiki/DATALINK
 - [SQL/MED standard](http://www.wiscorp.com/sql20nn.zip)
-- [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for postgres
+- [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for Postgres by Gilles Darold
