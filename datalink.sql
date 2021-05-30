@@ -1184,7 +1184,7 @@ alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 
 ---------------------------------------------------
 
-CREATE SERVER datalink_file_server FOREIGN DATA WRAPPER file_fdw;
+CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
 COMMENT ON SERVER datalink_file_server IS NULL;
 
 CREATE FOREIGN TABLE datalink.dl_fsprefix (
@@ -1192,6 +1192,19 @@ CREATE FOREIGN TABLE datalink.dl_fsprefix (
 )
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
+
+CREATE OR REPLACE FUNCTION datalink.is_valid_prefix(datalink.file_path)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE STRICT
+AS $function$
+select exists (
+ select prefix
+   from datalink.dl_fsprefix
+  where $1 like prefix||'%'
+)
+$function$
+;
 
 ---------------------------------------------------
 -- play tables
