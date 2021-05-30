@@ -332,6 +332,7 @@ select path,state,
        lco.on_unlink,
        a.attrelid::regclass as regclass,
        a.attname,
+       c.relowner::regrole as owner,
        lf.err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)

@@ -162,7 +162,7 @@ select * from column_options where table_name='sample_datalinks4';
 update sample_datalinks4 set link3 = link;
 NOTICE:  DATALINK LINK:/tmp/issue
 NOTICE:  DATALINK LINK:/tmp/hosts
-select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
+select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
     path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
 ------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
  /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
@@ -177,7 +177,7 @@ select * from column_options where table_name='sample_datalinks4';
  sample_datalinks4 | link4       | FILE         | ALL       | FS          | FS           | NO       | NONE
 (2 rows)
 
-select * from datalink.linked_files where regclass='sample_datalinks4'::regclass;
+select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
     path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
 ------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
  /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
