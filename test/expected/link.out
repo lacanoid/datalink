@@ -18,7 +18,7 @@ DETAIL:  unknown file volume (prefix) in /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/tmp/issue','FS','Sample file datalink 2'));
@@ -28,7 +28,7 @@ values (dlvalue('/tmp/issue1','FS','Sample file datalink 3'));
 ERROR:  datalink exception - referenced file does not exist
 DETAIL:  file:///tmp/issue1
 HINT:  make sure referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 26 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 25 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
@@ -38,7 +38,7 @@ DETAIL:  unknown file volume (prefix) in /etc/hosts
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/tmp/hosts','FS','Sample file datalink 4'));
@@ -82,7 +82,7 @@ DETAIL:  unknown file volume (prefix) in /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/tmp/issue','FS','Sample file datalink'));

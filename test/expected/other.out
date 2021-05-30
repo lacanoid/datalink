@@ -25,7 +25,7 @@ values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 ERROR:  datalink exception - referenced file does not exist
 DETAIL:  file:///foo+bar/no_file
 HINT:  make sure referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 26 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 25 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE'
@@ -37,12 +37,12 @@ values (dlvalue('http://blah','URL','Broken datalink'));
 ERROR:  datalink exception - referenced file does not exist
 DETAIL:  http://blah
 HINT:  make sure referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 26 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 25 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
       dlurlcomplete      | has_token 
 -------------------------+-----------
- file:///etc/            | t
+ file:///etc             | t
  https://www.debian.org/ | t
 (2 rows)
 

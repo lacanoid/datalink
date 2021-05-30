@@ -1,8 +1,14 @@
 Version 0.13
 ------------
-- added datalink.is_valid_prefix() function to check for valid prefixes
+- added list of volumes in /etc/postgresql-common/pg_datalinker.prefix
+- added datalink.dl_fsprefix foreign table to this for use inside postgres
+- added datalink.is_valid_prefix() function to check for valid volumes
 - file_link() now throws an error if not valid file prefix
+- improved datalinker, reads volumes 
 - prefixes can be managed with pg_datalinker ( init, list, add, del ) command
+- trim trailing / on directory names for FS datalinks
+- dlnewcopy() now stores old token in
+- dlpreviouscopy() looks for old token first
 
 Version 0.12
 ------------

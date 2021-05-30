@@ -4,14 +4,14 @@ Issues
 
 Wanted
 =======
-- Transactional File IO functions + file spaces
 - init.d / systemd scripts for datalinker
+- replace link with one with different token
+- Transactional File IO functions + file spaces
 - ✔︎ Native postgres URL type + functions
 - Native postgres interface to curl
 
 Todo
 ====
-- replace link with one with different token
 - CLI tool for datalinker admin
 - much better error handling in datalinker
 - dlurlpath() and dlurlcomplete() must include token
@@ -27,7 +27,7 @@ Todo
 - ✔︎ better URL syntax checking
 - allow backups for recovery=yes, read_access=fs LCO
 - block files only on write_access=blocked
-- maybe: loose Curl and check for files only
+- maybe: loose Curl and check for files only with stat
 - ✔︎ URL canonization
 - dlvalue better error handling
 - ✔︎ dlvalue autodetect link type

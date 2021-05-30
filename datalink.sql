@@ -743,7 +743,7 @@ begin
  my_uri := case my_type
            when 'URL'  then my_uri::text
 	         else format('file://%s',
-	               replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#'))
+	              trim(trailing '/' from replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#')))
            end;
  my_uri := my_uri::datalink.dl_url;
  my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
@@ -776,7 +776,7 @@ declare
 begin 
  if has_token > 0 then
   u1 := link->>'url';
-  t1 := datalink.uri_get(u1,'token');
+  t1 := coalesce(link->>'old',datalink.uri_get(u1,'token'));
   if t1 is not null then
     begin
       token := t1::datalink.dl_token;
@@ -788,12 +788,14 @@ begin
       when others then
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
-    link := jsonb_set(link,'{url}',to_jsonb(datalink.uri_set(u1::datalink.dl_url,'token',null)));
+    u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+    link := jsonb_set(link,'{url}',to_jsonb(u1));
   end if;
   if token is null then token := link->>'token'; end if;
   if token is null then token := datalink.dl_newtoken() ; end if;
   link := jsonb_set(link,'{token}',to_jsonb(token));
- end if;
+  link := link - 'old';
+ end if; -- has token
  return link;
 end
 $_$;
@@ -813,9 +815,17 @@ CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer default 1)
     AS $_$
 declare
  token datalink.dl_token;
+ t1 text;
+ u1 text;
 begin 
  if has_token > 0 then
-  token := datalink.dl_newtoken();
+  u1 := link->>'url';
+  t1 := coalesce(link->>'token',datalink.uri_get(u1,'token'));
+  if t1 is not null then 
+    link := jsonb_set(link,'{old}',to_jsonb(t1));
+  end if;
+  -- generate new token
+  token := datalink.dl_newtoken();  
   link := jsonb_set(link,'{token}',to_jsonb(token));
  end if;
  return link;
@@ -851,13 +861,12 @@ begin
  if link_options > 0 then
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
-   if lco.integrity = 'ALL' and dlurlscheme($1)<>'file' then
+    if lco.integrity = 'ALL' and dlurlscheme($1)<>'file' then
       raise exception 'INTEGRITY ALL can only be used with file URLs'
             using errcode = 'HW005', 
                   detail = url,
                   hint = 'make sure you are using a file: URL scheme';
-   end if;
-
+    end if;
     -- check if reference exists
     has_token := 1;
     r := datalink.curl_get(url,true);
