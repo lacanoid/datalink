@@ -11,7 +11,7 @@ You can create datalink values from URLs by using `dlvalue()` function.
      {"url": "http://www.github.io/"}
     (1 row)
 
-Note that datalinks are internally stored as JSONB values.
+Note that datalinks are internally represented as JSONB values.
 One can also think of datalinks as 'bookmarks' to internet resources.
 
 URLs are checked for syntax and wrong ones throw errors.
