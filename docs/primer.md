@@ -22,7 +22,7 @@ URLs are checked for syntax and wrong ones throw errors.
 
 URLs are normalized before they are converted to datalinks.
 
-    mydb=select dlvalue('http://www.github.io/a/b/c/d/../../e');
+    mydb=# select dlvalue('http://www.github.io/a/b/c/d/../../e');
                     dlvalue                
     ---------------------------------------
      {"url": "http://www.github.io/a/b/e"}
@@ -30,7 +30,7 @@ URLs are normalized before they are converted to datalinks.
 
 Use `dlurlcompleteonly()` function to convert a datalink back to URL.
 
-    select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+    mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
           dlurlcompleteonly      
     ----------------------------
      http://www.github.io/a/b/e
@@ -38,7 +38,7 @@ Use `dlurlcompleteonly()` function to convert a datalink back to URL.
 
 You can also use dlvalue() with absolute paths for file links.
 
-    select dlvalue('/var/www/datalink/index.html');
+    mydb=# select dlvalue('/var/www/datalink/index.html');
                         dlvalue                     
     ------------------------------------------------
      {"url": "file:///var/www/datalink/index.html"}
@@ -46,7 +46,7 @@ You can also use dlvalue() with absolute paths for file links.
 
 Use `dlurlpathonly()` function to get file path from a datalink.
 
-    select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+    mydb=# select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
              dlurlpathonly         
     ------------------------------
      /var/www/datalink/index.html
