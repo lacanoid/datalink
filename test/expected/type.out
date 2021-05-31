@@ -64,8 +64,8 @@ select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datal
  http://www.ljudmila.org/
 (1 row)
 
-select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0);
-              dlnewcopy              
+select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'token';
+              ?column?               
 -------------------------------------
  {"url": "http://www.ljudmila.org/"}
 (1 row)

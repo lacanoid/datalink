@@ -16,7 +16,7 @@ select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcomplete(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 
-select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0);
+select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'token';
 select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
 
 select dlpreviouscopy(dlvalue('http://www.ljudmila.org/'),0);
