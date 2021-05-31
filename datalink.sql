@@ -431,16 +431,16 @@ begin
 
      if  r.token is not distinct from my_token and r.lco is not distinct from my_lco
      then -- same file and protection
-    update datalink.dl_linked_files
-       set state='LINKED',
-           attrelid=my_regclass,
-	   attnum=my_attnum
-     where path = file_path and state='UNLINK';
-    return true;
+        update datalink.dl_linked_files
+          set state='LINKED',
+              attrelid=my_regclass,
+              attnum=my_attnum
+        where path = file_path and state='UNLINK';
+        return true;
      else -- cannot link again
-      raise exception 'datalink exception - external file already linked' 
-        using errcode = 'HW002', 
-        detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
+        raise exception 'datalink exception - external file already linked' 
+          using errcode = 'HW002', 
+          detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
      end if;
 
   else
@@ -818,16 +818,16 @@ declare
  t1 text;
  u1 text;
 begin 
- if has_token > 0 then
   u1 := link->>'url';
-  t1 := coalesce(link->>'token',datalink.uri_get(u1,'token'));
-  if t1 is not null then 
-    link := jsonb_set(link,'{old}',to_jsonb(t1));
+  if has_token > 0 then
+    t1 := coalesce(link->>'token',datalink.uri_get(u1,'token'));
+    if t1 is not null then 
+      link := jsonb_set(link,'{old}',to_jsonb(t1));
+    end if;
   end if;
-  -- generate new token
+    -- generate new token
   token := datalink.dl_newtoken();  
   link := jsonb_set(link,'{token}',to_jsonb(token));
- end if;
  return link;
 end
 $_$;

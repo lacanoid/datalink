@@ -36,114 +36,131 @@ config_load();
 if($operation eq 'list') { config_list(); exit; }
 if($operation eq 'add') { config_add(@ARGV[0]); exit; }
 if($operation eq 'del') { config_del(@ARGV[0]); exit; }
+if($operation eq 'run') { main(); exit; }
+
+print STDERR qq{Usage: $0 <command> [arguments...]
+Commands:
+    list   - list volumes
+    add    - add volume
+    del    - delete volume
+    run    - run datalinker
+};
+
+exit 1;
+
 
 #---------------------------------------
 
 our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
-
-our $dbh = DBI->connect($config{dsn});
-if(!$dbh) { log_fatal("Database not available"); }
-
+our $dbh;
+our $dbmeta = {};
 our @err;
 
 #---------------------------------------
 
-$dbh->do("set application_name='".$config{appname}."'");
-$dbh->do("set search_path=datalink");
-$dbh->do('listen "datalink.linker_jobs"');
+sub main() {
+    $dbh = DBI->connect($config{dsn});
+    if(!$dbh) { log_fatal("Database not available"); }
 
-#---------------------------------------
 
-my %q = (
-    'get_jobs'=>$dbh->prepare(q{
-       select * 
-         from dl_linked_files 
-         join link_control_options lco using (lco)
-        where state in ('LINK','UNLINK')
-    }),
-    'set_linked'=>$dbh->prepare(q{
-       update dl_linked_files 
-          set state = $2,
-              info  = $3,
-              err   = $4
-        where path  = $1
-    }),
-    'delete'=>$dbh->prepare(q{
-       delete from dl_linked_files
-        where path = $1
-    })
-);
+    $dbh->do("set application_name='".$config{appname}."'");
+    $dbh->do("set search_path=datalink");
+    $dbh->do('listen "datalink.linker_jobs"');
 
-#---------------------------------------
+    #---------------------------------------
 
-our $dbmeta = $dbh->selectrow_hashref(qq{
-  select current_database() as datname,
-         (select setting from pg_settings where name='port') as port, 
-         current_timestamp as start,
-         (select count(*) from pg_stat_activity 
-           where application_name='}.$config{appname}.q{') as nl
-});
+    my %q = (
+        'get_jobs'=>$dbh->prepare(q{
+        select * 
+            from dl_linked_files 
+            join link_control_options lco using (lco)
+            where state in ('LINK','UNLINK')
+        }),
+        'set_linked'=>$dbh->prepare(q{
+        update dl_linked_files 
+            set state = $2,
+                info  = $3,
+                err   = $4
+            where path  = $1
+        }),
+        'delete'=>$dbh->prepare(q{
+        delete from dl_linked_files
+            where path = $1
+        })
+    );
+
+    #---------------------------------------
+
+    $dbmeta = $dbh->selectrow_hashref(qq{
+    select current_database() as datname,
+            (select setting from pg_settings where name='port') as port, 
+            current_timestamp as start,
+            (select count(*) from pg_stat_activity 
+            where application_name='}.$config{appname}.q{') as nl
+    });
     
-log_msg("START",$dbmeta);
+    log_msg("START",$dbmeta);
 
-if($dbmeta->{nl}>1) {
-    log_err("SYSDUP","There seems to be a datalinker already running!");
+    if($dbmeta->{nl}>1) {
+        log_err("SYSDUP","There seems to be a datalinker already running!");
+    }
+
+    #---------------------------------------
+
+    while(1) {
+        log_debug('READY');
+        my $sleepy = 0;
+        while(!$sleepy) {
+        my $rv = $q{get_jobs}->execute;
+        if(!defined($rv)) { log_fatal("Can't execute main query.\nMake sure datalink extension is installed.\n"); }
+        $sleepy = $rv<=0;
+        if(!$sleepy) {
+            while(my $data = $q{get_jobs}->fetchrow_hashref) {
+            if(!$data->{path}) { log_err("INPUT","No path in ",$data); next; }
+            if(!$data->{token}) { log_err("INPUT","No token in ",$data); next; }
+
+            my $path = $data->{path}; 
+
+            if(!path_valid_prefix($path)) { 
+                log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
+                $q{set_linked}->execute($path,'ERROR',undef,'{"errcode":"PREFIX"}');
+                next; 
+            }
+            @err=();
+            if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
+            log_debug("DATA",$data);
+            if($data->{state} eq 'LINK') {
+                log_msg('LINK:'.$data->{lco},$path);
+                my $r=file_link($path,$data);
+                my $rv1=$q{set_linked}->execute($path,'LINKED',$json->encode($r),$json->encode(\@err));
+                if(!defined($rv1)) { log_fatal("Can't execute status query.\nMake sure datalink extension is installed.\n"); }
+            }
+            elsif($data->{state} eq 'UNLINK') {
+                log_msg('UNLINK:'.$data->{lco},$path);
+                file_unlink($path,$data);
+                my $rv1=$q{delete}->execute($path);
+                if(!defined($rv1)) { log_fatal("Can't execute status query.\nMake sure datalink extension is installed.\n"); }
+            }
+            else {
+                log_err("STATE","Unknown state in ",$data);
+                next;
+            }
+            }
+        }
+        }
+        for(my $i=0;$i<$opt_n;$i++) {
+        while(my $not = $dbh->pg_notifies) {
+            log_debug('NOTIFY',$not);
+            $sleepy = 0;
+        }
+        if($sleepy) {
+            usleep(1000000 * 5.0/$opt_n);
+        }
+        }
+    } # forever loop
+
+    log_msg('END');
 }
-
-#---------------------------------------
-
-while(1) {
-    log_debug('READY');
-    my $sleepy = 0;
-    while(!$sleepy) {
-	my $rv = $q{get_jobs}->execute;
-	if(!defined($rv)) { log_fatal("Can't execute main query.\nMake sure datalink extension is installed.\n"); }
-	$sleepy = $rv<=0;
-	if(!$sleepy) {
-	    while(my $data = $q{get_jobs}->fetchrow_hashref) {
-		if(!$data->{path}) { log_err("INPUT","No path in ",$data); next; }
-		if(!$data->{token}) { log_err("INPUT","No token in ",$data); next; }
-
-		my $path = $data->{path}; 
-
-		if(!path_valid_prefix($path)) { 
-		    log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
-		    $q{set_linked}->execute($path,'ERROR',undef,'{"errcode":"PREFIX"}');
-		    next; 
-		}
-		@err=();
-		if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
-		log_debug("DATA",$data);
-		if($data->{state} eq 'LINK') {
-		    log_msg('LINK:'.$data->{lco},$path);
-		    my $r=file_link($path,$data);
-		    $q{set_linked}->execute($path,'LINKED',$json->encode($r),$json->encode(\@err));
-		}
-		elsif($data->{state} eq 'UNLINK') {
-		    log_msg('UNLINK:'.$data->{lco},$path);
-		    file_unlink($path,$data);
-		    $q{delete}->execute($path);
-		}
-		else {
-		    log_err("STATE","Unknown state in ",$data);
-		    next;
-		}
-	    }
-	}
-    }
-    for(my $i=0;$i<$opt_n;$i++) {
-	while(my $not = $dbh->pg_notifies) {
-	    log_debug('NOTIFY',$not);
-	    $sleepy = 0;
-	}
-	if($sleepy) {
-	    usleep(1000000 * 5.0/$opt_n);
-	}
-    }
-} # forever loop
-
-log_msg('END');
-exit;
 
 ########################################
 # configuration
@@ -241,10 +258,9 @@ sub file_stat {
     my (@s) = stat($path);
 
     return {
-	'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
-	'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
-#	'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
-	'blksize'=>$s[11],'blocks'=>$s[12]
+        'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
+        'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
+        'blksize'=>$s[11],'blocks'=>$s[12]
     };
 }
 
@@ -261,10 +277,10 @@ sub file_link {
     };
 
     if($opt->{recovery} eq 'YES') {
-	file_backup($path,$opt);
+    	file_backup($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
-	file_read_access_db($path,$opt);
+    	file_read_access_db($path,$opt);
     }
 
     file_block($path);
@@ -276,7 +292,7 @@ sub file_unlink {
     file_unblock($path,$opt);
     file_restore($path,$opt);
     if($opt->{info} && $opt->{info}{del}) {
-	file_delete($path,$opt);
+    	file_delete($path,$opt);
     }
 }
 
