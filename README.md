@@ -17,8 +17,8 @@ Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as domain over jsonb
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
-- SQL/MED functions DLURLSCHEME, DLURLSERVER
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
+- SQL/MED functions DLURLSCHEME, DLURLSERVER
 - DLLINKTYPE function
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'

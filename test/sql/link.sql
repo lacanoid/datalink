@@ -17,16 +17,16 @@ insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/issue','FS','Sample file datalink 2'));
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/issue1','FS','Sample file datalink 3'));
+values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/hosts','FS','Sample file datalink 4'));
+values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
 
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 
@@ -56,7 +56,7 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 
 insert into sample_datalinks5 (link)
-values (dlvalue('/tmp/issue','FS','Sample file datalink'));
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
 
 select state,regclass,attname,path
   from datalink.linked_files;

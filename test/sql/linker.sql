@@ -20,7 +20,7 @@ update datalink.column_options
  where table_name='sample_datalinks6' and column_name='link2';
 
 insert into sample_datalinks6 (link)
-values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 1'));
 
 update sample_datalinks6 set link2 = link;
 update sample_datalinks6 set link = link2;
@@ -28,7 +28,7 @@ update sample_datalinks6 set link2 = null;
 
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
-values (dlvalue('/tmp/CHANGELOG.md','FS','Sample file datalink 2'));
+values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 2'));
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 

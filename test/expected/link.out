@@ -21,12 +21,12 @@ SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::d
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/issue','FS','Sample file datalink 2'));
-NOTICE:  DATALINK LINK:/tmp/issue
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/issue1','FS','Sample file datalink 3'));
+values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 ERROR:  datalink exception - referenced file does not exist
-DETAIL:  file:///tmp/issue1
+DETAIL:  file:///var/www/datalink/test3.txt
 HINT:  make sure referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 25 at RAISE
 PL/pgSQL function dl_trigger_table() line 49 at assignment
@@ -41,15 +41,15 @@ SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::d
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
-values (dlvalue('/tmp/hosts','FS','Sample file datalink 4'));
-NOTICE:  DATALINK LINK:/tmp/hosts
+values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 select state,regclass,attname,path
   from datalink.linked_files;
- state |     regclass      | attname |    path    
--------+-------------------+---------+------------
- LINK  | sample_datalinks4 | link    | /tmp/hosts
- LINK  | sample_datalinks4 | link    | /tmp/issue
+ state |     regclass      | attname |            path             
+-------+-------------------+---------+-----------------------------
+ LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt
+ LINK  | sample_datalinks4 | link    | /var/www/datalink/test1.txt
 (2 rows)
 
 delete from sample_datalinks4
@@ -57,12 +57,12 @@ delete from sample_datalinks4
 (select token::text
   from datalink.dl_linked_files
  order by txid limit 1);
-NOTICE:  DATALINK UNLINK:/tmp/issue
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 select state,regclass,attname,path
   from datalink.linked_files;
- state |     regclass      | attname |    path    
--------+-------------------+---------+------------
- LINK  | sample_datalinks4 | link    | /tmp/hosts
+ state |     regclass      | attname |            path             
+-------+-------------------+---------+-----------------------------
+ LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt
 (1 row)
 
 create table sample_datalinks5 (
@@ -85,30 +85,30 @@ SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::d
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks5 (link)
-values (dlvalue('/tmp/issue','FS','Sample file datalink'));
-NOTICE:  DATALINK LINK:/tmp/issue
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select state,regclass,attname,path
   from datalink.linked_files;
- state |     regclass      | attname |    path    
--------+-------------------+---------+------------
- LINK  | sample_datalinks4 | link    | /tmp/hosts
- LINK  | sample_datalinks5 | link    | /tmp/issue
+ state |     regclass      | attname |            path             
+-------+-------------------+---------+-----------------------------
+ LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt
+ LINK  | sample_datalinks5 | link    | /var/www/datalink/test1.txt
 (2 rows)
 
 drop table sample_datalinks5;
-NOTICE:  DATALINK UNLINK:/tmp/issue
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 truncate sample_datalinks4;
-NOTICE:  DATALINK UNLINK:/tmp/hosts
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 insert into sample_datalinks4 (link)
 select link
   from sample_datalinks3
  where dllinktype(link)='FS';
-NOTICE:  DATALINK LINK:/tmp/issue
-NOTICE:  DATALINK LINK:/tmp/hosts
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 alter table sample_datalinks4
  drop column link;
-NOTICE:  DATALINK UNLINK:/tmp/issue
-NOTICE:  DATALINK UNLINK:/tmp/hosts
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 truncate sample_datalinks4;
 alter table sample_datalinks4
@@ -125,12 +125,12 @@ select link
   from sample_datalinks3
  where dllinktype(link)='FS';
 update sample_datalinks4 set link2 = link;
-NOTICE:  DATALINK LINK:/tmp/issue
-NOTICE:  DATALINK LINK:/tmp/hosts
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update sample_datalinks4 set link = link2;
 update sample_datalinks4 set link2 = null;
-NOTICE:  DATALINK UNLINK:/tmp/issue
-NOTICE:  DATALINK UNLINK:/tmp/hosts
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 update datalink.column_options
    set link_control='FILE', integrity='SELECTIVE', recovery='YES'
  where table_name='sample_datalinks4' and column_name='link2';
@@ -160,13 +160,13 @@ select * from column_options where table_name='sample_datalinks4';
 (2 rows)
 
 update sample_datalinks4 set link3 = link;
-NOTICE:  DATALINK LINK:/tmp/issue
-NOTICE:  DATALINK LINK:/tmp/hosts
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
-------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
- /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
- /tmp/hosts | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+            path             | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+-----------------------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /var/www/datalink/test1.txt | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
+ /var/www/datalink/test2.txt | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link3   | _null_
 (2 rows)
 
 alter table sample_datalinks4 rename link3 to link4;
@@ -178,12 +178,12 @@ select * from column_options where table_name='sample_datalinks4';
 (2 rows)
 
 select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
-    path    | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
-------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
- /tmp/issue | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
- /tmp/hosts | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+            path             | state | read_access | write_access | recovery | on_unlink |     regclass      | attname |  err   
+-----------------------------+-------+-------------+--------------+----------+-----------+-------------------+---------+--------
+ /var/www/datalink/test1.txt | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
+ /var/www/datalink/test2.txt | LINK  | FS          | FS           | NO       | NONE      | sample_datalinks4 | link4   | _null_
 (2 rows)
 
 alter table sample_datalinks4 drop column link4;
-NOTICE:  DATALINK UNLINK:/tmp/issue
-NOTICE:  DATALINK UNLINK:/tmp/hosts
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt

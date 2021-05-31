@@ -17,9 +17,12 @@ include $(PGXS)
 installcheck: testfiles
 
 testfiles:
-	cp CHANGELOG.md /tmp
-	touch /tmp/issue /tmp/hosts
-	bin/pg_datalinker add /tmp/
+#	touch /tmp/issue /tmp/hosts
+	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
+	cp CHANGELOG.md /var/www/datalink/
+	touch /var/www/datalink/test1.txt
+	date >> /var/www/datalink/test2.txt
+#	bin/pg_datalinker add /tmp/
 
 datalink--$(extension_version).sql: datalink.sql
 	cat $^ >$@
