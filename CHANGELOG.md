@@ -4,7 +4,7 @@ Version 0.13
 - added datalink.dl_fsprefix foreign table to this for use inside postgres
 - added datalink.is_valid_prefix() function to check for valid volumes
 - file_link() now throws an error if not valid file prefix
-- improved datalinker, reads volumes 
+- improved datalinker, reads volumes from /etc/postgresql-common/pg_datalinker.prefix
 - prefixes can be managed with pg_datalinker ( init, list, add, del ) command
 - trim trailing / on directory names for FS datalinks
 - dlnewcopy() now stores old token in
@@ -24,7 +24,7 @@ Version 0.12
 - dlvalue(null) returns null
 - autodetect link type in dlvalue()
 - enable use of any string as link type. These are returned by dllinktype().
-- file path to url encoding
+- automatic file path to url encoding
 	
 Version 0.11
 ------------
