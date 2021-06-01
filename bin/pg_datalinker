@@ -54,6 +54,7 @@ exit 1;
 our @wget = qw{wget --verbose --adjust-extension --span-hosts --convert-links --backup-converted --page-requisites};
 our $dbh;
 our $dbmeta = {};
+our %q;
 our @err;
 
 #---------------------------------------
@@ -69,7 +70,7 @@ sub main() {
 
     #---------------------------------------
 
-    my %q = (
+    %q = (
         'get_jobs'=>$dbh->prepare(q{
         select * 
             from dl_linked_files 
@@ -81,11 +82,11 @@ sub main() {
             set state = $2,
                 info  = $3,
                 err   = $4
-            where path  = $1
+          where path  = $1
         }),
         'delete'=>$dbh->prepare(q{
-        delete from dl_linked_files
-            where path = $1
+         delete from dl_linked_files
+          where path = $1
         })
     );
 
@@ -111,13 +112,16 @@ sub main() {
         log_debug('READY');
         my $sleepy = 0;
         while(!$sleepy) {
-        my $rv = $q{get_jobs}->execute;
-        if(!defined($rv)) { log_fatal("Can't execute main query.\nMake sure datalink extension is installed.\n"); }
+        my $rv = queryOrDie('get_jobs');
         $sleepy = $rv<=0;
         if(!$sleepy) {
             while(my $data = $q{get_jobs}->fetchrow_hashref) {
-            if(!$data->{path}) { log_err("INPUT","No path in ",$data); next; }
-            if(!$data->{token}) { log_err("INPUT","No token in ",$data); next; }
+            if(!$data->{path}) { 
+                log_err("INPUT","No path in ",$data); next; 
+            }
+            if(!$data->{token}) { 
+                log_err("INPUT","No token in ",$data); next; 
+            }
 
             my $path = $data->{path}; 
 
@@ -127,19 +131,23 @@ sub main() {
                 next; 
             }
             @err=();
-            if($data->{info}) { $data->{info}=$json->decode($data->{info}); }
+            my $info;
+            if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
             log_debug("DATA",$data);
             if($data->{state} eq 'LINK') {
-                log_msg('LINK:'.$data->{lco},$path);
+                if($info) {
+                    log_msg('RE-LINK:'.$data->{lco},$path);
+                    file_unlink($path,$data);
+                } else {
+                    log_msg('LINK:'.$data->{lco},$path);
+                }
                 my $r=file_link($path,$data);
-                my $rv1=$q{set_linked}->execute($path,'LINKED',$json->encode($r),$json->encode(\@err));
-                if(!defined($rv1)) { log_fatal("Can't execute status query.\nMake sure datalink extension is installed.\n"); }
+                queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode(\@err));
             }
             elsif($data->{state} eq 'UNLINK') {
                 log_msg('UNLINK:'.$data->{lco},$path);
                 file_unlink($path,$data);
-                my $rv1=$q{delete}->execute($path);
-                if(!defined($rv1)) { log_fatal("Can't execute status query.\nMake sure datalink extension is installed.\n"); }
+                queryOrDie('delete',$path);
             }
             else {
                 log_err("STATE","Unknown state in ",$data);
@@ -160,6 +168,16 @@ sub main() {
     } # forever loop
 
     log_msg('END');
+}
+
+sub queryOrDie {
+    my $query=shift @_;
+    my @args=@_;
+    my $rv=$q{$query}->execute(@args);
+    if(!defined($rv)) {
+        log_fatal("Can't execute '$query' query.\nMake sure datalink extension is installed.\n");
+    }
+    return $rv;
 }
 
 ########################################
@@ -260,6 +278,7 @@ sub file_stat {
     return {
         'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
         'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
+        'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
         'blksize'=>$s[11],'blocks'=>$s[12]
     };
 }
@@ -269,10 +288,10 @@ sub file_link {
     $path =~ s|/+$||;
     my $s = file_stat($path);
     my $r = { own => $s->{uid}.":".$s->{gid}, 
-	      mod => sprintf("%#o",$s->{mode} & 0777),
-	      lco => $opt->{lco},
+	          mod => sprintf("%#o",$s->{mode} & 0777),
+	          lco => $opt->{lco},
               token => $opt->{token},
-	      del => ($opt->{on_unlink} eq 'DELETE'),
+	          del => ($opt->{on_unlink} eq 'DELETE'),
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
@@ -340,11 +359,11 @@ sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
 	my $path_backup = path_backup($path,$opt->{token});
-	if(-f $path_backup) {
-	    log_err("COPY EXISTS","File exists:$path_backup");
-	} else {
-	    sys("cp","-a",$path,$path_backup);
-	}
+        if(-f $path_backup) {
+            log_err("COPY EXISTS","File exists:$path_backup");
+        } else {
+            sys("cp","-a",$path,$path_backup);
+        }
     }
 }
 # block file for writing
@@ -377,8 +396,12 @@ sub file_put {
     }
 }
 # watch file for changes
+our $file_stat = {};
 sub file_observe {
-
+    my ($path)=@_;
+    my $stat=file_stat($path);
+    $file_stat->{$path}=$stat;
+    log_debug('STAT',$stat);
 }
 ########################################
 # run sys commands
