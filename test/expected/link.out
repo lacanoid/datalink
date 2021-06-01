@@ -139,7 +139,7 @@ DETAIL:  Invalid link control options (10011)
 HINT:  see table datalink.link_control_options for valid link control options
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 24 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_options() line 11 at PERFORM
+PL/pgSQL function dl_trigger_options() line 18 at PERFORM
 select * from column_options;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
@@ -187,3 +187,29 @@ select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,e
 alter table sample_datalinks4 drop column link4;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+create table my_table(link datalink);
+NOTICE:  DATALINK DDL:TRIGGER on my_table
+update datalink.column_options set integrity='SELECTIVE' where table_name='my_table';
+create table my_table2(link datalink);
+NOTICE:  DATALINK DDL:TRIGGER on my_table2
+update datalink.column_options set integrity='ALL' where table_name='my_table2';
+create table my_table3(link datalink);
+NOTICE:  DATALINK DDL:TRIGGER on my_table3
+update datalink.column_options set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
+create table my_table4(link datalink);
+NOTICE:  DATALINK DDL:TRIGGER on my_table4
+update datalink.column_options set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+select * from datalink.column_options order by table_name;
+        table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+ datalink.sample_datalinks | link        | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
+ my_table                  | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ my_table2                 | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
+ my_table3                 | link        | FILE         | ALL       | FS          | BLOCKED      | NO       | RESTORE
+ my_table4                 | link        | FILE         | ALL       | DB          | BLOCKED      | NO       | DELETE
+ sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
+(9 rows)
+

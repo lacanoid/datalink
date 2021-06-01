@@ -182,7 +182,7 @@ select * from l
        or ra='FS' and wa='BLOCKED' and unl='RESTORE'
        or ra='DB' and wa<>'FS' and unl<>'NONE'
     )
-    and not (rec='NO' and unl='DELETE')
+--    and not (rec='NO' and unl='DELETE')
 ;
 
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
@@ -988,7 +988,14 @@ begin
   link_control=>cast(case new.integrity when 'NONE' then 'NO' else 'FILE' end as datalink.dl_link_control),
   integrity=>new.integrity,
   read_access=>new.read_access,write_access=>new.write_access,
-  recovery=>new.recovery,on_unlink=>new.on_unlink
+  recovery=>new.recovery,
+  on_unlink=>cast(case when new.write_access >= 'BLOCKED' then
+                    case new.on_unlink
+                    when 'NONE' then 'RESTORE'
+                    else new.on_unlink
+                    end
+                  else 'NONE'
+                  end as datalink.dl_on_unlink)
  );
  perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
  return new;
