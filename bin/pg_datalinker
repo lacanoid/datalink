@@ -335,7 +335,7 @@ sub file_delete {
 	}
     }
 }
-
+# backup a file
 sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
@@ -347,17 +347,17 @@ sub file_backup {
 	}
     }
 }
-
+# block file for writing
 sub file_block {
     my ($path,$opt)=@_;
     sys("chattr","+i",$path);
 }
-
+# unblock file for writing
 sub file_unblock {
     my ($path,$opt)=@_;
     sys("chattr","-i",$path);
 }
-
+# read a file into lines
 sub file_get_lines {
     my ($path)=@_;
     if(open(Fg,'<',$path)) {
@@ -367,7 +367,7 @@ sub file_get_lines {
         log_err("CANT READ","Cannot read file:$path");
     }
 }
-
+# write a file
 sub file_put {
     my ($path,$contents)=@_;
     if(open(Fp,'>',$path)) {
@@ -376,7 +376,10 @@ sub file_put {
         log_err("CANT WRITE","Cannot write to file:$path");
     }
 }
+# watch file for changes
+sub file_observe {
 
+}
 ########################################
 # run sys commands
 

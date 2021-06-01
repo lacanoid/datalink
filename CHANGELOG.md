@@ -6,7 +6,7 @@ Version 0.13
 - file_link() now throws an error if not valid file prefix
 - improved datalinker, reads volumes from /etc/postgresql-common/pg_datalinker.prefix
 - prefixes can be managed with pg_datalinker ( init, list, add, del ) command
-- trim trailing / on directory names for FS datalinks
+- trim trailing / on directory names for FS datalinks for better file name uniqueness
 - dlnewcopy() now stores old token in link
 - dlpreviouscopy() looks for this old token first
 
