@@ -428,19 +428,33 @@ begin
       detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
 
   elsif r.state in ('UNLINK') then
-
-     if  r.token is not distinct from my_token and r.lco is not distinct from my_lco
-     then -- same file and protection
-        update datalink.dl_linked_files
-          set state='LINKED',
-              attrelid=my_regclass,
-              attnum=my_attnum
-        where path = file_path and state='UNLINK';
-        return true;
-     else -- cannot link again
+     if r.lco is distinct from my_lco
+     then
         raise exception 'datalink exception - external file already linked' 
           using errcode = 'HW002', 
-          detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
+          detail = format('Cannot change link control option in update');
+     end if;
+     
+     if  r.token is not distinct from my_token
+     then -- same file and protection
+        update datalink.dl_linked_files
+           set state='LINKED',
+               attrelid=my_regclass,
+               attnum=my_attnum
+         where path = file_path and state='UNLINK';
+        return true;
+     else -- relink
+        update datalink.dl_linked_files
+           set state='LINK',
+               token=my_token,
+               attrelid=my_regclass,
+               attnum=my_attnum
+         where path = file_path and state='UNLINK';
+        return true;
+
+        raise exception 'datalink exception - external file already linked' 
+        using errcode = 'HW002', 
+        detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
      end if;
 
   else
@@ -475,7 +489,7 @@ begin
    update datalink.dl_linked_files
       set state = 'UNLINK',
           token = cast(info->>'token' as datalink.dl_token),
-	  lco   = cast(info->>'lco' as datalink.dl_lco)
+	        lco   = cast(info->>'lco' as datalink.dl_lco)
     where path  = $1 and info is not null
       and state = 'LINK';
 

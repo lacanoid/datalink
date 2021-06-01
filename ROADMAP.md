@@ -30,8 +30,9 @@ Todo
 - maybe: loose Curl and check for files only with stat
 - ✔︎ URL canonization
 - dlvalue better error handling
+- make dlvalue work for comment-only links
 - ✔︎ dlvalue autodetect link type
-- ✔︎ use any string as link type
+- ✔︎ use any string as link type (URL or FS)
 - make this work for non-superusers
 - ?implicit cast datalink -> url
 - permissions
