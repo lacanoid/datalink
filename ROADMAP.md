@@ -4,6 +4,7 @@ Issues
 
 Wanted
 =======
+- ✔︎ volumes
 - init.d / systemd scripts for datalinker
 - ✔︎ replace link with one with different token
 - Transactional File IO functions + file spaces
