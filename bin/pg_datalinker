@@ -112,6 +112,7 @@ sub main() {
 
     while(1) {
         log_debug('READY');
+        config_observe();
         my $sleepy = 0;
         while(!$sleepy) {
         my $rv = queryOrDie('get_jobs');
@@ -190,15 +191,14 @@ sub queryOrDie {
 # load configuration
 sub config_load {
     if($config{prefix_file}) {
+        log_msg('CONFIGURE',$config{prefix_file});
         if(-r $config{prefix_file}) {
             my @l = file_get_lines($config{prefix_file});
             $config{prefix}=\@l;
         } else {
             log_fatal("No prefix file in $config{prefix_file}\nHINT:Did you run pg_datalinker init?");
         }
-    } else {
-  	  log_fatal("config.prefix_file not set");
-    }
+    } else { log_fatal("config.prefix_file not set"); }
     config_check();
 }
 # check if configuration is valid
@@ -221,9 +221,13 @@ sub config_save {
         my $data=join("\n",@{$config{prefix}});
         $data=~s|\n+|\n|g;
         file_put($config{prefix_file},$data);
-    } else {
-  	  log_fatal("config.prefix_file not set");
-    }
+    } else { log_fatal("config.prefix_file not set"); }
+}
+# config list [refixes]
+sub config_observe {
+    if($config{prefix_file}) {
+        if(file_observe($config{prefix_file})) { config_load(); }
+    } else { log_fatal("config.prefix_file not set"); }
 }
 # create inital system configuration if there is none
 sub config_init {
@@ -429,8 +433,12 @@ our $file_stat = {};
 sub file_observe {
     my ($path)=@_;
     my $stat=file_stat($path);
+    my $old_mtime = $file_stat->{$path}->{mtime};
+    my $new_mtime = $stat->{mtime};
+    log_debug('OBSERVE',"$old_mtime,$new_mtime");
     $file_stat->{$path}=$stat;
-    log_debug('STAT',$stat);
+    if(int($new_mtime)>int($old_mtime)) { return 1; }
+    return 0;
 }
 ########################################
 # run sys commands
