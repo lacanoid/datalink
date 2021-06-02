@@ -5,7 +5,7 @@ Issues
 Wanted
 =======
 - init.d / systemd scripts for datalinker
-- replace link with one with different token
+- ✔︎ replace link with one with different token
 - Transactional File IO functions + file spaces
 - ✔︎ Native postgres URL type + functions
 - Native postgres interface to curl
