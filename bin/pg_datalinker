@@ -26,6 +26,7 @@ our %config = (
     db_owner => 'postgres.postgres',
     db_mode => '0440',
     url_archive => "/var/www/datalink_url",
+    revert => 1, # revert files from backups
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => []
 );
@@ -72,13 +73,13 @@ sub main() {
 
     %q = (
         'get_jobs'=>$dbh->prepare(q{
-        select * 
+          select * 
             from dl_linked_files 
             join link_control_options lco using (lco)
             where state in ('LINK','UNLINK')
         }),
         'set_linked'=>$dbh->prepare(q{
-        update dl_linked_files 
+         update dl_linked_files 
             set state = $2,
                 info  = $3,
                 err   = $4
@@ -93,11 +94,12 @@ sub main() {
     #---------------------------------------
 
     $dbmeta = $dbh->selectrow_hashref(qq{
-    select current_database() as datname,
+     select current_database() as datname,
             (select setting from pg_settings where name='port') as port, 
             current_timestamp as start,
-            (select count(*) from pg_stat_activity 
-            where application_name='}.$config{appname}.q{') as nl
+            (select count(*) from pg_stat_activity
+            where application_name='}.$config{appname}.q{') as nl,
+            version()
     });
     
     log_msg("START",$dbmeta);
@@ -116,54 +118,56 @@ sub main() {
         $sleepy = $rv<=0;
         if(!$sleepy) {
             while(my $data = $q{get_jobs}->fetchrow_hashref) {
-            if(!$data->{path}) { 
-                log_err("INPUT","No path in ",$data); next; 
-            }
-            if(!$data->{token}) { 
-                log_err("INPUT","No token in ",$data); next; 
-            }
-
-            my $path = $data->{path}; 
-
-            if(!path_valid_prefix($path)) { 
-                log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
-                $q{set_linked}->execute($path,'ERROR',undef,'{"errcode":"PREFIX"}');
-                next; 
-            }
-            @err=();
-            my $info;
-            if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
-            log_debug("DATA",$data);
-            if($data->{state} eq 'LINK') {
-                if($info) {
-                    log_msg('RE-LINK:'.$data->{lco},$path);
-                    file_unlink($path,$data);
-                } else {
-                    log_msg('LINK:'.$data->{lco},$path);
+                if(!$data->{path}) { 
+                    log_err("INPUT","No path in ",$data); next; 
                 }
-                my $r=file_link($path,$data);
-                queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode(\@err));
-            }
-            elsif($data->{state} eq 'UNLINK') {
-                log_msg('UNLINK:'.$data->{lco},$path);
-                file_unlink($path,$data);
-                queryOrDie('delete',$path);
-            }
-            else {
-                log_err("STATE","Unknown state in ",$data);
-                next;
-            }
+                if(!$data->{token}) { 
+                    log_err("INPUT","No token in ",$data); next; 
+                }
+
+                my $path = $data->{path}; 
+
+                if(!path_valid_prefix($path)) { 
+                    log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
+                    queryOrDie('set_linked',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
+                    next; 
+                }
+                @err=();
+                my $info;
+                if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
+                log_debug("DATA",$data);
+                if($data->{state} eq 'LINK') {
+                    if($info) {
+                        log_msg('RE-LINK:'.$data->{lco},$path);
+                        file_unlink($path,$data);
+                    } else {
+                        log_msg('LINK:'.$data->{lco},$path);
+                    }
+                    my $r=file_link($path,$data);
+                    queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode(\@err));
+                    next;
+                }
+                elsif($data->{state} eq 'UNLINK') {
+                    log_msg('UNLINK:'.$data->{lco},$path);
+                    file_unlink($path,$data);
+                    queryOrDie('delete',$path);
+                    next;
+                }
+                else {
+                    log_err("STATE","Unknown state in ",$data);
+                    next;
+                }
             }
         }
         }
         for(my $i=0;$i<$opt_n;$i++) {
-        while(my $not = $dbh->pg_notifies) {
-            log_debug('NOTIFY',$not);
-            $sleepy = 0;
-        }
-        if($sleepy) {
-            usleep(1000000 * 5.0/$opt_n);
-        }
+            while(my $not = $dbh->pg_notifies) {
+                log_debug('NOTIFY',$not);
+                $sleepy = 0;
+            }
+            if($sleepy) {
+                usleep(1000000 * 5.0/$opt_n);
+            }
         }
     } # forever loop
 
@@ -282,11 +286,21 @@ sub file_stat {
         'blksize'=>$s[11],'blocks'=>$s[12]
     };
 }
-
+# link file to sql environment
 sub file_link {
     my ($path,$opt)=@_;
     $path =~ s|/+$||;
     my $s = file_stat($path);
+
+    if($config{revert} && file_has_backup($path,$opt)) {
+        log_msg('REVERT',"$path#".$opt->{token});
+        file_backup_restore($path,$opt);
+    } else {
+        if($opt->{recovery} eq 'YES') {
+        	file_backup($path,$opt);
+        }
+    } 
+
     my $r = { own => $s->{uid}.":".$s->{gid}, 
 	          mod => sprintf("%#o",$s->{mode} & 0777),
 	          lco => $opt->{lco},
@@ -295,9 +309,6 @@ sub file_link {
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
-    if($opt->{recovery} eq 'YES') {
-    	file_backup($path,$opt);
-    }
     if($opt->{read_access} eq 'DB') {
     	file_read_access_db($path,$opt);
     }
@@ -305,7 +316,7 @@ sub file_link {
     file_block($path);
     return $r;
 }
-
+# unlink file from sql environment
 sub file_unlink {
     my ($path,$opt)=@_;
     file_unblock($path,$opt);
@@ -314,7 +325,7 @@ sub file_unlink {
     	file_delete($path,$opt);
     }
 }
-
+# set file permissions for read_access db
 sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
@@ -355,14 +366,32 @@ sub file_delete {
     }
 }
 # backup a file
+sub file_has_backup {
+    my ($path,$opt)=@_;
+	my $path_backup = path_backup($path,$opt->{token});
+    return -f $path_backup;
+}
+# backup a file
 sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
-	my $path_backup = path_backup($path,$opt->{token});
+        my $path_backup = path_backup($path,$opt->{token});
         if(-f $path_backup) {
             log_err("COPY EXISTS","File exists:$path_backup");
         } else {
             sys("cp","-a",$path,$path_backup);
+        }
+    }
+}
+# revert a file to previous version
+sub file_backup_restore {
+    my ($path,$opt)=@_;
+    if($opt->{token}) {
+        my $path_backup = path_backup($path,$opt->{token});
+        if(-f $path_backup) {
+            sys("ln","-f",$path_backup,$path);
+        } else {
+            log_err("NO BACKUP","File not found:$path_backup");
         }
     }
 }
