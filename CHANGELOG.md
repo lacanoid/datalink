@@ -3,8 +3,8 @@ Version 0.13
 - added list of volumes in /etc/postgresql-common/pg_datalinker.prefix
 - added datalink.dl_fsprefix foreign table to this for use inside postgres
 - added datalink.is_valid_prefix() function to check for valid volumes
-- file_link() now throws an error if not valid file prefix
-- improved datalinker, reads volumes from /etc/postgresql-common/pg_datalinker.prefix
+- file_link() now throws an error if path doesn't have a valid volume prefix
+- improved datalinker, also reads volumes from /etc/postgresql-common/pg_datalinker.prefix
 - datalinker prefixes can be managed with `pg_datalinker ( init, list, add, del )` command
 - datalinker can now revert old files from backups
 - datalinker can now unlink+link in one operation
