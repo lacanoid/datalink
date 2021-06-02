@@ -12,8 +12,8 @@ Wanted
 
 Todo
 ====
-- CLI tool for datalinker admin
-- much better error handling in datalinker
+- ✔︎ CLI tool for datalinker admin
+- ✔︎ much better error handling in datalinker
 - dlurlpath() and dlurlcomplete() must include token
 - ✔︎ dlvalue(null) -> null, dlvalue('') -> null
 - optimize table triggers (do not install them if mco=0)
@@ -26,7 +26,7 @@ Todo
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - ✔︎ better URL syntax checking
 - allow backups for recovery=yes, read_access=fs LCO
-- block files only on write_access=blocked
+- ✔︎ block files only on write_access=blocked
 - maybe: loose Curl and check for files only with stat
 - ✔︎ URL canonization
 - dlvalue better error handling

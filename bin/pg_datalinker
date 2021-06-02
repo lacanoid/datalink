@@ -191,7 +191,6 @@ sub queryOrDie {
 # load configuration
 sub config_load {
     if($config{prefix_file}) {
-        log_msg('CONFIGURE',$config{prefix_file});
         if(-r $config{prefix_file}) {
             my @l = file_get_lines($config{prefix_file});
             $config{prefix}=\@l;
@@ -226,7 +225,10 @@ sub config_save {
 # config list [refixes]
 sub config_observe {
     if($config{prefix_file}) {
-        if(file_observe($config{prefix_file})) { config_load(); }
+        if(file_observe($config{prefix_file})) { 
+            log_msg('CONFIGURE',$config{prefix_file});
+            config_load(); 
+        }
     } else { log_fatal("config.prefix_file not set"); }
 }
 # create inital system configuration if there is none
@@ -296,6 +298,10 @@ sub file_link {
     $path =~ s|/+$||;
     my $s = file_stat($path);
 
+    if($opt->{read_access} eq 'DB') {
+    	file_read_access_db($path,$opt);
+    }
+
     if($config{revert} && file_has_backup($path,$opt)) {
         log_msg('REVERT',"$path#".$opt->{token});
         file_backup_restore($path,$opt);
@@ -313,11 +319,10 @@ sub file_link {
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
-    if($opt->{read_access} eq 'DB') {
-    	file_read_access_db($path,$opt);
+    if($opt->{write_access} ne 'FS') {
+        file_block($path);
     }
 
-    file_block($path);
     return $r;
 }
 # unlink file from sql environment
@@ -334,10 +339,10 @@ sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
     if(defined($config{db_owner})) {
-	sys("chown",$config{db_owner},$path);
+    	sys("chown",$config{db_owner},$path);
     }
     if(defined($config{db_mode})) {
-	sys("chmod",$config{db_mode},$path);
+	    sys("chmod",$config{db_mode},$path);
     }
 }
 
