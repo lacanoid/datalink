@@ -33,7 +33,7 @@ Todo
 - dl_ref and dl_unref redundant?
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
-- allow backups for recovery=yes, read_access=fs LCO
+- allow backups for read_access=fs LCO
 - maybe: loose Curl and check for files only with stat
 - dlvalue better error handling
 - make this work for non-superusers

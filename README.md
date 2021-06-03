@@ -33,7 +33,9 @@ Currently, it implements the following:
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database (chown, chmod)
-- LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs)
+- LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs), forbid datalink column updates
+- LCO: WRITE ACCESS ADMIN - make file immutable, allow datalink column updates
+- LCO: WRITE ACCESS ADMIN TOKEN - make file immutable, allow column updates only with matching write token
 - LCO: RECOVERY YES - make backup copies of linked files
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 - LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
@@ -41,8 +43,6 @@ With datalinker:
 Missing:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
-- LCO: WRITE ACCESS ADMIN
-- LCO: WRITE ACCESS ADMIN TOKEN
 - Foreign server support for file:// URLs (for files on other servers)
 
 Installation

@@ -956,7 +956,7 @@ begin
    if link1 is distinct from link2 then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
-         -- TODO: check for write_access = TOKEN
+         -- check for write_access = BLOCKED and prevent updates
 	 if opt.write_access = 'BLOCKED' and tg_op='UPDATE' and link1 is not null then
            raise exception 'datalink exception - invalid write permission for update' 
                      using errcode = 'HW006',
@@ -964,6 +964,18 @@ begin
 			                   tg_relid::regclass::text,r.column_name),
                            hint = 'set write_access to ADMIN or TOKEN'
                     ;
+	 end if;
+         -- check for write_access = TOKEN and prevent updates if needed
+	 if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
+ 	    if link2->>'old' is null or link2->>'old' is distinct from link1->>'token' then
+               raise exception 'datalink exception - invalid write token' 
+                         using errcode = 'HW004',
+                        detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
+		                        tg_relid::regclass::text,r.column_name),
+                          hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
+                    ;
+            end if; -- tokens not matching
+	    link2 := link2 - 'old';
 	 end if;
          link2 := datalink.dl_ref(link2,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
