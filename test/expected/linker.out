@@ -24,7 +24,7 @@ ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks6.link as '/var/www/datalink/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 46 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md

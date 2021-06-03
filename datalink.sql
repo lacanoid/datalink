@@ -403,7 +403,7 @@ begin
  if fstat is null then
       raise exception 'datalink exception - referenced file not valid' 
             using errcode = 'HW007',
-                  detail = file_path;
+                  detail = format('stat failed for %s',file_path);
  end if;
 
  addr := array[fstat->>'dev',fstat->>'inode']::text;
@@ -892,6 +892,7 @@ begin
     end if;
   end if; -- file link control,
   
+  link := jsonb_set(link,array['rc'],to_jsonb(r.response_code));
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='file' then
@@ -1246,6 +1247,23 @@ select exists (
 )
 $function$
 ;
+
+---------------------------------------------------
+CREATE OR REPLACE FUNCTION datalink.have_datalinker()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE
+AS $function$
+select exists (
+ select usename
+   from pg_stat_activity
+  where datname is not null 
+    and application_name='pg_datalinker'
+)
+$function$
+;
+COMMENT ON FUNCTION datalink.have_datalinker()
+     IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
 -- play tables

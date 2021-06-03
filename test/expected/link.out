@@ -18,7 +18,7 @@ DETAIL:  unknown file volume (prefix) in /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
@@ -38,7 +38,7 @@ DETAIL:  unknown file volume (prefix) in /etc/hosts
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
@@ -82,7 +82,7 @@ DETAIL:  unknown file volume (prefix) in /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 35 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 36 at PERFORM
 PL/pgSQL function dl_trigger_table() line 49 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));

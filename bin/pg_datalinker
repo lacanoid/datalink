@@ -13,6 +13,7 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 
 our $opt_v = 0;  # verbosity
 our $opt_D = 0;  # really delete linked files with ON UNLINK DELETE
+our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
 
@@ -21,14 +22,12 @@ getopt('');
 #---------------------------------------
 
 our %config = (
-    appname => 'SQL/MED like datalinker',
+    appname => 'pg_datalinker',
     dsn => 'dbi:Pg:service=datalinker',
     db_owner => 'postgres.postgres',
     db_mode => '0440',
-    url_archive => "/var/www/datalink_url",
-    revert => 1, # revert files from backups
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
-    prefix => []
+    prefix => ["/var/www/datalink/"]
 );
 
 my $operation=shift @ARGV;
@@ -37,6 +36,13 @@ config_load();
 if($operation eq 'list') { config_list(); exit; }
 if($operation eq 'add') { config_add(@ARGV[0]); exit; }
 if($operation eq 'del') { config_del(@ARGV[0]); exit; }
+
+if($operation eq 'start') { daemon_start(); exit; }
+if($operation eq 'restart') { daemon_start(); exit; }
+if($operation eq 'stop') { daemon_stop(); exit; }
+if($operation eq 'status') { daemon_status(); exit; }
+if($operation eq 'log') { daemon_log(); exit; }
+
 if($operation eq 'run') { main(); exit; }
 
 print STDERR qq{Usage: $0 <command> [arguments...]
@@ -44,7 +50,12 @@ Commands:
     list   - list volumes
     add    - add volume
     del    - delete volume
-    run    - run datalinker
+
+    start  - start datalinker
+    stop   - stop datalinker
+    status - check is datalinker is running
+    run    - run datalinker interactively
+    log    - monitor log
 };
 
 exit 1;
@@ -233,8 +244,11 @@ sub config_observe {
 }
 # create inital system configuration if there is none
 sub config_init {
-    $config{prefix}=['/var/www/datalink/'];
-    config_save();
+    if(-f $config{prefix_file}) {
+        log_err("FILE EXISTS","Config file ".$config{prefix_file}." exists.");
+    } else {
+        config_save();
+    }
 }
 # create inital system configuration if there is none
 sub config_add {
@@ -302,7 +316,7 @@ sub file_link {
     	file_read_access_db($path,$opt);
     }
 
-    if($config{revert} && file_has_backup($path,$opt)) {
+    if($opt_R && file_has_backup($path,$opt)) {
         log_msg('REVERT',"$path#".$opt->{token});
         file_backup_restore($path,$opt);
     } else {
@@ -522,4 +536,47 @@ sub log_fatal {
   	  print (ref($data)?$json->encode($data):$data)."\n";
     }
     die;
+}
+
+########################################
+# daemon stuff
+
+our $NAME;
+our $DAEMON;
+our $DAEMON_LOG;
+our $DAEMON_PID;
+our @DAEMON_ARGS;
+sub daemon_setup {
+    $NAME=$config{appname};
+    $DAEMON = `realpath $0`;
+    chomp($DAEMON);
+    $DAEMON_LOG="/var/log/postgresql/$NAME.log";
+    $DAEMON_PID="/var/run/postgresql/$NAME.pid";
+}
+
+sub daemon_start {
+    daemon_stop();
+    sys("start-stop-daemon --start ".
+        "--pidfile $DAEMON_PID --make-pidfile ".
+        "--background --no-close ".
+        "--exec $DAEMON -- run");
+}
+
+sub daemon_stop {
+    daemon_setup();
+    sys("start-stop-daemon","--stop",
+        "--pidfile",$DAEMON_PID,"--remove-pidfile",
+        "--name",$NAME);
+}
+
+sub daemon_status {
+    daemon_setup();
+    sys("start-stop-daemon","--status",
+        "--pidfile",$DAEMON_PID,
+         "--name",$NAME);
+}
+
+sub daemon_log {
+    daemon_setup();
+    if(-f $DAEMON_LOG) { sys("less","+F",$DAEMON_LOG); }
 }

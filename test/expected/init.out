@@ -37,6 +37,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql     | Calculate dl_lco from individual options
  datalink     | dl_lco(regclass,name)                                                                        | sql     | Find dl_lco for a column
  datalink     | file_stat(file_path)                                                                         | plperlu | Return info record from stat(2)
+ datalink     | have_datalinker()                                                                            | sql     | Is datalinker process currently running?
  datalink     | link_control_options(dl_lco)                                                                 | sql     | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql | Modify link control options for datalink column
  datalink     | uri_get(text,text)                                                                           | sql     | Get (extract) parts of URI
@@ -55,5 +56,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | file_unlink(file_path)                                                                       | plpgsql | 
  datalink     | is_valid_prefix(file_path)                                                                   | sql     | 
  datalink     | uuid_generate_v4()                                                                           | c       | 
-(34 rows)
+(35 rows)
 
