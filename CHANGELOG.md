@@ -6,11 +6,12 @@ Version 0.13
 - file_link() now throws an error if path doesn't have a valid volume prefix
 - improved datalinker, also reads volumes from /etc/postgresql-common/pg_datalinker.prefix
 - datalinker prefixes can be managed with `pg_datalinker ( init, list, add, del )` command
-- datalinker can now revert old files from backups
+- datalinker can now revert old files from backups when assigning datalinks with tokens
 - datalinker can now unlink+link in one operation
 - trim trailing / on directory names for FS datalinks for better file name uniqueness
 - dlnewcopy() now stores old token in link
 - dlpreviouscopy() looks for this old token first
+- store curl_head response code in datalink. This helps in finding broken links and such.
 
 Version 0.12
 ------------

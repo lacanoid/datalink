@@ -1106,8 +1106,8 @@ begin
  if not found then
       raise exception 'datalink exception' 
             using errcode = 'HW000',
-	    detail = format('Invalid link control options (%s)',my_lco),
-            hint = 'see table datalink.link_control_options for valid link control options';
+	                detail = format('Invalid link control options (%s)',my_lco),
+                  hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
  if my_lco is distinct from co.lco then
@@ -1115,7 +1115,10 @@ begin
      my_column_name,cast(my_regclass as text),my_column_name);
    execute e into n;
    if n > 0 then
-     raise exception 'Can''t change link control options; % non-null values present in column "%"',n,my_column_name;
+      raise exception 'datalink exception' 
+            using errcode = 'HW000',
+	                detail = format('Can''t change link control options; %s non-null values present in column "%s"',n,my_column_name),
+                  hint = format('Perhaps you can truncate %s',my_regclass);
    end if;
 
    -- update fdw options with new lco
