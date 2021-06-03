@@ -80,45 +80,19 @@ RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
  select cast (
-   (case $1
-     when 'FILE' then 1
-     when 'NO' then 0
-     else 0
-   end) +
-   10 * (  
-   (case $2
-     when 'ALL' then 2
-     when 'SELECTIVE' then 1
-     when 'NONE' then 0
-     else 0
-   end) +
-   10 * (  
-   (case $3
-     when 'DB' then 1
-     when 'FS' then 0
-     else 0
-   end) + 
-   10 * (  
+   (case $1 when 'FILE' then 1 when 'NO' then 0 else 0 end)
+   + 10 * (  
+   (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
+   + 10 * (  
+   (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
+   + 10 * (  
    (case $4
-     when 'TOKEN' then 3
-     when 'ADMIN' then 2
-     when 'BLOCKED' then 1
-     when 'FS' then 0
-     else 0
-   end) +
-   10 * (
-   (case $5
-     when 'YES' then 1
-     when 'NO' then 0
-     else 0
-   end) +
-   10 * (
-   (case $6
-     when 'DELETE' then 2
-     when 'RESTORE' then 1
-     when 'NONE' then 0
-     else 0
-   end)
+     when 'TOKEN' then 3 when 'ADMIN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
+     else 0 end)
+   + 10 * (
+   (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
+   + 10 * (
+   (case $6 when 'DELETE' then 2 when 'RESTORE' then 1 when 'NONE' then 0 else 0 end)
    ))))) as datalink.dl_lco)
 $_$;
 
