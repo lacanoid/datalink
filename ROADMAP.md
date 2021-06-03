@@ -35,5 +35,6 @@ Todo
 - ✔︎ dlvalue autodetect link type
 - ✔︎ use any string as link type (URL or FS)
 - make this work for non-superusers
+- revert files only when recovery=YES
 - ?implicit cast datalink -> url
 - permissions
