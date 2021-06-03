@@ -890,9 +890,11 @@ begin
                   detail = url,
                   hint = 'make sure referenced file actually exists';
     end if;
-  end if; -- file link control,
+    if r.response_code > 0 then
+      link := jsonb_set(link,array['rc'],to_jsonb(r.response_code));
+    end if;
+  end if; -- file link control,  
   
-  link := jsonb_set(link,array['rc'],to_jsonb(r.response_code));
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='file' then
@@ -1118,7 +1120,7 @@ begin
       raise exception 'datalink exception' 
             using errcode = 'HW000',
 	                detail = format('Can''t change link control options; %s non-null values present in column "%s"',n,my_column_name),
-                  hint = format('Perhaps you can truncate %s',my_regclass);
+                  hint = format('Perhaps you can "truncate %s"',my_regclass);
    end if;
 
    -- update fdw options with new lco
