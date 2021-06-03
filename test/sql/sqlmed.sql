@@ -1,56 +1,53 @@
 \pset null _null_
+
 SET client_min_messages = notice;
 SET search_path = public,datalink;
+
 create table sample_urls (
   id serial,
   url text
 );
+
 insert into sample_urls (url)
 values 
   ('http://www.mozilla.org');
+
 insert into sample_urls (url)
 values 
   ('http://www.ljudmila.org'),
   ('https://www.github.org'),
   ('file:///tmp/a'),
   ('http://www.debian.org/');
+
 select * from sample_urls;
- id |           url           
-----+-------------------------
-  1 | http://www.mozilla.org
-  2 | http://www.ljudmila.org
-  3 | https://www.github.org
-  4 | file:///tmp/a
-  5 | http://www.debian.org/
-(5 rows)
 
 create table sample_datalinks (
   url text,
   link datalink
 );
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks
+
 --select * from dl_triggers;
 --select column_name,lco FROM datalink.dl_columns;
-select * from datalink.column_options;
-        table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
----------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
- datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
- sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
-(2 rows)
+--select * from datalink.column_options;
 
 insert into sample_datalinks (link)
 values (dlvalue('http://www.archive.org','URL','Sample datalink'));
+
 insert into sample_datalinks (link)
 values (dlvalue('http://guthub.org','URL','Another sample datalink'));
+
 insert into sample_datalinks (url,link)
 select url,dlvalue(url) 
   from sample_urls;
+
 update sample_datalinks
    set link = null
  where url like 'file:%';
+
 update sample_datalinks
    set link = null
  where url like '%debian.org%';
+
 delete from sample_datalinks
  where url like 'https:%';
  
