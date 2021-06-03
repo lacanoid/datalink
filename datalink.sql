@@ -875,14 +875,14 @@ begin
  if link_options > 0 then
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
-    if lco.integrity = 'ALL' and dlurlscheme($1)<>'file' then
+    if lco.integrity = 'ALL' and dlurlscheme(link)<>'file' then
       raise exception 'INTEGRITY ALL can only be used with file URLs'
             using errcode = 'HW005', 
                   detail = url,
                   hint = 'make sure you are using a file: URL scheme';
     end if;
     -- check if reference exists
-    has_token := 1;
+    if lco.integrity = 'ALL' then has_token := 1; end if;
     r := datalink.curl_get(url,true);
     if not r.ok then
       raise exception 'datalink exception - referenced file does not exist' 

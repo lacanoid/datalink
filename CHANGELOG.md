@@ -11,7 +11,7 @@ Version 0.13
 - trim trailing / on directory names for FS datalinks for better file name uniqueness
 - dlnewcopy() now stores old token in link
 - dlpreviouscopy() looks for this old token first
-- store curl_head response code in datalink. This helps in finding broken links and such.
+- store curl_head response code in datalink
 
 Version 0.12
 ------------

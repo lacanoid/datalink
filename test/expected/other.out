@@ -42,8 +42,8 @@ PL/pgSQL function dl_trigger_table() line 49 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
       dlurlcomplete      | has_token 
 -------------------------+-----------
- file:///etc             | t
- https://www.debian.org/ | t
+ file:///etc             | f
+ https://www.debian.org/ | f
 (2 rows)
 
 create table sample_datalinks3 as 
