@@ -1248,13 +1248,12 @@ COMMENT ON FUNCTION datalink.have_datalinker()
 -- play tables
 ---------------------------------------------------
 
-create table sample_datalinks ( id serial primary key, link datalink );
+create table sample_datalinks ( link datalink );
 grant select,insert,update,delete on sample_datalinks to public;
-grant usage on sequence sample_datalinks_id_seq to public;
 
 update datalink.column_options
-   set integrity='ALL',
-       read_access='DB', write_access='BLOCKED',
-       recovery='YES', on_unlink='RESTORE'
+   set integrity='SELECTIVE',
+       read_access='FS', write_access='FS',
+       recovery='NO', on_unlink='NONE'
  where table_name='sample_datalinks' and column_name='link';
   
