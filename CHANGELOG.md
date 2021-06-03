@@ -1,5 +1,6 @@
 Version 0.14
-------------
+------------	
+- renames: datalink.column_options is now just datalink.columns
 - better error reporting when integrity checking datalinks with curl_get()
 - prevent updates of datalinks with write_access BLOCKED
 - forbid UPDATE on columns where write_access = BLOCKED, set to ADMIN to make them updatable

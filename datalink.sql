@@ -200,7 +200,7 @@ CREATE VIEW dl_columns AS
 
 ---------------------------------------------------
 
-CREATE VIEW column_options AS
+CREATE VIEW columns AS
 SELECT
     cast(regclass as text) as table_name,
     column_name,
@@ -214,10 +214,10 @@ SELECT
  LEFT JOIN link_control_options lco ON lco.lco=coalesce(c.lco,0)
 WHERE datalink.dl_class_adminable(regclass);
 
-COMMENT ON VIEW column_options
+COMMENT ON VIEW columns
  IS 'Current link control options for datalink dl_columns. You can set them here.';
 
-grant select on column_options to public;
+grant select on columns to public;
 
 ---------------------------------------------------
 
@@ -1017,8 +1017,8 @@ begin
 end
 $$;
 
-CREATE TRIGGER "column_options_instead"
-INSTEAD OF UPDATE ON datalink.column_options
+CREATE TRIGGER "columns_instead"
+INSTEAD OF UPDATE ON datalink.columns
 FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_options();
 
@@ -1276,7 +1276,7 @@ COMMENT ON FUNCTION datalink.have_datalinker()
 create table sample_datalinks ( link datalink );
 grant select,insert,update,delete on sample_datalinks to public;
 
-update datalink.column_options
+update datalink.columns
    set integrity='SELECTIVE',
        read_access='FS', write_access='FS',
        recovery='NO', on_unlink='NONE'

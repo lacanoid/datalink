@@ -8,7 +8,7 @@ create table sample_datalinks2 (
   link datalink
 );
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
 
@@ -21,7 +21,7 @@ values (dlvalue('/etc/','FS','Sample file datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
 
@@ -37,7 +37,7 @@ create table sample_datalinks3 as
 select *
   from sample_datalinks;
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
 

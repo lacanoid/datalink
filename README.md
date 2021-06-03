@@ -22,7 +22,7 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Event and other triggers to make all of this 'just work'
-- Setting link control options (LCOs) with UPDATE DATALINK.COLUMN_OPTIONS
+- Setting link control options (LCOs) with UPDATE DATALINK.COLUMNS
 - Token generator (uses uuid-ossp)
 - PlPerlu interface to curl via WWW::Curl
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
@@ -107,10 +107,10 @@ datalink triggers are automatically installed on the table.
 
 
 SQL/MED syntax to set link control options for a column is not supported,
-but you can use normal SQL UPDATE on table DATALINK.COLUMN_OPTIONS
+but you can use normal SQL UPDATE on table DATALINK.COLUMNS
 to set them instead.
 
-    update datalink.column_options
+    update datalink.columns
        set link_control='FILE', integrity='ALL',
            read_access='DB', write_access='BLOCKED',
            recovery='YES', on_unlink='RESTORE'

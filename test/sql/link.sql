@@ -9,7 +9,7 @@ create table sample_datalinks4 (
 );
 
 -- select dl_chattr('sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link';
 
@@ -48,7 +48,7 @@ create table sample_datalinks5 (
 );
 
 -- select dl_chattr('sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks5' and column_name='link';
 
@@ -80,7 +80,7 @@ alter table sample_datalinks4
 alter table sample_datalinks4
  add column link2 datalink;
 -- select dl_chattr('sample_datalinks4','link2',dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link2';
 
@@ -93,29 +93,29 @@ update sample_datalinks4 set link2 = link;
 update sample_datalinks4 set link = link2;
 update sample_datalinks4 set link2 = null;
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='SELECTIVE', recovery='YES'
  where table_name='sample_datalinks4' and column_name='link2';
 
-select * from column_options;
+select * from columns;
 alter table sample_datalinks4 rename link2 to link3;
-select * from column_options where table_name='sample_datalinks4';
+select * from columns where table_name='sample_datalinks4';
 
 update sample_datalinks4 set link3 = link;
 
 select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
 alter table sample_datalinks4 rename link3 to link4;
-select * from column_options where table_name='sample_datalinks4';
+select * from columns where table_name='sample_datalinks4';
 select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,err from datalink.linked_files where regclass='sample_datalinks4'::regclass;
 
 alter table sample_datalinks4 drop column link4;
 
 create table my_table(link datalink);
-update datalink.column_options set integrity='SELECTIVE' where table_name='my_table';
+update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
 create table my_table2(link datalink);
-update datalink.column_options set integrity='ALL' where table_name='my_table2';
+update datalink.columns set integrity='ALL' where table_name='my_table2';
 create table my_table3(link datalink);
-update datalink.column_options set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
+update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
 create table my_table4(link datalink);
-update datalink.column_options set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
-select * from datalink.column_options order by table_name;
+update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+select * from datalink.columns order by table_name;

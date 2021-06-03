@@ -77,16 +77,21 @@ For this, one must first create some table with datalink column with integrity='
 
     mydb=# create table my_table (link datalink);
     CREATE TABLE
-    mydb=# update datalink.column_options set integrity='SELECTIVE' where table_name='my_table';
-    UPDATE 1
-    mydb=# select * from datalink.column_options where table_name='my_table';
+    mydb=# select * from datalink.columns where table_name='my_table';
      table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
     ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
      my_table   | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
     (1 row)
 
+One can change link control options for a column with a SQL UPDATE statement.
 Please note that currently only the super user can change column options.
 
+    mydb=# update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
+    UPDATE 1
+
+
+    mydb=# update datalink.columns set integrity='ALL' where table_name='my_table';
+    UPDATE 1
 
 
 

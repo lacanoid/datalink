@@ -7,7 +7,7 @@ create table sample_datalinks4 (
 );
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 -- select dl_chattr('sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link';
 insert into sample_datalinks4 (link)
@@ -71,7 +71,7 @@ create table sample_datalinks5 (
 );
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks5
 -- select dl_chattr('sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks5' and column_name='link';
 insert into sample_datalinks5 (link)
@@ -117,7 +117,7 @@ NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 alter table sample_datalinks4
  add column link2 datalink;
 -- select dl_chattr('sample_datalinks4','link2',dl_lco(link_control=>'FILE',integrity=>'ALL'));
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link2';
 insert into sample_datalinks4 (link)
@@ -131,7 +131,7 @@ update sample_datalinks4 set link = link2;
 update sample_datalinks4 set link2 = null;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='SELECTIVE', recovery='YES'
  where table_name='sample_datalinks4' and column_name='link2';
 ERROR:  datalink exception
@@ -140,7 +140,7 @@ HINT:  see table datalink.link_control_options for valid link control options
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 24 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_options() line 18 at PERFORM
-select * from column_options;
+select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
@@ -152,7 +152,7 @@ select * from column_options;
 (6 rows)
 
 alter table sample_datalinks4 rename link2 to link3;
-select * from column_options where table_name='sample_datalinks4';
+select * from columns where table_name='sample_datalinks4';
     table_name     | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 -------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  sample_datalinks4 | link        | NO           | NONE      | FS          | FS           | NO       | NONE
@@ -170,7 +170,7 @@ select path,state,read_access,write_access,recovery,on_unlink,regclass,attname,e
 (2 rows)
 
 alter table sample_datalinks4 rename link3 to link4;
-select * from column_options where table_name='sample_datalinks4';
+select * from columns where table_name='sample_datalinks4';
     table_name     | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 -------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  sample_datalinks4 | link        | NO           | NONE      | FS          | FS           | NO       | NONE
@@ -189,17 +189,17 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 create table my_table(link datalink);
 NOTICE:  DATALINK DDL:TRIGGER on my_table
-update datalink.column_options set integrity='SELECTIVE' where table_name='my_table';
+update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
 create table my_table2(link datalink);
 NOTICE:  DATALINK DDL:TRIGGER on my_table2
-update datalink.column_options set integrity='ALL' where table_name='my_table2';
+update datalink.columns set integrity='ALL' where table_name='my_table2';
 create table my_table3(link datalink);
 NOTICE:  DATALINK DDL:TRIGGER on my_table3
-update datalink.column_options set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
+update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
 create table my_table4(link datalink);
 NOTICE:  DATALINK DDL:TRIGGER on my_table4
-update datalink.column_options set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
-select * from datalink.column_options order by table_name;
+update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+select * from datalink.columns order by table_name;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE

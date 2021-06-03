@@ -9,13 +9,13 @@ create table sample_datalinks6 (
   link2 datalink
 );
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL',
        read_access='DB', write_access='TOKEN',
        recovery='YES', on_unlink='RESTORE'
  where table_name='sample_datalinks6' and column_name='link';
 
-update datalink.column_options
+update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks6' and column_name='link2';
 
