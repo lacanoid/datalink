@@ -855,8 +855,8 @@ begin
                   detail = url,
                   hint = 'make sure you are using a file: URL scheme';
     end if;
-    -- check if reference exists
     if lco.integrity = 'ALL' then has_token := 1; end if;
+    -- check if reference exists
     r := datalink.curl_get(url,true);
     if not r.ok then
       raise exception 'datalink exception - referenced file does not exist' 
@@ -864,6 +864,7 @@ begin
                   detail = format('(%s) %s',r.retcode,r.error),
                   hint = 'make sure referenced file actually exists';
     end if;
+    -- store HTTP response code if one was returned
     if r.response_code > 0 then
       link := jsonb_set(link,array['rc'],to_jsonb(r.response_code));
     end if;
@@ -912,6 +913,7 @@ declare
   rn jsonb;
   link1 pg_catalog.datalink;
   link2 pg_catalog.datalink;
+  opt datalink.link_control_options;
 begin
   if tg_op = 'TRUNCATE' then
     perform datalink.file_unlink(path)
@@ -948,11 +950,13 @@ begin
    where regclass = tg_relid
   loop
    link1 := null; link2 := null;
+   opt := datalink.link_control_options(r.lco);
    if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
    if link1 is distinct from link2 then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
+         -- TODO: check for write_access = TOKEN
          link2 := datalink.dl_ref(link2,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
        end if;
