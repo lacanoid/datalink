@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.12 lacanoid@ljudmila.org
+--  version 0.14 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -887,7 +887,7 @@ begin
     if not r.ok then
       raise exception 'datalink exception - referenced file does not exist' 
             using errcode = 'HW003', 
-                  detail = url,
+                  detail = format('(%s) %s',r.retcode,r.error),
                   hint = 'make sure referenced file actually exists';
     end if;
     if r.response_code > 0 then

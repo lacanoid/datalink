@@ -18,7 +18,6 @@ URLs are checked for syntax and wrong ones throw errors.
 
     mydb=# select dlvalue('foo bar');
     ERROR:  invalid input syntax for type uri at or near " bar"
-    CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at assignment
 
 URLs are normalized before they are converted to datalinks, so things like .. are resolved.
 
@@ -36,7 +35,7 @@ Use `dlurlcompleteonly()` function to convert datalink back to URL.
      http://www.github.io/a/b/e
     (1 row)
 
-You can also use dlvalue() with absolute paths for file links.
+You can also use `dlvalue()` with absolute paths for file links.
 
     mydb=# select dlvalue('/var/www/datalink/index.html');
                         dlvalue                     
@@ -50,6 +49,23 @@ Use `dlurlpathonly()` function to get file path from a datalink.
              dlurlpathonly         
     ------------------------------
      /var/www/datalink/index.html
+    (1 row)
+
+Use `dlurlscheme()` function to get URL scheme part of datalink.
+
+    mydb=# select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlscheme 
+    -------------
+     https
+    (1 row)
+
+Use `dlurlserver()` function to get URL server part of datalink.
+This does not include username and password if they are present in URL.
+
+    mydb=# select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
+      dlurlserver  
+    ---------------
+     www.github.io
     (1 row)
 
 Referential integrity

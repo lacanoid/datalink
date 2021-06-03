@@ -1,5 +1,6 @@
 Version 0.14
 ------------
+- better error reporting when integrity checking datalinks with curl_get()
 
 Version 0.13
 ------------
@@ -31,7 +32,7 @@ Version 0.12
 - autodetect link type in dlvalue()
 - enable use of any string as link type. These are returned by dllinktype().
 - automatic file path to url encoding
-	
+
 Version 0.11
 ------------
 - use of [pguri](https://github.com/petere/pguri) extension for better url handling
