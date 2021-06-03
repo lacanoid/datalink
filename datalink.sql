@@ -957,6 +957,14 @@ begin
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
          -- TODO: check for write_access = TOKEN
+	 if opt.write_access = 'BLOCKED' and tg_op='UPDATE' and link1 is not null then
+           raise exception 'datalink exception - invalid write permission for update' 
+                     using errcode = 'HW006',
+                           detail = format('write_access is BLOCKED for column %s,%I',
+			                   tg_relid::regclass::text,r.column_name),
+                           hint = 'set write_access to ADMIN or TOKEN'
+                    ;
+	 end if;
          link2 := datalink.dl_ref(link2,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
        end if;
@@ -1086,7 +1094,7 @@ begin
  if not found then
       raise exception 'datalink exception' 
             using errcode = 'HW000',
-	                detail = format('Invalid link control options (%s)',my_lco),
+	          detail = format('Invalid link control options (%s)',my_lco),
                   hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
@@ -1097,7 +1105,8 @@ begin
    if n > 0 then
       raise exception 'datalink exception' 
             using errcode = 'HW000',
-	                detail = format('Can''t change link control options; %s non-null values present in column "%s"',n,my_column_name),
+	          detail = format('Can''t change link control options; %s non-null values present in column "%s"',
+		                  n,my_column_name),
                   hint = format('Perhaps you can "truncate %s"',my_regclass);
    end if;
 

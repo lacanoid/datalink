@@ -9,7 +9,7 @@ create table sample_datalinks6 (
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks6
 update datalink.column_options
    set link_control='FILE', integrity='ALL',
-       read_access='FS', write_access='BLOCKED',
+       read_access='DB', write_access='ADMIN',
        recovery='YES', on_unlink='RESTORE'
  where table_name='sample_datalinks6' and column_name='link';
 update datalink.column_options
@@ -25,7 +25,7 @@ DETAIL:  from sample_datalinks6.link as '/var/www/datalink/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 46 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 39 at PERFORM
-PL/pgSQL function dl_trigger_table() line 52 at assignment
+PL/pgSQL function dl_trigger_table() line 60 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 update sample_datalinks6 set link2 = null;
@@ -39,7 +39,7 @@ ERROR:  INTEGRITY ALL can only be used with file URLs
 DETAIL:  http://www.debian.org/tmp/CHANGELOG.md
 HINT:  make sure you are using a file: URL scheme
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 16 at RAISE
-PL/pgSQL function dl_trigger_table() line 52 at assignment
+PL/pgSQL function dl_trigger_table() line 60 at assignment
 select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
   from sample_datalinks6;
              dlurlpath1             

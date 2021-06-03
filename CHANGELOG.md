@@ -1,6 +1,7 @@
 Version 0.14
 ------------
 - better error reporting when integrity checking datalinks with curl_get()
+- prevent updates of datalinks with write_access BLOCKED
 
 Version 0.13
 ------------
