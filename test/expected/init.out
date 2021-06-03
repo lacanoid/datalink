@@ -7,7 +7,7 @@ set search_path=datalink;
                     List of installed extensions
    Name   | Version |  Schema  |             Description             
 ----------+---------+----------+-------------------------------------
- datalink | 0.13    | datalink | SQL/MED DATALINK type and functions
+ datalink | 0.14    | datalink | SQL/MED DATALINK type and functions
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
