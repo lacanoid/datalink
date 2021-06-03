@@ -1,4 +1,17 @@
 #!/usr/bin/perl
+# pg_datalinker - SQL/MED datalinker daemon
+#
+### BEGIN INIT INFO
+# Provides:          pg_datalinker
+# Required-Start:    postgresql $remote_fs $syslog $time
+# Required-Stop:     postgresql $remote_fs $syslog $time
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: SQL/MED datalinker daemon
+# Description:       pg_datalinker is a daemon and a tool
+#                    to manage SQL/MED datalinks for Postgresql
+### END INIT INFO
+
 
 use strict;
 use DBI;
