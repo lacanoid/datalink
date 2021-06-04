@@ -8,6 +8,10 @@ create table sample_urls (
   url text
 );
 
+select dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS');
+select dlurlpath(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
+select dlurlcomplete(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
+
 insert into sample_urls (url)
 values 
   ('http://www.mozilla.org');
