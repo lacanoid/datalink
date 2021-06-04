@@ -1319,3 +1319,9 @@ update datalink.columns
        recovery='NO', on_unlink='NONE'
  where table_name='sample_datalinks' and column_name='link';
   
+---------------------------------------------------
+-- add stuff to pg_dump 
+---------------------------------------------------
+SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
+SELECT pg_catalog.pg_extension_config_dump('datalink.columns', '');
+SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');

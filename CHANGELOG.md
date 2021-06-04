@@ -6,6 +6,7 @@ Version 0.14
 - forbid UPDATE on columns where write_access = BLOCKED, set to ADMIN to make them updatable
 - implemented write_access = TOKEN, meaning ADMIN REQUIRING TOKEN FOR UPDATE
 - made DLURLCOMPLETE and others work on urls in addition to just datalinks
+- added tables datalink.dl_linked_files and datalink.sample_datalinks to pg_dump backup
 
 Version 0.13
 ------------
