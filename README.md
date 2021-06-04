@@ -10,7 +10,7 @@ It comes with a special deamon `pg_datalinker`, which handles all file manipulat
 but the extension can be used without it, albeit with some loss of functionality.
 The extension by itself does not perform any file system changes. 
 
-This extension uses a number of advanced PostgreSQL features for implementation,
+This extension uses a number of advanced Postgres features for implementation,
 including transactions, jsonb, event and instead-of triggers, listen/notify, plperlu...
  
 Currently, it implements the following:
