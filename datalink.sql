@@ -861,8 +861,8 @@ begin
     if not r.ok then
       raise exception 'datalink exception - referenced file does not exist' 
             using errcode = 'HW003', 
-                  detail = format('(%s) %s',r.retcode,r.error),
-                  hint = 'make sure referenced file actually exists';
+                  detail = format('curl error %s - %s',r.retcode,r.error),
+                  hint = 'make sure url is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned
     if r.response_code > 0 then

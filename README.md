@@ -21,10 +21,10 @@ Currently, it implements the following:
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
 - DLLINKTYPE function
 - DLCOMMENT function
+- Setting *link control options* (LCOs) with UPDATE DATALINK.COLUMNS
 - Event and other triggers to make all of this 'just work'
-- Setting link control options (LCOs) with UPDATE DATALINK.COLUMNS
 - Token generator (uses uuid-ossp)
-- PlPerlu interface to curl via WWW::Curl
+- PlPerlu interface to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
@@ -140,8 +140,9 @@ Functions for extracting information from datalink type:
 
 See also
 --------
-- [Slides on design](docs/datalink.pdf) of datalink for Postgres (old)
-- [tests contain some examples](test/sql)
+- [Datalink primer](https://github.com/lacanoid/datalink/blob/master/docs/primer.md) 
+- [Slides on design](https://github.com/lacanoid/datalink/blob/master/docs/datalink.pdf) of datalink for Postgres (old)
+- [Tests contain some examples](test/sql)
 - https://wiki.postgresql.org/wiki/DATALINK
 - [SQL/MED standard](http://www.wiscorp.com/sql20nn.zip)
 - [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for Postgres by Gilles Darold

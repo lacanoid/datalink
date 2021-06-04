@@ -10,6 +10,8 @@ Wanted
 - init.d / systemd scripts for datalinker
 - Transactional File IO functions + file spaces / bfile like functionality
 - Native postgres interface to curl
+- some sort of file to url mapping. dlurl* functions could use these.
+- Files on remote servers. Perhaps foreign servers + dblink
 
 Todo
 ====
@@ -34,6 +36,7 @@ Todo
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - allow backups for read_access=fs LCO
+- pg_extension_config_dump magic
 - maybe: loose Curl and check for files only with stat
 - dlvalue better error handling
 - make this work for non-superusers

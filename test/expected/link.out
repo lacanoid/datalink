@@ -26,8 +26,8 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 ERROR:  datalink exception - referenced file does not exist
-DETAIL:  (37) Couldn't read a file:// file
-HINT:  make sure referenced file actually exists
+DETAIL:  curl error 37 - Couldn't read a file:// file
+HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 25 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
