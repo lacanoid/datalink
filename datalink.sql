@@ -1145,7 +1145,6 @@ grant usage on schema datalink to public;
 CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $$ select $1->>'text' $$;
-
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
@@ -1154,66 +1153,98 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select $1->>'url' $_$;
-
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlcomplete(text) RETURNS text LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlcomplete(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text) 
+IS 'SQL/MED - Returns normalized URL value';
 
 ---------------------------------------------------
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select $1->>'url' $_$;
-
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
+CREATE FUNCTION pg_catalog.dlurlcompleteonly(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlcompleteonly(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(text) 
+IS 'SQL/MED - Returns normalized URL value';
+
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION pg_catalog.dlurlserver(datalink)
+CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','host')$function$;
-
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
-     IS 'SQL/MED - Returns the file server from a DATALINK value';
+     IS 'SQL/MED - Returns the file server from DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlserver(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlserver(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlserver(text) 
+IS 'SQL/MED - Returns the file server from URL';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION pg_catalog.dlurlscheme(datalink)
+CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','scheme')$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
-     IS 'SQL/MED - Returns the scheme from a DATALINK value';
+     IS 'SQL/MED - Returns the scheme from DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlscheme(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlscheme(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlscheme(text) 
+IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION pg_catalog.dlurlpath(datalink)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$select format('%s%s',datalink.uri_get($1->>'url','path'),'#'||($1->>'token'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
-     IS 'SQL/MED - Returns the file path from a DATALINK value';
+     IS 'SQL/MED - Returns the file path from DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlpath(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlpath(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlpath(text) 
+IS 'SQL/MED - Returns the file path from URL';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION pg_catalog.dlurlpathonly(datalink)
+CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$select datalink.uri_get($1->>'url','path')$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
-     IS 'SQL/MED - Returns the file path from a DATALINK value';
+     IS 'SQL/MED - Returns the file path from DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlpathonly(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlpathonly(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlpathonly(text) 
+IS 'SQL/MED - Returns the file path from URL';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
+CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
@@ -1222,7 +1253,13 @@ CREATE OR REPLACE FUNCTION pg_catalog.dllinktype(datalink)
 			       )$function$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
-     IS 'SQL/MED - Returns the link type (URL or FS) of a DATALINK value';
+     IS 'SQL/MED - Returns the link type (URL,FS or custom) of DATALINK value';
+
+CREATE FUNCTION pg_catalog.dllinktype(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dllinktype(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dllinktype(text) 
+IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
 
@@ -1239,7 +1276,7 @@ CREATE FOREIGN TABLE datalink.dl_fsprefix (
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
-CREATE OR REPLACE FUNCTION datalink.is_valid_prefix(datalink.file_path)
+CREATE FUNCTION datalink.is_valid_prefix(datalink.file_path)
  RETURNS boolean
  LANGUAGE sql
  STABLE STRICT
@@ -1253,7 +1290,7 @@ $function$
 ;
 
 ---------------------------------------------------
-CREATE OR REPLACE FUNCTION datalink.have_datalinker()
+CREATE FUNCTION datalink.have_datalinker()
  RETURNS boolean
  LANGUAGE sql
  STABLE

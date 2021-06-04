@@ -5,6 +5,7 @@ Version 0.14
 - prevent updates of datalinks with write_access BLOCKED
 - forbid UPDATE on columns where write_access = BLOCKED, set to ADMIN to make them updatable
 - implemented write_access = TOKEN, meaning ADMIN REQUIRING TOKEN FOR UPDATE
+- made DLURLCOMPLETE and others work on urls in addition to just datalinks
 
 Version 0.13
 ------------
