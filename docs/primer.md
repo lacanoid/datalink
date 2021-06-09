@@ -128,6 +128,9 @@ For this, one must first create a table with a column of type datalink.
      my_table   | link        | NO           | NONE      | FS          | FS           | NO       | NONE
     (1 row)
 
+Datalink columns are created by default without link control with integrity option set to `NONE`.
+Datalinks are only checked for valid URL syntax but not processed further.
+
 To enable integrity checks set integrity to `SELECTIVE` for this column.
 One can change link control options for a column with a SQL UPDATE DATALINK.COLUMNS statement.
 Please note that currently only the super user can change column options.
@@ -182,6 +185,27 @@ Note that this work equally well for files.
 Note that successful checks for web datalinks do not mean that the the web page actually exists.
 [HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
 `404 NOT FOUND` errors were successfully inserted in the above example.
+
+After values are stored, no further checks are done.
+
+Full referential integrity
+--------------------------
+
+Full referential integrity provides base for tighter coupling of files and SQL environment. 
+It can optionally prevent files from being changed, renamed or deleted, even by root.
+It works only with file datalinks with URL scheme `file`.
+
+To enable full referential integrity set integrity to `ALL` for this column.
+
+    mydb=# update datalink.columns set integrity='ALL' where table_name='my_table';
+    UPDATE 1
+    mydb=# select * from datalink.columns where table_name='my_table';
+     table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+    ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+     my_table   | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
+    (1 row)
+
+
 
 (3 rows)
 
