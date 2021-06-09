@@ -184,7 +184,7 @@ Note that this work equally well for files.
      
 Note that successful checks for web datalinks do not mean that the the web page actually exists.
 [HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
-`404 NOT FOUND` errors were successfully inserted in the above example.
+`404 NOT FOUND` errors were successfully inserted in the above example, because HTTP server returned a valid response.
 
 After values are stored, no further checks are done.
 
@@ -193,7 +193,7 @@ Full referential integrity
 
 Full referential integrity provides base for tighter coupling of files and SQL environment. 
 It can optionally prevent files from being changed, renamed or deleted, even by root.
-It works only with file datalinks with URL scheme `file`.
+It works only with local files with datalinks with URL scheme `file`.
 
 To enable full referential integrity set integrity to `ALL` for this column.
 
