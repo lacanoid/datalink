@@ -118,21 +118,22 @@ Referential integrity
 
 One can use datalinks to check whether resources pointed to by URLs exist.
 
-For this, one must first create some table with datalink column with integrity='SELECTIVE'.
+For this, one must first create a table with a column of type datalink.
 
     mydb=# create table my_table (link datalink);
     CREATE TABLE
-    mydb=# select * from datalink.columns where table_name='my_table';
-     table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
-    ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
-     my_table   | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
-    (1 row)
 
+To enable integrity checks set integrity to 'SELECTIVE' for this column.
 One can change link control options for a column with a SQL UPDATE statement.
 Please note that currently only the super user can change column options.
 
     mydb=# update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
     UPDATE 1
+    mydb=# select * from datalink.columns where table_name='my_table';
+     table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+    ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+     my_table   | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+    (1 row)
 
 Now one can proceed to insert some datalinks.
 
@@ -142,17 +143,18 @@ Now one can proceed to insert some datalinks.
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org/foo'));
     INSERT 0 1
     
-Datalinks are accessed via CURL with HEAD request as they are inserted.
+Datalinks are accessed via [CURL](https://curl.se/) with HEAD request as they are inserted.
+CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
 If CURL request fails, exception is raised, transaction aborted and no value is inserted.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila2.org'));
     ERROR:  datalink exception - referenced file does not exist
-    DETAIL:  (6) Couldn't resolve host name
+    DETAIL:  curl error 6 - Couldn't resolve host name
     HINT:  make sure referenced file actually exists
     
     mydb=# insert into my_table values (dlvalue('https://www.ljudmila.org'));
     ERROR:  datalink exception - referenced file does not exist    
-    DETAIL:  (60) Peer certificate cannot be authenticated with given CA certificates
+    DETAIL:  curl error 60 - Peer certificate cannot be authenticated with given CA certificates
     HINT:  make sure referenced file actually exists
 
 Note that this work equally well for files.
@@ -162,7 +164,7 @@ Note that this work equally well for files.
 
     mydb=# insert into my_table values (dlvalue('/etc/issue2'));
     ERROR:  datalink exception - referenced file does not exist
-    DETAIL:  (37) Couldn't read a file:// file
+    DETAIL:  curl error 37 - Couldn't read a file:// file
     HINT:  make sure referenced file actually exists
 
     mydb=# table my_table;
@@ -171,6 +173,10 @@ Note that this work equally well for files.
      {"rc": 200, "url": "http://www.ljudmila.org"}
      {"rc": 404, "url": "http://www.ljudmila.org/foo"}
      {"url": "file:///etc/issue"}
+     
+Note that successful checks for web datalinks do not mean that the web page actually exists.
+[HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
+
 (3 rows)
 
 
