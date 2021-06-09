@@ -128,8 +128,8 @@ For this, one must first create a table with a column of type datalink.
      my_table   | link        | NO           | NONE      | FS          | FS           | NO       | NONE
     (1 row)
 
-To enable integrity checks set integrity to 'SELECTIVE' for this column.
-One can change link control options for a column with a SQL UPDATE statement.
+To enable integrity checks set integrity to `SELECTIVE` for this column.
+One can change link control options for a column with a SQL UPDATE DATALINK.COLUMNS statement.
 Please note that currently only the super user can change column options.
 
     mydb=# update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
@@ -148,9 +148,9 @@ Now one can proceed to insert some datalinks.
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org/foo'));
     INSERT 0 1
     
-Datalinks are accessed via [CURL](https://curl.se/) with HEAD request as they are inserted.
+Datalinks are checked via [CURL](https://curl.se/) with HEAD request as they are inserted or updated.
 CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
-If CURL request fails, exception is raised, transaction aborted and no value is inserted.
+If CURL request fails, exception is raised and transaction aborted.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila2.org'));
     ERROR:  datalink exception - referenced file does not exist
