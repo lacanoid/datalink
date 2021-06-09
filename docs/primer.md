@@ -113,7 +113,7 @@ This does not include username and password if they are present in URL.
      www.github.io
     (1 row)
 
-Selective Referential integrity
+Selective referential integrity
 -------------------------------
 
 One can use datalinks to check whether resources pointed to by URLs exist.
@@ -122,6 +122,11 @@ For this, one must first create a table with a column of type datalink.
 
     mydb=# create table my_table (link datalink);
     CREATE TABLE
+    mydb=# select * from datalink.columns where table_name='my_table';
+     table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+    ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+     my_table   | link        | NO           | NONE      | FS          | FS           | NO       | NONE
+    (1 row)
 
 To enable integrity checks set integrity to 'SELECTIVE' for this column.
 One can change link control options for a column with a SQL UPDATE statement.
