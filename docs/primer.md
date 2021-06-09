@@ -207,6 +207,9 @@ To enable full referential integrity set integrity to `ALL` for this column.
 
 With full referential integrity each link can be stored only once, insuring uniqueness among links across the whole database.
 
+Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
+to perform file operations on datalinks. Further settings require it's use to be effective.
+
 (3 rows)
 
 
