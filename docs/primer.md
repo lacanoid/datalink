@@ -113,8 +113,8 @@ This does not include username and password if they are present in URL.
      www.github.io
     (1 row)
 
-Referential integrity
----------------------
+Selective Referential integrity
+-------------------------------
 
 One can use datalinks to check whether resources pointed to by URLs exist.
 
