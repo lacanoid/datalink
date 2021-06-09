@@ -174,8 +174,9 @@ Note that this work equally well for files.
      {"rc": 404, "url": "http://www.ljudmila.org/foo"}
      {"url": "file:///etc/issue"}
      
-Note that successful checks for web datalinks do not mean that the web page actually exists.
+Note that successful checks for web datalinks do not mean that the the web page actually exists.
 [HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
+`404 NOT FOUND` errors were successfully inserted in the above example.
 
 (3 rows)
 
