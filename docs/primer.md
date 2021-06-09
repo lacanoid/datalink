@@ -205,7 +205,7 @@ To enable full referential integrity set integrity to `ALL` for this column.
      my_table   | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
     (1 row)
 
-
+With full referential integrity each link can be stored only once, insuring uniqueness among links across the whole database.
 
 (3 rows)
 
