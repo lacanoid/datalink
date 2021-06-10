@@ -214,7 +214,6 @@ to perform file operations on datalinks. Further settings require it's use for t
 For security reasons files are restricted to a set of directories or *volumes*. 
 These are configured externally to postgres, using `pg_datalinker` command.
 By default, volume `/var/www/datalink/` is created.
-(3 rows)
 
 
 
