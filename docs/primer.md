@@ -211,8 +211,9 @@ Once a datalink to a file is stored somewhere, the file is said to be *linked*.
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
 to perform file operations on datalinks. Further settings require it's use for them to be effective.
 
-For security reasons files are restricted to a set of directories or *volumes*. These are configured externally to postgres, using `pg_datalinker` command.
-
+For security reasons files are restricted to a set of directories or *volumes*. 
+These are configured externally to postgres, using `pg_datalinker` command.
+By default, volume `/var/www/datalink/` is created.
 (3 rows)
 
 
