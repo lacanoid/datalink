@@ -153,7 +153,7 @@ Now one can proceed to insert some datalinks.
     
 Datalinks are checked via [CURL](https://curl.se/) with HEAD request as they are inserted or updated.
 CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
-If CURL request fails, exception is raised and transaction aborted.
+If CURL request fails, exception is raised and transaction is aborted.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila2.org'));
     ERROR:  datalink exception - referenced file does not exist
