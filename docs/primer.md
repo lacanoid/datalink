@@ -165,7 +165,7 @@ If CURL request fails, exception is raised and transaction aborted.
     DETAIL:  curl error 60 - Peer certificate cannot be authenticated with given CA certificates
     HINT:  make sure referenced file actually exists
 
-Note that this work equally well for files.
+Note that this works equally well for files.
 
     mydb=# insert into my_table values (dlvalue('/etc/issue'));
     INSERT 0 1
@@ -205,10 +205,13 @@ To enable full referential integrity set integrity to `ALL` for this column.
      my_table   | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
     (1 row)
 
-With full referential integrity each link can be stored only once, insuring uniqueness among links across the whole database.
+With full referential integrity each link can be stored (linked) only once, insuring uniqueness among links across the whole database.
+Once a datalink to a file is stored somewhere, the file is said to be *linked*. 
 
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
-to perform file operations on datalinks. Further settings require it's use to be effective.
+to perform file operations on datalinks. Further settings require it's use for them to be effective.
+
+For security reasons files are restricted to a set of directories or *volumes*. These are configured externally to postgres.
 
 (3 rows)
 
