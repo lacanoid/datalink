@@ -22,4 +22,5 @@ script: |
   cd pguri ; sudo make PGPORT=55435 PGUSER=postgres clean install installcheck ; cd ..
   make all
   sudo make install PG_CONFIG=/usr/lib/postgresql/$PGVERSION/bin/pg_config
+  if [ ! -d /var/www ] ; then mkdir /var/www ; fi
   PGPORT=55435 make installcheck PGUSER=postgres
