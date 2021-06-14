@@ -17,7 +17,6 @@ include $(PGXS)
 installcheck: testfiles
 
 testfiles:
-	if [ ! -d /var/www ] ; then mkdir /var/www ; fi
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	cp CHANGELOG.md /var/www/datalink/
 	if [ ! -f /var/www/datalink/test1.txt ] ; then touch /var/www/datalink/test1.txt ; fi
