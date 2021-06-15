@@ -12,9 +12,9 @@ select dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS');
 (1 row)
 
 select dlurlpath(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
-         dlurlpath         
----------------------------
- /tmp/test-_=!@$%^&*()[]{}
+           dlurlpath           
+-------------------------------
+ /tmp/test-_=!@$%^&*()[]{}#%3F
 (1 row)
 
 select dlurlcomplete(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));

@@ -138,9 +138,9 @@ select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 (1 row)
 
 select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
-  dlurlpath   
---------------
- /foo/bar/baz
+    dlurlpath     
+------------------
+ /foo/bar/baz#123
 (1 row)
 
 select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
@@ -150,9 +150,9 @@ select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 (1 row)
 
 select dlurlpath(dlvalue('file:///foo/bar/baz#123'));
-  dlurlpath   
---------------
- /foo/bar/baz
+    dlurlpath     
+------------------
+ /foo/bar/baz#123
 (1 row)
 
 select dlurlpathonly(dlvalue('file:///foo/bar/baz#123'));
@@ -192,9 +192,9 @@ select dlvalue('/etc/foo[1](2)#3');
 (1 row)
 
 select dlurlpath(dlvalue('/etc/foo[1](2)#3'));
-   dlurlpath    
-----------------
- /etc/foo[1](2)
+    dlurlpath     
+------------------
+ /etc/foo[1](2)#3
 (1 row)
 
 select dlvalue('/etc/issue');

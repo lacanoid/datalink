@@ -1219,7 +1219,12 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select format('%s%s',datalink.uri_get($1->>'url','path'),'#'||($1->>'token'))$function$;
+   AS $function$
+   select format('%s%s',
+                  datalink.uri_get($1->>'url','path'),
+                  '#'||coalesce($1->>'token',datalink.uri_get($1->>'url','token'))
+          )
+$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
      IS 'SQL/MED - Returns the file path from DATALINK value';
