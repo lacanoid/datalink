@@ -42,4 +42,6 @@ Todo
 - dlvalue better error handling
 - make this work for non-superusers
 - ?implicit cast datalink -> url
+- way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
+- set linked file owner to table owner
 - permissions
