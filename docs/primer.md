@@ -212,22 +212,22 @@ For security reasons files are restricted to a set of directories or *volumes*.
 These are configured externally to postgres, using `pg_datalinker` command.
 By default, volume `/var/www/datalink/` is created.
 
-    postgres=# insert into my_table values (dlvalue('http://www.ljudmila.org'));
+    mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));
     ERROR:  INTEGRITY ALL can only be used with file URLs
     DETAIL:  http://www.ljudmila.org
     HINT:  make sure you are using a file: URL scheme
 
-    postgres=# insert into my_table values (dlvalue('/etc/issue'));
+    mydb=# insert into my_table values (dlvalue('/etc/issue'));
     ERROR:  datalink exception - invalid datalink value
     DETAIL:  unknown file volume (prefix) in /etc/issue
     HINT:  run "pg_datalinker add" to add volumes
 
-    postgres=# insert into my_table values (dlvalue('/var/www/datalink/test1.txt'));
+    mydb=# insert into my_table values (dlvalue('/var/www/datalink/test1.txt'));
     INSERT 0 1
 
 Datalinks are assigned tokens as they are inserted.
 
-    postgres=# select * from my_table ;
+    mydb=# select * from my_table ;
                                                   link                                              
     ------------------------------------------------------------------------------------------------
      {"url": "file:///var/www/datalink/test1.txt", "token": "e56b96cb-6e15-4ed5-83cd-611e06877826"}
@@ -235,10 +235,10 @@ Datalinks are assigned tokens as they are inserted.
     
 One can see all currently linked files in `datalink.linked_files` view.
 
-    postgres=# select * from datalink.linked_files ;
-                path             | state | read_access | write_access | recovery | on_unlink | regclass | attname | owner | err 
-    -----------------------------+-------+-------------+--------------+----------+-----------+----------+---------+-------+-----
-     /var/www/datalink/test1.txt | LINK  | FS          | FS           | NO       | NONE      | my_table | link    | ziga  | 
+    mydb=# select * from datalink.linked_files ;
+                path             | state | read | write | recovery | on_unlink | regclass | attname | owner | err 
+    -----------------------------+-------+------+-------+----------+-----------+----------+---------+-------+-----
+     /var/www/datalink/test1.txt | LINK  | FS   | FS    | NO       | NONE      | my_table | link    | ziga  | 
     (1 row)
 
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
