@@ -225,7 +225,7 @@ By default, volume `/var/www/datalink/` is created.
     mydb=# insert into my_table values (dlvalue('/var/www/datalink/test1.txt'));
     INSERT 0 1
 
-Datalinks are assigned tokens as they are inserted.
+Datalinks are assigned tokens as they are stored.
 
     mydb=# select * from my_table ;
                                                   link                                              
