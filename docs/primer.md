@@ -53,10 +53,23 @@ Datalink functions
 
 Use `dlurlcomplete()` and `dlurlcompleteonly()` functions to convert datalinks back to URLs.
 
+    mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+            dlurlcomplete      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
+    mydb=# select dlurlcomplete('http://www.github.io/a/b/c/d/../../e');
+            dlurlcomplete      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
     mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
           dlurlcompleteonly      
     ----------------------------
      http://www.github.io/a/b/e
+    (1 row)
 
     mydb=# select dlurlcompleteonly('http://www.github.io/a/b/c/d/../../e');
           dlurlcompleteonly      
