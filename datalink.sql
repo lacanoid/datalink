@@ -373,7 +373,9 @@ begin
    end if;
 -- end if;
  fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
-
+ if fstat is null then
+   fstat := row_to_json(datalink.file_stat(file_path||'#'||my_token))::jsonb;
+ end if;
  if fstat is null then
       raise exception 'datalink exception - referenced file not valid' 
             using errcode = 'HW007',
@@ -857,9 +859,12 @@ begin
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
+    if dlurlscheme(link) = 'file' THEN
+      url := replace(url,'#','%23');
+    end if;
     r := datalink.curl_get(url,true);
     if not r.ok then
-      raise exception 'datalink exception - referenced file does not exist' 
+      raise exception e'datalink exception - referenced file does not exist\nURL:  %s',url 
             using errcode = 'HW003', 
                   detail = format('curl error %s - %s',r.retcode,r.error),
                   hint = 'make sure url is correct and referenced file actually exists';
@@ -1270,7 +1275,7 @@ alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
 
-CREATE FOREIGN TABLE datalink.dl_fsprefix (
+CREATE FOREIGN TABLE datalink.dl_prfx (
 	prefix text NULL
 )
 SERVER datalink_file_server
@@ -1283,7 +1288,7 @@ CREATE FUNCTION datalink.is_valid_prefix(datalink.file_path)
 AS $function$
 select exists (
  select prefix
-   from datalink.dl_fsprefix
+   from datalink.dl_prfx
   where $1 like prefix||'%'
 )
 $function$

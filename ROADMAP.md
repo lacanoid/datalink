@@ -4,9 +4,9 @@ Issues
 
 Wanted
 =======
-- ✔︎ volumes
-- ✔︎ replace link with one with different token
-- ✔︎ Native postgres URL type + functions
+✔︎ volumes
+✔︎ replace link with one with different token
+✔︎ Native postgres URL type + functions
 - init.d / systemd scripts for datalinker
 - Transactional File IO functions + file spaces / bfile like functionality
 - Native postgres interface to curl
@@ -15,19 +15,20 @@ Wanted
 
 Todo
 ====
-- ✔︎ CLI tool for datalinker admin
-- ✔︎ much better error handling in datalinker
-- ✔︎ dlvalue(null) -> null, dlvalue('') -> null
-- ✔︎ file path sanity checking (handle or forbid ..)
-- ✔︎ url sanity checking (handle ..)
-- ✔︎ better URL syntax checking
-- ✔︎ block files only on write_access=blocked
-- ✔︎ URL canonization
-- ✔︎ dlvalue autodetect link type
-- ✔︎ use any string as link type (URL or FS)
-- handle write_access = any ['BLOCKED','ADMIN','TOKEN']
+✔︎ CLI tool for datalinker admin
+✔︎ much better error handling in datalinker
+✔︎ dlvalue(null) -> null, dlvalue('') -> null
+✔︎ file path sanity checking (handle or forbid ..)
+✔︎ url sanity checking (handle ..)
+✔︎ better URL syntax checking
+✔︎ block files only on write_access=blocked
+✔︎ URL canonization
+✔︎ dlvalue autodetect link type
+✔︎ use any string as link type (URL or FS)
+✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
+- dlurlpath() must include token
+- dlurlcomplete() must include token
 - make dlvalue work for comment-only links
-- dlurlpath() and dlurlcomplete() must include token
 - revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
 - remove dl_link_control from dl_link_control_options (it is implied by dl_integrity)
