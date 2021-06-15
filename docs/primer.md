@@ -128,7 +128,7 @@ For this, one must first create a table with a column of type datalink.
      my_table   | link        | NO           | NONE      | FS          | FS           | NO       | NONE
     (1 row)
 
-Datalink columns are created by default without link control with integrity option set to `NONE`.
+Datalink columns are created by default without *link control* with *integrity* option set to `NONE`.
 Datalinks are only checked for valid URL syntax but not processed further.
 
 To enable integrity checks set integrity to `SELECTIVE` for this column.
