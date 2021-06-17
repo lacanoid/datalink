@@ -4,28 +4,30 @@ Issues
 
 Wanted
 =======
-✔︎ volumes
-✔︎ replace link with one with different token
-✔︎ Native postgres URL type + functions
+- ✔︎ volumes
+- ✔︎ replace link with one with different token
+- ✔︎ Native postgres URL type + functions
 - init.d / systemd scripts for datalinker
-- Transactional File IO functions + file spaces / bfile like functionality
+- Transactional File IO functions + file spaces / efile like functionality
+- For constructor form dlvalue(basename,dirname) could be used
 - Native postgres interface to curl
+- way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
 
 Todo
 ====
-✔︎ CLI tool for datalinker admin
-✔︎ much better error handling in datalinker
-✔︎ dlvalue(null) -> null, dlvalue('') -> null
-✔︎ file path sanity checking (handle or forbid ..)
-✔︎ url sanity checking (handle ..)
-✔︎ better URL syntax checking
-✔︎ block files only on write_access=blocked
-✔︎ URL canonization
-✔︎ dlvalue autodetect link type
-✔︎ use any string as link type (URL or FS)
-✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
+- ✔︎ CLI tool for datalinker admin
+- ✔︎ much better error handling in datalinker
+- ✔︎ dlvalue(null) -> null, dlvalue('') -> null
+- ✔︎ file path sanity checking (handle or forbid ..)
+- ✔︎ url sanity checking (handle ..)
+- ✔︎ better URL syntax checking
+- ✔︎ block files only on write_access=blocked
+- ✔︎ URL canonization
+- ✔︎ dlvalue autodetect link type
+- ✔︎ use any string as link type (URL or FS)
+- ✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
 - dlurlpath() must include token
 - dlurlcomplete() must include token
 - make dlvalue work for comment-only links
@@ -42,6 +44,5 @@ Todo
 - dlvalue better error handling
 - make this work for non-superusers
 - ?implicit cast datalink -> url
-- way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - set linked file owner to table owner
 - permissions
