@@ -204,7 +204,7 @@ After values are stored, no further checks are done.
 Full referential integrity
 --------------------------
 
-Full referential integrity provides base for tighter coupling of files and SQL environment. 
+Full referential integrity provides a base for tighter coupling of files and SQL environment. 
 It can optionally prevent files from being changed, renamed or deleted, even by root.
 It works only with local files with datalinks with URL scheme `file`.
 
