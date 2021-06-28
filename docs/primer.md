@@ -257,7 +257,9 @@ One can see all currently linked files in `datalink.linked_files` view.
     (1 row)
 
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
-to perform file operations on datalinks. Further settings require its use to be effective.
+to perform file operations on datalinks. Further settings require its use to be effective. Postgres server process by itself does
+not have high enough priviliges to change file permissions nor does extension perform any file changes by itself. It is all done by
+the datalinker process.
 
 
 
