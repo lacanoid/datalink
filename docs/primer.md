@@ -51,6 +51,8 @@ You can also use `dlvalue()` with absolute paths for file links.
 Datalink functions
 ------------------
 
+Most of these are overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
+
 Use `dlurlcomplete()` and `dlurlcompleteonly()` functions to convert datalinks back to URLs.
 
     mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
