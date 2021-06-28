@@ -10,4 +10,5 @@ Responsibilities
 Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
 Here it sees the results of transactions already commited in postgres.
 Files in state `LINK` go into state `LINKED` when successfully linked otherwise `ERROR`.
+Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
 
