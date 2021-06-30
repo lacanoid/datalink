@@ -441,6 +441,7 @@ begin
  end if; -- if found
 end
 $$ language plpgsql strict;
+revoke execute on function file_link from public;
 
 ---------------------------------------------------
 
@@ -493,6 +494,7 @@ begin
  return true;
 end
 $$ language plpgsql strict;
+revoke execute on function file_unlink from public;
 
 ---------------------------------------------------
 -- uri functions
@@ -583,7 +585,7 @@ select case part
        when 'path' then uri_unescape(uri_path($1))
        when 'query' then uri_query($1)
        when 'fragment' then uri_fragment($1)
-       when 'token' then uri_fragment($1)
+       when 'token' then uri_unescape(uri_fragment($1))
        when 'canonical' then uri_normalize($1)::text
        end
 $function$
@@ -1321,7 +1323,7 @@ COMMENT ON FUNCTION datalink.have_datalinker()
 ---------------------------------------------------
 
 create table sample_datalinks ( link datalink );
-grant select,insert,update,delete on sample_datalinks to public;
+grant select on sample_datalinks to public;
 
 update datalink.columns
    set integrity='SELECTIVE',
@@ -1333,5 +1335,4 @@ update datalink.columns
 -- add stuff to pg_dump 
 ---------------------------------------------------
 SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
-SELECT pg_catalog.pg_extension_config_dump('datalink.columns', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
