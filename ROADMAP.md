@@ -29,9 +29,9 @@ Todo
 - ✔︎ use any string as link type (URL or FS)
 - ✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
 - make // urls default to https:
-- dlurlpath() must include token
+- ✔︎ dlurlpath() must include token
 - dlurlcomplete() must include token
-- make dlvalue work for comment-only links
+- ✔︎ make dlvalue work for comment-only links
 - revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
 - remove link_control from link_control_options (it is implied by dl_integrity)

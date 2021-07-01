@@ -17,6 +17,8 @@ select dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/ww
 select dlurlpath(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
 select dlurlpathonly(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
 
+select dlvalue(null,null,'a comment');
+
 select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcomplete(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));

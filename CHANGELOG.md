@@ -9,6 +9,7 @@ Version 0.14
 - added tables datalink.dl_linked_files and datalink.sample_datalinks to pg_dump backup
 - convert relative to absolute URLs: use `dlvalue(url,dlvalue(base))`
 - use `uri_set` part `src` to help turn relative urls into absolute
+- `dlvalue` now creates comment only datalinks
 
 Version 0.13
 ------------

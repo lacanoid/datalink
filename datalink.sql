@@ -733,7 +733,9 @@ declare
  my_uri text;
  my_type text;
 begin
- if url is null or length(url)<=0 then return null; end if;
+ if url is null or length(url)<=0 then 
+   return case when comment is not null then jsonb_build_object('text',comment) end;
+ end if;
  my_uri := url;
  my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  my_uri := case my_type

@@ -15,7 +15,7 @@ select dlvalue('');
 
 select dlvalue('foo');
 ERROR:  value for domain datalink.dl_url violates check constraint "dl_url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 17 at assignment
 select dlvalue('http://www.ljudmila.org/');
                dlvalue               
 -------------------------------------
@@ -68,6 +68,12 @@ select dlurlpathonly(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dl
         dlurlpathonly        
 -----------------------------
  /var/www/datalink/test3.txt
+(1 row)
+
+select dlvalue(null,null,'a comment');
+        dlvalue        
+-----------------------
+ {"text": "a comment"}
 (1 row)
 
 select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
@@ -229,7 +235,7 @@ select dlvalue('/etc/issue');
 
 select dlvalue('/etc/issue','URL');
 ERROR:  value for domain datalink.dl_url violates check constraint "dl_url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 17 at assignment
 select dlvalue('/etc/issue','FS');
            dlvalue            
 ------------------------------
