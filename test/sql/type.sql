@@ -12,6 +12,11 @@ select dlvalue('/tmp','FS','Example file datalink');
 select dlvalue('file:///tmp','URL','Example file datalink #2');
 select dlvalue('file:///tmp/a/b/c/d/../../x/y','URL','Example file datalink #3');
 
+select dlvalue('favicon.ico',dlvalue('http://www.ljudmila.org/index.html'));
+select dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/'),'Comment');
+select dlurlpath(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
+select dlurlpathonly(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
+
 select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcomplete(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));

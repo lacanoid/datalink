@@ -223,7 +223,8 @@ grant select on columns to public;
 
 CREATE FUNCTION dl_trigger_advice(
     OUT owner name, OUT regclass regclass, 
-    OUT valid boolean, OUT identifier name, OUT links bigint, OUT sql_advice text) 
+    OUT valid boolean, OUT needed boolean,
+    OUT identifier name, OUT links bigint, OUT sql_advice text) 
     RETURNS SETOF record
     LANGUAGE sql
     AS $$
@@ -259,6 +260,7 @@ SELECT
     owner,
     regclass AS regclass,
     not (tgname is null or links = 0) as valid,
+    mco > 0 as needed,
     tgname AS identifier,
     links,
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
@@ -1334,9 +1336,9 @@ create table sample_datalinks ( link datalink );
 grant select on sample_datalinks to public;
 
 update datalink.columns
-   set integrity='SELECTIVE',
-       read_access='FS', write_access='FS',
-       recovery='NO', on_unlink='NONE'
+   set integrity='ALL',
+       read_access='FS', write_access='BLOCKED',
+       recovery='YES', on_unlink='RESTORE'
  where table_name='sample_datalinks' and column_name='link';
   
 ---------------------------------------------------

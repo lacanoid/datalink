@@ -7,13 +7,13 @@ Wanted
 - ✔︎ volumes
 - ✔︎ replace link with one with different token
 - ✔︎ Native postgres URL type + functions
+- ✔︎ way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - init.d / systemd scripts for datalinker
 - Transactional File IO functions + file spaces / efile like functionality
 - For constructor form dlvalue(basename,dirname) could be used
-- Native postgres interface to curl
-- way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
+- Native postgres interface to curl
 
 Todo
 ====
@@ -28,12 +28,13 @@ Todo
 - ✔︎ dlvalue autodetect link type
 - ✔︎ use any string as link type (URL or FS)
 - ✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
+- make // urls default to https:
 - dlurlpath() must include token
 - dlurlcomplete() must include token
 - make dlvalue work for comment-only links
 - revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
-- remove dl_link_control from dl_link_control_options (it is implied by dl_integrity)
+- remove link_control from link_control_options (it is implied by dl_integrity)
 - update trigger on dl_columns to call datalink.modlco()
 - dl_ref and dl_unref redundant?
 - better link state handling: unlink -> linked, error -> ?

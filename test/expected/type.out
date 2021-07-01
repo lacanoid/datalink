@@ -46,6 +46,30 @@ select dlvalue('file:///tmp/a/b/c/d/../../x/y','URL','Example file datalink #3')
  {"url": "file:///tmp/a/b/x/y", "text": "Example file datalink #3"}
 (1 row)
 
+select dlvalue('favicon.ico',dlvalue('http://www.ljudmila.org/index.html'));
+                    dlvalue                     
+------------------------------------------------
+ {"url": "http://www.ljudmila.org/favicon.ico"}
+(1 row)
+
+select dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/'),'Comment');
+                                                dlvalue                                                
+-------------------------------------------------------------------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "text": "Comment"}
+(1 row)
+
+select dlurlpath(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
+                            dlurlpath                             
+------------------------------------------------------------------
+ /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+(1 row)
+
+select dlurlpathonly(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
+        dlurlpathonly        
+-----------------------------
+ /var/www/datalink/test3.txt
+(1 row)
+
 select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
     dlcomment     
 ------------------
