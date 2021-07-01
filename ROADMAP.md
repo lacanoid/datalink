@@ -9,7 +9,7 @@ Wanted
 - ✔︎ Native postgres URL type + functions
 - ✔︎ way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - init.d / systemd scripts for datalinker
-- Transactional File IO functions + file spaces / efile like functionality
+- Transactional File IO functions + file directories / bfile like functionality
 - For constructor form dlvalue(basename,dirname) could be used
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
