@@ -737,7 +737,7 @@ begin
  my_uri := case my_type
            when 'URL'  then my_uri::text
 	         else format('file://%s',
-	              trim(trailing '/' from replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#')))
+	              replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#'))
            end;
  my_uri := my_uri::datalink.dl_url;
  my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
