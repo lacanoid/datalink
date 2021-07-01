@@ -27,7 +27,8 @@ URLs are normalized before they are converted to datalinks, so things like . and
      {"url": "http://www.github.io/a/b/e"}
     (1 row)
 
-You can also use `dlvalue()` with absolute paths for file links.
+You can also use `dlvalue()` with absolute paths for file links. 
+Weird characters in pathnames are properly URI encoded.
 
     mydb=# select dlvalue('/var/www/datalink/index.html');
                         dlvalue                     
@@ -35,10 +36,10 @@ You can also use `dlvalue()` with absolute paths for file links.
      {"url": "file:///var/www/datalink/index.html"}
     (1 row)
 
-    mydb=# select dlvalue('/var/www/datalink/index.html','FS');
+    mydb=# select dlvalue('/var/www/datalink/index?.html','FS');
                         dlvalue                     
     ------------------------------------------------
-     {"url": "file:///var/www/datalink/index.html"}
+     {"url": "file:///var/www/datalink/index%3F.html"}
     (1 row)
 
     mydb=# select dlvalue('file:///var/www/datalink/index.html');
@@ -46,6 +47,14 @@ You can also use `dlvalue()` with absolute paths for file links.
     ------------------------------------------------
      {"url": "file:///var/www/datalink/index.html"}
     (1 row)
+
+Full form of function `dlvalue()` has a few more optional arguments:
+
+    dlvalue(address, link_type, comment)
+
+    `address`   - data address, typically URL or file path
+    `link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted, it is automatically determined from `address`
+    `comment`   - datalink text comment
 
 
 Datalink functions

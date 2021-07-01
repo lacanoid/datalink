@@ -7,6 +7,8 @@ Version 0.14
 - implemented write_access = TOKEN, meaning ADMIN REQUIRING TOKEN FOR UPDATE
 - made DLURLCOMPLETE and others work on urls in addition to just datalinks
 - added tables datalink.dl_linked_files and datalink.sample_datalinks to pg_dump backup
+- clever trick to convert relative to absolute URLs: use `dlvalue(url,dlvalue(base))`
+- use `uri_set` part `src` to help turn relative urls into absolute
 
 Version 0.13
 ------------

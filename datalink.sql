@@ -51,7 +51,7 @@ create cast (text as dl_recovery) with inout as implicit;
 create cast (text as dl_on_unlink) with inout as implicit;
 
 create domain dl_lco as integer;
-comment on type dl_lco is 'Datalink Link Control Options as atttypmod';
+comment on type dl_lco is 'Datalink Link Control Options as integer';
 
 CREATE TABLE link_control_options (
   lco dl_lco primary key,
@@ -600,9 +600,11 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   LANGUAGE plperlu
   AS $function$
   use URI;
-  my $u=URI->new($_[0]);
+  my $u=$_[0];
   my $part=$_[1]; lc($part);
   my $v=$_[2];
+  if($part eq 'src') { $u = URI->new_abs($v,$u); return $u->as_string; }
+  $u = URI->new($u);
   if($part eq 'scheme') { $u->scheme($v); }
   elsif($part eq 'authority') {  $u->authority($v); }
   elsif($part eq 'path_query') {  $u->path_query($v); }
@@ -753,6 +755,12 @@ $$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - Construct a DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
+RETURNS datalink
+    LANGUAGE sql IMMUTABLE
+    AS $$select dlvalue(datalink.uri_set(dlurlcompleteonly($2)::uri,'src',$1),'URL',$3)$$;
+
 
 ---------------------------------------------------
 -- SQL/MED update functions
