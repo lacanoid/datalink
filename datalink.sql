@@ -866,10 +866,10 @@ begin
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
     if lco.integrity = 'ALL' and dlurlscheme(link)<>'file' then
-      raise exception 'INTEGRITY ALL can only be used with file URLs'
-            using errcode = 'HW005', 
-                  detail = url,
-                  hint = 'make sure you are using a file: URL scheme';
+        raise exception 'datalink exception - invalid datalink value' 
+              using errcode = 'HY093',
+                    detail = 'INTEGRITY ALL can only be used with file URLs',
+                    hint = 'make sure you are using a file: URL scheme';
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
