@@ -3,8 +3,7 @@ Datalink extension for PostgreSQL
 
 This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
 It is very much a prototype and meant for playing around to see if this can be made useful.
-Also to see how much of the standard can be implemented in high-level postgres (and pgperlu :), 
-without having to resort to C. It implements a number of SQL/MED specified datalink behaviours.
+It implements a number of SQL/MED specified datalink behaviours.
 
 It comes with a special deamon `pg_datalinker`, which handles all file manipulations,
 but the extension can be used without it, albeit with some loss of functionality.
