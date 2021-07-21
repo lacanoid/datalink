@@ -1,0 +1,64 @@
+\pset null _null_
+SET client_min_messages = notice;
+SET search_path = public,datalink;
+create table sample_datalinks2 (
+  id serial,
+  link datalink
+);
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
+update datalink.columns
+   set link_control='FILE', integrity='SELECTIVE'
+ where table_name='sample_datalinks2' and column_name='link';
+select regclass,column_name,dlco.*
+  from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
+         regclass          | column_name |  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
+---------------------------+-------------+--------+--------------+-----------+-------------+--------------+----------+-----------
+ datalink.sample_datalinks | link        | 111021 | FILE         | ALL       | FS          | BLOCKED      | YES      | RESTORE
+ sample_datalinks          | link        |      0 | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks2         | link        |     11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+(3 rows)
+
+insert into sample_datalinks2 (link)
+values (dlvalue('/etc/','FS','Sample file datalink'));
+insert into sample_datalinks2 (link)
+values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
+ERROR:  datalink exception - referenced file does not exist
+URL:  file:///foo+bar/no_files
+DETAIL:  CURL error 37 - Couldn't read a file:// file
+HINT:  make sure url is correct and referenced file actually exists
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at RAISE
+PL/pgSQL function dl_trigger_table() line 72 at assignment
+update datalink.columns
+   set link_control='FILE', integrity='SELECTIVE'
+ where table_name='sample_datalinks2' and column_name='link';
+insert into sample_datalinks2 (link)
+values (dlvalue('https://www.debian.org/','URL','Sample HTTPS datalink'));
+insert into sample_datalinks2 (link)
+values (dlvalue('http://blah','URL','Broken datalink'));
+ERROR:  datalink exception - referenced file does not exist
+URL:  http://blahs
+DETAIL:  CURL error 6 - Couldn't resolve host name
+HINT:  make sure url is correct and referenced file actually exists
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at RAISE
+PL/pgSQL function dl_trigger_table() line 72 at assignment
+select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
+      dlurlcomplete      | has_token 
+-------------------------+-----------
+ file:///etc/            | f
+ https://www.debian.org/ | f
+(2 rows)
+
+create table sample_datalinks3 as 
+select *
+  from sample_datalinks;
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
+update datalink.columns
+   set link_control='FILE', integrity='SELECTIVE'
+ where table_name='sample_datalinks3' and column_name='link';
+ERROR:  datalink exception
+DETAIL:  Can't change link control options; 6 non-null values present in column "link"
+HINT:  Perhaps you can "truncate sample_datalinks3"
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 35 at RAISE
+SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_options() line 18 at PERFORM
+delete from sample_datalinks3 where dllinktype(link)='FS';
