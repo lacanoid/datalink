@@ -81,7 +81,7 @@ LANGUAGE sql IMMUTABLE
 AS $_$
  select cast (
    (case $1 when 'FILE' then 1 when 'NO' then 0 else 0 end)
-   + 10 * (  
+   + 10 *  (  
    (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
    + 10 * (  
    (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
@@ -880,7 +880,7 @@ begin
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %s',url 
             using errcode = 'HW003', 
-                  detail = format('curl error %s - %s',r.retcode,r.error),
+                  detail = format('CURL error %s - %s',r.retcode,r.error),
                   hint = 'make sure url is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned

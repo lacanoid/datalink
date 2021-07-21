@@ -28,22 +28,21 @@ Todo
 - ✔︎ dlvalue autodetect link type
 - ✔︎ use any string as link type (URL or FS)
 - ✔︎ handle write_access = any ['BLOCKED','ADMIN','TOKEN']
-- make // urls default to https:
 - ✔︎ dlurlpath() must include token
-- dlurlcomplete() must include token
 - ✔︎ make dlvalue work for comment-only links
+- ✔︎ set linked file owner to table owner
+- make this work better with pg_dump
+- make // urls default to https:
+- dlurlcomplete() must include token
 - revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
-- remove link_control from link_control_options (it is implied by dl_integrity)
 - update trigger on dl_columns to call datalink.modlco()
-- dl_ref and dl_unref redundant?
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
-- allow backups for read_access=fs LCO
-- pg_extension_config_dump magic
-- maybe: loose Curl and check for files only with stat
+- skip curl for integrity='ALL' and check for files only with stat
 - dlvalue better error handling
 - make this work for non-superusers
-- ?implicit cast datalink -> url
-- set linked file owner to table owner
-- permissions
+- better datalinker path checking
+- check permissions
+- remove link_control from link_control_options (it is implied by dl_integrity)
+- allow backups for read_access=fs LCO

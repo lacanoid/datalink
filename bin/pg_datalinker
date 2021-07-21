@@ -25,12 +25,14 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 #---------------------------------------
 
 our $opt_v = 0;  # verbosity
-our $opt_D = 0;  # really delete linked files with ON UNLINK DELETE
+our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
+our $opt_O = 1;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
+our $opt_l;      # logfile
 
-getopt('');
+getopt('l');
 
 #---------------------------------------
 
@@ -51,7 +53,7 @@ if($operation eq 'add') { config_add(@ARGV[0]); exit; }
 if($operation eq 'del') { config_del(@ARGV[0]); exit; }
 
 if($operation eq 'start') { daemon_start(); exit; }
-if($operation eq 'restart') { daemon_start(); exit; }
+if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
 if($operation eq 'stop') { daemon_stop(); exit; }
 if($operation eq 'status') { daemon_status(); exit; }
 if($operation eq 'log') { daemon_log(); exit; }
@@ -85,6 +87,12 @@ our @err;
 #---------------------------------------
 
 sub main() {
+    if($opt_l) {
+        # redirect output to file
+        open STDOUT, ">>", $opt_l or die "$0: open: $!";
+        open STDERR, ">&STDOUT"   or die "$0: dup: $!";
+    }
+
     $dbh = DBI->connect($config{dsn});
     if(!$dbh) { log_fatal("Database not available"); }
 
@@ -97,9 +105,11 @@ sub main() {
 
     %q = (
         'get_jobs'=>$dbh->prepare(q{
-          select * 
-            from dl_linked_files 
+          select lf.*,lco.*,
+                 c.relowner::regrole::text as relowner 
+            from dl_linked_files lf 
             join link_control_options lco using (lco)
+            join pg_class c on c.oid=lf.attrelid
             where state in ('LINK','UNLINK')
         }),
         'set_linked'=>$dbh->prepare(q{
@@ -151,6 +161,7 @@ sub main() {
                 }
 
                 my $path = $data->{path}; 
+                my $path_backup = path_backup($data->{path},$data->{token});
 
                 if(!path_valid_prefix($path)) { 
                     log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
@@ -161,19 +172,20 @@ sub main() {
                 my $info;
                 if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
                 log_debug("DATA",$data);
+                my $ts=iso_timestamp();
                 if($data->{state} eq 'LINK') {
                     if($info) {
-                        log_msg('RE-LINK:'.$data->{lco},$path);
+                        log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
                         file_unlink($path,$data);
                     } else {
-                        log_msg('LINK:'.$data->{lco},$path);
+                        log_msg("LINK:$ts:".$data->{lco},$path_backup);
                     }
                     my $r=file_link($path,$data);
                     queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode(\@err));
                     next;
                 }
                 elsif($data->{state} eq 'UNLINK') {
-                    log_msg('UNLINK:'.$data->{lco},$path);
+                    log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
                     file_unlink($path,$data);
                     queryOrDie('delete',$path);
                     next;
@@ -305,6 +317,10 @@ sub path_valid_prefix {
     return 0
 }
 
+sub path_valid {
+    return 1;
+}
+
 ########################################
 # file management
 
@@ -323,10 +339,19 @@ sub file_stat {
 sub file_link {
     my ($path,$opt)=@_;
     $path =~ s|/+$||;
-    my $s = file_stat($path);
+    my $s = file_stat($path,$opt);
+    my $path1 = $path;
+    if(!$s->{inode}) {
+        $path1 = path_backup($path,$opt->{token});
+        $s = file_stat($path1,$opt);
+    }
+    if(!$s->{inode}) {
+        log_err("NO STAT",$path);
+        return undef;
+    }
 
     if($opt->{read_access} eq 'DB') {
-    	file_read_access_db($path,$opt);
+    	file_read_access_db($path1,$opt);
     }
 
     if($opt_R && file_has_backup($path,$opt)) {
@@ -355,8 +380,12 @@ sub file_link {
 # unlink file from sql environment
 sub file_unlink {
     my ($path,$opt)=@_;
-    file_unblock($path,$opt);
-    file_restore($path,$opt);
+    if($opt->{write_access} ne 'FS') {
+        file_unblock($path,$opt);
+    }
+    if($opt->{read_access} eq 'DB') {
+        file_restore($path,$opt);
+    }
     if($opt->{info} && $opt->{info}{del}) {
     	file_delete($path,$opt);
     }
@@ -367,6 +396,12 @@ sub file_read_access_db {
     log_debug('CHOWNMOD',$opt);
     if(defined($config{db_owner})) {
     	sys("chown",$config{db_owner},$path);
+    }
+    if($opt->{relowner}) {
+        my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
+        if($name && $opt_O) {
+            sys("chown",$name,$path);
+        }
     }
     if(defined($config{db_mode})) {
 	    sys("chmod",$config{db_mode},$path);
@@ -551,6 +586,17 @@ sub log_fatal {
     die;
 }
 
+sub iso_timestamp {
+  my ($time)=@_;
+  my ($y,$m,$d,$hh24,$mi,$ss);
+  if(defined($time)) {
+    ($y,$m,$d,$hh24,$mi,$ss)=(gmtime($time))[5,4,3,2,1,0];
+  } else {
+    ($y,$m,$d,$hh24,$mi,$ss)=(gmtime)[5,4,3,2,1,0];
+  }
+  sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ",1900+$y,$m+1,$d,$hh24,$mi,$ss);
+}
+
 ########################################
 # daemon stuff
 
@@ -559,6 +605,7 @@ our $DAEMON;
 our $DAEMON_LOG;
 our $DAEMON_PID;
 our @DAEMON_ARGS;
+
 sub daemon_setup {
     $NAME=$config{appname};
     $DAEMON = `realpath $0`;
@@ -569,10 +616,12 @@ sub daemon_setup {
 
 sub daemon_start {
     daemon_stop();
-    sys("start-stop-daemon --start ".
-        "--pidfile $DAEMON_PID --make-pidfile ".
-        "--background --no-close ".
-        "--exec $DAEMON -- run");
+    sys("start-stop-daemon","--start",
+        "--name",$NAME,
+        "--pidfile",$DAEMON_PID,"--make-pidfile",
+        "--background","--no-close",
+        "--exec","$DAEMON","--", 
+        "-l",$DAEMON_LOG,"run");
 }
 
 sub daemon_stop {
