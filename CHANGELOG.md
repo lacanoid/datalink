@@ -2,6 +2,7 @@ Version 0.15
 ------------
 - pg_datalinker improvements
 - rename: dl_fsprefix to dl_prfx
+- error message improvements
 
 Version 0.14
 ------------
