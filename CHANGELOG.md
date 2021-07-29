@@ -1,6 +1,6 @@
 Version 0.15
 ------------
-- pg_datalinker improvements
+- pg_datalinker improvements: logging to file
 - rename: dl_fsprefix to dl_prfx
 - error message improvements
 
