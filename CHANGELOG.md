@@ -1,7 +1,9 @@
 Version 0.15
 ------------
-- pg_datalinker improvements
+- pg_datalinker improvements: logging to file
+- pg_datalinker improvements: maybe change file owner to relowner when read_access=DB
 - rename: dl_fsprefix to dl_prfx
+- error message improvements
 
 Version 0.14
 ------------
