@@ -35,7 +35,7 @@ values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 2'))
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
-ERROR:  datalink exception - invalid datalink value
+ERROR:  datalink exception - invalid datalink construction
 DETAIL:  INTEGRITY ALL can only be used with file URLs
 HINT:  make sure you are using a file: URL scheme
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 16 at RAISE

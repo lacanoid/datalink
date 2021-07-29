@@ -367,9 +367,9 @@ begin
 
 -- if (datalink.link_control_options(my_lco)).write_access >= 'BLOCKED' then
    if not datalink.is_valid_prefix(file_path) THEN
-        raise exception 'datalink exception - invalid datalink value' 
-              using errcode = 'HY093',
-                    detail = format('unknown file volume (prefix) in %s',file_path),
+        raise exception 'datalink exception - referenced file not valid' 
+              using errcode = 'HW007',
+                    detail = format('unknown path prefix (volume) for %s',file_path),
                     hint = 'run "pg_datalinker add" to add volumes'
                     ;
    end if;
@@ -866,8 +866,8 @@ begin
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
     if lco.integrity = 'ALL' and dlurlscheme(link)<>'file' then
-        raise exception 'datalink exception - invalid datalink value' 
-              using errcode = 'HY093',
+        raise exception 'datalink exception - invalid datalink construction' 
+              using errcode = 'HW005',
                     detail = 'INTEGRITY ALL can only be used with file URLs',
                     hint = 'make sure you are using a file: URL scheme';
     end if;

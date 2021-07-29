@@ -13,8 +13,8 @@ update datalink.columns
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/etc/passwd
-ERROR:  datalink exception - invalid datalink value
-DETAIL:  unknown file volume (prefix) in /etc/passwd
+ERROR:  datalink exception - referenced file not valid
+DETAIL:  unknown path prefix (volume) for /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
@@ -34,8 +34,8 @@ PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/etc/hosts
-ERROR:  datalink exception - invalid datalink value
-DETAIL:  unknown file volume (prefix) in /etc/hosts
+ERROR:  datalink exception - referenced file not valid
+DETAIL:  unknown path prefix (volume) for /etc/hosts
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
@@ -78,8 +78,8 @@ update datalink.columns
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/etc/passwd
-ERROR:  datalink exception - invalid datalink value
-DETAIL:  unknown file volume (prefix) in /etc/passwd
+ERROR:  datalink exception - referenced file not valid
+DETAIL:  unknown path prefix (volume) for /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
