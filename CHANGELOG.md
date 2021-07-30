@@ -1,3 +1,6 @@
+Version 0.16
+------------
+
 Version 0.15
 ------------
 - pg_datalinker improvements: logging to file
