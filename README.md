@@ -22,7 +22,7 @@ Currently, it implements the following:
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
 - DLLINKTYPE function
 - DLCOMMENT function
-- Setting *link control options* (LCOs) with UPDATE DATALINK.COLUMNS
+- Setting [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with UPDATE DATALINK.COLUMNS
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)
 - PlPerlu interface to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
