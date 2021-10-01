@@ -118,6 +118,8 @@ to set them instead.
      where table_name='sample_datalinks' and column_name='link';
 
 Currently, only the superuser can change link control options.
+
+For further examples see [Datalink primer](https://github.com/lacanoid/datalink/blob/master/docs/primer.md).
             
 DATALINK functions
 ==================
