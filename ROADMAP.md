@@ -32,6 +32,7 @@ Todo
 - ✔︎ make dlvalue work for comment-only links
 - ✔︎ set linked file owner to table owner
 - make this work better with pg_dump
+- if integrity=all check for file only with datalink.file_stat() 
 - make // urls default to https:
 - dlurlcomplete() must include token
 - revert files only when recovery=YES
@@ -44,5 +45,6 @@ Todo
 - make this work for non-superusers
 - better datalinker path checking
 - check permissions
+- datalink.file_stat() execute permissions
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
