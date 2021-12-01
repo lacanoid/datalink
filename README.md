@@ -1,7 +1,7 @@
 Datalink extension for PostgreSQL
 =================================
 
-This attempts to implement some of the SQL/MED datalink functionality on PostgreSQL.
+This attempts to implement some of the [SQL/MED datalink](https://wiki.postgresql.org/wiki/DATALINK) functionality on PostgreSQL.
 It is very much a prototype and meant for playing around to see if this can be made useful.
 It implements a number of SQL/MED specified datalink behaviours.
 
