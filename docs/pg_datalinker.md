@@ -2,7 +2,7 @@ Responsibilities
 ----------------
 * Protect files from renaming or deletion (write_access=blocked,admin or token)
   
-  This is done by setting the immutable flag on the file with `chattr +i` command.
+  This is done by setting the *immutable* flag on the file with `chattr +i` command.
   This prevents file from beeing renamed or modified, event by root.
   Datalinker itself must run as root to change file attributes.
   
