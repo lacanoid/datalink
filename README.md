@@ -117,7 +117,8 @@ to set them instead.
            recovery='YES', on_unlink='RESTORE'
      where table_name='sample_datalinks' and column_name='link';
 
-Currently, only the superuser can change link control options.
+Currently, only the superuser can change link control options. 
+Also, the datalink column must not contain any data when changing options, so it is best to set them in advance.
 
 For further examples see [Datalink primer](https://github.com/lacanoid/datalink/blob/master/docs/primer.md).
             
