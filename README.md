@@ -5,7 +5,7 @@ This attempts to implement some of the [SQL/MED datalink](https://wiki.postgresq
 It is very much a prototype and meant for playing around to see if this can be made useful.
 It implements a number of SQL/MED specified datalink behaviours.
 
-It comes with a special deamon `pg_datalinker`, which handles all file manipulations,
+It comes with a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations,
 but the extension can be used without it, albeit with some loss of functionality.
 The extension by itself does not perform any file system changes. 
 
