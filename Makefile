@@ -6,7 +6,7 @@ extension_version = 0.16
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
 
-REGRESS = init type sqlmed other link linker uri
+REGRESS = init type sqlmed selective link linker uri
 REGRESS_OPTS = --inputdir=test
 
 SCRIPTS = bin/pg_datalinker

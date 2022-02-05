@@ -28,9 +28,47 @@ COMMENT ON DOMAIN file_path IS 'Absolute file system path';
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_parent    CHECK(value not like all('{../%,%/../%,%/..}'));
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_percent   CHECK(not value ~* '[%]');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(value like '/%');
-
+/*
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
+*/
+
+CREATE TYPE pg_catalog.datalink;
+
+CREATE OR REPLACE FUNCTION datalink_in(cstring)
+ RETURNS datalink LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
+ AS $function$jsonb_in$function$;
+ 
+CREATE OR REPLACE FUNCTION datalink_out(datalink)
+ RETURNS cstring LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
+ AS $function$jsonb_out$function$;
+ 
+CREATE OR REPLACE FUNCTION datalink_recv(internal)
+ RETURNS datalink LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
+ AS $function$jsonb_recv$function$;
+ 
+CREATE OR REPLACE FUNCTION datalink_send(datalink)
+ RETURNS bytea LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
+ AS $function$jsonb_send$function$;
+ 
+CREATE TYPE pg_catalog.datalink (
+   INPUT = datalink_in,
+   OUTPUT = datalink_out,
+   SEND = datalink_send,
+   RECEIVE = datalink_recv,
+   INTERNALLENGTH = VARIABLE,
+   ALIGNMENT = int4,
+   STORAGE = extended,
+   CATEGORY = 'U',
+   DELIMITER = ',',
+   COLLATABLE = false
+);
+
+COMMENT ON TYPE pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
+-- create cast (datalink as jsonb) without function; 
+create cast (datalink as jsonb) without function as implicit;
+-- create cast (datalink as jsonb) with inout as implicit;
+-- create cast (jsonb as datalink) with inout;
 
 ---------------------------------------------------
 -- link control options
@@ -951,8 +989,8 @@ begin
    where regclass = tg_relid
   loop
    link1 := null; link2 := null;
-   if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
-   if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
+   if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
+   if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
    if link1 is distinct from link2 then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
@@ -970,8 +1008,8 @@ begin
   loop
    link1 := null; link2 := null;
    opt := datalink.link_control_options(r.lco);
-   if tg_op in ('DELETE','UPDATE') then link1 := ro->r.column_name; end if;
-   if tg_op in ('INSERT','UPDATE') then link2 := rn->r.column_name; end if;
+   if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
+   if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
    if link1 is distinct from link2 then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then

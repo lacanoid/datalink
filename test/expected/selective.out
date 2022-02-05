@@ -32,7 +32,7 @@ update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
 insert into sample_datalinks2 (link)
-values (dlvalue('https://www.debian.org/','URL','Sample HTTPS datalink'));
+values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
 ERROR:  datalink exception - referenced file does not exist
@@ -42,10 +42,10 @@ HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
-      dlurlcomplete      | has_token 
--------------------------+-----------
- file:///etc/            | f
- https://www.debian.org/ | f
+       dlurlcomplete        | has_token 
+----------------------------+-----------
+ file:///etc/               | f
+ https://www.wikipedia.org/ | f
 (2 rows)
 
 create table sample_datalinks3 as 

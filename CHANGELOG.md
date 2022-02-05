@@ -1,5 +1,6 @@
 Version 0.16
 ------------
+- datalink is now a real type, not a domain
 
 Version 0.15
 ------------

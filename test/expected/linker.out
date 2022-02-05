@@ -62,10 +62,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 update sample_datalinks6 set link2 = null, link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
-ERROR:  datalink exception - invalid write token
-DETAIL:  New value doesn't contain a matching write token for update of column sample_datalinks6.link
-HINT:  Supply value with valid write token (dlnewcopy) or set write_access to ADMIN
-CONTEXT:  PL/pgSQL function dl_trigger_table() line 63 at RAISE
+NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 create table sample_datalinks7 as 
 select * 
   from sample_datalinks6;
