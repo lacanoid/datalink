@@ -2,6 +2,7 @@ Version 0.16
 ------------
 - datalink is now a real type, not a domain
 - use varchar's typmod in/out functions
+- added cast from datalink to url
 
 Version 0.15
 ------------

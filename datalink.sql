@@ -1330,6 +1330,12 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 -- alter domain dl_url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 
+create function dl_url(datalink) returns uri 
+  language sql strict immutable 
+as $$select dlurlcomplete($1)::uri$$;
+
+create cast (datalink as uri) with function datalink.dl_url;
+
 ---------------------------------------------------
 
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;

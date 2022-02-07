@@ -72,3 +72,15 @@ select '/foo/bar/..'::datalink.file_path;
 ERROR:  value for domain file_path violates check constraint "file_path_parent"
 select '/foo/../bar'::datalink.file_path;
 ERROR:  value for domain file_path violates check constraint "file_path_parent"
+select dlvalue('https://www.github.org');
+              dlvalue              
+-----------------------------------
+ {"url": "https://www.github.org"}
+(1 row)
+
+select dlvalue('https://www.github.org')::uri;
+        dlvalue         
+------------------------
+ https://www.github.org
+(1 row)
+

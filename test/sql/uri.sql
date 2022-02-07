@@ -35,3 +35,6 @@ select 'foo/bar'::datalink.file_path;
 select '/foo/bar'::datalink.file_path;
 select '/foo/bar/..'::datalink.file_path;
 select '/foo/../bar'::datalink.file_path;
+
+select dlvalue('https://www.github.org');
+select dlvalue('https://www.github.org')::uri;
