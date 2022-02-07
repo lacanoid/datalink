@@ -56,6 +56,8 @@ CREATE TYPE pg_catalog.datalink (
    OUTPUT = datalink_out,
    SEND = datalink_send,
    RECEIVE = datalink_recv,
+   TYPMOD_IN = varchartypmodin,
+   TYPMOD_OUT = varchartypmodout,
    INTERNALLENGTH = VARIABLE,
    ALIGNMENT = int4,
    STORAGE = extended,
@@ -340,8 +342,8 @@ create table dl_linked_files (
 
 create view linked_files as
 select path,state,
-       lco.read_access,
-       lco.write_access,
+       lco.read_access as read_access,
+       lco.write_access as write_access,
        lco.recovery,
        lco.on_unlink,
        a.attrelid::regclass as regclass,
@@ -1386,3 +1388,30 @@ update datalink.columns
 ---------------------------------------------------
 SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
+
+create view datalink.volume_usage as
+WITH f AS (
+         SELECT p.prefix,
+            lf.path,
+            lf.state,
+            lf.read_access,
+            lf.write_access,
+            lf.recovery,
+            lf.on_unlink,
+            lf.regclass,
+            lf.attname,
+            lf.owner,
+            lf.err,
+            (datalink.file_stat(lf.path)).size AS size
+           FROM datalink.dl_prfx p
+             LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
+        )
+ SELECT f.prefix,
+    count(f.path) AS files,
+    pg_size_pretty(sum(f.size)) AS size
+   FROM f
+  GROUP BY GROUPING SETS ((f.prefix), ())
+  ORDER BY f.prefix;
+COMMENT ON VIEW datalink.volume_usage
+     IS 'Disk volume usage statistics';
+grant select on datalink.volume_usage to public;
