@@ -1,3 +1,6 @@
+Version 0.17
+------------
+
 Version 0.16
 ------------
 - datalink is now a real type (based on jsonb), not a domain
