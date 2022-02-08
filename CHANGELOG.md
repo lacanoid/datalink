@@ -6,7 +6,6 @@ Version 0.16
 - mark RI triggers as internal to remove them from pg_dump
 - added cast from datalink to url
 
-
 Version 0.15
 ------------
 - pg_datalinker improvements: logging to file

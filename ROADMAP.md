@@ -13,7 +13,8 @@ Wanted
 - For constructor form dlvalue(basename,dirname) could be used
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
-- Native postgres interface to curl
+- get rid of plperlu, needs native postgres interface to curl_get, file_stat and uri_set
+- install pg_wrapper for pg_datalinker
 
 Todo
 ====
@@ -31,20 +32,27 @@ Todo
 - ✔︎ dlurlpath() must include token
 - ✔︎ make dlvalue work for comment-only links
 - ✔︎ set linked file owner to table owner
-- make this work better with pg_dump
+- ✔︎ make this work better with pg_dump
 - if integrity=all check for file only with datalink.file_stat() 
-- make // urls default to https:
+- skip curl for integrity='ALL' and check for files only with stat
+- handle // urls
 - dlurlcomplete() must include token
-- revert files only when recovery=YES
+- datalinker: revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
 - update trigger on dl_columns to call datalink.modlco()
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
-- skip curl for integrity='ALL' and check for files only with stat
 - dlvalue better error handling
 - make this work for non-superusers
-- better datalinker path checking
+- datalinker: better path checking
 - check permissions
 - datalink.file_stat() execute permissions
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
+
+* much better support for pg_dump
+* 'datalink' is now a proper base type, based on JSONB
+* Link Control Options are now stored in typmod
+* datalink triggers omitted from dump
+
+* cast from datalink to uri
