@@ -715,11 +715,11 @@ begin
        from info 
        into js;
 --    RAISE NOTICE 'ALTER TABLE %',js;
+   end if; -- alter table
      update pg_trigger 
         set tgisinternal = true  
       where tgisinternal is distinct from true 
         and tgname like '%RI_DatalinkTrigger%';
-   end if; -- alter table
  end if; -- tg_tag in (...)
 
  elsif tg_event = 'sql_drop' then
@@ -935,14 +935,14 @@ begin
     end if;
     r := datalink.curl_get(url,true);
     if not r.ok then
-      raise exception e'datalink exception - referenced file does not exist\nURL:  %s',url 
+      raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
                   detail = format('CURL error %s - %s',r.retcode,r.error),
                   hint = 'make sure url is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned
-    if r.response_code > 0 then
-      link := jsonb_set(link,array['rc'],to_jsonb(r.response_code));
+    if r.rc > 0 then
+      link := jsonb_set(link,array['rc'],to_jsonb(r.rc));
     end if;
   end if; -- file link control,  
   
@@ -1103,8 +1103,8 @@ EXECUTE PROCEDURE datalink.dl_trigger_options();
 ---------------------------------------------------
 
 CREATE FUNCTION curl_get(
-  url text, head boolean DEFAULT false, 
-  OUT ok boolean, OUT response_code integer, OUT response_body text, OUT retcode integer, OUT error text) 
+  INOUT url text, head boolean DEFAULT false, 
+  OUT ok boolean, OUT rc integer, OUT body text, OUT retcode integer, OUT error text) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
@@ -1118,7 +1118,7 @@ $head = ($head eq't')?1:0;
 
 my $curl = WWW::Curl::Easy->new;
 my %r;
-  
+$r{url} = $url;  
 $curl->setopt(CURLOPT_USERAGENT,
               "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
 $curl->setopt(CURLOPT_URL, $url);
@@ -1138,9 +1138,9 @@ my $retcode = $curl->perform;
 # Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{retcode} = $retcode;
-$r{response_code} = $curl->getinfo(CURLINFO_HTTP_CODE);
-if($head) { $r{response_body} = $response_header; }
-else      { $r{response_body} = $response_body; }
+$r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
+if($head) { $r{body} = $response_header; }
+else      { $r{body} = $response_body; }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 
 return \%r;
@@ -1410,7 +1410,7 @@ update datalink.columns
 ---------------------------------------------------
 -- add stuff to pg_dump 
 ---------------------------------------------------
-SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
+-- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
 
 create view datalink.volume_usage as
