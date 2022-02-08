@@ -1,8 +1,11 @@
 Version 0.16
 ------------
-- datalink is now a real type, not a domain
+- datalink is now a real type (based on jsonb), not a domain
 - use varchar's typmod in/out functions
+- use atttypmod as LCO ; this  makes it work with pg_dump
+- mark RI triggers as internal to remove them from pg_dump
 - added cast from datalink to url
+
 
 Version 0.15
 ------------

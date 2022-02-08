@@ -140,12 +140,23 @@ COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from individual options';
 
-create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
-as $$
+/*
  select coalesce(
    (select option_value::datalink.dl_lco
       from pg_options_to_table((select attfdwoptions from pg_attribute where attrelid=$1 and attname=$2))
      where option_name='dl_lco'),0)
+  from pg_attribute
+ where attrelid = $1 and attname = $2
+   and atttypid = 'pg_catalog.datalink'::regtype
+   and attnum > 0
+   and not attisdropped
+$$ language sql;
+*/
+create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
+as $$
+ select case 
+        when atttypmod > 0 then atttypmod-4
+        else 0 end
   from pg_attribute
  where attrelid = $1 and attname = $2
    and atttypid = 'pg_catalog.datalink'::regtype
@@ -702,8 +713,12 @@ begin
        from info 
        into js;
 --    RAISE NOTICE 'ALTER TABLE %',js;
-   end if;
- end if;
+     update pg_trigger 
+        set tgisinternal = true  
+      where tgisinternal is distinct from true 
+        and tgname like '%RI_DatalinkTrigger%';
+   end if; -- alter table
+ end if; -- tg_tag in (...)
 
  elsif tg_event = 'sql_drop' then
   -- unlink files referenced by dropped tables
@@ -1183,7 +1198,8 @@ begin
 
    -- update fdw options with new lco
    update pg_attribute 
-      set attfdwoptions=array['dl_lco='||my_lco]
+      set -- attfdwoptions=array['dl_lco='||my_lco],
+          atttypmod=case when my_lco > 0 then my_lco+4 else -1 end
     where attrelid=my_regclass and attname=my_column_name;
 
 end if; -- lco has changed
