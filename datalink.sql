@@ -119,9 +119,10 @@ CREATE FUNCTION dl_lco(
 RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
- select cast (
+ select cast (trunc(
    (case $1 when 'FILE' then 1 when 'NO' then 0 else 0 end)
-   + 10 *  (  
+   + 10 *  
+   (  
    (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
    + 10 * (  
    (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
@@ -133,7 +134,7 @@ AS $_$
    (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
    + 10 * (
    (case $6 when 'DELETE' then 2 when 'RESTORE' then 1 when 'NONE' then 0 else 0 end)
-   ))))) as datalink.dl_lco)
+   )))))) as datalink.dl_lco)
 $_$;
 
 COMMENT ON FUNCTION dl_lco(
@@ -199,7 +200,7 @@ from
     unnest(array['NONE','RESTORE','DELETE']) as unl
 )
 -- valid option combinations per SQL/MED 2011 
-select * from l
+select distinct * from l
  where dl_lco = 0
     or lc='FILE' and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
     or lc='FILE' and itg='ALL' and (
@@ -208,6 +209,7 @@ select * from l
        or ra='DB' and wa<>'FS' and unl<>'NONE'
     )
 --    and not (rec='NO' and unl='DELETE')
+ order by dl_lco
 ;
 
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
