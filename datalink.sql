@@ -450,14 +450,23 @@ begin
  if not found then
    insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address)
    values (my_token,file_path,my_lco,my_regclass,my_attnum,addr);
-   notify "datalink.linker_jobs";
+   notify "datalink.linker_jobs"; 
    return true;
  else -- found in dl_linked_files
+  -- this is needed to eliminate problems during pg_restore
+  if r.token = my_token and r.path = file_path and r.lco = my_lco and
+     r.attrelid = my_regclass and r.attnum = my_attnum then
+    raise warning 'datalink exception - external file possibly already linked' 
+      using detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
+  end if;
+
+  -- already linked ?
   if r.state in ('LINK','LINKED') then
     raise exception 'datalink exception - external file already linked' 
       using errcode = 'HW002', 
       detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
 
+  -- scheduled for unlinking by datalinker but not processed yet
   elsif r.state in ('UNLINK') then
      if r.lco is distinct from my_lco
      then
