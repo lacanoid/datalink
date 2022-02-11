@@ -25,7 +25,8 @@ select url,
        uri_get(url,'host') as host,
        uri_get(url,'path') as path,
        uri_get(url,'query') as query,
-       uri_get(url,'fragment') as fragment
+       uri_get(url,'fragment') as fragment,
+       uri_get(url,'only') as only
   from sample_urls
 ;
 

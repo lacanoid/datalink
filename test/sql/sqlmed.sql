@@ -37,9 +37,9 @@ values
   ('/var/www/datalink/test2.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
-  ('/var/www/datalink/CHANGELOG.mg');
+  ('/var/www/datalink/CHANGELOG.md');
 
-select * from sample_files;
+select *,dlvalue(filename) from sample_files;
 
 ---------------------
 create table sample_datalinks (
