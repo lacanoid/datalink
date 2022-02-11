@@ -36,7 +36,7 @@ Todo
 - if integrity=all check for file only with datalink.file_stat() 
 - skip curl for integrity='ALL' and check for files only with stat
 - handle // urls
-- dlurlcomplete() must include token
+- ✔︎ dlurlcomplete() must include token
 - datalinker: revert files only when recovery=YES
 - optimize table triggers (do not install them if mco=0)
 - update trigger on dl_columns to call datalink.modlco()
