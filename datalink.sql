@@ -941,9 +941,9 @@ begin
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
-    if dlurlscheme(link) = 'file' THEN
+/*    if dlurlscheme(link) = 'file' THEN
       url := replace(url,'#','%23');
-    end if;
+    end if; */
     r := datalink.curl_get(url,true);
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
@@ -1238,17 +1238,15 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete0(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select case 
               when $1->>'token' is not null
-              then format('%s#%s',
-                          datalink.uri_get($1->>'url','only'),
-                          $1->>'token')
+              then format('%s#%s',$1->>'url',$1->>'token')
               else $1->>'url'
               end;
 $_$;
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$select $1->>'url'$_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
