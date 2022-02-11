@@ -85,6 +85,7 @@ select dlvalue('https://www.github.org')::uri;
  https://www.github.org
 (1 row)
 
+\x
 with d as (
  select 'file:///var/www/datalink/test4.txt#krneki' as link
 )
@@ -94,10 +95,12 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
-                   link                    |               dlurlcomplete               |         dlurlcompleteonly          |             dlurlpath              |        dlurlpathonly        
--------------------------------------------+-------------------------------------------+------------------------------------+------------------------------------+-----------------------------
- file:///var/www/datalink/test4.txt#krneki | file:///var/www/datalink/test4.txt#krneki | file:///var/www/datalink/test4.txt | /var/www/datalink/test4.txt#krneki | /var/www/datalink/test4.txt
-(1 row)
+-[ RECORD 1 ]-----+------------------------------------------
+link              | file:///var/www/datalink/test4.txt#krneki
+dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
+dlurlcompleteonly | file:///var/www/datalink/test4.txt
+dlurlpath         | /var/www/datalink/test4.txt#krneki
+dlurlpathonly     | /var/www/datalink/test4.txt
 
 with d as (
  select dlvalue('file:///var/www/datalink/test4.txt#krneki') as link
@@ -108,10 +111,12 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
-                         link                         |               dlurlcomplete               |         dlurlcompleteonly          |             dlurlpath              |        dlurlpathonly        
-------------------------------------------------------+-------------------------------------------+------------------------------------+------------------------------------+-----------------------------
- {"url": "file:///var/www/datalink/test4.txt#krneki"} | file:///var/www/datalink/test4.txt#krneki | file:///var/www/datalink/test4.txt | /var/www/datalink/test4.txt#krneki | /var/www/datalink/test4.txt
-(1 row)
+-[ RECORD 1 ]-----+-----------------------------------------------------
+link              | {"url": "file:///var/www/datalink/test4.txt#krneki"}
+dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
+dlurlcompleteonly | file:///var/www/datalink/test4.txt
+dlurlpath         | /var/www/datalink/test4.txt#krneki
+dlurlpathonly     | /var/www/datalink/test4.txt
 
 with d as (
  select 'file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced' as link
@@ -122,10 +127,12 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
-                                  link                                   |                              dlurlcomplete                              |         dlurlcompleteonly          |                            dlurlpath                             |        dlurlpathonly        
--------------------------------------------------------------------------+-------------------------------------------------------------------------+------------------------------------+------------------------------------------------------------------+-----------------------------
- file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | file:///var/www/datalink/test3.txt | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | /var/www/datalink/test3.txt
-(1 row)
+-[ RECORD 1 ]-----+------------------------------------------------------------------------
+link              | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcompleteonly | file:///var/www/datalink/test3.txt
+dlurlpath         | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlpathonly     | /var/www/datalink/test3.txt
 
 with d as (
  select dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced') as link
@@ -136,10 +143,12 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
-                                        link                                        |                              dlurlcomplete                              |         dlurlcompleteonly          |                            dlurlpath                             |        dlurlpathonly        
-------------------------------------------------------------------------------------+-------------------------------------------------------------------------+------------------------------------+------------------------------------------------------------------+-----------------------------
- {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"} | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | file:///var/www/datalink/test3.txt | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | /var/www/datalink/test3.txt
-(1 row)
+-[ RECORD 1 ]-----+-----------------------------------------------------------------------------------
+link              | {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcompleteonly | file:///var/www/datalink/test3.txt
+dlurlpath         | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlpathonly     | /var/www/datalink/test3.txt
 
 with d as (
  select dlpreviouscopy(dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced')) as link
@@ -148,9 +157,10 @@ select link,
        dlurlcomplete(link),
        dlurlcompleteonly(link)
   from d;
-                                              link                                              |                              dlurlcomplete                              |         dlurlcompleteonly          
-------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------+------------------------------------
- {"url": "file:///var/www/datalink/test3.txt", "token": "11111111-2222-3333-4444-abecedabeced"} | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | file:///var/www/datalink/test3.txt
-(1 row)
+-[ RECORD 1 ]-----+-----------------------------------------------------------------------------------------------
+link              | {"url": "file:///var/www/datalink/test3.txt", "token": "11111111-2222-3333-4444-abecedabeced"}
+dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcompleteonly | file:///var/www/datalink/test3.txt
 
 ;
+\x

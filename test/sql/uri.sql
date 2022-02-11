@@ -40,6 +40,7 @@ select '/foo/../bar'::datalink.file_path;
 select dlvalue('https://www.github.org');
 select dlvalue('https://www.github.org')::uri;
 
+\x
 with d as (
  select 'file:///var/www/datalink/test4.txt#krneki' as link
 )
@@ -89,3 +90,4 @@ select link,
   from d;
 
 ;
+\x

@@ -1,6 +1,7 @@
 Version 0.17
 ------------
 - fixes to dlurlcomplete
+- pg_dump + pg_restore seem to work better
 
 Version 0.16
 ------------
