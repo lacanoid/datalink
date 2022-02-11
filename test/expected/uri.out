@@ -85,3 +85,44 @@ select dlvalue('https://www.github.org')::uri;
  https://www.github.org
 (1 row)
 
+with d as (
+ select dlvalue('file:///var/www/datalink/test4.txt#krneki') as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+                         link                         |               dlurlcomplete               |         dlurlcompleteonly          |             dlurlpath              |        dlurlpathonly        
+------------------------------------------------------+-------------------------------------------+------------------------------------+------------------------------------+-----------------------------
+ {"url": "file:///var/www/datalink/test4.txt#krneki"} | file:///var/www/datalink/test4.txt#krneki | file:///var/www/datalink/test4.txt | /var/www/datalink/test4.txt#krneki | /var/www/datalink/test4.txt
+(1 row)
+
+with d as (
+ select dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced') as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+                                        link                                        |                              dlurlcomplete                              |         dlurlcompleteonly          |                            dlurlpath                             |        dlurlpathonly        
+------------------------------------------------------------------------------------+-------------------------------------------------------------------------+------------------------------------+------------------------------------------------------------------+-----------------------------
+ {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"} | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | file:///var/www/datalink/test3.txt | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | /var/www/datalink/test3.txt
+(1 row)
+
+/*
+with d as (
+ select dlpreviouscopy(dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced')) as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+
+;
+*/

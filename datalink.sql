@@ -1240,10 +1240,13 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcomplete0(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select format('%s%s',
-                  datalink.uri_get($1->>'url','only'),
-                  '#'||coalesce($1->>'token',datalink.uri_get($1->>'url','token'))
-       )
+AS $_$ select case 
+              when $1->>'token' is not null
+              then format('%s#%s',
+                          datalink.uri_get($1->>'url','only'),
+                          $1->>'token')
+              else $1->>'url'
+              end;
 $_$;
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
@@ -1260,7 +1263,7 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select $1->>'url' $_$;
+AS $_$ select datalink.uri_get($1->>'url','only') $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 

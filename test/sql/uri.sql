@@ -39,3 +39,37 @@ select '/foo/../bar'::datalink.file_path;
 
 select dlvalue('https://www.github.org');
 select dlvalue('https://www.github.org')::uri;
+
+with d as (
+ select dlvalue('file:///var/www/datalink/test4.txt#krneki') as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+
+with d as (
+ select dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced') as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+
+/*
+with d as (
+ select dlpreviouscopy(dlvalue('file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced')) as link
+)
+select link,
+       dlurlcomplete(link),
+       dlurlcompleteonly(link),
+       dlurlpath(link),
+       dlurlpathonly(link)
+  from d;
+
+;
+*/
