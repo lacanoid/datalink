@@ -33,18 +33,17 @@ Todo
 - ✔︎ make dlvalue work for comment-only links
 - ✔︎ set linked file owner to table owner
 - ✔︎ make this work better with pg_dump
-- if integrity=all check for file only with datalink.file_stat() 
+- ✔︎ dlurlcomplete() must include token
 - skip curl for integrity='ALL' and check for files only with stat
 - handle // urls
-- ✔︎ dlurlcomplete() must include token
 - datalinker: revert files only when recovery=YES
+- datalinker: better path checking, have definitive functions
 - optimize table triggers (do not install them if mco=0)
 - update trigger on dl_columns to call datalink.modlco()
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
 - make this work for non-superusers
-- datalinker: better path checking
 - check permissions
 - datalink.file_stat() execute permissions
 - remove link_control from link_control_options (it is implied by dl_integrity)

@@ -1,16 +1,17 @@
 Version 0.17
 ------------
-- fixes to dlurlcomplete
-- pg_dump + pg_restore seem to work better
-- reduced and optimized dl_lco numbers
+- bug fixes to dlurlcomplete, works in more cases with and without tokens
+- more work on pg_dump + pg_restore
+- reduced and optimized dl_lco numbers to below 4096
+- added datalink.volume_usage view
+- rename some curl_get output fields: result_code -> rc, now include url
 
 Version 0.16
 ------------
 - datalink is now a real type (based on jsonb), not a domain
-- use varchar's typmod in/out functions
-- use atttypmod as LCO ; this  makes it work with pg_dump
+- use varchar's typmod in/out functions for storing in atttypmod ; this  makes it work with pg_dump
 - mark RI triggers as internal to remove them from pg_dump
-- added cast from datalink to url
+- added cast from datalink to uri
 
 Version 0.15
 ------------
