@@ -2,6 +2,7 @@ Version 0.17
 ------------
 - fixes to dlurlcomplete
 - pg_dump + pg_restore seem to work better
+- reduced and optimized dl_lco numbers
 
 Version 0.16
 ------------

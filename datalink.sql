@@ -120,21 +120,18 @@ RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
  select cast (trunc(
-   (case $1 when 'FILE' then 1 when 'NO' then 0 else 0 end)
-   + 10 *  
-   (  
    (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
    + 10 * (  
-   (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
+   (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
    + 10 * (  
    (case $4
      when 'TOKEN' then 3 when 'ADMIN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
      else 0 end)
    + 10 * (
-   (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
-   + 10 * (
-   (case $6 when 'DELETE' then 2 when 'RESTORE' then 1 when 'NONE' then 0 else 0 end)
-   )))))) as datalink.dl_lco)
+   (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
+   + 1 * (
+   (case $6 when 'DELETE' then 1 when 'RESTORE' then 0 when 'NONE' then 0 else 0 end)
+   ))))) as datalink.dl_lco)
 $_$;
 
 COMMENT ON FUNCTION dl_lco(
@@ -201,12 +198,12 @@ from
 )
 -- valid option combinations per SQL/MED 2011 
 select distinct * from l
- where dl_lco = 0
-    or lc='FILE' and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
-    or lc='FILE' and itg='ALL' and (
-          ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+ where lc='NO'    and itg='NONE'      and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+    or lc='FILE'  and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+    or lc='FILE'  and itg='ALL'       and (
+          ra='FS' and wa='FS'      and unl='NONE' and rec='NO'
        or ra='FS' and wa='BLOCKED' and unl='RESTORE'
-       or ra='DB' and wa<>'FS' and unl<>'NONE'
+       or ra='DB' and wa<>'FS'     and unl<>'NONE'
     )
 --    and not (rec='NO' and unl='DELETE')
  order by dl_lco
