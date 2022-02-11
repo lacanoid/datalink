@@ -48,4 +48,10 @@ select *
 
 truncate sample_datalinks6;
 
+insert into my_table2
+select dlvalue(filename)
+  from sample_files
+ where filename like '%.txt'
+   and not (filename like '%X%' or filename like '%3.txt');
+
 

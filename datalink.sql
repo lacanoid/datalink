@@ -651,6 +651,8 @@ select case part
        when 'fragment' then uri_fragment($1)
        when 'token' then uri_unescape(uri_fragment($1))
        when 'canonical' then uri_normalize($1)::text
+       -- without fragment
+       when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
        end
 $function$
 ;
@@ -807,7 +809,7 @@ begin
  my_uri := case my_type
            when 'URL'  then my_uri::text
 	         else format('file://%s',
-	              replace(replace(uri_escape(my_uri),'%2F','/'),'%23','#'))
+	              replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'))
            end;
  my_uri := my_uri::datalink.dl_url;
  my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
@@ -939,9 +941,9 @@ begin
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
-    if dlurlscheme(link) = 'file' THEN
+/*    if dlurlscheme(link) = 'file' THEN
       url := replace(url,'#','%23');
-    end if;
+    end if; */
     r := datalink.curl_get(url,true);
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
@@ -1238,7 +1240,15 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select $1->>'url' $_$;
+AS $_$ select case 
+              when $1->>'token' is not null
+              then format('%s#%s',$1->>'url',$1->>'token')
+              else $1->>'url'
+              end;
+$_$;
+CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$select $1->>'url'$_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1251,7 +1261,7 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select $1->>'url' $_$;
+AS $_$ select datalink.uri_get($1->>'url','only') $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1385,6 +1395,8 @@ select exists (
 )
 $function$
 ;
+COMMENT ON FUNCTION datalink.is_valid_prefix(datalink.file_path)
+     IS 'Is file path prefixed with a valid prefix?';
 
 ---------------------------------------------------
 CREATE FUNCTION datalink.have_datalinker()
@@ -1421,6 +1433,10 @@ update datalink.columns
 ---------------------------------------------------
 -- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
+
+---------------------------------------------------
+-- volume usage statistics
+---------------------------------------------------
 
 create view datalink.volume_usage as
 WITH f AS (

@@ -1,5 +1,6 @@
 Version 0.17
 ------------
+- fixes to dlurlcomplete
 
 Version 0.16
 ------------

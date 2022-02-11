@@ -23,5 +23,10 @@ testfiles:
 	if [ ! -f /var/www/datalink/test2.txt ] ; then date >> /var/www/datalink/test2.txt ; fi
 	date >> /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 
+dump:
+	pg_dump -Fc contrib_regression > db.pg_dump
+	dropdb contrib_regression
+	pg_restore -v -C -d postgres db.pg_dump
+
 datalink--$(extension_version).sql: datalink.sql
 	cat $^ >$@

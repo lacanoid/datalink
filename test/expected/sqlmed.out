@@ -53,15 +53,15 @@ values
   ('/var/www/datalink/test2.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
-  ('/var/www/datalink/CHANGELOG.mg');
-select * from sample_files;
- id |                             filename                             
-----+------------------------------------------------------------------
-  1 | /var/www/datalink/test1.txt
-  2 | /var/www/datalink/test2.txt
-  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
-  4 | /var/www/datalink/testX.txt
-  5 | /var/www/datalink/CHANGELOG.mg
+  ('/var/www/datalink/CHANGELOG.md');
+select *,dlvalue(filename) from sample_files;
+ id |                             filename                             |                                      dlvalue                                       
+----+------------------------------------------------------------------+------------------------------------------------------------------------------------
+  1 | /var/www/datalink/test1.txt                                      | {"url": "file:///var/www/datalink/test1.txt"}
+  2 | /var/www/datalink/test2.txt                                      | {"url": "file:///var/www/datalink/test2.txt"}
+  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+  4 | /var/www/datalink/testX.txt                                      | {"url": "file:///var/www/datalink/testX.txt"}
+  5 | /var/www/datalink/CHANGELOG.md                                   | {"url": "file:///var/www/datalink/CHANGELOG.md"}
 (5 rows)
 
 ---------------------

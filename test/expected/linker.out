@@ -69,3 +69,10 @@ select *
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
 truncate sample_datalinks6;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+insert into my_table2
+select dlvalue(filename)
+  from sample_files
+ where filename like '%.txt'
+   and not (filename like '%X%' or filename like '%3.txt');
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
