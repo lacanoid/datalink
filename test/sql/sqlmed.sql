@@ -28,7 +28,7 @@ select * from sample_urls;
 ---------------------
 create table sample_files (
   id serial,
-  filename text
+  filename datalink.file_path
 );
 
 insert into sample_files (filename)
