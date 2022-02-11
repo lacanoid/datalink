@@ -123,11 +123,11 @@ AS $_$
    (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
    + 10 * (  
    (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
-   + 10 * (  
+   + 2 * (  
    (case $4
      when 'TOKEN' then 3 when 'ADMIN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
      else 0 end)
-   + 10 * (
+   + 5 * (
    (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
    + 1 * (
    (case $6 when 'DELETE' then 2 when 'RESTORE' then 0 when 'NONE' then 0 else 0 end)
