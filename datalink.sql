@@ -130,7 +130,7 @@ AS $_$
    + 10 * (
    (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
    + 1 * (
-   (case $6 when 'DELETE' then 1 when 'RESTORE' then 0 when 'NONE' then 0 else 0 end)
+   (case $6 when 'DELETE' then 2 when 'RESTORE' then 0 when 'NONE' then 0 else 0 end)
    ))))) as datalink.dl_lco)
 $_$;
 

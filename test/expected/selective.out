@@ -11,11 +11,11 @@ update datalink.columns
  where table_name='sample_datalinks2' and column_name='link';
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
-         regclass          | column_name |  lco   | link_control | integrity | read_access | write_access | recovery | on_unlink 
----------------------------+-------------+--------+--------------+-----------+-------------+--------------+----------+-----------
- datalink.sample_datalinks | link        | 111021 | FILE         | ALL       | FS          | BLOCKED      | YES      | RESTORE
- sample_datalinks          | link        |      0 | NO           | NONE      | FS          | FS           | NO       | NONE
- sample_datalinks2         | link        |     11 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+         regclass          | column_name | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
+---------------------------+-------------+-----+--------------+-----------+-------------+--------------+----------+-----------
+ datalink.sample_datalinks | link        | 112 | FILE         | ALL       | FS          | BLOCKED      | YES      | RESTORE
+ sample_datalinks          | link        |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
+ sample_datalinks2         | link        |   1 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
 (3 rows)
 
 insert into sample_datalinks2 (link)
