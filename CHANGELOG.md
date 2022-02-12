@@ -6,6 +6,7 @@ Version 0.17
 - added datalink.volume_usage view
 - rename some curl_get output fields: result_code -> rc, now include url
 - events trigger now checks for illegal lco settings
+- one can update datalink.dl_columns now and it will call modlco()
 
 Version 0.16
 ------------
