@@ -37,7 +37,8 @@ Todo
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
 - skip curl for integrity='ALL' and check for files only with stat
 - handle // urls
-- fordbid setting of lco for non superusers 
+- further pg_restore check ; what happens to stuff in pg_linked_files?
+- fordbid setting of lco<>0 for non superusers 
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
 - optimize table triggers (do not install them if mco=0)
