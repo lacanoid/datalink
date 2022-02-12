@@ -79,3 +79,8 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					  read_access=>'DB',write_access=>'BLOCKED',
 					  recovery=>'YES',on_unlink=>'RESTORE'));
 
+create table bar ( link datalink(123) );
+begin;
+create table foo ( link datalink(172) );
+select * from datalink.columns where table_name in ('foo','bar');
+abort;

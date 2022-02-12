@@ -724,10 +724,23 @@ begin
        into js;
 --    RAISE NOTICE 'ALTER TABLE %',js;
    end if; -- alter table
+
+     -- mark datalink triggers as internal
      update pg_trigger 
         set tgisinternal = true  
       where tgisinternal is distinct from true 
         and tgname like '%RI_DatalinkTrigger%';
+   
+   -- check if there are invallid link control options
+   if exists(
+        select regclass from datalink.dl_columns 
+        where lco not in (select lco from datalink.link_control_options)
+      ) then
+      raise exception 'datalink exception' 
+            using errcode = 'HW000',
+	          detail = format('Invalid link control options'),
+                  hint = 'see table datalink.link_control_options for valid link control options';
+   end if;
  end if; -- tg_tag in (...)
 
  elsif tg_event = 'sql_drop' then

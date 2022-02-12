@@ -5,6 +5,7 @@ Version 0.17
 - reduced and optimized dl_lco numbers to below 512
 - added datalink.volume_usage view
 - rename some curl_get output fields: result_code -> rc, now include url
+- events trigger now checks for illegal lco settings
 
 Version 0.16
 ------------

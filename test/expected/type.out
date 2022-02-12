@@ -325,3 +325,17 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
  132 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
 (1 row)
 
+create table bar ( link datalink(123) );
+ERROR:  datalink exception
+DETAIL:  Invalid link control options
+HINT:  see table datalink.link_control_options for valid link control options
+CONTEXT:  PL/pgSQL function dl_trigger_event() line 43 at RAISE
+begin;
+create table foo ( link datalink(172) );
+select * from datalink.columns where table_name in ('foo','bar');
+ table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+ foo        | link        | FILE         | ALL       | DB          | TOKEN        | YES      | RESTORE
+(1 row)
+
+abort;
