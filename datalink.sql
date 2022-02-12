@@ -231,9 +231,7 @@ CREATE VIEW dl_columns AS
     c.relname AS table_name,
     a.attname AS column_name,
     dl_lco(c.oid::regclass,a.attname::name) AS lco,
-    a.attnotnull AS not_null,
-    a.attislocal AS islocal,
-    a.attnum AS ord,
+    a.attnum,
     a.atttypmod,
     a.attoptions,
     a.attfdwoptions,
@@ -1096,26 +1094,39 @@ AS $$
 declare
  my_lco datalink.dl_lco;
 begin
- my_lco := datalink.dl_lco(
-  link_control=>cast(case new.integrity when 'NONE' then 'NO' else 'FILE' end as datalink.dl_link_control),
-  integrity=>new.integrity,
-  read_access=>new.read_access,write_access=>new.write_access,
-  recovery=>new.recovery,
-  on_unlink=>cast(case when new.write_access >= 'BLOCKED' then
-                    case new.on_unlink
-                    when 'NONE' then 'RESTORE'
-                    else new.on_unlink
-                    end
-                  else 'NONE'
-                  end as datalink.dl_on_unlink)
- );
- perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
+ if tg_relid = 'datalink.columns'::regclass then
+    my_lco := datalink.dl_lco(
+      link_control=>cast(case new.integrity when 'NONE' then 'NO' else 'FILE' end as datalink.dl_link_control),
+      integrity=>new.integrity,
+      read_access=>new.read_access,write_access=>new.write_access,
+      recovery=>new.recovery,
+      on_unlink=>cast(case when new.write_access >= 'BLOCKED' then
+                        case new.on_unlink
+                        when 'NONE' then 'RESTORE'
+                        else new.on_unlink
+                        end
+                      else 'NONE'
+                      end as datalink.dl_on_unlink)
+    );
+    perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
+    return new;
+ end if; -- if datalink.columns
+ if tg_relid = 'datalink.dl_columns'::regclass then
+    my_lco := new.lco;
+    perform datalink.modlco(old.regclass,old.column_name,my_lco);
+    return new;
+ end if; -- if datalink.columns
  return new;
 end
 $$;
 
 CREATE TRIGGER "columns_instead"
 INSTEAD OF UPDATE ON datalink.columns
+FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_options();
+
+CREATE TRIGGER "columns_instead"
+INSTEAD OF UPDATE ON datalink.dl_columns
 FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_options();
 

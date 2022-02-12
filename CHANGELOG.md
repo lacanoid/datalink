@@ -13,6 +13,7 @@ Version 0.16
 - use varchar's typmod in/out functions for storing in atttypmod ; this  makes it work with pg_dump
 - mark RI triggers as internal to remove them from pg_dump
 - added cast from datalink to uri
+- allow changing lco in datalink.dl_columns through trigger
 
 Version 0.15
 ------------

@@ -34,12 +34,13 @@ Todo
 - ✔︎ set linked file owner to table owner
 - ✔︎ make this work better with pg_dump
 - ✔︎ dlurlcomplete() must include token
+- ✔︎ update trigger on dl_columns to call datalink.modlco()
 - skip curl for integrity='ALL' and check for files only with stat
 - handle // urls
+- fordbid setting of lco for non superusers 
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
 - optimize table triggers (do not install them if mco=0)
-- update trigger on dl_columns to call datalink.modlco()
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
