@@ -2,7 +2,7 @@ Version 0.17
 ------------
 - bug fixes to dlurlcomplete, works in more cases with and without tokens
 - more work on pg_dump + pg_restore
-- reduced and optimized dl_lco numbers to below 4096
+- reduced and optimized dl_lco numbers to below 512
 - added datalink.volume_usage view
 - rename some curl_get output fields: result_code -> rc, now include url
 
