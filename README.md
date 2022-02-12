@@ -15,7 +15,7 @@ It also requires [pguri](https://github.com/petere/pguri) extension for URL proc
 integrity checking.
  
 Currently, it implements the following:
-- SQL/MED DATALINK type, currently defined as domain over jsonb
+- SQL/MED DATALINK type, currently defined as s base type (variant of jsonb)
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
