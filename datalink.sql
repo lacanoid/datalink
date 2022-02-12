@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.17 lacanoid@ljudmila.org
+--  version 0.18 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 
@@ -154,7 +154,7 @@ create or replace function datalink.dl_lco(regclass regclass,column_name name) r
 as $$
  select case 
         when atttypmod > 0 then atttypmod-4
-        else 0 end
+        else 0 end :: datalink.dl_lco
   from pg_attribute
  where attrelid = $1 and attname = $2
    and atttypid = 'pg_catalog.datalink'::regtype
