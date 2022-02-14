@@ -68,7 +68,7 @@ Commands:
 
     start  - start datalinker
     stop   - stop datalinker
-    status - check is datalinker is running
+    status - check if datalinker is running
     run    - run datalinker interactively
     log    - monitor log
 };
