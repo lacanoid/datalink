@@ -357,7 +357,7 @@ select path,state,
        a.attrelid::regclass as regclass,
        a.attname,
        c.relowner::regrole as owner,
-       lf.err
+       jsonb_pretty(lf.err)::json as err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
   join pg_class c on c.oid = lf.attrelid
@@ -710,6 +710,12 @@ begin
      RAISE NOTICE 'DATALINK DDL:% on %','TRIGGER',obj.regclass;
      execute obj.sql_advice;
    end loop;
+        -- mark datalink triggers as internal
+     update pg_trigger 
+        set tgisinternal = true  
+      where tgisinternal is distinct from true 
+        and tgname like '%RI_DatalinkTrigger%';
+
    if tg_tag = 'ALTER TABLE' then
     with info as (
       select classid::regclass,objid,objsubid,
@@ -722,13 +728,7 @@ begin
        into js;
 --    RAISE NOTICE 'ALTER TABLE %',js;
    end if; -- alter table
-
-     -- mark datalink triggers as internal
-     update pg_trigger 
-        set tgisinternal = true  
-      where tgisinternal is distinct from true 
-        and tgname like '%RI_DatalinkTrigger%';
-   
+      
    -- check if there are invallid link control options
    if exists(
         select regclass from datalink.dl_columns 
@@ -1444,9 +1444,7 @@ create table sample_datalinks ( link datalink );
 grant select on sample_datalinks to public;
 
 update datalink.columns
-   set integrity='ALL',
-       read_access='FS', write_access='BLOCKED',
-       recovery='YES', on_unlink='RESTORE'
+   set integrity='SELECTIVE'
  where table_name='sample_datalinks' and column_name='link';
   
 ---------------------------------------------------

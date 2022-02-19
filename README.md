@@ -11,7 +11,7 @@ The extension by itself does not perform any file system changes.
 
 This extension uses a number of advanced Postgres features for implementation,
 including transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
-It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and CURL for
+It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking.
  
 Currently, it implements the following:

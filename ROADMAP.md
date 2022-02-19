@@ -1,20 +1,22 @@
-Issues
-======
-- ✔︎ ALTER TABLE RENAME of datalink columns
-
 Wanted
-=======
+======
 - ✔︎ volumes
 - ✔︎ replace link with one with different token
 - ✔︎ Native postgres URL type + functions
 - ✔︎ way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
 - init.d / systemd scripts for datalinker
+- install pg_wrapper for pg_datalinker
 - Transactional File IO functions + file directories / bfile like functionality
-- For constructor form dlvalue(basename,dirname) could be used
+- For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
 - get rid of plperlu, needs native postgres interface to curl_get, file_stat and uri_set
-- install pg_wrapper for pg_datalinker
+
+Issues
+======
+- Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
+- further pg_restore checks ; what happens to stuff in pg_linked_files?
+- fordbid setting of lco<>0 for non superusers 
 
 Todo
 ====
@@ -35,10 +37,8 @@ Todo
 - ✔︎ make this work better with pg_dump
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
-- skip curl for integrity='ALL' and check for files only with stat
-- handle // urls
-- further pg_restore check ; what happens to stuff in pg_linked_files?
-- fordbid setting of lco<>0 for non superusers 
+- skip curl for integrity='ALL' and check for files only with file_stat
+- handle // urls and paths
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
 - optimize table triggers (do not install them if mco=0)
