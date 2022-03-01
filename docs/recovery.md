@@ -48,7 +48,7 @@ Note that this is true link, not a symbolic one.
 On unlink
 ---------
 
-When `on_unlink` is `NONE` then no action is taken,
+When `on_unlink` is `NONE` then no action is taken.
 This option does not require datalinker.
 
 When `on_unlink` is `RESTORE` then original file permissions are restored.
