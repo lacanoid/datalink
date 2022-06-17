@@ -1,7 +1,7 @@
 Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
 Here it sees the results of transactions already commited in postgres.
 
-It then attempts to modify files accordingly.
+It then attempts to modify linked files accordingly.
 
 Responsibilities
 ----------------
