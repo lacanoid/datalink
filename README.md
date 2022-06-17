@@ -41,10 +41,20 @@ With datalinker:
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 - LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
 
-Missing:
+Missing standard features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - Foreign server support for file:// URLs (for files on other servers)
+
+Datalinks as defined by SQL/MED should provide:
+- Transactional semantics
+- Checking if file exists
+- Protection of linked file against renaming or deletion
+- Read access control through database
+- Write access control through database
+- Point-in-time recovery
+- Deletion of files no longer referenced
+- Access to files on different servers
 
 Installation
 ------------
