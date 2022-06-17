@@ -15,14 +15,16 @@ Datalinks as defined by SQL/MED should provide:
 - Deletion of files no longer referenced
 - Access to files on different servers
 
-It is implemented in two parts, a PostgreSQL extension to be used from SQL and a a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations.
+It is implemented in two parts, a PostgreSQL extension `datalink` to be used from SQL 
+and a a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), 
+which handles all file manipulations.
 The extension can be used without a daemon, but this looses some of the functionality.
 The extension by itself does not perform any file system changes. 
 
 This extension uses a number of advanced Postgres features for implementation,
-including transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
+including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
 It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and [curl](https://curl.se/) for
-integrity checking. All these together provide a powerful web framework within SQL.
+integrity checking. All these together provide a powerful web framework within SQL environment.
  
 Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
@@ -51,7 +53,7 @@ With datalinker:
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 - LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
 
-Missing standard features:
+Missing features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - Foreign server support for file:// URLs (for files on other servers)

@@ -2,7 +2,7 @@ Write Access
 ------------                
 
 When `write_access` is `FS` then 'immutable' state for a file is left unmodified. 
-This option does not require datalinker.
+This option does not require a datalinker.
 
 When `write_access` is `BLOCKED` then file is changed to 'immutable' state. 
 It can't be renamed, modified or deleted neither by a normal user nor superuser.
@@ -21,7 +21,7 @@ Read access
 -----------  
 
 When `read_access` is `FS` then file owner and mode are left unmodified. 
-This option does not require datalinker.
+This option does not require a datalinker.
 
 When `read_access` is `DB` then file owner and mode are changed to a value, 
 configured in the datalinker, normally `postgres.postgres` and `0440`.

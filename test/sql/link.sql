@@ -23,6 +23,9 @@ insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 
 insert into sample_datalinks4 (link)
+values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
+
+insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 
 insert into sample_datalinks4 (link)

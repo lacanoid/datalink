@@ -26,7 +26,7 @@ ERROR:  datalink exception - referenced file does not exist
 URL:  file:///foo+bar/no_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure url is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 29 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
@@ -39,7 +39,7 @@ ERROR:  datalink exception - referenced file does not exist
 URL:  http://blah
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure url is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 28 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 29 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
        dlurlcomplete        | has_token 

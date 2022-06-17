@@ -949,10 +949,11 @@ begin
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
-/*    if dlurlscheme(link) = 'file' THEN
-      url := replace(url,'#','%23');
-    end if; */
     r := datalink.curl_get(url,true);
+    if not r.ok and dlurlscheme(link) = 'file' then 
+      url := replace(url,'#','%23');
+      r := datalink.curl_get(url,true);
+    end if;
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
