@@ -11,7 +11,7 @@ Datalinks as defined by SQL/MED should provide:
 - Protection of linked file against renaming or deletion
 - Read access control through database
 - Write access control through database
-- Point-in-time recovery
+- Point-in-time recovery of file contents
 - Deletion of files no longer referenced
 - Access to files on different servers
 
