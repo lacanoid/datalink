@@ -950,7 +950,7 @@ begin
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
     r := datalink.curl_get(url,true);
-    if not r.ok and dlurlscheme(link) = 'file' then 
+    if not r.ok and dlurlscheme(link) = 'file' and url ~ '#' then 
       url := replace(url,'#','%23');
       r := datalink.curl_get(url,true);
     end if;

@@ -1,6 +1,7 @@
 Version 0.18
 ------------
 - added missing cast in function dl_lco to make this work again with older pg versions
+- bug fixes in tokes vs fragments
 
 Version 0.17
 ------------
