@@ -1,3 +1,8 @@
+Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
+Here it sees the results of transactions already commited in postgres.
+
+It then attempts to modify files accordingly.
+
 Responsibilities
 ----------------
 * Protect files from renaming or deletion (write_access=blocked,admin or token)
@@ -19,9 +24,6 @@ Responsibilities
 
 Datalinker connects to postgres service "datalinker", so make sure it is configured
 in file `~/.pg_service.conf`.
-
-Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
-Here it sees the results of transactions already commited in postgres.
 
 Files in state `LINK` go into state `LINKED` when successfully linked otherwise the go into state `ERROR`.
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
