@@ -5,17 +5,27 @@ This attempts to implement some of the [SQL/MED datalink](https://wiki.postgresq
 It is very much a prototype and meant for playing around to see if this can be made useful.
 It implements a number of SQL/MED specified datalink behaviours.
 
-It comes with a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations,
-but the extension can be used without it, albeit with some loss of functionality.
+Datalinks as defined by SQL/MED should provide:
+- Transactional semantics
+- Checking if file exists
+- Protection of linked file against renaming or deletion
+- Read access control through database
+- Write access control through database
+- Point-in-time recovery
+- Deletion of files no longer referenced
+- Access to files on different servers
+
+It is implemented in two parts, a PostgreSQL extension to be used from SQL and a a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations.
+The extension can be used without a daemon, but this looses some of the functionality.
 The extension by itself does not perform any file system changes. 
 
 This extension uses a number of advanced Postgres features for implementation,
 including transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
 It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and [curl](https://curl.se/) for
-integrity checking.
+integrity checking. All these together provide a powerful web framework within SQL.
  
 Currently, it implements the following:
-- SQL/MED DATALINK type, currently defined as s base type (variant of jsonb)
+- SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
@@ -45,16 +55,6 @@ Missing standard features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 - Foreign server support for file:// URLs (for files on other servers)
-
-Datalinks as defined by SQL/MED should provide:
-- Transactional semantics
-- Checking if file exists
-- Protection of linked file against renaming or deletion
-- Read access control through database
-- Write access control through database
-- Point-in-time recovery
-- Deletion of files no longer referenced
-- Access to files on different servers
 
 Installation
 ------------
