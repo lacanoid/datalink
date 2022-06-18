@@ -50,13 +50,13 @@ Weird characters in pathnames are properly URI encoded.
 
 Full form of function `dlvalue()` has a few more optional arguments:
 
-- `DLVALUE(url[,link_type][,comment]) → datalink` (for INSERT)
+- `DLVALUE(address[,link_type][,comment]) → datalink` (for INSERT)
 
-`address`   - data address, typically URL or file path
+`address`   - data address, typically URL or a file path
 
 `link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted, it is automatically determined from `address`
 
-`comment`   - datalink text comment
+`comment`   - optional datalink text comment
 
 You can also use two `dlvalue()` to convert relative to absolute URLs
 
