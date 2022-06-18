@@ -50,12 +50,21 @@ Weird characters in pathnames are properly URI encoded.
 
 Full form of function `dlvalue()` has a few more optional arguments:
 
-    dlvalue(address, link_type, comment)
+- `DLVALUE(url[,link_type][,comment]) → datalink` (for INSERT)
 
-    `address`   - data address, typically URL or file path
-    `link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted, it is automatically determined from `address`
-    `comment`   - datalink text comment
+`address`   - data address, typically URL or file path
 
+`link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted, it is automatically determined from `address`
+
+`comment`   - datalink text comment
+
+You can also use two `dlvalue()` to convert relative to absolute URLs
+
+    mydb=# select dlvalue('robots.txt',dlvalue('http://www.ljudmila.org/index.html'));
+                    dlvalue                    
+    -----------------------------------------------
+     {"url": "http://www.ljudmila.org/robots.txt"}
+    (1 row)
 
 Datalink functions
 ------------------
