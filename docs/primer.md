@@ -58,7 +58,7 @@ Full form of function `dlvalue()` has a few more optional arguments:
 
 `comment`   - optional datalink text comment
 
-You can also use two `dlvalue()` to convert relative to absolute URLs
+You can also use form `dlvalue(relative_address,dlvalue(base_address))` to convert relative to absolute URLs
 
     mydb=# select dlvalue('robots.txt',dlvalue('http://www.ljudmila.org/index.html'));
                     dlvalue                    
