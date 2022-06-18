@@ -32,6 +32,8 @@ our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 
+our $version="0.18.20220618";
+
 getopt('l');
 
 #---------------------------------------
@@ -181,7 +183,8 @@ sub main() {
                         log_msg("LINK:$ts:".$data->{lco},$path_backup);
                     }
                     my $r=file_link($path,$data);
-                    queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode(\@err));
+                    my $err=(@err)?\@err:undef;
+                    queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode($err));
                     next;
                 }
                 elsif($data->{state} eq 'UNLINK') {

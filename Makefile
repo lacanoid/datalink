@@ -14,7 +14,13 @@ SCRIPTS = bin/pg_datalinker
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
+install: installextras
+
 installcheck: testfiles
+
+installextras:
+	if [ ! -f /sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/pg_datalinker ; fi
+	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
 
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi

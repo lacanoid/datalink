@@ -11,6 +11,7 @@ Wanted
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
 - get rid of plperlu, needs native postgres interface to curl_get, file_stat and uri_set
+- some sort of permissions as to what gets to get/put where
 
 Issues
 ======
