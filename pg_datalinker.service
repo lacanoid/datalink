@@ -1,0 +1,11 @@
+[Unit]
+Description=PostgreSQL SQL/MED Datalinker
+
+[Service]
+User=root
+WorkingDirectory=/var/lib/postgresql
+ExecStart=pg_datalinker -l /var/log/postgresql/pg_datalinker.log run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
