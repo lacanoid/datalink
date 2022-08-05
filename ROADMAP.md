@@ -4,8 +4,9 @@ Wanted
 - ✔︎ replace link with one with different token
 - ✔︎ Native postgres URL type + functions
 - ✔︎ way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
-- init.d / systemd scripts for datalinker
-- install pg_wrapper for pg_datalinker
+- ✔︎ systemd scripts for datalinker
+- ✔︎ install pg_wrapper for pg_datalinker
+- install init.d scripts 
 - Transactional File IO functions + file directories / bfile like functionality
 - For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of file to url mapping. dlurl* functions could use these.
@@ -15,7 +16,7 @@ Wanted
 
 Issues
 ======
-- Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
+- ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
 - fordbid setting of lco<>0 for non superusers 
 
@@ -38,10 +39,14 @@ Todo
 - ✔︎ make this work better with pg_dump
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
+- throw errors if datalinker is not running when it should
+- create explicits datalink.exists function
 - skip curl for integrity='ALL' and check for files only with file_stat
-- handle // urls and paths
+- handle // urls and paths better
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
+- datalinker: optimise verbosity
+- datalinker: better configurator
 - optimize table triggers (do not install them if mco=0)
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
@@ -49,5 +54,9 @@ Todo
 - make this work for non-superusers
 - check permissions
 - datalink.file_stat() execute permissions
+
+Maybe
+=====
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
+
