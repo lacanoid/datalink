@@ -1,7 +1,7 @@
 Version 0.18
 ------------
 - added missing cast in function dl_lco to make this work again with older pg versions
-- bug fixes in tokes vs fragments
+- bug fixes in tokens vs fragments
 - install adds `/sbin/pg_datalinker` as a symlink to pg_wrapper 
 - install `/etc/systemc/system/pg_datalinker.service` for systemd
 
