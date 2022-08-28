@@ -21,11 +21,6 @@ which handles all file manipulations.
 The extension can be used without a daemon, but this looses some of the functionality.
 The extension by itself does not perform any file system changes. 
 
-This extension uses a number of advanced Postgres features for implementation,
-including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
-It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and [curl](https://curl.se/) for
-integrity checking. All these together provide a powerful file and web framework within SQL environment.
- 
 Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
 - SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
@@ -58,6 +53,11 @@ Missing features:
 - SQL/MED function DLREPLACECONTENT
 - Foreign server support for file:// URLs (for files on other servers)
 
+This extension uses a number of advanced Postgres features for implementation,
+including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
+It also requires [pguri](https://github.com/petere/pguri) extension for URL processing and [curl](https://curl.se/) for
+integrity checking. All these together provide a powerful file and web framework within SQL environment.
+
 Installation
 ------------
 
@@ -68,7 +68,7 @@ On Debian, you will need to install `libwww-curl-perl` and `libdbd-pg-perl` pack
 
     apt install libwww-curl-perl libdbd-pg-perl
 
-Recent versions also require [pguri](https://github.com/petere/pguri) extension, which must
+Also required is [pguri](https://github.com/petere/pguri) extension, which must
 be installed separately.
 
 To build and install this module:
