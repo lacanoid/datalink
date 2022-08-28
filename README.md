@@ -96,7 +96,7 @@ SQL/MED standard compliant functions are installed in `pg_catalog` schema,
 so they are accessible regardless of the search_path.
 
 Event trigger `datalink_event_trigger` is installed. 
-It takes care of adding datalink triggers to tables, which contain datalink columns.
+It takes care of adding and removing datalink triggers on tables, which contain datalink columns.
 Datalink triggers take care of referencing and dereferencing datalinks 
 as values are assigned to datalink columns.
 
@@ -113,10 +113,10 @@ datalink triggers are automatically installed on the table.
            url text,
            link datalink
     );
-    
+
     insert into sample_datalinks (link)
            values (dlvalue('http://www.debian.org'));
-            
+
     select dlurlcomplete(link)
       from sample_datalinks;
 
