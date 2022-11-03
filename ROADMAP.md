@@ -39,10 +39,12 @@ Todo
 - ✔︎ make this work better with pg_dump
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
+- more compact datalink storage (use 1 letter keys)
 - throw errors if datalinker is not running when it should
-- create explicits datalink.exists function
+- create explicit datalink.exists function
 - skip curl for integrity='ALL' and check for files only with file_stat
 - handle // urls and paths better
+- datalinker: use config file
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
