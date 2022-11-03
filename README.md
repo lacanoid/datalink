@@ -154,7 +154,7 @@ Functions for extracting information from datalink type:
 - `DLURLSERVER(datalink) → text`
 - `DLURLSCHEME(datalink) → text`
 - `DLCOMMENT(datalink) → text`
-- `DLLINKTYPE(datalink) → {URL,FS}`
+- `DLLINKTYPE(datalink) → text`
 
 See also
 --------
