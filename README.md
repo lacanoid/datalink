@@ -34,9 +34,9 @@ Currently, it implements the following:
 - Token generator (uses uuid-ossp)
 - PlPerlu interface to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
-- LCO: NO LINK CONTROL - only check for valid URLs and normalize
-- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD
-- LCO: FILE LINK CONTROL INTEGRITY ALL - keep linked files in `datalink.dl_linked_files` table
+- LCO: NO LINK CONTROL - only check for valid URLs and normalize them
+- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also work for web
+- LCO: FILE LINK CONTROL INTEGRITY ALL - keep track of linked files in `datalink.dl_linked_files` table
 - Simple datalinker to provide other LCOs, see below
 
 With datalinker:
