@@ -26,7 +26,7 @@ installextras:
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	cp CHANGELOG.md /var/www/datalink/
-	if [ ! -f /var/www/datalink/test1.txt ] ; then echo "Hello" /var/www/datalink/test1.txt ; fi
+	if [ ! -f /var/www/datalink/test1.txt ] ; then echo "Hello" > /var/www/datalink/test1.txt ; fi
 	if [ ! -f /var/www/datalink/test2.txt ] ; then date >> /var/www/datalink/test2.txt ; fi	
 	date >> /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt
