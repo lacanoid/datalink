@@ -14,6 +14,7 @@ Wanted
 - get rid of plperlu, needs native postgres interface to curl_get, file_stat and uri_set
 - some sort of permissions as to what gets to get/put where
 - make it possible to change LCO with datalink values present
+- make datalinks work with arrays
 
 Issues
 ======
