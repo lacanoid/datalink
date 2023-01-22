@@ -7,6 +7,7 @@ It implements a number of SQL/MED specified datalink behaviours.
 
 Datalinks as defined by SQL/MED should provide:
 - Transactional semantics
+- URL syntax validation
 - Checking if file exists
 - Protection of linked file against renaming or deletion
 - Read access control through database
