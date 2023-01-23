@@ -1,7 +1,8 @@
 Datalink extension for PostgreSQL
 =================================
 
-This attempts to implement some of the [SQL datalink](https://wiki.postgresql.org/wiki/DATALINK) functionality on PostgreSQL.
+This attempts to implement some of the [SQL datalink](https://wiki.postgresql.org/wiki/DATALINK) functionality on PostgreSQL. The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the integrity control, recovery, and access control of the files and the SQL-data associated with them. "
+
 It is very much a prototype and meant for playing around to see if this can be made useful.
 It implements a number of SQL/MED specified datalink behaviours.
 
