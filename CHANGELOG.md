@@ -1,3 +1,6 @@
+Version 0.19
+------------
+
 Version 0.18
 ------------
 - added missing cast in function dl_lco to make this work again with older pg versions

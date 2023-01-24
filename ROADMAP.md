@@ -58,6 +58,7 @@ Todo
 - make this work for non-superusers
 - check permissions
 - datalink.file_stat() execute permissions
+- create table as bug
 
 Maybe
 =====
