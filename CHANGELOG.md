@@ -4,6 +4,7 @@ Version 0.18
 - bug fixes in tokens vs fragments
 - install adds `/sbin/pg_datalinker` as a symlink to pg_wrapper 
 - install `/etc/systemc/system/pg_datalinker.service` for systemd
+- exclude trigger from tables with no link control. much faster.
 
 Version 0.17
 ------------

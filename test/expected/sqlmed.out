@@ -69,7 +69,6 @@ create table sample_datalinks (
   url text,
   link datalink
 );
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks
 --select * from dl_triggers;
 --select column_name,lco FROM datalink.dl_columns;
 --select * from datalink.columns;

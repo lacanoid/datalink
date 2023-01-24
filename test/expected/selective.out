@@ -5,10 +5,10 @@ create table sample_datalinks2 (
   id serial,
   link datalink
 );
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
          regclass          | column_name | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
@@ -51,14 +51,13 @@ select dlurlcomplete(link), (link)->>'token' is not null as has_token from sampl
 create table sample_datalinks3 as 
 select *
   from sample_datalinks;
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks3
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
 ERROR:  datalink exception
 DETAIL:  Can't change link control options; 6 non-null values present in column "link"
 HINT:  Perhaps you can "truncate sample_datalinks3"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 35 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 36 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_options() line 19 at PERFORM
+PL/pgSQL function dl_trigger_options() line 21 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

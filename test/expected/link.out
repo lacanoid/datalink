@@ -5,11 +5,11 @@ create table sample_datalinks4 (
   id serial,
   link datalink
 );
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 -- select dl_chattr('sample_datalinks4','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link';
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/etc/passwd
@@ -75,11 +75,11 @@ create table sample_datalinks5 (
   id serial,
   link datalink
 );
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks5
 -- select dl_chattr('sample_datalinks5','link', dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks5' and column_name='link';
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks5
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/etc/passwd
@@ -119,7 +119,6 @@ alter table sample_datalinks4
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 truncate sample_datalinks4;
 alter table sample_datalinks4
  add column link datalink;
@@ -130,6 +129,7 @@ alter table sample_datalinks4
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link2';
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 insert into sample_datalinks4 (link)
 select link
   from sample_datalinks3
@@ -149,9 +149,9 @@ update datalink.columns
 ERROR:  datalink exception
 DETAIL:  Invalid link control options (11)
 HINT:  see table datalink.link_control_options for valid link control options
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 24 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 25 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_options() line 19 at PERFORM
+PL/pgSQL function dl_trigger_options() line 21 at PERFORM
 select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
@@ -203,18 +203,19 @@ alter table sample_datalinks4 drop column link4;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 create table my_table(link datalink);
-NOTICE:  DATALINK DDL:TRIGGER on my_table
 update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
+NOTICE:  DATALINK DDL:TRIGGER on my_table
 create table my_table2(link datalink);
-NOTICE:  DATALINK DDL:TRIGGER on my_table2
 update datalink.columns set integrity='ALL' where table_name='my_table2';
+NOTICE:  DATALINK DDL:TRIGGER on my_table2
 create table my_table3(link datalink);
-NOTICE:  DATALINK DDL:TRIGGER on my_table3
 update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
+NOTICE:  DATALINK DDL:TRIGGER on my_table3
 create table my_table4(link datalink);
-NOTICE:  DATALINK DDL:TRIGGER on my_table4
 update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+NOTICE:  DATALINK DDL:TRIGGER on my_table4
 select * from datalink.columns order by table_name;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------

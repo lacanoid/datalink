@@ -41,6 +41,7 @@ Todo
 - ✔︎ make this work better with pg_dump
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
+- ✔︎ optimize table triggers (do not install them if mco=0)
 - more compact datalink storage (use 1 letter keys)
 - throw errors if datalinker is not running when it should
 - create explicit datalink.exists function
@@ -51,7 +52,6 @@ Todo
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
 - datalinker: better configurator
-- optimize table triggers (do not install them if mco=0)
 - better link state handling: unlink -> linked, error -> ?
 - token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
@@ -63,4 +63,5 @@ Maybe
 =====
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
+- add timing info to curl_get()
 

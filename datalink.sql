@@ -138,18 +138,6 @@ COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from individual options';
 
-/*
- select coalesce(
-   (select option_value::datalink.dl_lco
-      from pg_options_to_table((select attfdwoptions from pg_attribute where attrelid=$1 and attname=$2))
-     where option_name='dl_lco'),0)
-  from pg_attribute
- where attrelid = $1 and attname = $2
-   and atttypid = 'pg_catalog.datalink'::regtype
-   and attnum > 0
-   and not attisdropped
-$$ language sql;
-*/
 create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
 as $$
  select case 
@@ -182,6 +170,7 @@ IS 'Calculate link_control_options from dl_lco';
 -- init options table
 ---------------------------------------------------
 
+-- initialize valid link control options
 insert into link_control_options 
 with l as (
 select datalink.dl_lco(link_control=>lc,integrity=>itg,
@@ -209,6 +198,7 @@ select distinct * from l
  order by dl_lco
 ;
 
+-- is class adminable (owned or we are superuser)
 CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
     LANGUAGE sql
     AS $_$
@@ -272,7 +262,7 @@ grant select on columns to public;
 CREATE FUNCTION dl_trigger_advice(
     OUT owner name, OUT regclass regclass, 
     OUT valid boolean, OUT needed boolean,
-    OUT identifier name, OUT links bigint, OUT sql_advice text) 
+    OUT identifier name, OUT links bigint, OUT mco int, OUT sql_advice text) 
     RETURNS SETOF record
     LANGUAGE sql
     AS $$
@@ -307,15 +297,17 @@ WITH
 SELECT 
     owner,
     regclass AS regclass,
-    not (tgname is null or links = 0) as valid,
-    mco > 0 as needed,
+--    not (tgname is null or links = 0) as valid,
+    (tgname is null and mco=0) or (tgname is not null and mco>0) valid,
+    links>0 and mco>0 as needed,
     tgname AS identifier,
     links,
+    mco,
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
              || ' ON ' || regclass::text || '; ', '') ||
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname||'2') 
              || ' ON ' || regclass::text || '; ', '') ||
-    case when links>0 then
+    case when links>0 and mco > 0 then
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
                ||  regclass::text) 
                || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();', '')
@@ -830,8 +822,6 @@ begin
  return my_dl;
 end;
 $$;
--- CREATE FUNCTION pg_catalog.dlvalue(url dl_url, linktype dl_linktype DEFAULT 'URL', comment text DEFAULT NULL) 
--- RETURNS datalink LANGUAGE sql IMMUTABLE AS $$select dlvalue($1::text, $2, $3)$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - Construct a DATALINK value';
@@ -1109,6 +1099,8 @@ begin
                       else 'NONE'
                       end as datalink.dl_on_unlink)
     );
+    if new.link_control is distinct from old.link_control and new.link_control = 'NO'
+    then my_lco := 0; end if;
     perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
     return new;
  end if; -- if datalink.columns
@@ -1193,6 +1185,7 @@ RETURNS link_control_options
     AS $_$
 declare
  co record;
+ obj record;
  e text;
  n bigint;
  my_options datalink.link_control_options;
@@ -1236,6 +1229,15 @@ begin
       set -- attfdwoptions=array['dl_lco='||my_lco],
           atttypmod=case when my_lco > 0 then my_lco+4 else -1 end
     where attrelid=my_regclass and attname=my_column_name;
+
+   -- update triggers
+
+   for obj in select * from datalink.dl_trigger_advice()
+   where not valid and regclass = my_regclass
+   loop
+     RAISE NOTICE 'DATALINK DDL:% on %','TRIGGER',obj.regclass;
+     execute obj.sql_advice;
+   end loop;
 
 end if; -- lco has changed
 
