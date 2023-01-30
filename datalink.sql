@@ -298,7 +298,7 @@ SELECT
     owner,
     regclass AS regclass,
 --    not (tgname is null or links = 0) as valid,
-    (tgname is null and mco=0) or (tgname is not null and mco>0) valid,
+    (tgname is null and mco=0) or (tgname is not null and mco>0) as valid,
     links>0 and mco>0 as needed,
     tgname AS identifier,
     links,
