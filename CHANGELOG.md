@@ -1,5 +1,7 @@
 Version 0.19
 ------------
+- curl_get() function now includes timing, fold retcode into rc
+- syntax error fix :-(
 
 Version 0.18
 ------------

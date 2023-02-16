@@ -58,11 +58,12 @@ Todo
 - make this work for non-superusers
 - check permissions
 - datalink.file_stat() execute permissions
-- create table as bug
+- create table as bug (LCO doesn't get set)
 
 Maybe
 =====
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
-- add timing info to curl_get()
+- pluggable filename+token handling
+- ✔︎ add timing info to curl_get()
 

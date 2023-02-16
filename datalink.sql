@@ -947,7 +947,7 @@ begin
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
-                  detail = format('CURL error %s - %s',r.retcode,r.error),
+                  detail = format('CURL error %s - %s',r.rc,r.error),
                   hint = 'make sure url is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned
@@ -1129,7 +1129,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_options();
 
 CREATE FUNCTION curl_get(
   INOUT url text, head boolean DEFAULT false, 
-  OUT ok boolean, OUT rc integer, OUT body text, OUT retcode integer, OUT error text) 
+  OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT elapsed float) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
@@ -1138,6 +1138,7 @@ my ($url,$head)=@_;
 use strict;
 use warnings;
 use WWW::Curl::Easy;
+use Time::HiRes qw(gettimeofday tv_interval);
 
 $head = ($head eq't')?1:0;
 
@@ -1157,13 +1158,17 @@ my $response_body;
 if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
 else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 
+my $t0 = [gettimeofday];
 # Starts the actual request
 my $retcode = $curl->perform;
+$r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
 # Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
-$r{retcode} = $retcode;
-$r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
+$r{rc} = $retcode;
+if(!$r{rc}) {
+  $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
+}
 if($head) { $r{body} = $response_header; }
 else      { $r{body} = $response_body; }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
