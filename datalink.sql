@@ -1166,9 +1166,7 @@ $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 # Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{rc} = $retcode;
-if(!$r{rc}) {
-  $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
-}
+if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
 if($head) { $r{body} = $response_header; }
 else      { $r{body} = $response_body; }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
