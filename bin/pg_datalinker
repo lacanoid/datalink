@@ -31,6 +31,7 @@ our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
+our $opt_e = 1;  # echo commands
 
 our $version="0.18.20220618";
 
@@ -113,6 +114,8 @@ sub main() {
             join link_control_options lco using (lco)
             join pg_class c on c.oid=lf.attrelid
             where state in ('LINK','UNLINK')
+            order by txid
+            for update of lf
         }),
         'set_linked'=>$dbh->prepare(q{
          update dl_linked_files 
@@ -432,14 +435,14 @@ sub file_delete {
 	if($opt_D) {
 	    log_debug('DELETE',$opt);
 	    if(defined($info->{own})) {
-		sys("rm",$path);
+		    sys("rm",$path);
 	    }
 	} else {
 	    log_msg('NO DELETE',"Refusing to delete '$path'. Hint: use -D datalinker option.");
 	}
     }
 }
-# backup a file
+# does file have a backup copy
 sub file_has_backup {
     my ($path,$opt)=@_;
 	my $path_backup = path_backup($path,$opt->{token});
@@ -457,7 +460,7 @@ sub file_backup {
         }
     }
 }
-# revert a file to previous version
+# revert a file to previous version from backup
 sub file_backup_restore {
     my ($path,$opt)=@_;
     if($opt->{token}) {
@@ -513,27 +516,31 @@ sub file_observe {
 ########################################
 # run sys commands
 
+our $syserr;
+our $sysex;
+
 sub sys {
     my @args = @_;
-    my $err;
-    log_msg("SYS",[@args]);
+    if($opt_e) { log_msg("SYS",[@args]); }
+    $sysex = undef; $syserr=undef;
     system(@args) == 0
 	or log_err('SYSFAIL',"system @args failed: $?");
 
     if ($? == -1) {
-	$err = "failed to execute: $!";
+	    $syserr = "failed to execute: $!";
     }
     elsif ($? & 127) {
-	$err = sprintf "child died with signal %d, %s coredump",
-	($? & 127),  ($? & 128) ? 'with' : 'without';
+	    $syserr = sprintf "child died with signal %d, %s coredump",
+	    ($? & 127),  ($? & 128) ? 'with' : 'without';
     }
     else {
-	my $ex = $? >> 8;
-	if($ex > 0) {
-	    $err = sprintf "child exited with value %d", $ex;
-	}
+    	my $ex = $? >> 8;
+	    if($ex > 0) {
+	        $syserr = sprintf "child exited with value %d", $ex;
+	    }
+        $sysex = $ex;
     }
-    if($err) { log_err('SYSERR',$err); }
+    if($syserr) { log_err('SYSERR',$syserr); }
 }
 
 ########################################
@@ -565,7 +572,7 @@ sub wget {
 sub log_debug {
     my ($txt,$data)=@_;
     if($opt_v) {
-	print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    	print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
     }
 }
 
@@ -577,7 +584,9 @@ sub log_msg {
 sub log_err {
     my ($txt,$data)=@_;
     push @err,[$txt,$data];
-    print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    if($opt_e) {
+        print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    }
 }
 
 sub log_fatal {
@@ -607,6 +616,7 @@ our $NAME;
 our $DAEMON;
 our $DAEMON_LOG;
 our $DAEMON_PID;
+our $DAEMON_RUNNING=0;
 our @DAEMON_ARGS;
 
 sub daemon_setup {
@@ -618,6 +628,8 @@ sub daemon_setup {
 }
 
 sub daemon_start {
+    $opt_e = 0;
+    daemon_setup();
     daemon_stop();
     sys("start-stop-daemon","--start",
         "--name",$NAME,
@@ -628,6 +640,7 @@ sub daemon_start {
 }
 
 sub daemon_stop {
+    $opt_e = 0;
     daemon_setup();
     sys("start-stop-daemon","--stop",
         "--pidfile",$DAEMON_PID,"--remove-pidfile",
@@ -635,13 +648,22 @@ sub daemon_stop {
 }
 
 sub daemon_status {
+    $opt_e = 0;
     daemon_setup();
     sys("start-stop-daemon","--status",
         "--pidfile",$DAEMON_PID,
          "--name",$NAME);
+    if($sysex) { 
+        $DAEMON_RUNNING = 0;
+        log_msg('STOPPED');
+    } else {
+        $DAEMON_RUNNING = 1;
+        log_msg('RUNNING');
+    }
 }
 
 sub daemon_log {
+    $opt_e = 0;
     daemon_setup();
     if(-f $DAEMON_LOG) { sys("less","+F",$DAEMON_LOG); }
 }

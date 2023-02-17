@@ -21,6 +21,7 @@ Issues
 - ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
 - fordbid setting of lco<>0 for non superusers 
+- create table as bug (data is loaded before triggers are run)
 
 Todo
 ====
@@ -42,10 +43,8 @@ Todo
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
 - ✔︎ optimize table triggers (do not install them if mco=0)
-- more compact datalink storage (use 1 letter keys)
 - throw errors if datalinker is not running when it should
-- create explicit datalink.exists function
-- skip curl for integrity='ALL' and check for files only with file_stat
+- skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
 - handle // urls and paths better
 - datalinker: use config file
 - datalinker: revert files only when recovery=YES
@@ -58,10 +57,12 @@ Todo
 - make this work for non-superusers
 - check permissions
 - datalink.file_stat() execute permissions
-- create table as bug (LCO doesn't get set)
 
 Maybe
 =====
+- add DLVALUE(uri, ...)
+- create explicit datalink.exists function
+- more compact datalink storage (use 1 letter keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
 - pluggable filename+token handling
