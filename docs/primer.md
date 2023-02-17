@@ -54,7 +54,7 @@ Full form of function `dlvalue()` has a few more optional arguments:
 
 `address`   - data address, typically URL or a file path
 
-`link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted, it is automatically determined from `address`
+`link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted or NULL, it is automatically determined from `address`
 
 `comment`   - optional datalink text comment
 

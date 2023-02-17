@@ -894,6 +894,8 @@ begin
     if t1 is not null then 
       link := jsonb_set(link,'{old}',to_jsonb(t1));
     end if;
+    u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+    link := jsonb_set(link,'{url}',to_jsonb(u1));
   end if;
     -- generate new token
   token := datalink.dl_newtoken();  

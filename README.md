@@ -14,7 +14,7 @@ Datalinks as defined by SQL/MED should provide:
 - Read access control through database
 - Write access control through database
 - Point-in-time recovery of file contents
-- Deletion of files no longer referenced
+- Automatic deletion of files no longer referenced from database
 - Access to files on different servers
 
 It is implemented in two parts, a PostgreSQL extension `datalink` to be used from SQL 
@@ -37,7 +37,7 @@ Currently, it implements the following:
 - PlPerlu interface to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize them
-- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also work for web
+- LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also works for web
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep track of linked files in `datalink.dl_linked_files` table
 - Simple datalinker to provide other LCOs, see below
 
@@ -46,7 +46,7 @@ With datalinker:
 - LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs), forbid datalink column updates
 - LCO: WRITE ACCESS ADMIN - make file immutable, allow datalink column updates
 - LCO: WRITE ACCESS ADMIN TOKEN - make file immutable, allow column updates only with matching write token
-- LCO: RECOVERY YES - make backup copies of linked files
+- LCO: RECOVERY YES - backup and restore of linked file contents (point in time recovery)
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 - LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
 

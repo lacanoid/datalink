@@ -23,6 +23,11 @@ select dlcomment(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcomplete(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datalink'));
 
+select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0);
+select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1);
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'token';
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'token';
+
 select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'token';
 select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
 
