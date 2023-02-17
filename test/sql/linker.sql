@@ -54,3 +54,4 @@ select dlvalue(filename)
  where filename like '%.txt'
    and not (filename like '%X%' or filename like '%3.txt');
 
+truncate my_table2;

@@ -28,6 +28,16 @@ select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-44
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'token';
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'token';
 
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1);
+
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1) - 'token';
+
 select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'token';
 select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
 

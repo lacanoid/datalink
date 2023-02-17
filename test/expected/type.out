@@ -107,12 +107,60 @@ select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-44
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'token';
-                                      ?column?                                      
-------------------------------------------------------------------------------------
- {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+                   ?column?                    
+-----------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt"}
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'token';
+                                           ?column?                                           
+----------------------------------------------------------------------------------------------
+ {"old": "11111111-2222-3333-4444-abecedabeced", "url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
+                   ?column?                    
+-----------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
+                                           ?column?                                           
+----------------------------------------------------------------------------------------------
+ {"old": "11111111-2222-3333-4444-abecedabeced", "url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
+                   ?column?                    
+-----------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1);
+                                         dlpreviouscopy                                         
+------------------------------------------------------------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt", "token": "11111111-2222-3333-4444-abecedabeced"}
+(1 row)
+
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
+                   ?column?                    
+-----------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
+                   ?column?                    
+-----------------------------------------------
+ {"url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
+                                           ?column?                                           
+----------------------------------------------------------------------------------------------
+ {"old": "11111111-2222-3333-4444-abecedabeced", "url": "file:///var/www/datalink/test3.txt"}
+(1 row)
+
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1) - 'token';
                                            ?column?                                           
 ----------------------------------------------------------------------------------------------
  {"old": "11111111-2222-3333-4444-abecedabeced", "url": "file:///var/www/datalink/test3.txt"}

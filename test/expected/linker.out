@@ -76,3 +76,6 @@ select dlvalue(filename)
    and not (filename like '%X%' or filename like '%3.txt');
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+truncate my_table2;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt

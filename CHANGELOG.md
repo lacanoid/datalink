@@ -3,6 +3,7 @@ Version 0.19
 - curl_get() function now includes timing, fold retcode return field into rc
 - pg_datalinker now uses SELECT FOR UPDATE, less verbose
 - stupid syntax error fix :-(
+- tests++
 
 Version 0.18
 ------------
