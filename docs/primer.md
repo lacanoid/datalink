@@ -52,11 +52,20 @@ Full form of function `dlvalue()` has a few more optional arguments:
 
 - `DLVALUE(address[,link_type][,comment]) → datalink` (for INSERT)
 
-`address`   - data address, typically URL or a file path
+`address`   - data address in text format, typically URL or a file path
 
 `link_type` - either 'URL' or 'FS' (or 'FILE'). If ommitted or NULL, it is automatically determined from `address`
 
 `comment`   - optional datalink text comment
+
+Note that it is possible to create comment-only datalinks:
+
+    mudb=# select dlvalue(null,null,'Hello');
+          dlvalue      
+    -------------------
+     {"text": "Hello"}
+    (1 row)
+
 
 You can also use form `dlvalue(relative_address,dlvalue(base_address))` to convert relative to absolute URLs
 
@@ -65,6 +74,7 @@ You can also use form `dlvalue(relative_address,dlvalue(base_address))` to conve
     -----------------------------------------------
      {"url": "http://www.ljudmila.org/robots.txt"}
     (1 row)
+
 
 Datalink functions
 ------------------

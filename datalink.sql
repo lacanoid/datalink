@@ -1426,7 +1426,15 @@ $function$
 ;
 COMMENT ON FUNCTION datalink.is_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
-
+---------------------------------------------------
+CREATE FUNCTION datalink.read(datalink)
+ RETURNS text
+ LANGUAGE sql
+ STRICT
+AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
+;
+COMMENT ON FUNCTION datalink.read(datalink)
+     IS 'Read datalink contents as text';
 ---------------------------------------------------
 CREATE FUNCTION datalink.have_datalinker()
  RETURNS boolean
@@ -1436,7 +1444,7 @@ AS $function$
 select exists (
  select usename
    from pg_stat_activity
-  where datname is not null 
+  where datname = current_database() 
     and application_name='pg_datalinker'
 )
 $function$

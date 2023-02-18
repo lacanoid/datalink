@@ -1,6 +1,7 @@
 Version 0.19
 ------------
 - curl_get() function now includes timing, fold retcode return field into rc
+- added datalink.read(datalink) function
 - pg_datalinker now uses SELECT FOR UPDATE, less verbose
 - stupid syntax error fix :-(
 - tests++
