@@ -40,6 +40,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlscheme(text)                                                                            | sql      | SQL/MED - Returns the scheme from URL
  pg_catalog   | dlurlserver(datalink)                                                                        | sql      | SQL/MED - Returns the file server from DATALINK value
  pg_catalog   | dlurlserver(text)                                                                            | sql      | SQL/MED - Returns the file server from URL
+ pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from individual options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a column
@@ -69,5 +70,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
  datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(48 rows)
+(49 rows)
 

@@ -831,6 +831,9 @@ RETURNS datalink
     LANGUAGE sql IMMUTABLE
     AS $$select dlvalue(datalink.uri_set(dlurlcompleteonly($2)::uri,'src',$1),'URL',$3)$$;
 
+COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
+IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
+
 
 ---------------------------------------------------
 -- SQL/MED update functions
