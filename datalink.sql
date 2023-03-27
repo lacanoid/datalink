@@ -949,6 +949,10 @@ begin
       url := replace(url,'#','%23');
       r := datalink.curl_get(url,true);
     end if;
+    if not r.ok and dlurlscheme(link) = 'file' then
+      r.ok := not (datalink.file_stat(dlurlpathonly(link))).inode is null;
+    end if;
+
     if not r.ok then
       raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 

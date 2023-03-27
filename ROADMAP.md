@@ -61,7 +61,7 @@ Todo
 Maybe
 =====
 - add DLVALUE(uri, ...)
-- create explicit datalink.exists function
+- create explicit datalink.exists(datalink) function
 - more compact datalink storage (use 1 letter keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
