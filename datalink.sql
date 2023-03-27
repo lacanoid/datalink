@@ -936,11 +936,21 @@ begin
  if link_options > 0 then
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
+    -- check if this is a file not a link
     if lco.integrity = 'ALL' and dlurlscheme(link)<>'file' then
         raise exception 'datalink exception - invalid datalink construction' 
               using errcode = 'HW005',
                     detail = 'INTEGRITY ALL can only be used with file URLs',
                     hint = 'make sure you are using a file: URL scheme';
+    end if;
+    -- check if datalinker in needed and running
+    if lco.integrity = 'ALL' and link_options>10 then
+      if not datalink.have_datalinker() then
+        raise warning 'datalink warning - datalinker required' 
+              using errcode = 'HW000',
+--                    detail = 'datalinker process is not available',
+                    hint = 'make sure pg_datalinker process is running to finalize your commits';
+      end if;
     end if;
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists

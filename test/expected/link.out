@@ -18,7 +18,7 @@ DETAIL:  unknown path prefix (volume) for /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 47 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
@@ -29,7 +29,7 @@ ERROR:  datalink exception - referenced file does not exist
 URL:  file:///var/www/datalink/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure url is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 33 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
@@ -42,7 +42,7 @@ DETAIL:  unknown path prefix (volume) for /etc/hosts
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 47 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
@@ -88,7 +88,7 @@ DETAIL:  unknown path prefix (volume) for /etc/passwd
 HINT:  run "pg_datalinker add" to add volumes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 47 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));

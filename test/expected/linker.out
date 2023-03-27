@@ -17,6 +17,8 @@ update datalink.columns
  where table_name='sample_datalinks6' and column_name='link2';
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 1'));
+WARNING:  datalink warning - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 update sample_datalinks6 set link2 = link;
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
@@ -24,7 +26,7 @@ ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks6.link as '/var/www/datalink/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 56 at RAISE
 SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 47 at PERFORM
+PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
@@ -32,13 +34,15 @@ update sample_datalinks6 set link2 = null;
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 2'));
+WARNING:  datalink warning - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 ERROR:  datalink exception - invalid datalink construction
 DETAIL:  INTEGRITY ALL can only be used with file URLs
 HINT:  make sure you are using a file: URL scheme
-CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 16 at RAISE
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 17 at RAISE
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
   from sample_datalinks6;
@@ -56,12 +60,16 @@ select dlurlpathonly(link) from sample_datalinks6;
 update sample_datalinks6
    set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+WARNING:  datalink warning - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 update sample_datalinks6 set link2 = link, link = null;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 update sample_datalinks6 set link2 = null, link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+WARNING:  datalink warning - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 create table sample_datalinks7 as 
 select * 

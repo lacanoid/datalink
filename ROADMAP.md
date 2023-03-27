@@ -43,7 +43,7 @@ Todo
 - ✔︎ dlurlcomplete() must include token
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
 - ✔︎ optimize table triggers (do not install them if mco=0)
-- throw errors if datalinker is not running when it should
+- ✔︎ throw warnings/errors if datalinker is not running when it should
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
 - handle // urls and paths better
 - datalinker: use config file
