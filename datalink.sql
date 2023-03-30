@@ -1177,8 +1177,8 @@ my $response_body;
 if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
 else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 
+# Starts and times the actual request
 my $t0 = [gettimeofday];
-# Starts the actual request
 my $retcode = $curl->perform;
 $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
@@ -1323,7 +1323,7 @@ CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1->>'url','host')$function$;
+   AS $function$select nullif(datalink.uri_get($1->>'url','host'),'')$function$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
 
@@ -1452,6 +1452,7 @@ AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
 ;
 COMMENT ON FUNCTION datalink.read(datalink)
      IS 'Read datalink contents as text';
+
 ---------------------------------------------------
 CREATE FUNCTION datalink.have_datalinker()
  RETURNS boolean

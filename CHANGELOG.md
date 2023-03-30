@@ -1,5 +1,6 @@
 Version 0.20
 ------------
+- dlurlserver() now returns NULL for no server specified
 
 Version 0.19
 ------------

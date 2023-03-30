@@ -5,6 +5,18 @@ create table sample_urls (
   id serial,
   url text
 );
+select dlurlserver(dlvalue('file:///etc/issue'));
+ dlurlserver 
+-------------
+ _null_
+(1 row)
+
+select dlurlserver(dlvalue('file://server1/etc/issue'));
+ dlurlserver 
+-------------
+ server1
+(1 row)
+
 select dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS');
                                    dlvalue                                   
 -----------------------------------------------------------------------------
