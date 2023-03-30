@@ -1,6 +1,7 @@
 Version 0.20
 ------------
 - dlurlserver() now returns NULL for no server specified
+- add 'basename' to uri_get() and uri_set()
 
 Version 0.19
 ------------

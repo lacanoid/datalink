@@ -14,7 +14,9 @@ values
   ('ftp://user:pass@host/fileB.txt'),
   ('sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1'),
   ('mailto:lacanoid@ljudmila.org?subject=feedback'),
-  ('https://video.kulturnik.si/?qwhat=galerije&q=piran')
+  ('https://video.kulturnik.si/?qwhat=galerije&q=piran'),
+  ('file:///var/www/datalink/'),
+  ('file:///var/www/datalink')
 ;
 
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
@@ -27,6 +29,14 @@ select url,
        uri_get(url,'query') as query,
        uri_get(url,'fragment') as fragment,
        uri_get(url,'only') as only
+  from sample_urls
+;
+
+select url,
+       uri_get(url,'scheme') as scheme,
+       uri_get(url,'server') as server,
+       uri_get(url,'basename') as basename,
+       uri_set(url,'basename','foo.bar')
   from sample_urls
 ;
 

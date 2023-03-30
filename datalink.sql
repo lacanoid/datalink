@@ -634,6 +634,7 @@ select case part
        when 'userinfo' then uri_userinfo($1)
        when 'host' then uri_host($1)
        when 'path' then uri_unescape(uri_path($1))
+       when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
        when 'query' then uri_query($1)
        when 'fragment' then uri_fragment($1)
        when 'token' then uri_unescape(uri_fragment($1))
@@ -659,6 +660,7 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   if($part eq 'src') { $u = URI->new_abs($v,$u); return $u->as_string; }
   $u = URI->new($u);
   if($part eq 'scheme') { $u->scheme($v); }
+  elsif($part eq 'server') {  $u->host($v); }
   elsif($part eq 'authority') {  $u->authority($v); }
   elsif($part eq 'path_query') {  $u->path_query($v); }
   elsif($part eq 'userinfo') {  $u->userinfo($v); }
@@ -666,6 +668,9 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   elsif($part eq 'port') {  $u->port($v); }
   elsif($part eq 'host_port') {  $u->host_port($v); }
   elsif($part eq 'path') {  $u->path($v); }
+  elsif($part eq 'basename') {  
+    my $p=$u->path(); $p=~s|/[^/]*$||; $p.='/'.$v; $u->path($p);
+  }
   elsif($part eq 'query') {  $u->query($v); }
   elsif($part eq 'query_form') {  $u->query_form($v); }
   elsif($part eq 'query_keywords') {  $u->query_keywords($v); }
