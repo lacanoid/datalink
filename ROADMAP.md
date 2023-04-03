@@ -12,7 +12,7 @@ Wanted
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
-- perhaps [pg_curl](https://github.com/RekGRpth/pg_curl|pg_curl) could be helpful?
+- perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - some sort of permissions as to what and who gets to get/put where
 - make it possible to change LCO with datalink values present
 - make datalinks work with arrays
