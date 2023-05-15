@@ -49,27 +49,28 @@ select url,
 select url,
        uri_get(url,'scheme') as scheme,
        uri_get(url,'server') as server,
-       uri_get(url,'basename') as basename
+       uri_get(url,'basename') as basename,
+       uri_set(url,'basename','foo.bar')
   from sample_urls
 ;
-                                   url                                   | scheme |       server       |                basename                 
--------------------------------------------------------------------------+--------+--------------------+-----------------------------------------
- http://www.mozilla.org                                                  | http   | www.mozilla.org    | _null_
- http://www.ljudmila.org                                                 | http   | www.ljudmila.org   | _null_
- https://www.github.org                                                  | https  | www.github.org     | _null_
- file:///tmp/a                                                           | file   |                    | a
- http://www.debian.org/                                                  | http   | www.debian.org     | _null_
- file://user@fs1.arch.net/file1.jpg                                      | file   | fs1.arch.net       | file1.jpg
- file://user@file-server/a/b/c/../../fileX.jpg                           | file   | file-server        | fileX.jpg
- file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | file   | fs2.arch.net       | file1.jpg
- file://user:pass@host/fileA.txt                                         | file   | host               | fileA.txt
- ftp://user:pass@host/fileB.txt                                          | ftp    | host               | fileB.txt
- sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | sftp   | host               | fileC.txt
- mailto:lacanoid@ljudmila.org?subject=feedback                           | mailto | _null_             | lacanoid@ljudmila.org
- https://video.kulturnik.si/?qwhat=galerije&q=piran                      | https  | video.kulturnik.si | _null_
- file:///var/www/datalink/                                               | file   |                    | _null_
- file:///var/www/datalink                                                | file   |                    | datalink
- data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_             | gif;base64,R0lGODlhyAAiALM...DfD0QAADs=
+                                   url                                   | scheme |       server       |                basename                 |                                uri_set                                
+-------------------------------------------------------------------------+--------+--------------------+-----------------------------------------+-----------------------------------------------------------------------
+ http://www.mozilla.org                                                  | http   | www.mozilla.org    | _null_                                  | http://www.mozilla.org/foo.bar
+ http://www.ljudmila.org                                                 | http   | www.ljudmila.org   | _null_                                  | http://www.ljudmila.org/foo.bar
+ https://www.github.org                                                  | https  | www.github.org     | _null_                                  | https://www.github.org/foo.bar
+ file:///tmp/a                                                           | file   |                    | a                                       | file:///tmp/foo.bar
+ http://www.debian.org/                                                  | http   | www.debian.org     | _null_                                  | http://www.debian.org/foo.bar
+ file://user@fs1.arch.net/file1.jpg                                      | file   | fs1.arch.net       | file1.jpg                               | file://user@fs1.arch.net/foo.bar
+ file://user@file-server/a/b/c/../../fileX.jpg                           | file   | file-server        | fileX.jpg                               | file://user@file-server/a/b/c/../../foo.bar
+ file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | file   | fs2.arch.net       | file1.jpg                               | file://user@fs2.arch.net/foo.bar#bb519e69-6bf1-4214-9b7a-4280702c6321
+ file://user:pass@host/fileA.txt                                         | file   | host               | fileA.txt                               | file://user:pass@host/foo.bar
+ ftp://user:pass@host/fileB.txt                                          | ftp    | host               | fileB.txt                               | ftp://user:pass@host/foo.bar
+ sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | sftp   | host               | fileC.txt                               | sftp://user:pass@host/foo.bar#80653c50-908b-4f74-a7ca-398a6035a2d1
+ mailto:lacanoid@ljudmila.org?subject=feedback                           | mailto | _null_             | lacanoid@ljudmila.org                   | mailto:lacanoid@ljudmila.org?subject=feedback/foo.bar
+ https://video.kulturnik.si/?qwhat=galerije&q=piran                      | https  | video.kulturnik.si | _null_                                  | https://video.kulturnik.si/foo.bar?qwhat=galerije&q=piran
+ file:///var/www/datalink/                                               | file   |                    | _null_                                  | file:///var/www/datalink/foo.bar
+ file:///var/www/datalink                                                | file   |                    | datalink                                | file:///var/www/foo.bar
+ data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_             | gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | data:image/foo.bar
 (16 rows)
 
 select url,dlpreviouscopy(url::text,0) from sample_urls;

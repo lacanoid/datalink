@@ -1158,16 +1158,43 @@ RETURNS record
 LANGUAGE plperlu
 AS $_$
 my ($url,$head)=@_;
+my %r;
+my $fs;
 
 use strict;
 use warnings;
 use WWW::Curl::Easy;
 use Time::HiRes qw(gettimeofday tv_interval);
+use JSON;
+
+# Check if this is a file on a foreign server
+if($url=~m|^file://[^/]|i) {
+  my $q=<<'END';
+select 
+(select srvname from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw."oid")
+  where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
+(select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
+END
+  my $p = spi_prepare($q,'TEXT');
+  $fs = spi_exec_prepared($p,$url)->{rows}->[0];
+  unless($fs->{extnamespace}) {
+    elog(ERROR,'Extension dblink is required for files on foreign servers');
+  }
+  unless($fs->{srvname}) {
+    elog(ERROR,'Foreign server does not exist');
+  }
+  my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i;
+  $q='select to_json(datalink.curl_get('.quote_nullable($u).','.($head?'true':'false').')) as json';
+  $p = spi_prepare('select json from '.quote_ident($fs->{extnamespace}).'.dblink($1,$2) as dl(json json)','TEXT','TEXT');
+  my $v = spi_exec_prepared($p,$fs->{srvname},$q);
+  my $r = decode_json($v->{rows}->[0]->{json});
+  $r->{url}=$url;
+  return $r;
+}
 
 $head = ($head eq't')?1:0;
 
 my $curl = WWW::Curl::Easy->new;
-my %r;
 $r{url} = $url;  
 $curl->setopt(CURLOPT_USERAGENT,
               "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
@@ -1476,21 +1503,29 @@ COMMENT ON FUNCTION datalink.have_datalinker()
      IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
--- play tables
+-- directories
 ---------------------------------------------------
-
-create table sample_datalinks ( link datalink );
-grant select on sample_datalinks to public;
-
-update datalink.columns
-   set integrity='SELECTIVE'
- where table_name='sample_datalinks' and column_name='link';
-  
----------------------------------------------------
--- add stuff to pg_dump 
----------------------------------------------------
--- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
-SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
+create table datalink.dl_directory (
+  dirname text collate "C" unique,
+  dirpath text not null,
+  dirowner regrole not null,
+  diracl  aclitem[],
+  dirlco  datalink.dl_lco,
+  diroptions text[] collate "C"
+);
+create view datalink.directory as
+select dirname, 
+       coalesce(dirpath,prefix) as dirpath,
+       dirowner as dirowner,
+       diracl,
+       dirlco,
+       diroptions
+  from datalink.dl_prfx dp
+  left join datalink.dl_directory dir on (dir.dirpath like dp.prefix||'%')
+;
+COMMENT ON VIEW datalink.directory 
+     IS 'Configured datalink file system directories';
+-- GRANT SELECT ON datalink.directory TO PUBLIC;
 
 ---------------------------------------------------
 -- volume usage statistics
@@ -1522,3 +1557,21 @@ WITH f AS (
 COMMENT ON VIEW datalink.volume_usage
      IS 'Disk volume usage statistics';
 grant select on datalink.volume_usage to public;
+
+---------------------------------------------------
+-- play tables
+---------------------------------------------------
+
+create table sample_datalinks ( link datalink );
+grant select on sample_datalinks to public;
+
+update datalink.columns
+   set integrity='SELECTIVE'
+ where table_name='sample_datalinks' and column_name='link';
+  
+---------------------------------------------------
+-- add stuff to pg_dump 
+---------------------------------------------------
+-- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
+SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
+
