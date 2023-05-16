@@ -1167,11 +1167,14 @@ use WWW::Curl::Easy;
 use Time::HiRes qw(gettimeofday tv_interval);
 use JSON;
 
+# Starts and times the actual request
+my $t0 = [gettimeofday];
+
 # Check if this is a file on a foreign server
 if($url=~m|^file://[^/]|i) {
   my $q=<<'END';
 select 
-(select srvname from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw."oid")
+(select srvname from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
   where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
 (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
 END
@@ -1184,11 +1187,12 @@ END
     elog(ERROR,'Foreign server does not exist');
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i;
-  $q='select to_json(datalink.curl_get('.quote_nullable($u).','.($head?'true':'false').')) as json';
+  $q='select to_json(datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')) as json';
   $p = spi_prepare('select json from '.quote_ident($fs->{extnamespace}).'.dblink($1,$2) as dl(json json)','TEXT','TEXT');
   my $v = spi_exec_prepared($p,$fs->{srvname},$q);
   my $r = decode_json($v->{rows}->[0]->{json});
   $r->{url}=$url;
+  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
   return $r;
 }
 
@@ -1209,8 +1213,6 @@ my $response_body;
 if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
 else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 
-# Starts and times the actual request
-my $t0 = [gettimeofday];
 my $retcode = $curl->perform;
 $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
