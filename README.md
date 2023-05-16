@@ -169,4 +169,5 @@ See also
 - [Tests contain some examples](test/sql)
 - https://wiki.postgresql.org/wiki/DATALINK
 - [SQL/MED standard](http://www.wiscorp.com/sql20nn.zip)
-- [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for Postgres by Gilles Darold
+- [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for Postgres by Gilles Darold, 
+  [check out his presentation](https://github.com/darold/datalink/blob/master/SQL-MED-DATALINK-PgConfAsia2019.pdf).

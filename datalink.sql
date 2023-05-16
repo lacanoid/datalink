@@ -1230,6 +1230,8 @@ if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 return \%r;
 $_$;
 revoke execute on function curl_get(text,boolean) from public;
+comment on function curl_get(text,boolean)
+     is 'Access URLs with CURL. CURL groks URLs.';
 
 ---------------------------------------------------
 -- admin functions
@@ -1516,6 +1518,7 @@ create table dl_directory (
   dirowner   regrole not null,
   diracl     aclitem[],
   dirlco     dl_lco,
+  diruri     uri,
   diroptions text[] collate "C"
 );
 create view directory as
@@ -1524,6 +1527,7 @@ select dirname,
        dirowner as dirowner,
        diracl,
        dirlco,
+       diruri,
        diroptions
   from dl_prfx dp
   left join dl_directory dir on (dir.dirpath like dp.prefix||'%')
