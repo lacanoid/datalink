@@ -1187,10 +1187,12 @@ END
     elog(ERROR,'Foreign server does not exist');
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i;
-  $q='select to_json(datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')) as json';
-  $p = spi_prepare('select json from '.quote_ident($fs->{extnamespace}).'.dblink($1,$2) as dl(json json)','TEXT','TEXT');
+  $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';
+  $p = spi_prepare('select ok,rc,body,error from '.quote_ident($fs->{extnamespace}).
+                   '.dblink($1,$2) as dl(ok bool, rc int, body text, error text)',
+                   'TEXT','TEXT');
   my $v = spi_exec_prepared($p,$fs->{srvname},$q);
-  my $r = decode_json($v->{rows}->[0]->{json});
+  my $r = $v->{rows}->[0];
   $r->{url}=$url;
   $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
   return $r;
@@ -1475,7 +1477,7 @@ select exists (
 )
 $function$
 ;
-COMMENT ON FUNCTION datalink.is_valid_prefix(datalink.file_path)
+COMMENT ON FUNCTION is_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
 CREATE FUNCTION datalink.read(datalink)
@@ -1484,11 +1486,11 @@ CREATE FUNCTION datalink.read(datalink)
  STRICT
 AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
 ;
-COMMENT ON FUNCTION datalink.read(datalink)
+COMMENT ON FUNCTION read(datalink)
      IS 'Read datalink contents as text';
 
 ---------------------------------------------------
-CREATE FUNCTION datalink.have_datalinker()
+CREATE FUNCTION have_datalinker()
  RETURNS boolean
  LANGUAGE sql
  STABLE
@@ -1501,31 +1503,31 @@ select exists (
 )
 $function$
 ;
-COMMENT ON FUNCTION datalink.have_datalinker()
+COMMENT ON FUNCTION have_datalinker()
      IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
 -- directories
 ---------------------------------------------------
-create table datalink.dl_directory (
-  dirname text collate "C" unique,
-  dirpath text not null,
-  dirowner regrole not null,
-  diracl  aclitem[],
-  dirlco  datalink.dl_lco,
+create table dl_directory (
+  dirname    text collate "C" unique,
+  dirpath    file_path not null,
+  dirowner   regrole not null,
+  diracl     aclitem[],
+  dirlco     dl_lco,
   diroptions text[] collate "C"
 );
-create view datalink.directory as
+create view directory as
 select dirname, 
        coalesce(dirpath,prefix) as dirpath,
        dirowner as dirowner,
        diracl,
        dirlco,
        diroptions
-  from datalink.dl_prfx dp
-  left join datalink.dl_directory dir on (dir.dirpath like dp.prefix||'%')
+  from dl_prfx dp
+  left join dl_directory dir on (dir.dirpath like dp.prefix||'%')
 ;
-COMMENT ON VIEW datalink.directory 
+COMMENT ON VIEW directory 
      IS 'Configured datalink file system directories';
 -- GRANT SELECT ON datalink.directory TO PUBLIC;
 
@@ -1533,7 +1535,7 @@ COMMENT ON VIEW datalink.directory
 -- volume usage statistics
 ---------------------------------------------------
 
-create view datalink.volume_usage as
+create view volume_usage as
 WITH f AS (
          SELECT p.prefix,
             lf.path,
@@ -1548,7 +1550,7 @@ WITH f AS (
             lf.err,
             (datalink.file_stat(lf.path)).size AS size
            FROM datalink.dl_prfx p
-             LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
+          LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
         )
  SELECT f.prefix,
     count(f.path) AS files,
@@ -1556,9 +1558,9 @@ WITH f AS (
    FROM f
   GROUP BY GROUPING SETS ((f.prefix), ())
   ORDER BY f.prefix;
-COMMENT ON VIEW datalink.volume_usage
+COMMENT ON VIEW volume_usage
      IS 'Disk volume usage statistics';
-grant select on datalink.volume_usage to public;
+grant select on volume_usage to public;
 
 ---------------------------------------------------
 -- play tables
@@ -1576,4 +1578,5 @@ update datalink.columns
 ---------------------------------------------------
 -- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
+SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
 

@@ -61,6 +61,7 @@ Todo
 
 Maybe
 =====
+- perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
 - create explicit datalink.exists(datalink) function
 - more compact datalink storage (use 1 letter keys)

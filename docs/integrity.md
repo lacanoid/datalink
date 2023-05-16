@@ -37,7 +37,7 @@ Now one can proceed to insert some datalinks.
     INSERT 0 1
     
 Datalinks are checked via [CURL](https://curl.se/) with HEAD request as they are inserted or updated.
-CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
+Note that CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
 If CURL request fails, exception is raised and transaction is aborted.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila2.org'));
@@ -118,7 +118,7 @@ Datalinks are assigned unique tokens as they are stored.
      {"url": "file:///var/www/datalink/test1.txt", "token": "e56b96cb-6e15-4ed5-83cd-611e06877826"}
     (1 row)
     
-One can see all currently linked files in `datalink.linked_files` view.
+A user can see all of his currently linked files in `datalink.linked_files` view.
 
     mydb=# select * from datalink.linked_files ;
                 path             | state | read | write | recovery | on_unlink | regclass | attname | owner | err 
@@ -130,5 +130,7 @@ Full referential integrity is meant to be supported by [pg_datalinker](pg_datali
 to perform file operations on datalinks. Further settings require its use to be effective. Postgres server process by itself does
 not have high enough privileges to change file permissions nor does extension perform any file changes by itself. It is all done by
 the datalinker process.
+
+
 
 Next: [Access control](access.md)
