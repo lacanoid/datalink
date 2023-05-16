@@ -67,3 +67,13 @@ select * from datalink.curl_get('file://tiha/etc/issue');
 create user mapping for current_role server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
+
+-- test directories
+update datalink.directory
+   set dirname='www', 
+       dirowner=current_role::regrole
+ where dirpath='/var/www/datalink/';
+select dlvalue('hello.txt','www');
+select dlvalue('','www');
+select dlvalue(NULL,'www');
+

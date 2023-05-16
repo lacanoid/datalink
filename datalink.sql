@@ -806,13 +806,10 @@ declare
  my_uri text;
  my_type text;
 begin
- if url is null or length(url)<=0 then 
-   return case when comment is not null then jsonb_build_object('text',comment) end;
- end if;
  my_uri := url;
  my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  if my_type not in ('URL','FS') then -- link type is a directory
-  select dirpath||my_uri from datalink.directory where dirname=linktype into my_uri;
+  select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=linktype into my_uri;
   if not found then 
         raise exception 'datalink exception - nonexistent directory' 
               using errcode = 'HW005',
@@ -825,6 +822,9 @@ begin
 	         else format('file://%s',
 	              replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'))
            end;
+ if my_uri is null or length(my_uri)<=0 then 
+   return case when comment is not null then jsonb_build_object('text',comment) end;
+ end if;
  my_uri := my_uri::datalink.dl_url;
  my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
  if comment is not null then
@@ -1528,9 +1528,9 @@ create table dl_directory (
   dirowner   regrole,
   diracl     aclitem[],
   dirlco     dl_lco,
-  diruri     uri,
+  dirurl     text,
   diroptions text[] collate "C",
-  dirlink    datalink(1) not null
+  dirlink    datalink(2) not null
 );
 
 create view directory as
@@ -1539,7 +1539,7 @@ select dirname,
        dirowner as dirowner,
        diracl,
        dirlco,
-       diruri,
+       dirurl,
        diroptions
   from dl_prfx dp
   left join dl_directory dir on (dir.dirpath like dp.prefix||'%')
@@ -1556,7 +1556,7 @@ begin
  if tg_relid = 'datalink.directory'::regclass then
    update datalink.dl_directory
       set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
-          (new.dirname,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
+          (new.dirname,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions)
     where dirpath = new.dirpath;
     if not found then
       insert into datalink.dl_directory (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
@@ -1564,11 +1564,12 @@ begin
     end if;
  end if;  -- if datalink.directory
  if tg_relid = 'datalink.dl_directory'::regclass then
+   new.dirpath := trim(trailing '/' from new.dirpath) || '/';
    if not datalink.is_valid_prefix(new.dirpath) then 
         raise exception 'datalink exception - referenced file not valid' 
               using errcode = 'HW007',
-                    detail = format('unknown path prefix for %s',file_path),
-                    hint = 'run "pg_datalinker add" to add prefixes'
+                    detail = format('unknown path prefix for %s',new.dirpath),
+                    hint = 'run "pg_datalinker add" to add prefixes';
    end if;
    new.dirlink := dlvalue(new.dirpath,'FS');
  end if;  -- if datalink.dl_directory

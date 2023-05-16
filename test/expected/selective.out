@@ -13,7 +13,7 @@ select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
          regclass          | column_name | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+-----+--------------+-----------+-------------+--------------+----------+-----------
- dl_directory              | dirlink     |   1 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ dl_directory              | dirlink     |   2 | FILE         | ALL       | FS          | FS           | NO       | NONE
  datalink.sample_datalinks | link        |   1 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks          | link        |   0 | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks2         | link        |   1 | FILE         | SELECTIVE | FS          | FS           | NO       | NONE

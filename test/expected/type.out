@@ -318,12 +318,12 @@ select dlvalue('/etc/issue','FILE');
 ERROR:  datalink exception - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 select dlvalue('/etc/issue','foo');
 ERROR:  datalink exception - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 select dllinktype(dlvalue('/etc/issue'));
  dllinktype 
 ------------
@@ -340,12 +340,12 @@ select dllinktype(dlvalue('/etc/issue','FILE'));
 ERROR:  datalink exception - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 select dllinktype(dlvalue('/etc/issue','foo'));
 ERROR:  datalink exception - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 15 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 SET search_path=datalink;
 select dl_lco(link_control=>'FILE');
  dl_lco 

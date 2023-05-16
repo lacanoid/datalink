@@ -155,7 +155,7 @@ PL/pgSQL function dl_trigger_options() line 21 at PERFORM
 select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
- dl_directory              | dirlink     | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ dl_directory              | dirlink     | FILE         | ALL       | FS          | FS           | NO       | NONE
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
@@ -221,7 +221,7 @@ select * from datalink.columns order by table_name;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
- dl_directory              | dirlink     | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ dl_directory              | dirlink     | FILE         | ALL       | FS          | FS           | NO       | NONE
  my_table                  | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  my_table2                 | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
  my_table3                 | link        | FILE         | ALL       | FS          | BLOCKED      | NO       | RESTORE

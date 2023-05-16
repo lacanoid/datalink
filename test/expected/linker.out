@@ -116,3 +116,27 @@ select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
  file://zala/etc/issueXXXXX | f  | 37 | Couldn't read a file:// file
 (1 row)
 
+-- test directories
+update datalink.directory
+   set dirname='www', 
+       dirowner=current_role::regrole
+ where dirpath='/var/www/datalink/';
+NOTICE:  DATALINK LINK:/var/www/datalink/
+select dlvalue('hello.txt','www');
+                           dlvalue                            
+--------------------------------------------------------------
+ {"url": "file:///var/www/datalink/hello.txt", "type": "www"}
+(1 row)
+
+select dlvalue('','www');
+                       dlvalue                       
+-----------------------------------------------------
+ {"url": "file:///var/www/datalink/", "type": "www"}
+(1 row)
+
+select dlvalue(NULL,'www');
+                       dlvalue                       
+-----------------------------------------------------
+ {"url": "file:///var/www/datalink/", "type": "www"}
+(1 row)
+
