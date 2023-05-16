@@ -306,11 +306,11 @@ SELECT
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
              || ' ON ' || regclass::text || '; ', '') ||
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname||'2') 
-             || ' ON ' || regclass::text || '; ', '') ||
+             || ' ON ' || regclass::text || E'; \n', '') ||
     case when links>0 and mco > 0 then
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
                ||  regclass::text) 
-               || ' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();', '')
+               || E' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();\n', '')
 	       ||
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON '
                ||  regclass::text) 
@@ -811,6 +811,15 @@ begin
  end if;
  my_uri := url;
  my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
+ if my_type not in ('URL','FS') then -- link type is a directory
+  select dirpath||my_uri from datalink.directory where dirname=linktype into my_uri;
+  if not found then 
+        raise exception 'datalink exception - nonexistent directory' 
+              using errcode = 'HW005',
+                    detail = format('directory %s does not exist',linktype),
+                    hint = 'perhaps you need to add it to datalink.directory';
+  end if;
+ end if;
  my_uri := case my_type
            when 'URL'  then my_uri::text
 	         else format('file://%s',
@@ -1173,12 +1182,13 @@ my $t0 = [gettimeofday];
 # Check if this is a file on a foreign server
 if($url=~m|^file://[^/]|i) {
   # then execute curl_get on that foreign server instead
-  my $q=<<'END';
-select pg_catalog.dlurlserver($1) as srvname,
-(select s.oid as srvoid from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
-  where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
-(select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
-END
+  my $q=q{
+    select pg_catalog.dlurlserver($1) as srvname,
+    (select s.oid as srvoid from pg_catalog.pg_foreign_server s 
+       join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
+      where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
+    (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
+  };
   my $p = spi_prepare($q,'TEXT');
   $fs = spi_exec_prepared($p,$url)->{rows}->[0];
   unless($fs->{extnamespace}) {
@@ -1187,7 +1197,7 @@ END
   unless($fs->{srvoid}) {
     elog(ERROR,"Foreign server ".quote_ident($fs->{srvname})." does not exist.\n");
   }
-  my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i;
+  my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
   $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';
   $p = spi_prepare('select ok,rc,body,error from '.quote_ident($fs->{extnamespace}).
                    '.dblink($1,$2) as dl(ok bool, rc int, body text, error text)',
@@ -1515,11 +1525,12 @@ COMMENT ON FUNCTION have_datalinker()
 create table dl_directory (
   dirname    text collate "C" unique,
   dirpath    file_path not null,
-  dirowner   regrole not null,
+  dirowner   regrole,
   diracl     aclitem[],
   dirlco     dl_lco,
   diruri     uri,
-  diroptions text[] collate "C"
+  diroptions text[] collate "C",
+  dirlink    datalink(1) not null
 );
 create view directory as
 select dirname, 
