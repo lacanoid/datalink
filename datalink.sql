@@ -1172,19 +1172,20 @@ my $t0 = [gettimeofday];
 
 # Check if this is a file on a foreign server
 if($url=~m|^file://[^/]|i) {
+  # then execute curl_get on that foreign server instead
   my $q=<<'END';
-select 
-(select srvname from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
+select pg_catalog.dlurlserver($1) as srvname,
+(select s.oid as srvoid from pg_catalog.pg_foreign_server s join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
   where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
 (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
 END
   my $p = spi_prepare($q,'TEXT');
   $fs = spi_exec_prepared($p,$url)->{rows}->[0];
   unless($fs->{extnamespace}) {
-    elog(ERROR,'Extension dblink is required for files on foreign servers');
+    elog(ERROR,"Extension dblink is required for files on foreign servers.\n");
   }
-  unless($fs->{srvname}) {
-    elog(ERROR,'Foreign server does not exist');
+  unless($fs->{srvoid}) {
+    elog(ERROR,"Foreign server ".quote_ident($fs->{srvname})." does not exist.\n");
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i;
   $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';

@@ -89,19 +89,19 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 -- test for foreign servers
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  Extension dblink is required for files on foreign servers at line 26.
+ERROR:  Extension dblink is required for files on foreign servers.
 CONTEXT:  PL/Perl function "curl_get"
 create extension dblink;
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  Foreign server does not exist at line 29.
+ERROR:  Foreign server zala does not exist.
 CONTEXT:  PL/Perl function "curl_get"
 create extension postgres_fdw;
 create server zala foreign data wrapper postgres_fdw;
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  user mapping not found for "root" at line 36.
+ERROR:  user mapping not found for "root" at line 37.
 CONTEXT:  PL/Perl function "curl_get"
 select * from datalink.curl_get('file://tiha/etc/issue');
-ERROR:  Foreign server does not exist at line 29.
+ERROR:  Foreign server tiha does not exist.
 CONTEXT:  PL/Perl function "curl_get"
 create user mapping for current_role server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
