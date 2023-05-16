@@ -62,6 +62,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql  | 
  datalink     | dl_trigger_advice()                                                                          | sql      | 
+ datalink     | dl_trigger_directory()                                                                       | plpgsql  | 
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_options()                                                                         | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
@@ -70,5 +71,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
  datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(49 rows)
+(50 rows)
 

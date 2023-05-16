@@ -104,8 +104,8 @@ By default, volume `/var/www/datalink/` is created.
 
     mydb=# insert into my_table values (dlvalue('/etc/issue'));
     ERROR:  datalink exception - invalid datalink value
-    DETAIL:  unknown file volume (prefix) in /etc/issue
-    HINT:  run "pg_datalinker add" to add volumes
+    DETAIL:  unknown path prefix for /etc/issue
+    HINT:  run "pg_datalinker add" to add prefixes
 
     mydb=# insert into my_table values (dlvalue('/var/www/datalink/test1.txt'));
     INSERT 0 1

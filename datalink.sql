@@ -409,8 +409,8 @@ begin
    if not datalink.is_valid_prefix(file_path) THEN
         raise exception 'datalink exception - referenced file not valid' 
               using errcode = 'HW007',
-                    detail = format('unknown path prefix (volume) for %s',file_path),
-                    hint = 'run "pg_datalinker add" to add volumes'
+                    detail = format('unknown path prefix for %s',file_path),
+                    hint = 'run "pg_datalinker add" to add prefixes'
                     ;
    end if;
 -- end if;
@@ -1141,7 +1141,7 @@ begin
     my_lco := new.lco;
     perform datalink.modlco(old.regclass,old.column_name,my_lco);
     return new;
- end if; -- if datalink.columns
+ end if; -- if datalink.dl_columns
  return new;
 end
 $$;
@@ -1532,6 +1532,7 @@ create table dl_directory (
   diroptions text[] collate "C",
   dirlink    datalink(1) not null
 );
+
 create view directory as
 select dirname, 
        coalesce(dirpath,prefix) as dirpath,
@@ -1545,7 +1546,45 @@ select dirname,
 ;
 COMMENT ON VIEW directory 
      IS 'Configured datalink file system directories';
--- GRANT SELECT ON datalink.directory TO PUBLIC;
+GRANT SELECT ON datalink.directory TO PUBLIC;
+
+CREATE FUNCTION dl_trigger_directory() RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+declare
+begin
+ if tg_relid = 'datalink.directory'::regclass then
+   update datalink.dl_directory
+      set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
+          (new.dirname,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
+    where dirpath = new.dirpath;
+    if not found then
+      insert into datalink.dl_directory (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
+                  values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
+    end if;
+ end if;  -- if datalink.directory
+ if tg_relid = 'datalink.dl_directory'::regclass then
+   if not datalink.is_valid_prefix(new.dirpath) then 
+        raise exception 'datalink exception - referenced file not valid' 
+              using errcode = 'HW007',
+                    detail = format('unknown path prefix for %s',file_path),
+                    hint = 'run "pg_datalinker add" to add prefixes'
+   end if;
+   new.dirlink := dlvalue(new.dirpath,'FS');
+ end if;  -- if datalink.dl_directory
+ return new;
+end
+$$;
+
+CREATE TRIGGER "directory_touch"
+BEFORE INSERT OR UPDATE ON datalink.dl_directory FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_directory();
+
+CREATE TRIGGER "directory_touch"
+INSTEAD OF UPDATE OR INSERT ON datalink.directory FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_directory();
+
+
 
 ---------------------------------------------------
 -- volume usage statistics
