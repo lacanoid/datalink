@@ -355,6 +355,8 @@ select path,state,
   join pg_class c on c.oid = lf.attrelid
   join pg_attribute a using (attrelid,attnum)
  where datalink.dl_class_adminable(attrelid);
+comment on view linked_files
+     is 'Currently linked files';
 
 grant select on linked_files to public;
 
@@ -1560,7 +1562,7 @@ begin
     where dirpath = new.dirpath;
     if not found then
       insert into datalink.dl_directory (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
-                  values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
+      values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
     end if;
  end if;  -- if datalink.directory
  if tg_relid = 'datalink.dl_directory'::regclass then
@@ -1622,13 +1624,11 @@ grant select on volume_usage to public;
 -- play tables
 ---------------------------------------------------
 
-create table sample_datalinks ( link datalink );
+create table sample_datalinks ( link datalink(1) );
 grant select on sample_datalinks to public;
+comment on table sample_datalinks
+     is 'Sample datalinks with selective integrity';
 
-update datalink.columns
-   set integrity='SELECTIVE'
- where table_name='sample_datalinks' and column_name='link';
-  
 ---------------------------------------------------
 -- add stuff to pg_dump 
 ---------------------------------------------------
