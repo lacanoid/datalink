@@ -8,13 +8,14 @@ Wanted
 - ✔︎ install pg_wrapper for pg_datalinker
 - install init.d scripts 
 - Transactional File IO functions + file directories / bfile like functionality
-- For constructor form dlvalue(basename,dirname) could be used, bfilename like
+- ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - some sort of permissions as to what and who gets to get/put where
 - make it possible to change LCO with datalink values present
+- make domains on datalinks work
 - make datalinks work with arrays
 
 Issues
