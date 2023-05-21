@@ -96,14 +96,14 @@ select * from datalink.curl_get('file://zala/etc/issue');
 ERROR:  Foreign server zala does not exist.
 CONTEXT:  PL/Perl function "curl_get"
 create extension postgres_fdw;
-create server zala foreign data wrapper postgres_fdw;
+create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
 select * from datalink.curl_get('file://zala/etc/issue');
 ERROR:  user mapping not found for "root" at line 38.
 CONTEXT:  PL/Perl function "curl_get"
 select * from datalink.curl_get('file://tiha/etc/issue');
 ERROR:  Foreign server tiha does not exist.
 CONTEXT:  PL/Perl function "curl_get"
-create user mapping for current_role server zala;
+create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
           url          | ok | rc | error  
 -----------------------+----+----+--------

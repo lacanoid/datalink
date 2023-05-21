@@ -61,10 +61,10 @@ select * from datalink.curl_get('file://zala/etc/issue');
 create extension dblink;
 select * from datalink.curl_get('file://zala/etc/issue');
 create extension postgres_fdw;
-create server zala foreign data wrapper postgres_fdw;
+create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
 select * from datalink.curl_get('file://zala/etc/issue');
 select * from datalink.curl_get('file://tiha/etc/issue');
-create user mapping for current_role server zala;
+create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
 
