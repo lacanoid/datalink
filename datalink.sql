@@ -66,7 +66,7 @@ CREATE TYPE pg_catalog.datalink (
    COLLATABLE = false
 );
 
-COMMENT ON TYPE pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
+COMMENT ON TYPE pg_catalog.datalink IS 'SQL/MED DATALINK type for external file references';
 -- create cast (datalink as jsonb) without function; 
 create cast (datalink as jsonb) without function as implicit;
 -- create cast (datalink as jsonb) with inout as implicit;
@@ -102,7 +102,7 @@ CREATE TABLE link_control_options (
   recovery dl_recovery,
   on_unlink dl_on_unlink
 );
-comment on table link_control_options is 'Datalink Link Control Options';
+comment on table link_control_options is 'Datalink Link Control Options as enums';
 grant select on link_control_options to public;
 
 ---------------------------------------------------
@@ -136,7 +136,7 @@ $_$;
 
 COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
-IS 'Calculate dl_lco from individual options';
+IS 'Calculate dl_lco from enumerated options';
 
 create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
 as $$
@@ -150,7 +150,7 @@ as $$
    and not attisdropped
 $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
-IS 'Find dl_lco for a column';
+IS 'Find dl_lco for a table column';
 
 ---------------------------------------------------
 
@@ -1055,7 +1055,7 @@ begin
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if link1 is distinct from link2 then
+   if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_unref(link1,r.lco,tg_relid,r.column_name);
@@ -1074,7 +1074,7 @@ begin
    opt := datalink.link_control_options(r.lco);
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if link1 is distinct from link2 then
+   if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
     if tg_op in ('INSERT','UPDATE') then
        if dlurlcomplete(link2) is not null then
          -- check for write_access = BLOCKED and prevent updates
@@ -1451,7 +1451,7 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
 			       )$function$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
-     IS 'SQL/MED - Returns the link type (URL,FS or custom) of DATALINK value';
+     IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
 
 CREATE FUNCTION pg_catalog.dllinktype(text) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
@@ -1525,7 +1525,7 @@ COMMENT ON FUNCTION have_datalinker()
 -- directories
 ---------------------------------------------------
 create table dl_directory (
-  dirname    text collate "C" unique,
+  dirname    text collate "C" unique check(dirname not in ('URL','FS')),
   dirpath    file_path not null,
   dirowner   regrole,
   diracl     aclitem[],

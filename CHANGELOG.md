@@ -1,6 +1,6 @@
 Version 0.20
 ------------
-- `dlurlserver()` now returns NULL for no server specified
+- `dlurlserver()` now returns NULL for no server
 - add `basename` to uri_get() and uri_set()
 - added `datalink.directory` relation
 - preliminary foreign server support for file: URLs in `datalink.curl_get()`
