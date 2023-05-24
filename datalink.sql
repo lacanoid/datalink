@@ -140,12 +140,14 @@ IS 'Calculate dl_lco from enumerated options';
 
 create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
 as $$
- select case 
-        when atttypmod > 0 then atttypmod-4
-        else 0 end :: datalink.dl_lco
-  from pg_attribute
+ select coalesce(
+          case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco,
+          case when atttypmod > 0 then atttypmod-4 else 0 end :: datalink.dl_lco
+        ) as lco
+  from pg_attribute a
+  join pg_type t on (t.oid=a.atttypid)
  where attrelid = $1 and attname = $2
-   and atttypid = 'pg_catalog.datalink'::regtype
+   and (t.oid = 'pg_catalog.datalink'::regtype or t.typbasetype = 'pg_catalog.datalink'::regtype)
    and attnum > 0
    and not attisdropped
 $$ language sql;
@@ -222,7 +224,7 @@ CREATE VIEW dl_columns AS
     a.attname AS column_name,
     dl_lco(c.oid::regclass,a.attname::name) AS lco,
     a.attnum,
-    a.atttypmod,
+--    a.atttypmod,
     a.attoptions,
     a.attfdwoptions,
     c.oid::regclass AS regclass,
@@ -232,7 +234,7 @@ CREATE VIEW dl_columns AS
    JOIN pg_attribute a ON (c.oid = a.attrelid)
    LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
    LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-  WHERE t.oid = 'pg_catalog.datalink'::regtype
+  WHERE (t.oid = 'pg_catalog.datalink'::regtype OR t.typbasetype = 'pg_catalog.datalink'::regtype)
     AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
 

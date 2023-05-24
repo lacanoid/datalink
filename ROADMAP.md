@@ -7,7 +7,7 @@ Wanted
 - ✔︎ systemd scripts for datalinker
 - ✔︎ install pg_wrapper for pg_datalinker
 - install init.d scripts 
-- Transactional File IO functions + file directories / bfile like functionality
+- Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of file to url mapping. dlurl* functions could use these.
 - Files on remote servers. Perhaps foreign servers + dblink
@@ -15,7 +15,7 @@ Wanted
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - some sort of permissions as to what and who gets to get/put where
 - make it possible to change LCO with datalink values present
-- make domains on datalinks work
+- ✔︎ make domains on datalinks work
 - make datalinks work with arrays
 
 Issues
@@ -68,6 +68,6 @@ Maybe
 - more compact datalink storage (use 1 letter keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
-- pluggable filename+token handling
+- pluggable filename+token handling so we can support more common token;basename convention
 - ✔︎ add timing info to curl_get()
 

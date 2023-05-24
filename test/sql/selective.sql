@@ -42,3 +42,15 @@ update datalink.columns
  where table_name='sample_datalinks3' and column_name='link';
 
 delete from sample_datalinks3 where dllinktype(link)='FS';
+
+
+-- test domains
+create domain file datalink;
+create domain rfile datalink(1);
+create domain efile datalink(2);
+create table efiles0 ( file file );
+create table efiles1 ( file rfile );
+create table efiles2 ( file efile );
+
+insert into efiles1 values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
+insert into efiles1 values (dlvalue('http://blahXXXX','URL','Broken datalink'));

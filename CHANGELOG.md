@@ -4,6 +4,7 @@ Version 0.20
 - add `basename` to uri_get() and uri_set()
 - added `datalink.directory` relation
 - preliminary foreign server support for file: URLs in `datalink.curl_get()`
+- now you can create domains on datalinks
 
 Version 0.19
 ------------
