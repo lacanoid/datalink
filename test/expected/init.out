@@ -71,7 +71,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
  datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
+ datalink     | read_lines(datalink)                                                                         | sql      | 
  datalink     | read_lines(file_path)                                                                        | plperlu  | 
+ datalink     | read_text(file_path)                                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(52 rows)
+(54 rows)
 

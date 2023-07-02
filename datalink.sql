@@ -1504,6 +1504,10 @@ AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
 COMMENT ON FUNCTION read_text(datalink)
      IS 'Read datalink contents as text';
 
+CREATE OR REPLACE FUNCTION datalink.read_text(file_path)
+ RETURNS text LANGUAGE sql
+AS $function$select datalink.read_text(dlvalue($1,'FS'))$function$;
+
 CREATE OR REPLACE FUNCTION read_lines(filename file_path)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE plperlu STRICT AS $$
@@ -1512,12 +1516,20 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path)
   open my $fh, $filename or die "Can't open $filename: $!";
   my $i=1; my $o=0;
   while(my $line = <$fh>) {
+    chop($line);
     return_next {i=>$i,o=>$o,line=>$line};
     $i++; $o+=length($line);
   }
   close $fh;
   return undef;
 $$;
+
+CREATE OR REPLACE FUNCTION datalink.read_lines(link datalink)
+ RETURNS TABLE(i integer, o bigint, line text)
+ LANGUAGE sql STRICT AS $$ 
+select * from datalink.read_lines(dlurlpathonly($1))
+$$
+;
 
 ---------------------------------------------------
 CREATE FUNCTION have_datalinker()
@@ -1603,9 +1615,9 @@ INSTEAD OF UPDATE OR INSERT ON datalink.directory FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 create or replace function dl_directory(file_path)
-returns dl_directory as $$
+returns directory as $$
   select * 
-    from datalink.dl_directory 
+    from datalink.directory 
    where $1 like dirpath||'%'
    order by length(dirpath) desc
    limit 1;
