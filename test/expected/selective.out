@@ -62,3 +62,20 @@ CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 36 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_options() line 21 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';
+-- test domains
+create domain file datalink;
+create domain rfile datalink(1);
+create domain efile datalink(2);
+create table efiles0 ( file file );
+create table efiles1 ( file rfile );
+NOTICE:  DATALINK DDL:TRIGGER on efiles1
+create table efiles2 ( file efile );
+NOTICE:  DATALINK DDL:TRIGGER on efiles2
+insert into efiles1 values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
+insert into efiles1 values (dlvalue('http://blahXXXX','URL','Broken datalink'));
+ERROR:  datalink exception - referenced file does not exist
+URL:  http://blahxxxx
+DETAIL:  CURL error 6 - Couldn't resolve host name
+HINT:  make sure url is correct and referenced file actually exists
+CONTEXT:  PL/pgSQL function dl_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
+PL/pgSQL function dl_trigger_table() line 72 at assignment

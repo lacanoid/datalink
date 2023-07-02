@@ -157,12 +157,15 @@ select * from columns;
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  dl_directory              | dirlink     | FILE         | ALL       | FS          | FS           | NO       | NONE
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ efiles0                   | file        | NO           | NONE      | FS          | FS           | NO       | NONE
+ efiles1                   | file        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ efiles2                   | file        | FILE         | ALL       | FS          | FS           | NO       | NONE
  sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link2       | FILE         | ALL       | FS          | FS           | NO       | NONE
-(7 rows)
+(10 rows)
 
 alter table sample_datalinks4 rename link2 to link3;
 select * from columns where table_name='sample_datalinks4';
@@ -222,6 +225,9 @@ select * from datalink.columns order by table_name;
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  dl_directory              | dirlink     | FILE         | ALL       | FS          | FS           | NO       | NONE
+ efiles0                   | file        | NO           | NONE      | FS          | FS           | NO       | NONE
+ efiles1                   | file        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ efiles2                   | file        | FILE         | ALL       | FS          | FS           | NO       | NONE
  my_table                  | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  my_table2                 | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
  my_table3                 | link        | FILE         | ALL       | FS          | BLOCKED      | NO       | RESTORE
@@ -230,5 +236,5 @@ select * from datalink.columns order by table_name;
  sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
-(10 rows)
+(13 rows)
 
