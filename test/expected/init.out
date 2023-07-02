@@ -50,7 +50,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | is_valid_prefix(file_path)                                                                   | sql      | Is file path prefixed with a valid prefix?
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for datalink column
- datalink     | read(datalink)                                                                               | sql      | Read datalink contents as text
+ datalink     | read_text(datalink)                                                                          | sql      | Read datalink contents as text
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
@@ -59,6 +59,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | datalink_recv(internal)                                                                      | internal | 
  datalink     | datalink_send(datalink)                                                                      | internal | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql      | 
+ datalink     | dl_directory(file_path)                                                                      | sql      | 
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql  | 
  datalink     | dl_trigger_advice()                                                                          | sql      | 
@@ -70,6 +71,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
  datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
+ datalink     | read_lines(file_path)                                                                        | plperlu  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(50 rows)
+(52 rows)
 

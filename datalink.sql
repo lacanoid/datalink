@@ -1476,13 +1476,13 @@ create cast (datalink as uri) with function datalink.dl_url;
 
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
 
-CREATE FOREIGN TABLE datalink.dl_prfx (
+CREATE FOREIGN TABLE dl_prfx (
 	prefix text NULL
 )
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
-CREATE FUNCTION datalink.is_valid_prefix(datalink.file_path)
+CREATE FUNCTION is_valid_prefix(datalink.file_path)
  RETURNS boolean
  LANGUAGE sql
  STABLE STRICT
@@ -1497,14 +1497,27 @@ $function$
 COMMENT ON FUNCTION is_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
-CREATE FUNCTION datalink.read(datalink)
- RETURNS text
- LANGUAGE sql
- STRICT
+CREATE FUNCTION read_text(datalink)
+ RETURNS text LANGUAGE sql STRICT
 AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
 ;
-COMMENT ON FUNCTION read(datalink)
+COMMENT ON FUNCTION read_text(datalink)
      IS 'Read datalink contents as text';
+
+CREATE OR REPLACE FUNCTION read_lines(filename file_path)
+ RETURNS TABLE(i integer, o bigint, line text)
+ LANGUAGE plperlu STRICT AS $$
+  use strict vars; 
+  my ($filename)=@_;
+  open my $fh, $filename or die "Can't open $filename: $!";
+  my $i=1; my $o=0;
+  while(my $line = <$fh>) {
+    return_next {i=>$i,o=>$o,line=>$line};
+    $i++; $o+=length($line);
+  }
+  close $fh;
+  return undef;
+$$;
 
 ---------------------------------------------------
 CREATE FUNCTION have_datalinker()
@@ -1589,7 +1602,14 @@ CREATE TRIGGER "directory_touch"
 INSTEAD OF UPDATE OR INSERT ON datalink.directory FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
-
+create or replace function dl_directory(file_path)
+returns dl_directory as $$
+  select * 
+    from datalink.dl_directory 
+   where $1 like dirpath||'%'
+   order by length(dirpath) desc
+   limit 1;
+$$ strict language sql;
 
 ---------------------------------------------------
 -- volume usage statistics
