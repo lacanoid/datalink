@@ -5,6 +5,8 @@ Version 0.20
 - added `datalink.directory` relation
 - preliminary foreign server support for file: URLs in `datalink.curl_get()`
 - now you can create domains on datalinks
+- `datalink.read` function renamed to `datalink.read_text`
+- new `datalink.read_lines` set returning function to stream text files
 
 Version 0.19
 ------------
