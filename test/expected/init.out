@@ -60,14 +60,14 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | datalink_send(datalink)                                                                      | internal | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql      | 
  datalink     | dl_directory(file_path)                                                                      | sql      | 
+ datalink     | dl_link_ref(datalink,dl_lco,regclass,name)                                                   | plpgsql  | 
+ datalink     | dl_link_unref(datalink,dl_lco,regclass,name)                                                 | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 
- datalink     | dl_ref(datalink,dl_lco,regclass,name)                                                        | plpgsql  | 
  datalink     | dl_trigger_advice()                                                                          | sql      | 
  datalink     | dl_trigger_directory()                                                                       | plpgsql  | 
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_options()                                                                         | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
- datalink     | dl_unref(datalink,dl_lco,regclass,name)                                                      | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
  datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
