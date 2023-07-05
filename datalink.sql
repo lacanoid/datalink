@@ -1557,7 +1557,7 @@ create table dl_directory (
   dirowner   regrole,
   diracl     aclitem[],
   dirlco     dl_lco,
-  dirurl     text,
+  dirurl     text unique,
   diroptions text[] collate "C",
   dirlink    datalink(2) not null
 );
