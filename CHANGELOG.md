@@ -7,6 +7,7 @@ Version 0.20
 - now you can create domains on datalinks
 - `datalink.read` function renamed to `datalink.read_text`
 - new `datalink.read_lines` set returning function to stream text files
+- `dlurlscheme()` now returns uppercase, as per SQL standard
 
 Version 0.19
 ------------

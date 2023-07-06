@@ -955,7 +955,7 @@ begin
   lco = datalink.link_control_options(link_options);
   if lco.integrity <> 'NONE' then
     -- check if this is a file not a link
-    if lco.integrity = 'ALL' and dlurlscheme(link)<>'file' then
+    if lco.integrity = 'ALL' and dlurlscheme(link)<>'FILE' then
         raise exception 'datalink exception - invalid datalink construction' 
               using errcode = 'HW005',
                     detail = 'INTEGRITY ALL can only be used with file URLs',
@@ -973,11 +973,11 @@ begin
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
     r := datalink.curl_get(url,true);
-    if not r.ok and dlurlscheme(link) = 'file' and url ~ '#' then 
+    if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
       url := replace(url,'#','%23');
       r := datalink.curl_get(url,true);
     end if;
-    if not r.ok and dlurlscheme(link) = 'file' then
+    if not r.ok and dlurlscheme(link) = 'FILE' then
       r.ok := not (datalink.file_stat(dlurlpathonly(link))).inode is null;
     end if;
 
@@ -995,7 +995,7 @@ begin
   
   link := dlpreviouscopy(link,has_token);
 
-  if lco.integrity = 'ALL' and dlurlscheme($1)='file' then
+  if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
       perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
@@ -1392,7 +1392,7 @@ CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1->>'url','scheme')$function$;
+   AS $function$select upper(datalink.uri_get($1->>'url','scheme'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
      IS 'SQL/MED - Returns the scheme from DATALINK value';

@@ -236,7 +236,7 @@ select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
  dlurlscheme 
 -------------
- http
+ HTTP
 (1 row)
 
 select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
