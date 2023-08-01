@@ -6,6 +6,7 @@ SET search_path = public,datalink;
 begin;
 
 create role datalink_test_user;
+grant all on schema public to datalink_test_user;
 set role datalink_test_user;
 
 create table user_links (
@@ -43,6 +44,7 @@ truncate user_links;
 
 reset role;
 drop table user_links;
+revoke all on schema public from datalink_test_user;
 drop role datalink_test_user;
 
 abort;
