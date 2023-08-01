@@ -1353,9 +1353,9 @@ AS $_$ select case
               else $1->>'a'
               end;
 $_$;
-CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
+/* CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$select $1->>'a'$_$;
+AS $_$select $1->>'a'$_$; */
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 

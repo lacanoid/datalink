@@ -11,8 +11,9 @@ You can create datalink values from text URLs by using `dlvalue()` function.
      {"a": "http://www.github.io/"}
     (1 row)
 
-Note that datalinks are internally represented as JSONB values.
-One can also think of datalinks as 'bookmarks' to internet resources.
+One can think of datalinks as 'bookmarks' to internet resources.
+
+Note that datalinks are internally represented as JSONB values, but should generally be considered opaque values.
 
 URLs are checked for syntax and wrong ones throw errors.
 
@@ -155,6 +156,15 @@ This does not include username and password if they are present in URL.
     ---------------
      www.github.io
     (1 row)
+
+Use `dlcomment()` function to get datalink comment.
+
+    mydb=# select dlcomment(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar','URL','A comment...'));
+      dlcomment 
+    --------------
+     A comment...
+    (1 row)
+
 
 Next: [Referential integrity](integrity.md)
 
