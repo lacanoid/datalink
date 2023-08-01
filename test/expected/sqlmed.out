@@ -18,9 +18,9 @@ select dlurlserver(dlvalue('file://server1/etc/issue'));
 (1 row)
 
 select dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS');
-                                   dlvalue                                   
------------------------------------------------------------------------------
- {"url": "file:///tmp/test-_%3D%21%40%24%25%5E%26%2A%28%29%5B%5D%7B%7D#%3F"}
+                                  dlvalue                                  
+---------------------------------------------------------------------------
+ {"a": "file:///tmp/test-_%3D%21%40%24%25%5E%26%2A%28%29%5B%5D%7B%7D#%3F"}
 (1 row)
 
 select dlurlpath(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
@@ -67,13 +67,13 @@ values
   ('/var/www/datalink/testX.txt'),
   ('/var/www/datalink/CHANGELOG.md');
 select *,dlvalue(filename) from sample_files;
- id |                             filename                             |                                      dlvalue                                       
-----+------------------------------------------------------------------+------------------------------------------------------------------------------------
-  1 | /var/www/datalink/test1.txt                                      | {"url": "file:///var/www/datalink/test1.txt"}
-  2 | /var/www/datalink/test2.txt                                      | {"url": "file:///var/www/datalink/test2.txt"}
-  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"url": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
-  4 | /var/www/datalink/testX.txt                                      | {"url": "file:///var/www/datalink/testX.txt"}
-  5 | /var/www/datalink/CHANGELOG.md                                   | {"url": "file:///var/www/datalink/CHANGELOG.md"}
+ id |                             filename                             |                                     dlvalue                                      
+----+------------------------------------------------------------------+----------------------------------------------------------------------------------
+  1 | /var/www/datalink/test1.txt                                      | {"a": "file:///var/www/datalink/test1.txt"}
+  2 | /var/www/datalink/test2.txt                                      | {"a": "file:///var/www/datalink/test2.txt"}
+  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+  4 | /var/www/datalink/testX.txt                                      | {"a": "file:///var/www/datalink/testX.txt"}
+  5 | /var/www/datalink/CHANGELOG.md                                   | {"a": "file:///var/www/datalink/CHANGELOG.md"}
 (5 rows)
 
 ---------------------

@@ -17,7 +17,7 @@ ERROR:  datalink exception - referenced file not valid
 DETAIL:  unknown path prefix for /etc/passwd
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
-SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_link_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
@@ -41,7 +41,7 @@ ERROR:  datalink exception - referenced file not valid
 DETAIL:  unknown path prefix for /etc/hosts
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
-SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_link_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks4 (link)
@@ -58,7 +58,7 @@ select state,regclass,attname,path
 (3 rows)
 
 delete from sample_datalinks4
- where link->>'token' =
+ where link->>'b' =
 (select token::text
   from datalink.dl_linked_files
  order by txid limit 1);
@@ -87,7 +87,7 @@ ERROR:  datalink exception - referenced file not valid
 DETAIL:  unknown path prefix for /etc/passwd
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 14 at RAISE
-SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_link_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 insert into sample_datalinks5 (link)

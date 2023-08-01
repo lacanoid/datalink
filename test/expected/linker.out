@@ -27,7 +27,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 ERROR:  datalink exception - external file already linked
 DETAIL:  from sample_datalinks6.link as '/var/www/datalink/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function file_link(file_path,dl_token,dl_lco,regclass,name) line 56 at RAISE
-SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name)"
+SQL statement "SELECT datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_link_ref(datalink,dl_lco,regclass,name) line 57 at PERFORM
 PL/pgSQL function dl_trigger_table() line 72 at assignment
 update sample_datalinks6 set link = link2;
@@ -125,20 +125,20 @@ update datalink.directory
  where dirpath='/var/www/datalink/';
 NOTICE:  DATALINK LINK:/var/www/datalink/
 select dlvalue('hello.txt','www');
-                           dlvalue                            
---------------------------------------------------------------
- {"url": "file:///var/www/datalink/hello.txt", "type": "www"}
+                         dlvalue                         
+---------------------------------------------------------
+ {"a": "file:///var/www/datalink/hello.txt", "t": "www"}
 (1 row)
 
 select dlvalue('','www');
-                       dlvalue                       
------------------------------------------------------
- {"url": "file:///var/www/datalink/", "type": "www"}
+                    dlvalue                     
+------------------------------------------------
+ {"a": "file:///var/www/datalink/", "t": "www"}
 (1 row)
 
 select dlvalue(NULL,'www');
-                       dlvalue                       
------------------------------------------------------
- {"url": "file:///var/www/datalink/", "type": "www"}
+                    dlvalue                     
+------------------------------------------------
+ {"a": "file:///var/www/datalink/", "t": "www"}
 (1 row)
 

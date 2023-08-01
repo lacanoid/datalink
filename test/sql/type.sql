@@ -25,27 +25,27 @@ select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datal
 
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0);
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1);
-select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'token';
-select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'token';
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'b';
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'b';
 
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'b';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'b';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'b';
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1);
 
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'token';
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'token';
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'token';
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1) - 'token';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1) - 'b';
 
-select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'token';
-select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
+select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'b';
+select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'b' is not null;
 
 select dlpreviouscopy(dlvalue('http://www.ljudmila.org/'),0);
-select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'token' is not null;
+select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'b' is not null;
 
 select dlpreviouscopy(dlvalue('/tmp/file1','FS'),0);
-select key,case when key is distinct from 'token' then value end as value
+select key,case when key is distinct from 'b' then value end as value
   from jsonb_each(dlpreviouscopy(dlvalue('/tmp/file1','FS','Previous copy'),1));
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),0);
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),1);

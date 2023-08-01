@@ -96,7 +96,8 @@ with d as (
 )
 select link,
        dlurlcomplete(link),
-       dlurlcompleteonly(link)
+       dlurlcompleteonly(link),
+       datalink.uri_get(link,'basename') as basename
   from d;
 
 ;

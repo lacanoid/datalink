@@ -66,7 +66,7 @@ Maybe
 - add DLVALUE(uri, ...)
 - add datalink.uri_get(datalink,...)
 - create explicit datalink.exists(datalink) function
-- more compact datalink storage (use 1 letter json keys)
+- ✔︎ more compact datalink storage (use 1 letter json keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
 - pluggable filename+token handling so we can support more common token;basename convention

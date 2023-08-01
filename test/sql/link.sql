@@ -37,7 +37,7 @@ select state,regclass,attname,path
   from datalink.linked_files;
 
 delete from sample_datalinks4
- where link->>'token' =
+ where link->>'b' =
 (select token::text
   from datalink.dl_linked_files
  order by txid limit 1);

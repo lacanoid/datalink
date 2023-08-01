@@ -1,5 +1,6 @@
 Version 0.21
 ------------
+- shortened json keys (url,token,text,old,type) -> (a,b,c,o,t)
 
 Version 0.20
 ------------

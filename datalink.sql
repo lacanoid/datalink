@@ -520,7 +520,7 @@ begin
   if r.state = 'LINK' then
    update datalink.dl_linked_files
       set state = 'UNLINK',
-          token = cast(info->>'token' as datalink.dl_token),
+          token = cast(info->>'b' as datalink.dl_token),
 	        lco   = cast(info->>'lco' as datalink.dl_lco)
     where path  = $1 and info is not null
       and state = 'LINK';
@@ -650,6 +650,14 @@ $function$
 ;
 
 COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
+
+CREATE OR REPLACE FUNCTION uri_get(link datalink, part text)
+ RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
+select datalink.uri_get($1->>'a',$2)
+$$
+;
+
+COMMENT ON FUNCTION uri_get(datalink,text) IS 'Get (extract) parts of datalink URI';
 
 ---------------------------------------------------
 
@@ -827,15 +835,15 @@ begin
 	              replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'))
            end;
  if my_uri is null or length(my_uri)<=0 then 
-   return case when comment is not null then jsonb_build_object('text',comment) end;
+   return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
  my_uri := my_uri::datalink.dl_url;
- my_dl  := jsonb_build_object('url',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
+ my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
  if comment is not null then
-   my_dl:=jsonb_set(my_dl::jsonb,array['text'],to_jsonb(comment));
+   my_dl:=jsonb_set(my_dl::jsonb,array['c'],to_jsonb(comment));
  end if;
  if my_type not in ('URL','FS') then
-    my_dl:=jsonb_set(my_dl::jsonb,array['type'],to_jsonb(my_type));
+    my_dl:=jsonb_set(my_dl::jsonb,array['t'],to_jsonb(my_type));
  end if;
  return my_dl;
 end;
@@ -866,8 +874,8 @@ declare
  u1     text;
 begin 
  if has_token > 0 then
-  u1 := link->>'url';
-  t1 := coalesce(link->>'old',datalink.uri_get(u1,'token'));
+  u1 := link->>'a';
+  t1 := coalesce(link->>'o',datalink.uri_get(u1,'token'));
   if t1 is not null then
     begin
       token := t1::datalink.dl_token;
@@ -880,12 +888,12 @@ begin
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
     u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
-    link := jsonb_set(link,'{url}',to_jsonb(u1));
+    link := jsonb_set(link,'{a}',to_jsonb(u1));
   end if;
-  if token is null then token := link->>'token'; end if;
+  if token is null then token := link->>'b'; end if;
   if token is null then token := datalink.dl_newtoken() ; end if;
-  link := jsonb_set(link,'{token}',to_jsonb(token));
-  link := link - 'old';
+  link := jsonb_set(link,'{b}',to_jsonb(token));
+  link := link - 'o';
  end if; -- has token
  return link;
 end
@@ -909,18 +917,18 @@ declare
  t1 text;
  u1 text;
 begin 
-  u1 := link->>'url';
+  u1 := link->>'a';
   if has_token > 0 then
-    t1 := coalesce(link->>'token',datalink.uri_get(u1,'token'));
+    t1 := coalesce(link->>'b',datalink.uri_get(u1,'token'));
     if t1 is not null then 
-      link := jsonb_set(link,'{old}',to_jsonb(t1));
+      link := jsonb_set(link,'{o}',to_jsonb(t1));
     end if;
   end if;
   u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
-  link := jsonb_set(link,'{url}',to_jsonb(u1));
+  link := jsonb_set(link,'{a}',to_jsonb(u1));
     -- generate new token
   token := datalink.dl_newtoken();  
-  link := jsonb_set(link,'{token}',to_jsonb(token));
+  link := jsonb_set(link,'{b}',to_jsonb(token));
  return link;
 end
 $_$;
@@ -996,7 +1004,7 @@ begin
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
-      perform datalink.file_link(dlurlpathonly(link),(link->>'token')::datalink.dl_token,link_options,regclass,column_name);
+      perform datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
  end if; -- link options
@@ -1090,7 +1098,7 @@ begin
 	 end if;
          -- check for write_access = TOKEN and prevent updates if needed
 	 if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
- 	    if link2->>'old' is null or link2->>'old' is distinct from link1->>'token' then
+ 	    if link2->>'o' is null or link2->>'o' is distinct from link1->>'b' then
                raise exception 'datalink exception - invalid write token' 
                          using errcode = 'HW004',
                         detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
@@ -1098,7 +1106,7 @@ begin
                           hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
                     ;
             end if; -- tokens not matching
-	    link2 := link2 - 'old';
+	    link2 := link2 - 'o';
 	 end if;
          link2 := datalink.dl_link_ref(link2,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
@@ -1331,7 +1339,7 @@ grant usage on schema datalink to public;
 
 CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $$ select $1->>'text' $$;
+AS $$ select $1->>'c' $$;
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
@@ -1340,14 +1348,14 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select case 
-              when $1->>'token' is not null
-              then format('%s#%s',$1->>'url',$1->>'token')
-              else $1->>'url'
+              when $1->>'b' is not null
+              then format('%s#%s',$1->>'a',$1->>'b')
+              else $1->>'a'
               end;
 $_$;
 CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$select $1->>'url'$_$;
+AS $_$select $1->>'a'$_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1360,7 +1368,7 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select datalink.uri_get($1->>'url','only') $_$;
+AS $_$ select datalink.uri_get($1->>'a','only') $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1376,7 +1384,7 @@ CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select nullif(datalink.uri_get($1->>'url','host'),'')$function$;
+   AS $function$select nullif(datalink.uri_get($1->>'a','host'),'')$function$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
 
@@ -1392,7 +1400,7 @@ CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select upper(datalink.uri_get($1->>'url','scheme'))$function$;
+   AS $function$select upper(datalink.uri_get($1->>'a','scheme'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
      IS 'SQL/MED - Returns the scheme from DATALINK value';
@@ -1411,8 +1419,8 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink)
    IMMUTABLE STRICT
    AS $function$
    select format('%s%s',
-                  datalink.uri_get($1->>'url','path'),
-                  '#'||coalesce($1->>'token',datalink.uri_get($1->>'url','token'))
+                  datalink.uri_get($1->>'a','path'),
+                  '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))
           )
 $function$;
 
@@ -1431,7 +1439,7 @@ CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1->>'url','path')$function$;
+   AS $function$select datalink.uri_get($1->>'a','path')$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
      IS 'SQL/MED - Returns the file path from DATALINK value';
@@ -1448,8 +1456,8 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select coalesce($1->>'type',
-                                case when $1->>'url' ilike 'file:///%' then 'FS' else 'URL' end
+   AS $function$select coalesce($1->>'t',
+                                case when $1->>'a' ilike 'file:///%' then 'FS' else 'URL' end
 			       )$function$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
