@@ -63,9 +63,9 @@ Note that this works equally well for files.
     mydb=# table my_table;
                            link                        
     ---------------------------------------------------
-     {"rc": 200, "url": "http://www.ljudmila.org"}
-     {"rc": 404, "url": "http://www.ljudmila.org/foo"}
-     {"url": "file:///etc/issue"}
+     {"rc": 200, "a": "http://www.ljudmila.org"}
+     {"rc": 404, "a": "http://www.ljudmila.org/foo"}
+     {"a": "file:///etc/issue"}
      
 Note that successful checks for web datalinks do not mean that the the web page actually exists.
 [HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
@@ -115,7 +115,7 @@ Datalinks are assigned unique tokens as they are stored.
     mydb=# select * from my_table ;
                                                   link                                              
     ------------------------------------------------------------------------------------------------
-     {"url": "file:///var/www/datalink/test1.txt", "token": "e56b96cb-6e15-4ed5-83cd-611e06877826"}
+     {"a": "file:///var/www/datalink/test1.txt", "b": "e56b96cb-6e15-4ed5-83cd-611e06877826"}
     (1 row)
     
 A user can see all of his currently linked files in `datalink.linked_files` view.

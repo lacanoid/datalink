@@ -8,7 +8,7 @@ You can create datalink values from text URLs by using `dlvalue()` function.
     mydb=# select dlvalue('http://www.github.io/');
                   dlvalue              
     ----------------------------------
-     {"url": "http://www.github.io/"}
+     {"a": "http://www.github.io/"}
     (1 row)
 
 Note that datalinks are internally represented as JSONB values.
@@ -24,7 +24,7 @@ URLs are normalized before they are converted to datalinks, so things like . and
     mydb=# select dlvalue('http://www.github.io/a/b/c/d/../../e');
                     dlvalue                
     ---------------------------------------
-     {"url": "http://www.github.io/a/b/e"}
+     {"a": "http://www.github.io/a/b/e"}
     (1 row)
 
 You can also use `dlvalue()` with absolute paths for file links. 
@@ -33,19 +33,19 @@ Weird characters in pathnames are properly URI encoded.
     mydb=# select dlvalue('/var/www/datalink/index.html');
                         dlvalue                     
     ------------------------------------------------
-     {"url": "file:///var/www/datalink/index.html"}
+     {"a": "file:///var/www/datalink/index.html"}
     (1 row)
 
     mydb=# select dlvalue('/var/www/datalink/index?.html','FS');
                         dlvalue                     
     ------------------------------------------------
-     {"url": "file:///var/www/datalink/index%3F.html"}
+     {"a": "file:///var/www/datalink/index%3F.html"}
     (1 row)
 
     mydb=# select dlvalue('file:///var/www/datalink/index.html');
                         dlvalue                     
     ------------------------------------------------
-     {"url": "file:///var/www/datalink/index.html"}
+     {"a": "file:///var/www/datalink/index.html"}
     (1 row)
 
 Full form of function `dlvalue()` has a few more optional arguments:
@@ -63,7 +63,7 @@ Note that it is possible to create comment-only datalinks:
     mudb=# select dlvalue(null,null,'Hello');
           dlvalue      
     -------------------
-     {"text": "Hello"}
+     {"c": "Hello"}
     (1 row)
 
 
@@ -72,7 +72,7 @@ You can also use form `dlvalue(relative_address,dlvalue(base_address))` to conve
     mydb=# select dlvalue('robots.txt',dlvalue('http://www.ljudmila.org/index.html'));
                     dlvalue                    
     -----------------------------------------------
-     {"url": "http://www.ljudmila.org/robots.txt"}
+     {"a": "http://www.ljudmila.org/robots.txt"}
     (1 row)
 
 
