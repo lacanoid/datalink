@@ -25,9 +25,10 @@ CREATE DOMAIN dl_token AS uuid;
 
 CREATE DOMAIN file_path AS text;
 COMMENT ON DOMAIN file_path IS 'Absolute file system path';
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_parent    CHECK(value not like all('{../%,%/../%,%/..}'));
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_percent   CHECK(not value ~* '[%]');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  CHECK(value not like all('{../%,%/../%,%/..}'));
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_nopercent CHECK(not value ~* '[%]');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(value like '/%');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  CHECK(not value like '%//%');
 /*
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
@@ -1531,13 +1532,17 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path)
   close $fh;
   return undef;
 $$;
+COMMENT ON FUNCTION read_lines(file_path)
+     IS 'Stream file as lines of text';
 
 CREATE OR REPLACE FUNCTION datalink.read_lines(link datalink)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE sql STRICT AS $$ 
 select * from datalink.read_lines(dlurlpathonly($1))
-$$
-;
+$$;
+COMMENT ON FUNCTION read_lines(datalink)
+     IS 'Stream file referenced by a datalink as lines of text';
+
 
 ---------------------------------------------------
 CREATE FUNCTION have_datalinker()
