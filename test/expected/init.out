@@ -62,12 +62,12 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
+ datalink     | dl_datalink_ref(datalink,dl_lco,regclass,name)                                               | plpgsql  | 
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
+ datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
  datalink     | dl_directory(file_path)                                                                      | sql      | 
  datalink     | dl_file_link(file_path,dl_token,dl_lco,regclass,name)                                        | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
- datalink     | dl_link_ref(datalink,dl_lco,regclass,name)                                                   | plpgsql  | 
- datalink     | dl_link_unref(datalink,dl_lco,regclass,name)                                                 | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_trigger_advice()                                                                          | sql      | 
  datalink     | dl_trigger_directory()                                                                       | plpgsql  | 

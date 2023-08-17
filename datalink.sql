@@ -946,7 +946,7 @@ IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that th
 -- referential integrity triggers
 ---------------------------------------------------
 
-CREATE FUNCTION dl_link_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
+CREATE FUNCTION dl_datalink_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
 LANGUAGE plpgsql
     AS $_$
@@ -957,7 +957,7 @@ declare
  url text;
 begin 
  url := dlurlcomplete($1);
--- raise notice 'DATALINK: dl_link_ref(''%'',%,%,%)',url,$2,$3,$4;
+-- raise notice 'DATALINK: dl_datalink_ref(''%'',%,%,%)',url,$2,$3,$4;
 
  has_token := 0;
  if link_options > 0 then
@@ -1014,14 +1014,14 @@ end$_$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_link_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
+CREATE FUNCTION dl_datalink_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
     LANGUAGE plpgsql
     AS $_$
 declare
  lco datalink.link_control_options;
 begin
--- raise notice 'DATALINK: dl_link_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
+-- raise notice 'DATALINK: dl_datalink_unref(''%'',%,%,%)',dlurlcomplete($1),$2,$3,$4;
 
  if link_options > 0 then
   lco = datalink.link_control_options(link_options);
@@ -1069,7 +1069,7 @@ begin
    if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
-         link1 := datalink.dl_link_unref(link1,r.lco,tg_relid,r.column_name);
+         link1 := datalink.dl_datalink_unref(link1,r.lco,tg_relid,r.column_name);
        end if;
     end if;
    end if;
@@ -1109,7 +1109,7 @@ begin
             end if; -- tokens not matching
 	    link2 := link2 - 'o';
 	 end if;
-         link2 := datalink.dl_link_ref(link2,r.lco,tg_relid,r.column_name);
+         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
          rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
        end if;
     end if;
