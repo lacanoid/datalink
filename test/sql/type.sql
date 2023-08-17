@@ -8,6 +8,7 @@ select dlvalue('');
 select dlvalue('foo');
 select dlvalue('http://www.ljudmila.org/');
 select dlvalue('http://www.ljudmila.org/','URL','Example datalink');
+select dlvalue('HTTP://WWW.ljudmila.org/A/B/c','URL');
 select dlvalue('/tmp','FS','Example file datalink');
 select dlvalue('file:///tmp','URL','Example file datalink #2');
 select dlvalue('file:///tmp/a/b/c/d/../../x/y','URL','Example file datalink #3');

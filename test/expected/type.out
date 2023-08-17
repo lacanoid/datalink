@@ -28,6 +28,12 @@ select dlvalue('http://www.ljudmila.org/','URL','Example datalink');
  {"a": "http://www.ljudmila.org/", "c": "Example datalink"}
 (1 row)
 
+select dlvalue('HTTP://WWW.ljudmila.org/A/B/c','URL');
+                dlvalue                 
+----------------------------------------
+ {"a": "http://www.ljudmila.org/A/B/c"}
+(1 row)
+
 select dlvalue('/tmp','FS','Example file datalink');
                       dlvalue                       
 ----------------------------------------------------
