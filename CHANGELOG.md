@@ -1,6 +1,7 @@
 Version 0.21
 ------------
 - shortened json keys (url,token,text,old,type) -> (a,b,c,o,t)
+- include read_access in datalink (r)
 
 Version 0.20
 ------------

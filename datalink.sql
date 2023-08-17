@@ -1008,6 +1008,12 @@ begin
       perform datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
+  if lco.read_access = 'DB' then 
+      link := jsonb_set(link::jsonb,array['r'],to_jsonb(1));
+  else 
+      link := link-'r';
+  end if;
+
  end if; -- link options
  return link;
 end$_$;

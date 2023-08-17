@@ -79,6 +79,17 @@ select *
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
 truncate sample_datalinks6;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/CHANGELOG.md'));
+WARNING:  datalink warning - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
+NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+select link-'b' from sample_datalinks6; truncate sample_datalinks6;
+                        ?column?                        
+--------------------------------------------------------
+ {"a": "file:///var/www/datalink/CHANGELOG.md", "r": 1}
+(1 row)
+
+NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 insert into my_table2
 select dlvalue(filename)
   from sample_files
