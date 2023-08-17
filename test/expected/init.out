@@ -53,16 +53,19 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | read_lines(datalink)                                                                         | sql      | Stream file referenced by a datalink as lines of text
  datalink     | read_lines(file_path)                                                                        | plperlu  | Stream file as lines of text
  datalink     | read_text(datalink)                                                                          | sql      | Read datalink contents as text
+ datalink     | read_text(file_path)                                                                         | sql      | Read file contents as text
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
- datalink     | datalink_in(cstring)                                                                         | internal | 
- datalink     | datalink_out(datalink)                                                                       | internal | 
- datalink     | datalink_recv(internal)                                                                      | internal | 
- datalink     | datalink_send(datalink)                                                                      | internal | 
  datalink     | dl_class_adminable(regclass)                                                                 | sql      | 
+ datalink     | dl_datalink_in(cstring)                                                                      | internal | 
+ datalink     | dl_datalink_out(datalink)                                                                    | internal | 
+ datalink     | dl_datalink_recv(internal)                                                                   | internal | 
+ datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_directory(file_path)                                                                      | sql      | 
+ datalink     | dl_file_link(file_path,dl_token,dl_lco,regclass,name)                                        | plpgsql  | 
+ datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
  datalink     | dl_link_ref(datalink,dl_lco,regclass,name)                                                   | plpgsql  | 
  datalink     | dl_link_unref(datalink,dl_lco,regclass,name)                                                 | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 
@@ -72,9 +75,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_options()                                                                         | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
- datalink     | file_link(file_path,dl_token,dl_lco,regclass,name)                                           | plpgsql  | 
- datalink     | file_unlink(file_path)                                                                       | plpgsql  | 
- datalink     | read_text(file_path)                                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
 (55 rows)
 

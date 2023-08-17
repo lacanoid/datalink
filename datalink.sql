@@ -36,27 +36,27 @@ COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing
 
 CREATE TYPE pg_catalog.datalink;
 
-CREATE OR REPLACE FUNCTION datalink_in(cstring)
+CREATE OR REPLACE FUNCTION dl_datalink_in(cstring)
  RETURNS datalink LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
  AS $function$jsonb_in$function$;
  
-CREATE OR REPLACE FUNCTION datalink_out(datalink)
+CREATE OR REPLACE FUNCTION dl_datalink_out(datalink)
  RETURNS cstring LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
  AS $function$jsonb_out$function$;
  
-CREATE OR REPLACE FUNCTION datalink_recv(internal)
+CREATE OR REPLACE FUNCTION dl_datalink_recv(internal)
  RETURNS datalink LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
  AS $function$jsonb_recv$function$;
  
-CREATE OR REPLACE FUNCTION datalink_send(datalink)
+CREATE OR REPLACE FUNCTION dl_datalink_send(datalink)
  RETURNS bytea LANGUAGE internal IMMUTABLE PARALLEL SAFE STRICT
  AS $function$jsonb_send$function$;
  
 CREATE TYPE pg_catalog.datalink (
-   INPUT = datalink_in,
-   OUTPUT = datalink_out,
-   SEND = datalink_send,
-   RECEIVE = datalink_recv,
+   INPUT = dl_datalink_in,
+   OUTPUT = dl_datalink_out,
+   SEND = dl_datalink_send,
+   RECEIVE = dl_datalink_recv,
    TYPMOD_IN = varchartypmodin,
    TYPMOD_OUT = varchartypmodout,
    INTERNALLENGTH = VARIABLE,
@@ -394,7 +394,7 @@ COMMENT ON FUNCTION datalink.file_stat(file_path) IS 'Return info record from st
 
 ---------------------------------------------------
 
-create function file_link(file_path file_path,
+create function dl_file_link(file_path file_path,
                           my_token dl_token,
 			                    my_lco dl_lco,
 			                    my_regclass regclass,my_attname name)
@@ -497,11 +497,11 @@ begin
  end if; -- if found
 end
 $$ language plpgsql strict;
-revoke execute on function file_link from public;
+revoke execute on function dl_file_link from public;
 
 ---------------------------------------------------
 
-create function file_unlink(file_path file_path)
+create function dl_file_unlink(file_path file_path)
 returns boolean as
 $$
 declare
@@ -550,7 +550,7 @@ begin
  return true;
 end
 $$ language plpgsql strict;
-revoke execute on function file_unlink from public;
+revoke execute on function dl_file_unlink from public;
 
 ---------------------------------------------------
 -- uri functions
@@ -762,7 +762,7 @@ begin
 	where object_type = 'table'
        )
   loop
-    perform datalink.file_unlink(obj.path);
+    perform datalink.dl_file_unlink(obj.path);
   end loop;
 
   -- unlink files referenced by dropped dl_columns
@@ -777,7 +777,7 @@ begin
        ) as tdo
       join datalink.dl_linked_files f on f.attrelid=tdo.regclass and f.attnum=tdo.attnum
   loop
-    perform datalink.file_unlink(obj.path);
+    perform datalink.dl_file_unlink(obj.path);
   end loop;
 
 end if;
@@ -1005,7 +1005,7 @@ begin
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
-      perform datalink.file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
+      perform datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
  end if; -- link options
@@ -1027,7 +1027,7 @@ begin
   lco = datalink.link_control_options(link_options);
 
   if lco.integrity = 'ALL' then
-    perform datalink.file_unlink(dlurlpathonly($1));
+    perform datalink.dl_file_unlink(dlurlpathonly($1));
   end if; -- integrity all
  end if; -- link options
  
@@ -1048,7 +1048,7 @@ declare
   opt datalink.link_control_options;
 begin
   if tg_op = 'TRUNCATE' then
-    perform datalink.file_unlink(path)
+    perform datalink.dl_file_unlink(path)
        from datalink.dl_linked_files
       where attrelid = tg_relid; 
     return new;
@@ -1516,6 +1516,9 @@ COMMENT ON FUNCTION read_text(datalink)
 CREATE OR REPLACE FUNCTION datalink.read_text(file_path)
  RETURNS text LANGUAGE sql
 AS $function$select datalink.read_text(dlvalue($1,'FS'))$function$;
+
+COMMENT ON FUNCTION read_text(file_path)
+     IS 'Read file contents as text';
 
 CREATE OR REPLACE FUNCTION read_lines(filename file_path)
  RETURNS TABLE(i integer, o bigint, line text)
