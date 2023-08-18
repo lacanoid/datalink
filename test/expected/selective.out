@@ -25,12 +25,12 @@ insert into sample_datalinks2 (link)
 values (dlvalue('/etc/','FS','Sample file datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
-ERROR:  datalink exception - referenced file does not exist
+ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///foo+bar/no_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
-PL/pgSQL function dl_trigger_table() line 72 at assignment
+PL/pgSQL function dl_trigger_table() line 73 at assignment
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
@@ -38,12 +38,12 @@ insert into sample_datalinks2 (link)
 values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
-ERROR:  datalink exception - referenced file does not exist
+ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blah
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
-PL/pgSQL function dl_trigger_table() line 72 at assignment
+PL/pgSQL function dl_trigger_table() line 73 at assignment
 select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
        dlurlcomplete        | has_token 
 ----------------------------+-----------
@@ -57,7 +57,7 @@ select *
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
-ERROR:  datalink exception
+ERROR:  DATALINK EXCEPTION
 DETAIL:  Can't change link control options; 6 non-null values present in column "link"
 HINT:  Perhaps you can "truncate sample_datalinks3"
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 36 at RAISE
@@ -75,9 +75,9 @@ create table efiles2 ( file efile );
 NOTICE:  DATALINK DDL:TRIGGER on efiles2
 insert into efiles1 values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
 insert into efiles1 values (dlvalue('http://blahXXXX','URL','Broken datalink'));
-ERROR:  datalink exception - referenced file does not exist
+ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blahxxxx
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
-PL/pgSQL function dl_trigger_table() line 72 at assignment
+PL/pgSQL function dl_trigger_table() line 73 at assignment

@@ -412,7 +412,7 @@ begin
 
 -- if (datalink.link_control_options(my_lco)).write_access >= 'BLOCKED' then
    if not datalink.is_valid_prefix(file_path) THEN
-        raise exception 'datalink exception - referenced file not valid' 
+        raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',file_path),
                     hint = 'run "pg_datalinker add" to add prefixes'
@@ -424,7 +424,7 @@ begin
    fstat := row_to_json(datalink.file_stat(file_path||'#'||my_token))::jsonb;
  end if;
  if fstat is null then
-      raise exception 'datalink exception - referenced file not valid' 
+      raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
                   detail = format('stat failed for %s',file_path);
  end if;
@@ -448,13 +448,13 @@ begin
   -- this is needed to eliminate problems during pg_restore
   if r.token = my_token and r.path = file_path and r.lco = my_lco and
      r.attrelid = my_regclass and r.attnum = my_attnum then
-    raise warning 'datalink exception - external file possibly already linked' 
+    raise warning 'DATALINK EXCEPTION - external file possibly already linked' 
       using detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
   end if;
 
   -- already linked ?
   if r.state in ('LINK','LINKED') then
-    raise exception 'datalink exception - external file already linked' 
+    raise exception 'DATALINK EXCEPTION - external file already linked' 
       using errcode = 'HW002', 
       detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
 
@@ -462,7 +462,7 @@ begin
   elsif r.state in ('UNLINK') then
      if r.lco is distinct from my_lco
      then
-        raise exception 'datalink exception - external file already linked' 
+        raise exception 'DATALINK EXCEPTION - external file already linked' 
           using errcode = 'HW002', 
           detail = format('Cannot change link control option in update');
      end if;
@@ -484,13 +484,13 @@ begin
          where path = file_path and state='UNLINK';
         return true;
 
-        raise exception 'datalink exception - external file already linked' 
+        raise exception 'DATALINK EXCEPTION - external file already linked' 
         using errcode = 'HW002', 
         detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
      end if;
 
   else
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
   end if;
@@ -514,7 +514,7 @@ begin
   where path = file_path
     for update;
  if not found then
-      raise exception 'datalink exception - external file not linked' 
+      raise exception 'DATALINK EXCEPTION - external file not linked' 
             using errcode = 'HW001', 
                   detail = file_path;
  else
@@ -541,7 +541,7 @@ begin
       and state = 'ERROR';
 
   else
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
   end if;
@@ -744,7 +744,7 @@ begin
         select regclass from datalink.dl_columns 
         where lco not in (select lco from datalink.link_control_options)
       ) then
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
 	          detail = format('Invalid link control options'),
                   hint = 'see table datalink.link_control_options for valid link control options';
@@ -824,7 +824,7 @@ begin
  if my_type not in ('URL','FS') then -- link type is a directory
   select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=linktype into my_uri;
   if not found then 
-        raise exception 'datalink exception - nonexistent directory' 
+        raise exception 'DATALINK EXCEPTION - nonexistent directory' 
               using errcode = 'HW005',
                     detail = format('directory %s does not exist',linktype),
                     hint = 'perhaps you need to add it to datalink.directory';
@@ -882,7 +882,7 @@ begin
       token := t1::datalink.dl_token;
     exception
       when sqlstate '22P02' then
-        raise exception 'datalink exception - invalid write token'
+        raise exception 'DATALINK EXCEPTION - invalid write token'
         using errcode = 'HW004', 
               detail = SQLERRM;
       when others then
@@ -965,7 +965,7 @@ begin
   if lco.integrity <> 'NONE' then
     -- check if this is a file not a link
     if lco.integrity = 'ALL' and dlurlscheme(link)<>'FILE' then
-        raise exception 'datalink exception - invalid datalink construction' 
+        raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
               using errcode = 'HW005',
                     detail = 'INTEGRITY ALL can only be used with file URLs',
                     hint = 'make sure you are using a file: URL scheme';
@@ -973,7 +973,7 @@ begin
     -- check if datalinker in needed and running
     if lco.integrity = 'ALL' and link_options>10 then
       if not datalink.have_datalinker() then
-        raise warning 'datalink warning - datalinker required' 
+        raise warning 'DATALINK WARNING - datalinker required' 
               using errcode = 'HW000',
 --                    detail = 'datalinker process is not available',
                     hint = 'make sure pg_datalinker process is running to finalize your commits';
@@ -991,7 +991,7 @@ begin
     end if;
 
     if not r.ok then
-      raise exception e'datalink exception - referenced file does not exist\nURL:  %',url 
+      raise exception e'DATALINK EXCEPTION - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
                   detail = format('CURL error %s - %s',r.rc,r.error),
                   hint = 'make sure url is correct and referenced file actually exists';
@@ -1093,33 +1093,34 @@ begin
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
    if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
     if tg_op in ('INSERT','UPDATE') then
-       if dlurlcomplete(link2) is not null then
+      if dlurlcomplete(link2) is not null then
          -- check for write_access = BLOCKED and prevent updates
-	 if opt.write_access = 'BLOCKED' and tg_op='UPDATE' and link1 is not null then
-           raise exception 'datalink exception - invalid write permission for update' 
-                     using errcode = 'HW006',
-                           detail = format('write_access is BLOCKED for column %s,%I',
-			                   tg_relid::regclass::text,r.column_name),
-                           hint = 'set write_access to ADMIN or TOKEN'
-                    ;
-	 end if;
+        if opt.write_access = 'BLOCKED' and tg_op='UPDATE' and link1 is not null then
+                raise exception 'DATALINK EXCEPTION - invalid write permission for update' 
+                          using errcode = 'HW006',
+                                detail = format('write_access is BLOCKED for column %s,%I',
+                              tg_relid::regclass::text,r.column_name),
+                                hint = 'set write_access to ADMIN or TOKEN'
+                          ;
+        end if; -- blocked
          -- check for write_access = TOKEN and prevent updates if needed
-	 if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
- 	    if link2->>'o' is null or link2->>'o' is distinct from link1->>'b' then
-               raise exception 'datalink exception - invalid write token' 
-                         using errcode = 'HW004',
-                        detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
-		                        tg_relid::regclass::text,r.column_name),
-                          hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
-                    ;
+        if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
+            if link2->>'o' is null or link2->>'o' is distinct from link1->>'b' then
+                    raise exception 'DATALINK EXCEPTION - invalid write token' 
+                              using errcode = 'HW004',
+                              detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
+                                  tg_relid::regclass::text,r.column_name),
+                                hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
+                          ;
             end if; -- tokens not matching
-	    link2 := link2 - 'o';
-	 end if;
-         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
-         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
-       end if;
-    end if;
-   end if;
+            link2 := link2 - 'o';
+        end if; -- token
+   
+        link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
+        rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
+      end if; -- have URL
+    end if; -- insert or update
+   end if; -- distinct
 
   end loop; -- link new values
 
@@ -1286,7 +1287,7 @@ begin
    and column_name = my_column_name; 
 
  if not found then
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
 	    detail = 'Not a DATALINK column';
  end if; 
@@ -1296,7 +1297,7 @@ begin
    where lco = my_lco;
 
  if not found then
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
 	          detail = format('Invalid link control options (%s)',my_lco),
                   hint = 'see table datalink.link_control_options for valid link control options';
@@ -1307,7 +1308,7 @@ begin
      my_column_name,cast(my_regclass as text),my_column_name);
    execute e into n;
    if n > 0 then
-      raise exception 'datalink exception' 
+      raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
 	          detail = format('Can''t change link control options; %s non-null values present in column "%s"',
 		                  n,my_column_name),
@@ -1617,7 +1618,7 @@ begin
  if tg_relid = 'datalink.dl_directory'::regclass then
    new.dirpath := trim(trailing '/' from new.dirpath) || '/';
    if not datalink.is_valid_prefix(new.dirpath) then 
-        raise exception 'datalink exception - referenced file not valid' 
+        raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',new.dirpath),
                     hint = 'run "pg_datalinker add" to add prefixes';

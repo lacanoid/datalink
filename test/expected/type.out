@@ -230,7 +230,7 @@ select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1
 (1 row)
 
 select dlpreviouscopy('file:///tmp/file1#krneki',1);
-ERROR:  datalink exception - invalid write token
+ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  invalid input syntax for type uuid: "krneki"
 CONTEXT:  PL/pgSQL function dlpreviouscopy(datalink,integer) line 15 at RAISE
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
@@ -321,12 +321,12 @@ select dlvalue('/etc/issue','FS');
 (1 row)
 
 select dlvalue('/etc/issue','FILE');
-ERROR:  datalink exception - nonexistent directory
+ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
 CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 select dlvalue('/etc/issue','foo');
-ERROR:  datalink exception - nonexistent directory
+ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
 CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
@@ -343,12 +343,12 @@ select dllinktype(dlvalue('/etc/issue','FS'));
 (1 row)
 
 select dllinktype(dlvalue('/etc/issue','FILE'));
-ERROR:  datalink exception - nonexistent directory
+ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
 CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
 select dllinktype(dlvalue('/etc/issue','foo'));
-ERROR:  datalink exception - nonexistent directory
+ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
 CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
@@ -400,7 +400,7 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 (1 row)
 
 create table bar ( link datalink(123) );
-ERROR:  datalink exception
+ERROR:  DATALINK EXCEPTION
 DETAIL:  Invalid link control options
 HINT:  see table datalink.link_control_options for valid link control options
 CONTEXT:  PL/pgSQL function dl_trigger_event() line 43 at RAISE

@@ -9,8 +9,10 @@ Wanted
 - install init.d scripts 
 - Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
-- some sort of permissions as to what and who gets to get/put where
+- some sort of permissions as to what and who gets to do where. probably postgres acls.
 - some sort of file to url mapping. dlurl* functions could use these.
+- make read access tokens work with table "insight" ( ctime, read_token, link_token, state, role, pid, data  )
+- apache module to make the above work
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work

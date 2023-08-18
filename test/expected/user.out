@@ -23,13 +23,13 @@ update datalink.columns
 set role datalink_test_user;
 insert into user_links (link)
 values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 1'));
-WARNING:  datalink warning - datalinker required
+WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 update user_links
    set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
-WARNING:  datalink warning - datalinker required
+WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 select * 
