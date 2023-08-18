@@ -818,8 +818,17 @@ declare
  my_dl datalink;
  my_uri text;
  my_type text;
+ map_p boolean;
 begin
- my_uri := url;
+ if linktype is null then
+   select dirpath||uri_unescape(substr(url,length(dirurl)+1))
+     from datalink.directory
+    where dirurl is not null and url like dirurl||'%'
+    order by length(dirurl) desc limit 1
+     into my_uri;
+   if my_uri is not null then linktype:='FS'; map_p:=true; end if;
+ end if;
+ my_uri := coalesce(my_uri,url);
  my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
  if my_type not in ('URL','FS') then -- link type is a directory
   select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=linktype into my_uri;
@@ -845,6 +854,9 @@ begin
  end if;
  if my_type not in ('URL','FS') then
     my_dl:=jsonb_set(my_dl::jsonb,array['t'],to_jsonb(my_type));
+ end if;
+ if map_p then 
+    my_dl:=jsonb_set(my_dl::jsonb,array['m'],to_jsonb(1));
  end if;
  return my_dl;
 end;

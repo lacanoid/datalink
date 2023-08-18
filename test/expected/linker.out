@@ -132,7 +132,8 @@ select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
 -- test directories
 update datalink.directory
    set dirname='www', 
-       dirowner=current_role::regrole
+       dirowner=current_role::regrole,
+       dirurl='http://localhost/datalink/'
  where dirpath='/var/www/datalink/';
 NOTICE:  DATALINK LINK:/var/www/datalink/
 select dlvalue('hello.txt','www');
@@ -151,5 +152,11 @@ select dlvalue(NULL,'www');
                     dlvalue                     
 ------------------------------------------------
  {"a": "file:///var/www/datalink/", "t": "www"}
+(1 row)
+
+select dlvalue('http://localhost/datalink/CHANGELOG.md');
+                        dlvalue                         
+--------------------------------------------------------
+ {"a": "file:///var/www/datalink/CHANGELOG.md", "m": 1}
 (1 row)
 

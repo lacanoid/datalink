@@ -15,7 +15,7 @@ select dlvalue('');
 
 select dlvalue('foo');
 ERROR:  value for domain datalink.dl_url violates check constraint "dl_url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 26 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 35 at assignment
 select dlvalue('http://www.ljudmila.org/');
               dlvalue              
 -----------------------------------
@@ -313,7 +313,7 @@ select dlvalue('/etc/issue');
 
 select dlvalue('/etc/issue','URL');
 ERROR:  value for domain datalink.dl_url violates check constraint "dl_url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 26 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 35 at assignment
 select dlvalue('/etc/issue','FS');
           dlvalue           
 ----------------------------
@@ -324,12 +324,12 @@ select dlvalue('/etc/issue','FILE');
 ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 21 at RAISE
 select dlvalue('/etc/issue','foo');
 ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 21 at RAISE
 select dllinktype(dlvalue('/etc/issue'));
  dllinktype 
 ------------
@@ -346,12 +346,12 @@ select dllinktype(dlvalue('/etc/issue','FILE'));
 ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory FILE does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 21 at RAISE
 select dllinktype(dlvalue('/etc/issue','foo'));
 ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory foo does not exist
 HINT:  perhaps you need to add it to datalink.directory
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 12 at RAISE
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 21 at RAISE
 SET search_path=datalink;
 select dl_lco(link_control=>'FILE');
  dl_lco 
