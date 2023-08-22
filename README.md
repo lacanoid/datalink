@@ -49,8 +49,8 @@ With datalinker:
 - LCO: READ ACCESS DB - make file owned by database (chown, chmod)
 - LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs), forbid datalink column updates
 - LCO: WRITE ACCESS ADMIN - make file immutable, allow datalink column updates
-- LCO: WRITE ACCESS ADMIN TOKEN - make file immutable, allow column updates only with matching write token
-- LCO: RECOVERY YES - backup and restore of linked file contents (point in time recovery)
+- LCO: WRITE ACCESS TOKEN - make file immutable, allow column updates only with matching write token
+- LCO: RECOVERY YES - backup and restore of linked file contents, point in time recovery (requires -R option to pg_datalinker)
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
 - LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
 

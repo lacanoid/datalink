@@ -12,8 +12,8 @@ Wanted
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
 - some sort of file to url mapping. dlurl* functions could use these.
 - make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
-- apache module to make the above work
-- SUDI shell command `dlcat` to read filenames with embedded read tokens
+- apache module to make the above work with dlurlcomplete()
+- SUID root shell command `dlcat` to read content from filenames with embedded read tokens, returned by dlurlpath()
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work
@@ -57,7 +57,7 @@ Todo
 - datalinker: optimise verbosity
 - datalinker: better configurator
 - better link state handling: unlink -> linked, error -> ?
-- token decoding in dlvalue (in dlpreviouscopy and dlnewcopy)
+- token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
 - make this work for non-superusers
 - check permissions
@@ -65,14 +65,14 @@ Todo
 
 Maybe
 =====
-- perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
+- ✔︎ perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
-- create explicit datalink.exists(datalink) function
+- create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
 - ✔︎ more compact datalink storage (use 1 letter json keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO
-- pluggable filename+token handling so we can support more common token;basename convention
+- more pluggable filename+token handling so we can support more common token;basename convention
 - ✔︎ add timing info to curl_get()
 
