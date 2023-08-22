@@ -160,3 +160,74 @@ select dlvalue('http://localhost/datalink/CHANGELOG.md');
  {"a": "file:///var/www/datalink/CHANGELOG.md", "m": 1}
 (1 row)
 
+select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));
+             dlurlcomplete              
+----------------------------------------
+ http://localhost/datalink/CHANGELOG.md
+(1 row)
+
+select dlvalue('http://localhost/datalinkxxx/CHANGELOG.md');
+                      dlvalue                       
+----------------------------------------------------
+ {"a": "http://localhost/datalinkxxx/CHANGELOG.md"}
+(1 row)
+
+select dlurlcomplete(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
+               dlurlcomplete               
+-------------------------------------------
+ http://localhost/datalinkxxx/CHANGELOG.md
+(1 row)
+
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','SELECT');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','REFERENCES');
+begin;
+create role dl_access_test;
+select dirpath,privilege_type,grantee from datalink.access;
+      dirpath       | privilege_type | grantee 
+--------------------+----------------+---------
+ /var/www/datalink/ | SELECT         | PUBLIC
+ /var/www/datalink/ | REFERENCES     | PUBLIC
+(2 rows)
+
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','UPDATE');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','REFERENCES');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','SELECT');
+select dirpath,privilege_type,grantee from datalink.access;
+      dirpath       | privilege_type |    grantee     
+--------------------+----------------+----------------
+ /var/www/datalink/ | SELECT         | PUBLIC
+ /var/www/datalink/ | REFERENCES     | PUBLIC
+ /var/www/datalink/ | UPDATE         | dl_access_test
+ /var/www/datalink/ | SELECT         | dl_access_test
+(4 rows)
+
+delete from datalink.access where grantee = 'dl_access_test';
+select dirpath,privilege_type,grantee from datalink.access;
+      dirpath       | privilege_type | grantee 
+--------------------+----------------+---------
+ /var/www/datalink/ | SELECT         | PUBLIC
+ /var/www/datalink/ | REFERENCES     | PUBLIC
+(2 rows)
+
+delete from datalink.access where grantee = 'PUBLIC';
+select dirpath,privilege_type,grantee from datalink.access;
+ dirpath | privilege_type | grantee 
+---------+----------------+---------
+(0 rows)
+
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','DELETE');
+select dirpath,privilege_type,grantee from datalink.access;
+      dirpath       | privilege_type |    grantee     
+--------------------+----------------+----------------
+ /var/www/datalink/ | DELETE         | dl_access_test
+(1 row)
+
+drop role dl_access_test;
+rollback;
+select dirpath,privilege_type,grantee from datalink.access;
+      dirpath       | privilege_type | grantee 
+--------------------+----------------+---------
+ /var/www/datalink/ | SELECT         | PUBLIC
+ /var/www/datalink/ | REFERENCES     | PUBLIC
+(2 rows)
+

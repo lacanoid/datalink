@@ -11,8 +11,9 @@ Wanted
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
 - some sort of file to url mapping. dlurl* functions could use these.
-- make read access tokens work with table "insight" ( ctime, read_token, link_token, state, role, pid, data  )
+- make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
 - apache module to make the above work
+- SUDI shell command `dlcat` to read filenames with embedded read tokens
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work

@@ -3,6 +3,7 @@ Version 0.21
 - shortened json keys (url,token,text,old,type) -> (a,b,c,o,t)
 - include read_access flag in datalink (r)
 - include mapping flag in datalink (m)
+- new view datalink.access with triggers to update datalink.directory.diracl
 
 Version 0.20
 ------------

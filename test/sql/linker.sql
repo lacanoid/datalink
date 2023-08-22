@@ -84,4 +84,30 @@ select dlvalue('','www');
 select dlvalue(NULL,'www');
 
 select dlvalue('http://localhost/datalink/CHANGELOG.md');
+select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));
 
+select dlvalue('http://localhost/datalinkxxx/CHANGELOG.md');
+select dlurlcomplete(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
+
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','SELECT');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','REFERENCES');
+
+begin;
+create role dl_access_test;
+
+select dirpath,privilege_type,grantee from datalink.access;
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','UPDATE');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','REFERENCES');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','SELECT');
+select dirpath,privilege_type,grantee from datalink.access;
+delete from datalink.access where grantee = 'dl_access_test';
+select dirpath,privilege_type,grantee from datalink.access;
+delete from datalink.access where grantee = 'PUBLIC';
+select dirpath,privilege_type,grantee from datalink.access;
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','dl_access_test','DELETE');
+select dirpath,privilege_type,grantee from datalink.access;
+
+drop role dl_access_test;
+rollback;
+
+select dirpath,privilege_type,grantee from datalink.access;

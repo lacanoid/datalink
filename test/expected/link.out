@@ -151,7 +151,7 @@ DETAIL:  Invalid link control options (11)
 HINT:  see table datalink.link_control_options for valid link control options
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 25 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_options() line 21 at PERFORM
+PL/pgSQL function dl_trigger_columns() line 21 at PERFORM
 select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------

@@ -835,7 +835,7 @@ begin
   if not found then 
         raise exception 'DATALINK EXCEPTION - nonexistent directory' 
               using errcode = 'HW005',
-                    detail = format('directory %s does not exist',linktype),
+                    detail = format('directory "%s" does not exist',linktype),
                     hint = 'perhaps you need to add it to datalink.directory';
   end if;
  end if;
@@ -1144,7 +1144,7 @@ $_X$;
 
 ---------------------------------------------------
 
-CREATE FUNCTION dl_trigger_options() RETURNS trigger
+CREATE FUNCTION dl_trigger_columns() RETURNS trigger
     LANGUAGE plpgsql
 AS $$
 declare
@@ -1181,12 +1181,12 @@ $$;
 CREATE TRIGGER "columns_instead"
 INSTEAD OF UPDATE ON datalink.columns
 FOR EACH ROW
-EXECUTE PROCEDURE datalink.dl_trigger_options();
+EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 CREATE TRIGGER "columns_instead"
 INSTEAD OF UPDATE ON datalink.dl_columns
 FOR EACH ROW
-EXECUTE PROCEDURE datalink.dl_trigger_options();
+EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 ---------------------------------------------------
 -- curl functions
@@ -1365,13 +1365,27 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
+CREATE FUNCTION url(datalink) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select coalesce((
+       select dirurl||uri_escape(substr(dlurlpath($1),length(dirpath)+1))
+         from datalink.directory
+        where dirurl is not null and dlurlpathonly($1) like dirpath||'%'
+        order by length(dirpath) desc limit 1),$1->>'a')
+$_$;
+
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select case 
-              when $1->>'b' is not null
-              then format('%s#%s',$1->>'a',$1->>'b')
-              else $1->>'a'
-              end;
+AS $_$ 
+  select case
+    when $1->>'m' is not null 
+    then datalink.url($1)
+    else case
+      when $1->>'b' is not null
+      then format('%s#%s',$1->>'a',$1->>'b')
+      else $1->>'a'
+    end
+  end as url
 $_$;
 /* CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
@@ -1635,7 +1649,11 @@ begin
                     detail = format('unknown path prefix for %s',new.dirpath),
                     hint = 'run "pg_datalinker add" to add prefixes';
    end if;
-   new.dirlink := dlvalue(new.dirpath,'FS');
+
+  if dlurlpathonly(old.dirlink) is distinct from new.dirpath then
+    new.dirlink := dlvalue(new.dirpath,'FS');
+  end if; -- must update datalink
+
  end if;  -- if datalink.dl_directory
  return new;
 end
@@ -1657,6 +1675,66 @@ returns directory as $$
    order by length(dirpath) desc
    limit 1;
 $$ strict language sql;
+
+---------------------------------------------------
+-- access permitions
+---------------------------------------------------
+CREATE OR REPLACE VIEW access
+AS SELECT d.dirpath,
+    e.privilege_type,
+        CASE e.grantee
+            WHEN 0 THEN 'PUBLIC'::text
+            ELSE e.grantee::regrole::text
+        END AS grantee,
+        CASE e.grantor
+            WHEN 0 THEN 'PUBLIC'::text
+            ELSE e.grantor::regrole::text
+        END AS grantor,
+    e.is_grantable
+   FROM datalink.directory d
+     JOIN LATERAL aclexplode(nullif(d.diracl,'{}')) e(grantor, grantee, privilege_type, is_grantable) ON true;
+
+COMMENT ON VIEW access 
+     IS 'Permissions for file system directories';
+GRANT SELECT ON access TO PUBLIC;
+
+CREATE FUNCTION dl_trigger_access() RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+declare
+  acl aclitem;
+  acls aclitem[];
+BEGIN
+  select diracl from datalink.directory where dirpath = coalesce(old.dirpath,new.dirpath) into acls;
+  if not found THEN
+    raise exception 'dirpath null or not found in datalink.access';
+  end if;
+  if tg_op in ('UPDATE','DELETE') THEN
+    acl := makeaclitem(coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole,
+                       coalesce(old.grantor::regrole,current_role::regrole),
+                       upper(old.privilege_type),coalesce(old.is_grantable,false)); 
+    acls := array_remove(acls,acl);
+  end if; -- update or delete
+  if tg_op in ('INSERT','UPDATE') THEN
+    acl := makeaclitem(coalesce(coalesce(nullif(lower(new.grantee),'public'),'0'), new.grantee)::regrole,
+                       coalesce(new.grantor::regrole,current_role::regrole),
+                       upper(new.privilege_type),coalesce(new.is_grantable,false)); 
+    acls := case 
+            when acls = '{}' then array[acl]
+            when acls @> acl then acls
+            else coalesce(acls,'{}'::aclitem[]) || array[acl] end;
+  end if; -- insert or update
+     update datalink.directory
+        set diracl = acls
+      where dirpath = coalesce(old.dirpath,new.dirpath); 
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+END
+$$;
+
+CREATE TRIGGER "access_touch"
+INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_access();
 
 ---------------------------------------------------
 -- volume usage statistics
