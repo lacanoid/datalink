@@ -44,7 +44,7 @@ DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure url is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 43 at RAISE
 PL/pgSQL function dl_trigger_table() line 73 at assignment
-select dlurlcomplete(link), (link)->>'token' is not null as has_token from sample_datalinks2;
+select dlurlcomplete(link), (link)->>'b' is not null as has_token from sample_datalinks2;
        dlurlcomplete        | has_token 
 ----------------------------+-----------
  file:///etc/               | f
