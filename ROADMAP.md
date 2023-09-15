@@ -1,6 +1,6 @@
 Wanted
 ======
-- ✔︎ volumes
+- ✔︎ prefixes, directories
 - ✔︎ replace link with one with different token
 - ✔︎ Native postgres URL type + functions
 - ✔︎ way to convert relative to absolute links: dlvalue(relative_link text, base_link datalink)
@@ -11,9 +11,11 @@ Wanted
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
 - some sort of file to url mapping. dlurl* functions could use these.
+- make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
-- apache module to make the above work with dlurlcomplete()
-- SUID root shell command `dlcat` to read content from filenames with embedded read tokens, returned by dlurlpath()
+- SUID root shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
+- apache module to make it work with embedded read tokens, returned by dlurlcomplete()
+- ngingx module
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work
@@ -32,7 +34,7 @@ Todo
 ====
 - ✔︎ CLI tool for datalinker admin
 - ✔︎ much better error handling in datalinker
-- ✔︎ dlvalue(null) -> null, dlvalue('') -> null
+- ✔︎ dlvalue(null) → null, dlvalue('') → null
 - ✔︎ file path sanity checking (handle or forbid ..)
 - ✔︎ url sanity checking (handle ..)
 - ✔︎ better URL syntax checking
@@ -56,7 +58,7 @@ Todo
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
 - datalinker: better configurator
-- better link state handling: unlink -> linked, error -> ?
+- better link state handling: unlink → linked, error → ?
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
 - make this work for non-superusers
