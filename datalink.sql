@@ -1737,6 +1737,36 @@ INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
 
 ---------------------------------------------------
+-- access permitions
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text) RETURNS boolean as $$
+select exists (
+  select dirpath from datalink.access 
+   where privilege_type=upper($3)
+     and dirpath = (datalink.dl_directory ($2)).dirpath
+     and (grantee = 'PUBLIC' or grantee = $1::text)
+)
+$$ LANGUAGE sql;
+
+CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text) RETURNS boolean
+ LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2)$$;
+
+---------------------------------------------------
+-- insight (file lookup) table
+---------------------------------------------------
+
+create table insight (
+  link_token dl_token not null,
+  read_token dl_token default datalink.dl_newtoken() primary key,
+  ctime timestamptz not null default now(),
+  state char not null default 'n',
+  role regrole not null default user::regrole,
+  pid int not null default pg_backend_pid(),
+  data jsonb
+);
+
+---------------------------------------------------
 -- volume usage statistics
 ---------------------------------------------------
 
