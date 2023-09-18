@@ -17,22 +17,22 @@ select dlurlserver(dlvalue('file://server1/etc/issue'));
  server1
 (1 row)
 
-select dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS');
-                                  dlvalue                                  
----------------------------------------------------------------------------
- {"a": "file:///tmp/test-_%3D%21%40%24%25%5E%26%2A%28%29%5B%5D%7B%7D#%3F"}
+select dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS');
+                                dlvalue                                 
+------------------------------------------------------------------------
+ {"a": "file:///tmp/test-_%3D%21%40%24%5E%26%2A%28%29%5B%5D%7B%7D#%3F"}
 (1 row)
 
-select dlurlpath(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
-          dlurlpath          
------------------------------
- /tmp/test-_=!@$%^&*()[]{}#?
+select dlurlpath(dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS'));
+         dlurlpath          
+----------------------------
+ /tmp/test-_=!@$^&*()[]{}#?
 (1 row)
 
-select dlurlcomplete(dlvalue('/tmp/test-_=!@$%^&*()[]{}#?','FS'));
-                          dlurlcomplete                           
-------------------------------------------------------------------
- file:///tmp/test-_%3D%21%40%24%25%5E%26%2A%28%29%5B%5D%7B%7D#%3F
+select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS'));
+                         dlurlcomplete                         
+---------------------------------------------------------------
+ file:///tmp/test-_%3D%21%40%24%5E%26%2A%28%29%5B%5D%7B%7D#%3F
 (1 row)
 
 insert into sample_urls (url)

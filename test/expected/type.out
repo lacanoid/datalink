@@ -352,6 +352,15 @@ ERROR:  DATALINK EXCEPTION - nonexistent directory
 DETAIL:  directory "foo" does not exist
 HINT:  perhaps you need to add it to datalink.directory
 CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 21 at RAISE
+select dlvalue('/foo/bar//baz/qux'); -- ERROR
+ERROR:  value for domain datalink.file_path violates check constraint "file_path_noserver"
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 29 at assignment
+select dlvalue('/foo/bar/../baz/qux'); -- ERROR
+ERROR:  value for domain datalink.file_path violates check constraint "file_path_noparent"
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 29 at assignment
+select dlvalue('/foo/bar/%/baz/qux'); -- ERROR
+ERROR:  value for domain datalink.file_path violates check constraint "file_path_nopercent"
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 29 at assignment
 SET search_path=datalink;
 select dl_lco(link_control=>'FILE');
  dl_lco 

@@ -81,6 +81,10 @@ select dllinktype(dlvalue('/etc/issue','FS'));
 select dllinktype(dlvalue('/etc/issue','FILE'));
 select dllinktype(dlvalue('/etc/issue','foo'));
 
+select dlvalue('/foo/bar//baz/qux'); -- ERROR
+select dlvalue('/foo/bar/../baz/qux'); -- ERROR
+select dlvalue('/foo/bar/%/baz/qux'); -- ERROR
+
 SET search_path=datalink;
 
 select dl_lco(link_control=>'FILE');

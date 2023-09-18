@@ -839,15 +839,15 @@ begin
                     hint = 'perhaps you need to add it to datalink.directory';
   end if;
  end if;
- my_uri := case my_type
-           when 'URL'  then my_uri::text
-	         else format('file://%s',
-	              replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'))
-           end;
+ if my_type is distinct from 'URL' then
+   -- a file path
+   my_uri := my_uri::datalink.file_path; -- validate path
+   my_uri := format('file://%s',replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'));
+ end if;
  if my_uri is null or length(my_uri)<=0 then 
    return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
- my_uri := my_uri::datalink.dl_url;
+ my_uri := my_uri::datalink.dl_url; -- validate URL
  my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
  if comment is not null then
    my_dl:=jsonb_set(my_dl::jsonb,array['c'],to_jsonb(comment));

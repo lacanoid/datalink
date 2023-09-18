@@ -6,6 +6,7 @@ Version 0.21
 - new view `datalink.access` with triggers to update `datalink.directory.diracl`
 - new function `datalink.has_file_privilege()` to enquire about file privileges
 - initial `datalink.insight` table for read access management
+- stricter checks for file paths in `dlvalue()`
 
 Version 0.20
 ------------
