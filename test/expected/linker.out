@@ -166,6 +166,12 @@ select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));
  http://localhost/datalink/CHANGELOG.md
 (1 row)
 
+select dlurlcompleteonly(dlvalue('http://localhost/datalink/CHANGELOG.md'));
+           dlurlcompleteonly            
+----------------------------------------
+ http://localhost/datalink/CHANGELOG.md
+(1 row)
+
 select dlvalue('http://localhost/datalinkxxx/CHANGELOG.md');
                       dlvalue                       
 ----------------------------------------------------
@@ -174,6 +180,12 @@ select dlvalue('http://localhost/datalinkxxx/CHANGELOG.md');
 
 select dlurlcomplete(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
                dlurlcomplete               
+-------------------------------------------
+ http://localhost/datalinkxxx/CHANGELOG.md
+(1 row)
+
+select dlurlcompleteonly(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
+             dlurlcompleteonly             
 -------------------------------------------
  http://localhost/datalinkxxx/CHANGELOG.md
 (1 row)
@@ -224,6 +236,15 @@ select dirpath,privilege_type,grantee from datalink.access;
 
 drop role dl_access_test;
 rollback;
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','KIKI');
+ERROR:  unrecognized privilege type: "KIKI"
+CONTEXT:  PL/pgSQL function dl_trigger_access() line 22 at assignment
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink_xxx/','PUBLIC','REFERENCES');
+ERROR:  DATALINK EXCEPTION - directory not found
+PATH:  /var/www/datalink_xxx/
+DETAIL:  directory not found while modifying datalink.access
+HINT:  add appropriate entry in table datalink.directory
+CONTEXT:  PL/pgSQL function dl_trigger_access() line 10 at RAISE
 select dirpath,privilege_type,grantee from datalink.access;
       dirpath       | privilege_type | grantee 
 --------------------+----------------+---------

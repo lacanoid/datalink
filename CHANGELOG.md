@@ -5,7 +5,7 @@ Version 0.21
 - include mapping flag in datalink (m)
 - new view `datalink.access` with triggers to update `datalink.directory.diracl`
 - new function `datalink.has_file_privilege()` to enquire about file privileges
-- initial `datalink.insight` table for read access management
+- initial `datalink.insight` table for future read access management
 - stricter checks for file paths in `dlvalue()`
 
 Version 0.20

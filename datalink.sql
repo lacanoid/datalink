@@ -1250,6 +1250,7 @@ $curl->setopt(CURLOPT_USERAGENT,
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,$head?1:0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+#$curl->setopt(CURLOPT_RANGE, '100-200');
 if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 
 # A filehandle, reference to a scalar or reference to a typeglob can be used here.
@@ -1402,7 +1403,9 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select datalink.uri_get($1->>'a','only') $_$;
+AS $_$ select case when $1->>'m' is not null then datalink.url($1)
+              else datalink.uri_get($1->>'a','only') end
+$_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1553,30 +1556,31 @@ AS $function$select datalink.read_text(dlvalue($1,'FS'))$function$;
 COMMENT ON FUNCTION read_text(file_path)
      IS 'Read file contents as text';
 
-CREATE OR REPLACE FUNCTION read_lines(filename file_path)
+CREATE OR REPLACE FUNCTION read_lines(filename file_path, offs bigint default 0)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE plperlu STRICT AS $$
   use strict vars; 
-  my ($filename)=@_;
+  my ($filename,$offs)=@_;
   open my $fh, $filename or die "Can't open $filename: $!";
-  my $i=1; my $o=0;
+  if($offs>0) { seek($fh,$offs,0); }
+  my $i=1; my $o=$offs;
   while(my $line = <$fh>) {
     chop($line);
     return_next {i=>$i,o=>$o,line=>$line};
-    $i++; $o+=length($line);
+    $i++; $o+=length($line)+1;
   }
   close $fh;
   return undef;
 $$;
-COMMENT ON FUNCTION read_lines(file_path)
+COMMENT ON FUNCTION read_lines(file_path, bigint)
      IS 'Stream file as lines of text';
 
-CREATE OR REPLACE FUNCTION datalink.read_lines(link datalink)
+CREATE OR REPLACE FUNCTION datalink.read_lines(link datalink, offs bigint default 0)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE sql STRICT AS $$ 
-select * from datalink.read_lines(dlurlpathonly($1))
+select * from datalink.read_lines(dlurlpathonly($1),offs)
 $$;
-COMMENT ON FUNCTION read_lines(datalink)
+COMMENT ON FUNCTION read_lines(datalink, bigint)
      IS 'Stream file referenced by a datalink as lines of text';
 
 
@@ -1702,12 +1706,17 @@ CREATE FUNCTION dl_trigger_access() RETURNS trigger
     LANGUAGE plpgsql
 AS $$
 declare
+  dir text;
   acl aclitem;
   acls aclitem[];
 BEGIN
-  select diracl from datalink.directory where dirpath = coalesce(old.dirpath,new.dirpath) into acls;
+  dir := coalesce(old.dirpath,new.dirpath);
+  select diracl from datalink.directory where dirpath = dir into acls;
   if not found THEN
-    raise exception 'dirpath null or not found in datalink.access';
+    raise exception e'DATALINK EXCEPTION - directory not found\nPATH:  %',dir 
+          using errcode = 'HW003', 
+                detail = 'directory not found while modifying datalink.access',
+                hint = 'add appropriate entry in table datalink.directory';
   end if;
   if tg_op in ('UPDATE','DELETE') THEN
     acl := makeaclitem(coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole,
@@ -1737,7 +1746,7 @@ INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
 
 ---------------------------------------------------
--- access permitions
+-- inquire access permitions
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text) RETURNS boolean as $$

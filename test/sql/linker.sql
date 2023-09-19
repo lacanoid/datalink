@@ -85,9 +85,11 @@ select dlvalue(NULL,'www');
 
 select dlvalue('http://localhost/datalink/CHANGELOG.md');
 select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));
+select dlurlcompleteonly(dlvalue('http://localhost/datalink/CHANGELOG.md'));
 
 select dlvalue('http://localhost/datalinkxxx/CHANGELOG.md');
 select dlurlcomplete(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
+select dlurlcompleteonly(dlvalue('http://localhost/datalinkxxx/CHANGELOG.md'));
 
 insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','SELECT');
 insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','REFERENCES');
@@ -109,5 +111,8 @@ select dirpath,privilege_type,grantee from datalink.access;
 
 drop role dl_access_test;
 rollback;
+
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink/','PUBLIC','KIKI');
+insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink_xxx/','PUBLIC','REFERENCES');
 
 select dirpath,privilege_type,grantee from datalink.access;

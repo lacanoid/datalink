@@ -50,8 +50,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | is_valid_prefix(file_path)                                                                   | sql      | Is file path prefixed with a valid prefix?
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for datalink column
- datalink     | read_lines(datalink)                                                                         | sql      | Stream file referenced by a datalink as lines of text
- datalink     | read_lines(file_path)                                                                        | plperlu  | Stream file as lines of text
+ datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream file referenced by a datalink as lines of text
+ datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream file as lines of text
  datalink     | read_text(datalink)                                                                          | sql      | Read datalink contents as text
  datalink     | read_text(file_path)                                                                         | sql      | Read file contents as text
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI

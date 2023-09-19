@@ -78,3 +78,19 @@ Maybe
 - more pluggable filename+token handling so we can support more common token;basename convention
 - ✔︎ add timing info to curl_get()
 
+BFile API
+=========
+FUNCTION FILEEXISTS (file_loc IN BFILE) RETURN INTEGER;  
+PROCEDURE FILEGETNAME (file_loc IN BFILE, dir_alias OUT TEXT, filename OUT TEXT); 
+
+PROCEDURE OPEN (file_loc IN OUT BFILE, open_mode IN INTEGER := file_readonly);
+FUNCTION ISOPEN (file_loc IN BFILE) RETURN INTEGER;
+PROCEDURE CLOSE (file_loc IN OUT BFILE); 
+PROCEDURE FILECLOSEALL; 
+
+FUNCTION GETLENGTH (file_loc IN BFILE) RETURN INTEGER;
+PROCEDURE READ (file_loc IN BFILE, amount IN OUT INTEGER, offset IN INTEGER, buffer OUT RAW);
+FUNCTION SUBSTR (file_loc IN BFILE, amount IN INTEGER := 32767, offset IN INTEGER := 1) RETURN RAW;
+FUNCTION INSTR (file_loc IN BFILE, pattern IN RAW, offset IN INTEGER := 1,nth IN INTEGER := 1) RETURN INTEGER;
+
+FUNCTION COMPARE (lob_1 IN BFILE, lob_2 IN BFILE, amount IN INTEGER, offset_1 IN INTEGER := 1, offset_2 IN INTEGER := 1) RETURN INTEGER;
