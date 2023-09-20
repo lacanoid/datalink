@@ -1,0 +1,74 @@
+\pset null _null_
+SET client_min_messages = notice;
+SET search_path = public,datalink;
+select getlength(dlvalue('/var/www/datalink/test2.txt'));
+ getlength 
+-----------
+        29
+(1 row)
+
+select substr(dlvalue('/var/www/datalink/test2.txt')),
+       substr(dlvalue('/var/www/datalink/test2.txt'),12),
+       substr(dlvalue('/var/www/datalink/test2.txt'),12,8)
+       ;
+            substr            |      substr       |  substr  
+------------------------------+-------------------+----------
+ Fri 17 Feb 01:31:45 CET 2023+| 01:31:45 CET 2023+| 01:31:45
+                              |                   | 
+(1 row)
+
+select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
+ instr 
+-------
+     8
+(1 row)
+
+create domain bfile datalink(2);
+create table bfiles ( bfile bfile );
+NOTICE:  DATALINK DDL:TRIGGER on bfiles
+insert into bfiles (bfile) values (dlvalue('CHANGELOG.md','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
+select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
+       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,20);
+ instr |        substr        
+-------+----------------------
+   648 | Datalink extension f
+(1 row)
+
+select getlength(bfile),instr(bfile,'ri'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+  from bfiles;
+ getlength | instr | substr |                             filepath                             | fileexists |              filegetname              
+-----------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
+      7526 |   207 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
+         6 |     0 | Hello  | /var/www/datalink/test1.txt                                      | t          | (www,test1.txt,/var/www/datalink/)
+        29 |     2 | Fri 1  | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
+      7714 |   648 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | t          | (www,test3.txt,/var/www/datalink/)
+(4 rows)
+
+select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
+             read_text             
+-----------------------------------
+ Datalink extension for PostgreSQL+
+ =================================+
+ 
+(1 row)
+
+select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),35,68);
+             read_text             
+-----------------------------------
+ =================================+
+                                  +
+ This attempts to implement some o
+(1 row)
+
+drop table bfiles;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
