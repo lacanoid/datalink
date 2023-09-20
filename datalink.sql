@@ -1542,28 +1542,30 @@ $function$
 COMMENT ON FUNCTION is_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
-CREATE FUNCTION read_text(datalink)
- RETURNS text LANGUAGE sql STRICT
-AS $$select (datalink.curl_get(dlurlcomplete($1))).body$$
-;
-COMMENT ON FUNCTION read_text(datalink)
+CREATE FUNCTION read_text(datalink, pos integer default 0, len integer default null)
+ RETURNS text LANGUAGE sql
+AS $$
+-- select datalink.filepath($1)
+select (datalink.curl_get(replace(dlurlcomplete($1),'#','%23'))).body
+$$;
+COMMENT ON FUNCTION read_text(datalink,integer,integer)
      IS 'Read datalink contents as text';
 
-CREATE OR REPLACE FUNCTION datalink.read_text(file_path)
+CREATE OR REPLACE FUNCTION read_text(file_path, pos integer default 0, len integer default null)
  RETURNS text LANGUAGE sql
-AS $function$select datalink.read_text(dlvalue($1,'FS'))$function$;
+AS $function$select datalink.read_text(dlvalue($1,'FS'),$2,$3)$function$;
 
-COMMENT ON FUNCTION read_text(file_path)
+COMMENT ON FUNCTION read_text(file_path,integer,integer)
      IS 'Read file contents as text';
-
-CREATE OR REPLACE FUNCTION read_lines(filename file_path, offs bigint default 0)
- RETURNS TABLE(i integer, o bigint, line text)
+---------------------------------------------------
+CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos integer default 0)
+ RETURNS TABLE(i integer, o integer, line text)
  LANGUAGE plperlu STRICT AS $$
   use strict vars; 
-  my ($filename,$offs)=@_;
+  my ($filename,$pos)=@_;
   open my $fh, $filename or die "Can't open $filename: $!";
-  if($offs>0) { seek($fh,$offs,0); }
-  my $i=1; my $o=$offs;
+  if($pos>0) { seek($fh,$pos,0); }
+  my $i=1; my $o=$pos;
   while(my $line = <$fh>) {
     chop($line);
     return_next {i=>$i,o=>$o,line=>$line};
@@ -1572,17 +1574,63 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, offs bigint default 0)
   close $fh;
   return undef;
 $$;
-COMMENT ON FUNCTION read_lines(file_path, bigint)
+COMMENT ON FUNCTION read_lines(file_path,integer)
      IS 'Stream file as lines of text';
 
-CREATE OR REPLACE FUNCTION datalink.read_lines(link datalink, offs bigint default 0)
- RETURNS TABLE(i integer, o bigint, line text)
+CREATE OR REPLACE FUNCTION read_lines(link datalink, pos integer default 0)
+ RETURNS TABLE(i integer, o integer, line text)
  LANGUAGE sql STRICT AS $$ 
-select * from datalink.read_lines(dlurlpathonly($1),offs)
+select * from datalink.read_lines(dlurlpathonly($1),pos)
 $$;
-COMMENT ON FUNCTION read_lines(datalink, bigint)
+COMMENT ON FUNCTION read_lines(datalink, integer)
      IS 'Stream file referenced by a datalink as lines of text';
 
+---------------------------------------------------
+-- bfile compatibility functions
+---------------------------------------------------
+
+create function filepath(datalink) returns text as $$
+declare p text;
+begin
+  p := dlurlpath($1);
+  if (datalink.file_stat(p)).size is not null then return p; end if;
+  p := dlurlpathonly($1);
+  if (datalink.file_stat(p)).size is not null then return p; end if;
+  return null;
+end
+$$ language plpgsql;
+
+create function fileexists(datalink) returns boolean as $$
+  select datalink.filepath($1) is not null
+$$ language sql;
+comment on function fileexists(datalink) is 'BFILE - Returns whether DATALINK exists';
+
+create or replace function filegetname(datalink, OUT dirname text, OUT filename text)
+returns record as $$
+  select dirname, substr(dlurlpathonly($1),length(dirpath)+1)
+    from datalink.directory 
+   where dlurlpathonly($1) like dirpath||'%'
+   order by length(dirpath) desc
+   limit 1
+$$ strict language sql;
+comment on function filegetname(datalink) is 'BFILE - Returns directory alias and filename for a DATALINK';
+
+create function getlength(datalink) returns bigint as $$
+  select (datalink.file_stat(datalink.filepath($1))).size
+$$ language sql;
+comment on function getlength(datalink) is 'BFILE - Returns DATALINK file size';
+
+create function substr(datalink, pos integer default 1, len integer default 32767) returns text as $$
+  select substr(datalink.read_text(datalink.filepath($1)),$2,$3)
+$$ language sql;
+comment on function substr(datalink, integer, integer) 
+     is 'BFILE - Returns part of the DATALINK file starting at the specified offset using SUBSTR';
+
+create function instr(datalink, pattern text) returns integer as $$
+  select position($2 in datalink.read_text(datalink.filepath($1)))
+$$ language sql;
+comment on function instr(datalink,text) 
+     is 'BFILE - Returns the matching position of a pattern in a DATALINK using POSITION';
 
 ---------------------------------------------------
 CREATE FUNCTION have_datalinker()

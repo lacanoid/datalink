@@ -6,7 +6,7 @@ extension_version = 0.21
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
 
-REGRESS = init type sqlmed selective link linker uri user
+REGRESS = init type sqlmed selective link linker uri user bfile
 REGRESS_OPTS = --inputdir=test
 
 SCRIPTS = bin/pg_datalinker
@@ -28,7 +28,7 @@ testfiles:
 	cp CHANGELOG.md /var/www/datalink/
 	if [ ! -f /var/www/datalink/test1.txt ] ; then echo "Hello" > /var/www/datalink/test1.txt ; fi
 	if [ ! -f /var/www/datalink/test2.txt ] ; then date >> /var/www/datalink/test2.txt ; fi	
-	date >> /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+	cp README.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt
 
 dump:
