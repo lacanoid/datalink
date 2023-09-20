@@ -8,6 +8,7 @@ Version 0.21
 - initial `datalink.insight` table for future read access management
 - stricter checks for file paths in `dlvalue()`
 - added `substr`, `instr`, `fileexists`, `filegetname` and `getlength` compatibility functions
+- you can specify ranges in `read_text` and `read_lines`
 
 Version 0.20
 ------------
