@@ -1545,7 +1545,6 @@ COMMENT ON FUNCTION is_valid_prefix(datalink.file_path)
 CREATE FUNCTION read_text(datalink, pos integer default 0, len integer default null)
  RETURNS text LANGUAGE sql
 AS $$
--- select datalink.filepath($1)
 select (datalink.curl_get(replace(dlurlcomplete($1),'#','%23'))).body
 $$;
 COMMENT ON FUNCTION read_text(datalink,integer,integer)
@@ -1558,13 +1557,13 @@ AS $function$select datalink.read_text(dlvalue($1,'FS'),$2,$3)$function$;
 COMMENT ON FUNCTION read_text(file_path,integer,integer)
      IS 'Read file contents as text';
 ---------------------------------------------------
-CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos integer default 0)
- RETURNS TABLE(i integer, o integer, line text)
+CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 0)
+ RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE plperlu STRICT AS $$
   use strict vars; 
   my ($filename,$pos)=@_;
   open my $fh, $filename or die "Can't open $filename: $!";
-  if($pos>0) { seek($fh,$pos,0); }
+  if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos;
   while(my $line = <$fh>) {
     chop($line);
@@ -1574,15 +1573,15 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos integer default 0)
   close $fh;
   return undef;
 $$;
-COMMENT ON FUNCTION read_lines(file_path,integer)
+COMMENT ON FUNCTION read_lines(file_path,bigint)
      IS 'Stream file as lines of text';
 
-CREATE OR REPLACE FUNCTION read_lines(link datalink, pos integer default 0)
- RETURNS TABLE(i integer, o integer, line text)
+CREATE OR REPLACE FUNCTION read_lines(link datalink, pos bigint default 0)
+ RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE sql STRICT AS $$ 
-select * from datalink.read_lines(dlurlpathonly($1),pos)
+select * from datalink.read_lines(dlurlpath($1),pos)
 $$;
-COMMENT ON FUNCTION read_lines(datalink, integer)
+COMMENT ON FUNCTION read_lines(datalink, bigint)
      IS 'Stream file referenced by a datalink as lines of text';
 
 ---------------------------------------------------
