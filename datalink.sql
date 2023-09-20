@@ -1557,7 +1557,7 @@ AS $function$select datalink.read_text(dlvalue($1,'FS'),$2,$3)$function$;
 COMMENT ON FUNCTION read_text(file_path,integer,integer)
      IS 'Read file contents as text';
 ---------------------------------------------------
-CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 0)
+CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE plperlu STRICT AS $$
   use strict vars; 
@@ -1576,7 +1576,7 @@ $$;
 COMMENT ON FUNCTION read_lines(file_path,bigint)
      IS 'Stream file as lines of text';
 
-CREATE OR REPLACE FUNCTION read_lines(link datalink, pos bigint default 0)
+CREATE OR REPLACE FUNCTION read_lines(link datalink, pos bigint default 1)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE sql STRICT AS $$ 
 select * from datalink.read_lines(dlurlpath($1),pos)
