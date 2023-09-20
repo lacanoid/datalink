@@ -4,23 +4,23 @@ SET search_path = public,datalink;
 select getlength(dlvalue('/var/www/datalink/test2.txt'));
  getlength 
 -----------
-        29
+        26
 (1 row)
 
 select substr(dlvalue('/var/www/datalink/test2.txt')),
        substr(dlvalue('/var/www/datalink/test2.txt'),12),
        substr(dlvalue('/var/www/datalink/test2.txt'),12,8)
        ;
-            substr            |      substr       |  substr  
-------------------------------+-------------------+----------
- Fri 17 Feb 01:31:45 CET 2023+| 01:31:45 CET 2023+| 01:31:45
-                              |                   | 
+          substr           |     substr     |  substr  
+---------------------------+----------------+----------
+ This is for Friday, yeah.+|  Friday, yeah.+|  Friday,
+                           |                | 
 (1 row)
 
 select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
  instr 
 -------
-     8
+     0
 (1 row)
 
 create domain bfile datalink(2);
@@ -47,7 +47,7 @@ select getlength(bfile),instr(bfile,'ri'),substr(bfile,1,5),filepath(bfile),file
 -----------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
       7526 |   207 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      | t          | (www,test1.txt,/var/www/datalink/)
-        29 |     2 | Fri 1  | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
+        26 |    14 | This   | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
       7714 |   648 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | t          | (www,test3.txt,/var/www/datalink/)
 (4 rows)
 
