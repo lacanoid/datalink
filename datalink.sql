@@ -368,8 +368,15 @@ grant select on linked_files to public;
 CREATE OR REPLACE FUNCTION datalink.file_stat(file_path file_path,
   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
   OUT uid integer, OUT gid integer,
-  OUT rdev integer, OUT size numeric, OUT atime timestamp without time zone,
-  OUT mtime timestamp without time zone, OUT ctime timestamp without time zone,
+  OUT rdev integer, OUT size numeric, 
+/*
+  OUT atime timestamp without time zone,
+  OUT mtime timestamp without time zone, 
+  OUT ctime timestamp without time zone,
+*/
+  OUT atime numeric,
+  OUT mtime numeric, 
+  OUT ctime numeric,
   OUT blksize integer, OUT blocks bigint)
  RETURNS record
   LANGUAGE plperlu
@@ -385,7 +392,8 @@ return {
  'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
  'uid'=>$s[4],'gid'=>$s[5],
  'rdev'=>$s[6],'size'=>$s[7],
- 'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
+# 'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
+ 'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
  'blksize'=>$s[11],'blocks'=>$s[12]
 };
 $function$;
@@ -984,7 +992,7 @@ begin
     end if;
     -- check if datalinker in needed and running
     if lco.integrity = 'ALL' and link_options>10 then
-      if not datalink.have_datalinker() then
+      if not datalink.has_datalinker() then
         raise warning 'DATALINK WARNING - datalinker required' 
               using errcode = 'HW000',
 --                    detail = 'datalinker process is not available',
@@ -1502,9 +1510,7 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select coalesce($1->>'t',
-                                case when $1->>'a' ilike 'file:///%' then 'FS' else 'URL' end
-			       )$function$;
+   AS $$ select coalesce($1->>'t',case when $1->>'a' ilike 'file:///%' then 'FS' else 'URL' end )$$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
@@ -1517,7 +1523,7 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
 
--- alter domain dl_url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+-- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
 
 create function dl_url(datalink) returns uri 
@@ -1537,13 +1543,10 @@ SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
 CREATE FUNCTION has_valid_prefix(datalink.file_path)
- RETURNS boolean
- LANGUAGE sql
- STABLE STRICT
+ RETURNS boolean LANGUAGE sql STABLE STRICT
 AS $function$
 select exists (
- select prefix
-   from datalink.dl_prfx
+ select prefix from datalink.dl_prfx
   where $1 like prefix||'%'
 )
 $function$
@@ -1558,7 +1561,8 @@ select case
        when dlurlscheme($1)='FILE' and dlurlserver($1) is null 
        then datalink.read_text(datalink.filepath($1),$2,$3)
        else case
-         when $2 > 1 or $3 is not null then substr((datalink.curl_get(dlurlcomplete($1))).body,$2::integer,$3::integer)
+         when $2 > 1 or $3 is not null
+         then substr((datalink.curl_get(dlurlcomplete($1))).body,$2::integer,$3::integer)
          else (datalink.curl_get(dlurlcomplete($1))).body end
        end
 $$;
@@ -1692,9 +1696,9 @@ create table dl_directory (
 );
 
 create view directory as
-select dirname, 
-       coalesce(dirpath,prefix) as dirpath,
-       dirowner as dirowner,
+select coalesce(dirpath,prefix) as dirpath,
+       dirname,        
+       dirowner,
        diracl,
        dirlco,
        dirurl,
@@ -1838,7 +1842,7 @@ CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, priv
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
  ---------------------------------------------------
-CREATE FUNCTION have_datalinker()
+CREATE FUNCTION has_datalinker()
  RETURNS boolean
  LANGUAGE sql
  STABLE
@@ -1851,7 +1855,7 @@ select exists (
 )
 $function$
 ;
-COMMENT ON FUNCTION have_datalinker()
+COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
