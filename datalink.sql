@@ -411,7 +411,7 @@ begin
  raise notice 'DATALINK LINK:%',file_path;
 
 -- if (datalink.link_control_options(my_lco)).write_access >= 'BLOCKED' then
-   if not datalink.is_valid_prefix(file_path) THEN
+   if not datalink.has_valid_prefix(file_path) THEN
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',file_path),
@@ -1536,7 +1536,7 @@ CREATE FOREIGN TABLE dl_prfx (
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
-CREATE FUNCTION is_valid_prefix(datalink.file_path)
+CREATE FUNCTION has_valid_prefix(datalink.file_path)
  RETURNS boolean
  LANGUAGE sql
  STABLE STRICT
@@ -1548,7 +1548,7 @@ select exists (
 )
 $function$
 ;
-COMMENT ON FUNCTION is_valid_prefix(datalink.file_path)
+COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
@@ -1723,7 +1723,7 @@ begin
  end if;  -- if datalink.directory
  if tg_relid = 'datalink.dl_directory'::regclass then
    new.dirpath := trim(trailing '/' from new.dirpath) || '/';
-   if not datalink.is_valid_prefix(new.dirpath) then 
+   if not datalink.has_valid_prefix(new.dirpath) then 
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',new.dirpath),

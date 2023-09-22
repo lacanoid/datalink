@@ -49,9 +49,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
  datalink     | filegetname(datalink)                                                                        | sql      | BFILE - Returns directory name and filename for a datalink
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
+ datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | have_datalinker()                                                                            | sql      | Is datalinker process currently running?
  datalink     | instr(datalink,text)                                                                         | sql      | BFILE - Returns the matching position of a pattern in a datalink file
- datalink     | is_valid_prefix(file_path)                                                                   | sql      | Is file path prefixed with a valid prefix?
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for datalink column
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream file referenced by a datalink as lines of text
