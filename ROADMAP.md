@@ -10,9 +10,9 @@ Wanted
 - Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
-  - SELECT - read file contents
+  - ✔︎ SELECT - read file contents
   - REFERENCES - link to files from database
-  - DELETE - delete files
+  - ✔︎ DELETE - delete files
 - some sort of file to url mapping. dlurl* functions could use these.
 - make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )

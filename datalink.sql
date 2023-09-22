@@ -1630,7 +1630,7 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 -- bfile compatibility functions
 ---------------------------------------------------
 
-create function filepath(datalink) returns text as $$
+create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
   p := dlurlpath($1);
@@ -1641,8 +1641,12 @@ begin
 end
 $$ language plpgsql;
 
-create function fileexists(datalink) returns boolean as $$
-  select datalink.filepath($1) is not null
+create or replace function fileexists(datalink) returns boolean as $$
+select case 
+       when dlurlscheme($1)='FILE' and dlurlserver($1) is null 
+       then datalink.filepath($1) is not null
+       else (datalink.curl_get(dlurlcomplete($1),true)).ok end
+       end
 $$ language sql;
 comment on function fileexists(datalink) is 
   'BFILE - Returns whether datalink file exists';
@@ -1658,17 +1662,17 @@ $$ strict language sql;
 comment on function filegetname(datalink) is 
   'BFILE - Returns directory name and filename for a datalink';
 
-create function getlength(datalink) returns bigint as 
+create or replace function getlength(datalink) returns bigint as 
 $$ select (datalink.file_stat(datalink.filepath($1))).size $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
 
-create function substr(datalink, pos integer default 1, len integer default 32767) returns text as 
+create or replace function substr(datalink, pos integer default 1, len integer default 32767) returns text as 
 $$ select datalink.read_text($1,$2,$3) $$ language sql;
 comment on function substr(datalink, integer, integer) is 
   'BFILE - Returns part of the datalink file starting at the specified offset and length';
 
-create function instr(datalink, pattern text) returns integer as 
+create or replace function instr(datalink, pattern text) returns integer as 
 $$ select position($2 in datalink.read_text($1)) $$ language sql;
 comment on function instr(datalink,text) is 
   'BFILE - Returns the matching position of a pattern in a datalink file';
