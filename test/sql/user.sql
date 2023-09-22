@@ -42,6 +42,13 @@ update user_links set link = null;
 
 truncate user_links;
 
+savepoint p1;
+-- test permissions on file functions
+select * from datalink.read_text('/etc/passwd',1,4); -- should fail
+rollback to p1;
+
+select * from datalink.read_text('/var/www/datalink/CHANGELOG.md',1,12);
+
 reset role;
 drop table user_links;
 revoke all on schema public from datalink_test_user;

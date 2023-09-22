@@ -238,3 +238,21 @@ select * from datalink.columns order by table_name;
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
 (13 rows)
 
+insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
+WARNING:  DATALINK WARNING - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
+ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
+URL:  file:///var/www/datalink/test4.txt
+DETAIL:  delete permission is required on directory
+HINT:  add appropriate entry in table datalink.access
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 60 at RAISE
+PL/pgSQL function dl_trigger_table() line 73 at assignment
+insert into my_table4 values (dlvalue('/etc/issue')); 
+WARNING:  DATALINK WARNING - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
+ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
+URL:  file:///etc/issue
+DETAIL:  delete permission is required on directory
+HINT:  add appropriate entry in table datalink.access
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 60 at RAISE
+PL/pgSQL function dl_trigger_table() line 73 at assignment

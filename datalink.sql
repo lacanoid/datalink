@@ -1678,23 +1678,6 @@ comment on function instr(datalink,text) is
   'BFILE - Returns the matching position of a pattern in a datalink file';
 
 ---------------------------------------------------
-CREATE FUNCTION have_datalinker()
- RETURNS boolean
- LANGUAGE sql
- STABLE
-AS $function$
-select exists (
- select usename
-   from pg_stat_activity
-  where datname = current_database() 
-    and application_name='pg_datalinker'
-)
-$function$
-;
-COMMENT ON FUNCTION have_datalinker()
-     IS 'Is datalinker process currently running?';
-
----------------------------------------------------
 -- directories
 ---------------------------------------------------
 create table dl_directory (
@@ -1853,6 +1836,23 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
+
+ ---------------------------------------------------
+CREATE FUNCTION have_datalinker()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE
+AS $function$
+select exists (
+ select usename
+   from pg_stat_activity
+  where datname = current_database() 
+    and application_name='pg_datalinker'
+)
+$function$
+;
+COMMENT ON FUNCTION have_datalinker()
+     IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
 -- insight (file lookup) table

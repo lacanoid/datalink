@@ -122,3 +122,6 @@ update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_n
 create table my_table4(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
 select * from datalink.columns order by table_name;
+
+insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
+insert into my_table4 values (dlvalue('/etc/issue')); 

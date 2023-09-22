@@ -82,7 +82,7 @@ Datalink functions
 
 Most of these are overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
-Use `dlurlcomplete()` and `dlurlcompleteonly()` functions to convert datalinks back to URLs.
+Use `dlurlcomplete()` function to convert datalinks back to URLs. URL may contain access token.
 
     mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
             dlurlcomplete      
@@ -96,6 +96,8 @@ Use `dlurlcomplete()` and `dlurlcompleteonly()` functions to convert datalinks b
      http://www.github.io/a/b/e
     (1 row)
 
+Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
+
     mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
           dlurlcompleteonly      
     ----------------------------
@@ -108,19 +110,7 @@ Use `dlurlcomplete()` and `dlurlcompleteonly()` functions to convert datalinks b
      http://www.github.io/a/b/e
     (1 row)
 
-Use `dlurlpath()` and `dlurlpathonly()` functions to get file path from datalink.
-
-    mydb=# select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
-             dlurlpathonly         
-    ------------------------------
-     /var/www/datalink/index.html
-    (1 row)
-
-    mydb=# select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
-     dlurlpathonly 
-    ---------------
-     /foo/bar
-    (1 row)
+Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
     mydb=# select dlurlpath(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlpath 
@@ -134,12 +124,26 @@ Use `dlurlpath()` and `dlurlpathonly()` functions to get file path from datalink
      /foo/bar
     (1 row)
 
+Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
+
+    mydb=# select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+             dlurlpathonly         
+    ------------------------------
+     /var/www/datalink/index.html
+    (1 row)
+
+    mydb=# select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlpathonly 
+    ---------------
+     /foo/bar
+    (1 row)
+
 Use `dlurlscheme()` function to get URL scheme part of datalink.
 
     mydb=# select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlscheme 
     -------------
-     https
+     HTTPS
     (1 row)
 
 Use `dlurlserver()` function to get URL server part of datalink.
@@ -163,6 +167,26 @@ Use `dlcomment()` function to get datalink comment.
       dlcomment 
     --------------
      A comment...
+    (1 row)
+
+Use `dllinktype()` function to get datalink type, as specified or determined in `dlvalue()`.
+
+    mydb=# select dllinktype(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    dllinktype 
+    ------------
+     URL
+    (1 row)
+
+    mydb=# select dllinktype(dlvalue('/var/www/datalink/test1.txt'));
+    dllinktype 
+    ------------
+     FS
+    (1 row)
+
+    mydb=# select dllinktype(dlvalue('test1.txt','www'));
+    dllinktype 
+    ------------
+    www
     (1 row)
 
 

@@ -17,8 +17,8 @@ Wanted
 - make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
 - SUID root shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
-- apache module to make it work with embedded read tokens, returned by dlurlcomplete()
-- ngingx module
+- apache module to make it work with embedded read tokens, returned by dlurlcomplete(), ngingx module
+- build simple webserver into pg_gatalinker
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work
@@ -74,7 +74,7 @@ Maybe
 - add DLVALUE(uri, ...)
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
-- create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
+- ✔︎ create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
 - ✔︎ more compact datalink storage (use 1 letter json keys)
 - remove link_control from link_control_options (it is implied by dl_integrity)
 - allow backups for read_access=fs LCO

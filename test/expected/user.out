@@ -42,6 +42,19 @@ select *
 update user_links set link = null;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 truncate user_links;
+savepoint p1;
+-- test permissions on file functions
+select * from datalink.read_text('/etc/passwd',1,4); -- should fail
+ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory.
+FILE: /etc/passwd
+CONTEXT:  PL/Perl function "read_text"
+rollback to p1;
+select * from datalink.read_text('/var/www/datalink/CHANGELOG.md',1,12);
+  read_text   
+--------------
+ Version 0.21
+(1 row)
+
 reset role;
 drop table user_links;
 revoke all on schema public from datalink_test_user;
