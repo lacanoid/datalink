@@ -23,7 +23,7 @@ insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-ab
 select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
        substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,20);
 
-select getlength(bfile),instr(bfile,'ri'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);

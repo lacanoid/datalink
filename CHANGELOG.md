@@ -10,6 +10,7 @@ Version 0.21
 - added `substr`, `instr`, `fileexists`, `filegetname` and `getlength` bfile compatibility functions
 - you can specify ranges in `read_text` and `read_lines`
 - check for SELECT privilege in `read_text` and `read_lines`
+- check for DELETE privilege in `dl_datalink_ref`
 
 Version 0.20
 ------------

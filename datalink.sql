@@ -820,7 +820,7 @@ declare
  my_type text;
  map_p boolean;
 begin
- if linktype is null then
+ if linktype is null then -- try http to file mapping
    select dirpath||uri_unescape(substr(url,length(dirurl)+1))
      from datalink.directory
     where dirurl is not null and url like dirurl||'%'
@@ -839,7 +839,7 @@ begin
                     hint = 'perhaps you need to add it to datalink.directory';
   end if;
  end if;
- if my_type is distinct from 'URL' then
+ if my_type is distinct from 'URL' then -- like type is file or directory
    -- a file path
    my_uri := my_uri::datalink.file_path; -- validate path
    my_uri := format('file://%s',replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'));
@@ -991,6 +991,7 @@ begin
                     hint = 'make sure pg_datalinker process is running to finalize your commits';
       end if;
     end if;
+
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
     r := datalink.curl_get(url,true);
@@ -1017,6 +1018,14 @@ begin
   link := dlpreviouscopy(link,has_token);
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
+      if lco.on_unlink = 'DELETE' THEN
+        if not datalink.has_file_privilege(dlurlpathonly(link),'delete',false) THEN
+          raise exception e'DATALINK EXCEPTION - DELETE permission denied on directory\nURL:  %',url 
+                using errcode = 'HW005', 
+                      detail = 'delete permission is required on directory',
+                      hint = 'add appropriate entry in table datalink.access';
+        end if;
+      end if;
       perform datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
@@ -1570,7 +1579,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - Permission denied. Missing SELECT privilege on directory.\n"; }
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE: $filename\n"; }
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -1590,10 +1599,10 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.has_file_privilege($1,$2) as ok};
+  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - Permission denied. Missing SELECT privilege on directory.\n"; }
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE: ".$filename; }
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
   if($pos>1) { seek($fh,$pos-1,0); }

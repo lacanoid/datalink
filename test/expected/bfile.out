@@ -41,14 +41,14 @@ select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri
    648 | Datalink extension f
 (1 row)
 
-select getlength(bfile),instr(bfile,'ri'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
  getlength | instr | substr |                             filepath                             | fileexists |              filegetname              
 -----------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
-      7593 |   207 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
+      7643 |   124 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      | t          | (www,test1.txt,/var/www/datalink/)
-        26 |    14 | This   | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
-      7714 |   648 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | t          | (www,test3.txt,/var/www/datalink/)
+        26 |     0 | This   | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
+      7714 |     5 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | t          | (www,test3.txt,/var/www/datalink/)
 (4 rows)
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
