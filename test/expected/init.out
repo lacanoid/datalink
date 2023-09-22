@@ -63,7 +63,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
- datalink     | dl_class_adminable(regclass)                                                                 | sql      | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
@@ -82,8 +81,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | filepath(datalink)                                                                           | plpgsql  | 
- datalink     | has_file_privilege(file_path,text)                                                           | sql      | 
- datalink     | has_file_privilege(regrole,file_path,text)                                                   | sql      | 
+ datalink     | has_class_privilege(regclass)                                                                | sql      | 
+ datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
+ datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | url(datalink)                                                                                | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
 (65 rows)

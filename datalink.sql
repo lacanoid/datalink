@@ -202,7 +202,7 @@ select distinct * from l
 ;
 
 -- is class adminable (owned or we are superuser)
-CREATE FUNCTION dl_class_adminable(my_class regclass) RETURNS boolean
+CREATE FUNCTION has_class_privilege(my_class regclass) RETURNS boolean
     LANGUAGE sql
     AS $_$
 select case
@@ -253,7 +253,7 @@ SELECT
     lco.on_unlink
  FROM datalink.dl_columns c
  LEFT JOIN link_control_options lco ON lco.lco=coalesce(c.lco,0)
-WHERE datalink.dl_class_adminable(regclass);
+WHERE datalink.has_class_privilege(regclass);
 
 COMMENT ON VIEW columns
  IS 'Current link control options for datalink dl_columns. You can set them here.';
@@ -276,14 +276,14 @@ WITH
            FROM pg_trigger t0
            JOIN pg_class c0_1 ON t0.tgrelid = c0_1.oid
           WHERE t0.tgname = '~RI_DatalinkTrigger'::name
-	    AND datalink.dl_class_adminable(c0_1.oid)
+	    AND datalink.has_class_privilege(c0_1.oid)
  ),
  classes AS (
          SELECT dl_columns.regclass,
                 count(*) AS count,
                 max(dl_columns.lco) AS mco
            FROM datalink.dl_columns dl_columns
-          WHERE datalink.dl_class_adminable(dl_columns.regclass)
+          WHERE datalink.has_class_privilege(dl_columns.regclass)
           GROUP BY dl_columns.regclass
  ),
  dl_triggers AS (
@@ -357,7 +357,7 @@ select path,state,
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
   join pg_class c on c.oid = lf.attrelid
   join pg_attribute a using (attrelid,attnum)
- where datalink.dl_class_adminable(attrelid);
+ where datalink.has_class_privilege(attrelid);
 comment on view linked_files
      is 'Currently linked files';
 
@@ -1566,7 +1566,13 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
  LANGUAGE plperlu AS $$
   use strict vars; 
   my ($filename,$pos,$len)=@_;
-  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
+
+  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $p = spi_prepare($q,'datalink.file_path','text');
+  my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - Permission denied. Missing SELECT privilege on directory.\n"; }
+
+  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
   if(defined($len)) { read $fh,$bufr,$len; } 
@@ -1583,6 +1589,12 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
  LANGUAGE plperlu STRICT AS $$
   use strict vars; 
   my ($filename,$pos)=@_;
+
+  my $q=q{select datalink.has_file_privilege($1,$2) as ok};
+  my $p = spi_prepare($q,'datalink.file_path','text');
+  my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - Permission denied. Missing SELECT privilege on directory.\n"; }
+
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos;
@@ -1817,8 +1829,8 @@ EXECUTE PROCEDURE datalink.dl_trigger_access();
 -- inquire access permitions
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text) RETURNS boolean as $$
-select exists (
+CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text, allowsuper boolean default true) RETURNS boolean as $$
+select (current_setting('is_superuser')::boolean and $4) or exists (
   select dirpath from datalink.access 
    where privilege_type=upper($3)
      and dirpath = (datalink.dl_directory ($2)).dirpath
@@ -1826,8 +1838,8 @@ select exists (
 )
 $$ LANGUAGE sql;
 
-CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text) RETURNS boolean
- LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2)$$;
+CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
+ LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
 ---------------------------------------------------
 -- insight (file lookup) table

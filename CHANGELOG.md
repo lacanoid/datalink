@@ -7,8 +7,9 @@ Version 0.21
 - new function `datalink.has_file_privilege()` to enquire about file privileges
 - initial `datalink.insight` table for future read access management
 - stricter checks for file paths in `dlvalue()`
-- added `substr`, `instr`, `fileexists`, `filegetname` and `getlength` compatibility functions
+- added `substr`, `instr`, `fileexists`, `filegetname` and `getlength` bfile compatibility functions
 - you can specify ranges in `read_text` and `read_lines`
+- check for SELECT privilege in `read_text` and `read_lines`
 
 Version 0.20
 ------------
