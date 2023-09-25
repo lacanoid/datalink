@@ -1649,7 +1649,7 @@ create or replace function fileexists(datalink) returns boolean as $$
 select case 
        when dlurlscheme($1)='FILE' and dlurlserver($1) is null 
        then datalink.filepath($1) is not null
-       else (datalink.curl_get(dlurlcomplete($1),true)).ok end
+       else (datalink.curl_get(dlurlcomplete($1),true)).ok
        end
 $$ language sql;
 comment on function fileexists(datalink) is 
@@ -1667,7 +1667,7 @@ comment on function filegetname(datalink) is
   'BFILE - Returns directory name and filename for a datalink';
 
 create or replace function getlength(datalink) returns bigint as 
-$$ select (datalink.file_stat(datalink.filepath($1))).size $$ language sql;
+$$ select (datalink.file_stat(datalink.filepath($1))).size::bigint $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
 
@@ -1734,7 +1734,8 @@ begin
                     hint = 'run "pg_datalinker add" to add prefixes';
    end if;
 
-  if dlurlpathonly(old.dirlink) is distinct from new.dirpath then
+  if tg_op = 'INSERT' or 
+     (tg_op = 'UPDATE' and dlurlpathonly(old.dirlink) is distinct from new.dirpath) then
     new.dirlink := dlvalue(new.dirpath,'FS');
   end if; -- must update datalink
 
@@ -1790,7 +1791,11 @@ declare
   acl aclitem;
   acls aclitem[];
 BEGIN
-  dir := coalesce(old.dirpath,new.dirpath);
+  if tg_op in ('UPDATE','DELETE') 
+    then dir := old.dirpath;
+    else dir := new.dirpath; 
+  end if;
+
   select diracl from datalink.directory where dirpath = dir into acls;
   if not found THEN
     raise exception e'DATALINK EXCEPTION - directory not found\nPATH:  %',dir 
@@ -1815,7 +1820,7 @@ BEGIN
   end if; -- insert or update
      update datalink.directory
         set diracl = acls
-      where dirpath = coalesce(old.dirpath,new.dirpath); 
+      where dirpath = dir; 
   if tg_op = 'DELETE' then return old; end if;
   return new;
 END
