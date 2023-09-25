@@ -1583,7 +1583,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE: $filename\n"; }
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -1606,7 +1606,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE: ".$filename; }
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
   if($pos>1) { seek($fh,$pos-1,0); }
