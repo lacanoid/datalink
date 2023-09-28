@@ -1592,6 +1592,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   if(defined($len)) { read $fh,$bufr,$len; } 
   else { local $/; $bufr = <$fh>; }
   close $fh;
+  if(defined($bufr)) { utf8::decode($bufr); }
   return $bufr;
 $$;
 COMMENT ON FUNCTION read_text(file_path,bigint,bigint) IS 
@@ -1614,6 +1615,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   my $i=1; my $o=$pos;
   while(my $line = <$fh>) {
     chop($line);
+    if(defined($line)) { utf8::decode($line); }
     return_next {i=>$i,o=>$o,line=>$line};
     $i++; $o+=length($line)+1;
   }

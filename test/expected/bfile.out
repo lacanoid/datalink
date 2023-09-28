@@ -45,7 +45,7 @@ select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fi
   from bfiles;
  getlength | instr | substr |                             filepath                             | fileexists |              filegetname              
 -----------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
-      7706 |   187 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
+      7736 |   217 | Versi  | /var/www/datalink/CHANGELOG.md                                   | t          | (www,CHANGELOG.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      | t          | (www,test1.txt,/var/www/datalink/)
         26 |     0 | This   | /var/www/datalink/test2.txt                                      | t          | (www,test2.txt,/var/www/datalink/)
       7714 |     5 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | t          | (www,test3.txt,/var/www/datalink/)
@@ -72,3 +72,16 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
+select read_text('/var/www/datalink/utf8.txt');
+                                                    read_text                                                    
+-----------------------------------------------------------------------------------------------------------------
+ Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ 
+(1 row)
+
+select * from read_lines('/var/www/datalink/utf8.txt');
+ i | o |                                                      line                                                       
+---+---+-----------------------------------------------------------------------------------------------------------------
+ 1 | 1 | Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.
+(1 row)
+

@@ -30,3 +30,7 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),35,68);
 
 drop table bfiles;
+
+select read_text('/var/www/datalink/utf8.txt');
+
+select * from read_lines('/var/www/datalink/utf8.txt');
