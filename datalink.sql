@@ -1285,6 +1285,7 @@ $r{rc} = $retcode;
 if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
 if($head) { $r{body} = $response_header; }
 else      { $r{body} = $response_body; }
+if(defined($r{body})) { utf8::decode($r{body}); }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 
 return \%r;

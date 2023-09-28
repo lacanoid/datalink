@@ -1,5 +1,6 @@
 Version 0.22
 ------------
+- fixed utf8 decoding in `curl_get`
 
 Version 0.21
 ------------
