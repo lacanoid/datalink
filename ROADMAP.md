@@ -11,8 +11,8 @@ Wanted
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
   - ✔︎ SELECT - read file contents
-  - REFERENCES - link to files from database
-  - ✔︎ DELETE - delete files
+  - REFERENCES - link to files from database (WRITE ACCESS BLOCKED)
+  - ✔︎ DELETE - delete files (ON UNLINK DELETE)
 - some sort of file to url mapping. dlurl* functions could use these.
 - make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
@@ -25,6 +25,7 @@ Wanted
 - make datalinks work with arrays
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
+- punycode support in `dlvalue()`
 
 Issues
 ======
