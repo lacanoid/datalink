@@ -1387,7 +1387,7 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 CREATE FUNCTION url(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select coalesce((
-       select dirurl||uri_escape(substr(dlurlpath($1),length(dirpath)+1))
+       select dirurl||uri_escape(substr(dlurlpathonly($1),length(dirpath)+1))
          from datalink.directory
         where dirurl is not null and dlurlpathonly($1) like dirpath||'%'
         order by length(dirpath) desc limit 1),$1->>'a')
@@ -1490,6 +1490,28 @@ IS 'SQL/MED - Returns the file path from URL';
 
 ---------------------------------------------------
 
+CREATE FUNCTION pg_catalog.dlurlpathwrite(datalink)
+ RETURNS text
+  LANGUAGE sql
+   IMMUTABLE STRICT
+   AS $function$
+   select format('%s%s',
+                  datalink.uri_get($1->>'a','path'),
+                  '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))
+          )
+$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(datalink)
+     IS 'SQL/MED - Returns the write file path from DATALINK value';
+
+CREATE FUNCTION pg_catalog.dlurlpathwrite(text) RETURNS text
+    LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select dlurlpathwrite(dlvalue($1)) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(text) 
+IS 'SQL/MED - Returns the write file path from URL';
+
+---------------------------------------------------
+
 CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
   LANGUAGE sql
@@ -1555,6 +1577,28 @@ $function$
 COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
+create or replace function datalink.dl_authorize(datalink.file_path) returns datalink.file_path
+as $$
+declare
+  path0 text;
+  t text;
+  f record;
+  m text[];
+begin
+ m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36});)?(.*)$','i');
+ path0 := m[1]||m[4];
+ t := m[3];
+ select token,read_access
+   from datalink.dl_linked_files
+   join datalink.link_control_options lco using(lco)
+  where path=path0
+   into f;
+  if f.read_access = 'DB' then
+    return case when f.token::text = t then path0 end;
+  end if;
+ return null;
+end$$ language plpgsql security definer;
+---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
  RETURNS text LANGUAGE sql
 AS $$
@@ -1576,10 +1620,12 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok, datalink.dl_authorize($1) as path};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }
+  if(defined($fs->{path})) { $filename=$fs->{path}; }
+  else { unless($fs->{ok} eq 't') { 
+    die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }}
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -1600,10 +1646,12 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok, datalink.dl_authorize($1) as path};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }
+  if(defined($fs->{path})) { $filename=$fs->{path}; }
+  else { unless($fs->{ok} eq 't') { 
+    die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }}
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -1635,7 +1683,7 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
-  p := dlurlpath($1);
+  p := dlurlpathwrite($1);
   if (datalink.file_stat(p)).size is not null then return p; end if;
   p := dlurlpathonly($1);
   if (datalink.file_stat(p)).size is not null then return p; end if;
