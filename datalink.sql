@@ -80,7 +80,7 @@ create cast (datalink as jsonb) without function as implicit;
 create type dl_link_control as enum ( 'NO','FILE' );
 create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
 create type dl_read_access as enum ( 'FS','DB' );
-create type dl_write_access as enum ( 'FS','BLOCKED', 'ADMIN', 'TOKEN' );
+create type dl_write_access as enum ( 'FS','BLOCKED', 'TOKEN', 'ADMIN' );
 create type dl_recovery as enum ( 'NO','YES' );
 create type dl_on_unlink as enum ( 'NONE','RESTORE','DELETE' );
 
@@ -126,7 +126,7 @@ AS $_$
    (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
    + 2 * (  
    (case $4
-     when 'TOKEN' then 3 when 'ADMIN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
+     when 'ADMIN' then 3 when 'TOKEN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
      else 0 end)
    + 5 * (
    (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
@@ -184,7 +184,7 @@ from
     unnest(array['NO','FILE']) as lc,
     unnest(array['NONE','SELECTIVE','ALL']) as itg,
     unnest(array['FS','DB']) as ra,
-    unnest(array['FS','BLOCKED','ADMIN','TOKEN']) as wa,
+    unnest(array['FS','BLOCKED','TOKEN','ADMIN']) as wa,
     unnest(array['NO','YES']) as rec,
     unnest(array['NONE','RESTORE','DELETE']) as unl
 )
@@ -1570,11 +1570,6 @@ $$;
 COMMENT ON FUNCTION read_text(datalink,bigint,bigint) IS 
   'Read datalink contents as text';
 
-/*
-CREATE OR REPLACE FUNCTION read_text(file_path, pos bigint default 1, len bigint default null)
- RETURNS text LANGUAGE sql
-AS $function$select datalink.read_text(dlvalue($1,'FS'),$2,$3)$function$;
-*/
 CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, len bigint default null)
  RETURNS text
  LANGUAGE plperlu AS $$

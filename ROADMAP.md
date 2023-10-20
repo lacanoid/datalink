@@ -26,6 +26,7 @@ Wanted
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - punycode support in `dlvalue()`
+- support for http ranges in `curl_get()`
 
 Issues
 ======

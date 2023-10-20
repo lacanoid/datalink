@@ -418,7 +418,7 @@ create table foo ( link datalink(172) );
 select * from datalink.columns where table_name in ('foo','bar');
  table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
- foo        | link        | FILE         | ALL       | DB          | TOKEN        | YES      | RESTORE
+ foo        | link        | FILE         | ALL       | DB          | ADMIN        | YES      | RESTORE
 (1 row)
 
 abort;
