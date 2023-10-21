@@ -19,6 +19,7 @@ Wanted
 - SUID root shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
 - apache module to make it work with embedded read tokens, returned by dlurlcomplete(), ngingx module
 - build simple webserver into pg_gatalinker
+- make `dlfm` command line tool for datalinker admin
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
 - ✔︎ make domains on datalinks work
