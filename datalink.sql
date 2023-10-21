@@ -1473,10 +1473,15 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink)
   LANGUAGE sql
    IMMUTABLE STRICT
    AS $function$
-   select format('%s%s',
-                  datalink.uri_get($1->>'a','path'),
-                  '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))
-          )
+   select case 
+          when $1->>'r' is not null 
+          then datalink.uri_get(
+                 datalink.uri_set(($1->>'a')::uri,'basename',
+                                  coalesce(($1->>'b')||';','')||
+                                  datalink.uri_get($1->>'a','basename'))
+               ,'path')
+          else datalink.uri_get($1->>'a','path') 
+          end
 $function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
