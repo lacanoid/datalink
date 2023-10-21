@@ -46,11 +46,11 @@ DETAIL:  INTEGRITY ALL can only be used with file URLs
 HINT:  make sure you are using a file: URL scheme
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 17 at RAISE
 PL/pgSQL function dl_trigger_table() line 73 at assignment
-select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
+select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
-             dlurlpath1             
-------------------------------------
- /var/www/datalink/CHANGELOG.md#xxx
+             dlurlpath1              
+-------------------------------------
+ /var/www/datalink/xxxx;CHANGELOG.md
 (1 row)
 
 select dlurlpathonly(link) from sample_datalinks6;

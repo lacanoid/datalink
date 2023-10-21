@@ -1480,7 +1480,8 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink)
                                   coalesce(($1->>'b')||';','')||
                                   datalink.uri_get($1->>'a','basename'))
                ,'path')
-          else datalink.uri_get($1->>'a','path') 
+          else format('%s%s',datalink.uri_get($1->>'a','path'),
+               '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token')))
           end
 $function$;
 

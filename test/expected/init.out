@@ -36,6 +36,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlpath(text)                                                                              | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathonly(datalink)                                                                      | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpathonly(text)                                                                          | sql      | SQL/MED - Returns the file path from URL
+ pg_catalog   | dlurlpathwrite(datalink)                                                                     | sql      | SQL/MED - Returns the write file path from DATALINK value
+ pg_catalog   | dlurlpathwrite(text)                                                                         | sql      | SQL/MED - Returns the write file path from URL
  pg_catalog   | dlurlscheme(datalink)                                                                        | sql      | SQL/MED - Returns the scheme from DATALINK value
  pg_catalog   | dlurlscheme(text)                                                                            | sql      | SQL/MED - Returns the scheme from URL
  pg_catalog   | dlurlserver(datalink)                                                                        | sql      | SQL/MED - Returns the file server from DATALINK value
@@ -63,6 +65,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
+ datalink     | dl_authorize(file_path)                                                                      | plpgsql  | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
@@ -86,5 +89,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | url(datalink)                                                                                | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(65 rows)
+(68 rows)
 

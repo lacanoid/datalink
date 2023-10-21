@@ -34,7 +34,7 @@ values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 2'))
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 
-select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxx','g') as dlurlpath1
+select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
 select dlurlpathonly(link) from sample_datalinks6;
 
