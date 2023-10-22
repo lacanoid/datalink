@@ -833,7 +833,6 @@ CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid
 CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
     AS $$select cast(datalink.uuid_generate_v4() as datalink.dl_token);$$;
 
-
 ---------------------------------------------------
 -- SQL/MED datalink functions
 ---------------------------------------------------
@@ -1488,25 +1487,29 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink,newinsight boolean default false)
  RETURNS text
   LANGUAGE sql
-   IMMUTABLE STRICT
+   STRICT
    AS $function$
    select case 
           when $1->>'r' is not null 
           then datalink.uri_get(
                  datalink.uri_set(($1->>'a')::uri,'basename',
-                                  coalesce(($1->>'b')||';','')||
+                                  coalesce(case when $2 
+                                                then datalink.dl_newinsight(($1->>'b')::datalink.dl_token)::text
+                                                else ($1->>'b')::text
+                                           end || ';'
+                                          ,'') ||
                                   datalink.uri_get($1->>'a','basename'))
-               ,'path')
+                               ,'path')
           else coalesce(datalink.filepath($1),
 	                format('%s%s',datalink.uri_get($1->>'a','path'),
                         '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))))
           end
 $function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink)
+COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, boolean)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlpath(text) RETURNS text
@@ -1632,6 +1635,7 @@ begin
        hint = format('add SELECT privilege for user %I to table DATALINK.ACCESS',myrole);
  return null;
 end$$;
+---------------------------------------------------
 
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
@@ -1949,11 +1953,21 @@ create table insight (
   link_token dl_token not null,
   read_token dl_token default datalink.dl_newtoken() primary key,
   ctime timestamptz not null default now(),
-  state char not null default 'n',
+  atime timestamptz,
+  n int not null default 0,
   role regrole not null default user::regrole,
   pid int not null default pg_backend_pid(),
   data jsonb
 );
+alter table insight add foreign key (link_token) references 
+  datalink.dl_linked_files(token) on update cascade on delete cascade;
+create index insight_link_token_idx on insight (link_token);
+
+CREATE FUNCTION dl_newinsight(dl_token) RETURNS dl_token LANGUAGE sql strict
+AS $$
+  insert into datalink.insight (link_token) 
+  values ($1) returning read_token;
+$$;
 
 ---------------------------------------------------
 -- volume usage statistics
