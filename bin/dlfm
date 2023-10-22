@@ -1,0 +1,413 @@
+#!/usr/bin/perl
+
+use strict;
+use DBI;
+use JSON;
+use IPC::Run 'run';
+use Getopt::Std;
+use Time::HiRes qw{usleep};
+our $json = JSON->new->allow_nonref;
+
+BEGIN { $ENV{LC_ALL} = "C"; }
+#---------------------------------------
+
+our $opt_v = 0;  # verbosity
+our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
+our $opt_O = 1;  # for read_access='DB' set linked file owner to relowner if possible
+our $opt_R = 1;  # revert old files from backups
+our $opt_C = 0;  # only check configuration
+our $opt_n = 10; # number of iterations in fast inner loop
+our $opt_l;      # logfile
+our $opt_e = 1;  # echo commands
+
+our $version="0.18.20220618";
+
+getopt('l');
+
+#---------------------------------------
+
+our %config = (
+    appname => 'pg_datalinker',
+    dsn => 'dbi:Pg:service=datalinker',
+    db_owner => 'postgres.postgres',
+    db_mode => '0440',
+    prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
+    prefix => ["/var/www/datalink/"]
+);
+
+my $operation=shift @ARGV;
+if($operation eq 'init') { config_init(); exit; }
+config_load();
+if($operation eq 'list') { config_list(); exit; }
+if($operation eq 'add') { config_add(@ARGV[0]); exit; }
+if($operation eq 'del') { config_del(@ARGV[0]); exit; }
+
+if($operation eq 'start') { daemon_start(); exit; }
+if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
+if($operation eq 'stop') { daemon_stop(); exit; }
+if($operation eq 'status') { daemon_status(); exit; }
+if($operation eq 'log') { daemon_log(); exit; }
+
+if($operation eq 'run') { main(); exit; }
+
+print STDERR qq{Usage: $0 <command> [arguments...]
+Commands:
+    list   - list volumes
+    add    - add volume
+    del    - delete volume
+
+    start  - start datalinker
+    stop   - stop datalinker
+    status - check if datalinker is running
+    run    - run datalinker interactively
+    log    - monitor log
+
+Possible future commands:
+    add_db         - register a database
+    add_prefix     - register a file system (directory)
+    bind           - bind file manager to a database
+    drop_dlm       - unregister a database
+    create         - create datalink extension
+    create_db      - create datalink database
+    drop_db        - drop datalink database
+    help           - help on commands
+    list databases - list all registered databases
+    list prefixes  - list all registered file systems (directories)
+    refresh key    - refresh read access key
+    restart        - restart file manager
+    retrieve       - display the status of files managed by the file manager
+    see            - shows the file manager processes running on the system
+    setup          - creates the datalink database and extension
+    shutdown       - shutdown the file manager cleanly
+    start          - starts the file manager
+    startdbm       - starts the datalink database manager
+    stop           - stop the file manager
+    stopdbm        - stop the datalink database manager
+};
+
+exit 1;
+
+
+#---------------------------------------
+
+our $dbh;
+our $dbmeta = {};
+our %q;
+our @err;
+
+#---------------------------------------
+
+sub main() {
+    if($opt_l) {
+        # redirect output to file
+        open STDOUT, ">>", $opt_l or die "$0: open: $!";
+        open STDERR, ">&STDOUT"   or die "$0: dup: $!";
+    }
+
+    $dbh = DBI->connect($config{dsn});
+    if(!$dbh) { log_fatal("Database not available"); }
+
+
+    $dbh->do("set application_name='".$config{appname}."'");
+    $dbh->do("set search_path=datalink");
+    $dbh->do('listen "datalink.linker_jobs"');
+
+    #---------------------------------------
+
+    %q = (
+        'set_linked'=>$dbh->prepare(q{
+         update dl_linked_files 
+            set state = $2,
+                info  = $3,
+                err   = $4
+          where path  = $1
+				    })
+	);
+}
+
+sub queryOrDie {
+    my $query=shift @_;
+    my @args=@_;
+    my $rv=$q{$query}->execute(@args);
+    if(!defined($rv)) {
+        log_fatal("Can't execute '$query' query.\nMake sure datalink extension is installed.\n");
+    }
+    return $rv;
+}
+
+########################################
+# configuration
+
+# load configuration
+sub config_load {
+    if($config{prefix_file}) {
+        if(-r $config{prefix_file}) {
+            my @l = file_get_lines($config{prefix_file});
+            $config{prefix}=\@l;
+        } else {
+            log_fatal("No prefix file in $config{prefix_file}\nHINT:Did you run pg_datalinker init?");
+        }
+    } else { log_fatal("config.prefix_file not set"); }
+    config_check();
+}
+# check if configuration is valid
+sub config_check {
+    my $p1 = [];
+    for my $prefix (@{$config{prefix}}) {
+        if($prefix) { push @$p1,$prefix; }
+    }
+    $config{prefix}=$p1;
+}
+# config list [refixes]
+sub config_list {
+    for my $prefix (@{$config{prefix}}) {
+        print "$prefix\n";
+    }
+}
+# config list [refixes]
+sub config_save {
+    if($config{prefix_file}) {
+        my $data=join("\n",@{$config{prefix}});
+        $data=~s|\n+|\n|g;
+        file_put($config{prefix_file},$data);
+    } else { log_fatal("config.prefix_file not set"); }
+}
+# config list [refixes]
+sub config_observe {
+    if($config{prefix_file}) {
+        if(file_observe($config{prefix_file})) { 
+            log_msg('CONFIGURE',$config{prefix_file});
+            config_load(); 
+        }
+    } else { log_fatal("config.prefix_file not set"); }
+}
+# create inital system configuration if there is none
+sub config_init {
+    if(-f $config{prefix_file}) {
+        log_err("FILE EXISTS","Config file ".$config{prefix_file}." exists.");
+    } else {
+        config_save();
+    }
+}
+# create inital system configuration if there is none
+sub config_add {
+    my ($path)=@_;
+    $path =~ s|/+$||; if(!$path) {return}; $path="$path/";
+    if($path) {
+        if(! -d $path) { log_err("NOT DIR","Not a directory:$path"); return; }
+        for my $prefix (@{$config{prefix}}) {
+            if($path eq $prefix) { log_err("PDUPE","Prefix already exists"); return; }
+        }
+        push @{$config{prefix}}, $path;
+        config_save();
+    }
+}
+# create inital system configuration if there is none
+sub config_del {
+    my ($path)=@_;
+    foreach my $i (0 .. $#{$config{prefix}}) {
+        if($config{prefix}[$i] eq $path) {
+            delete ${$config{prefix}}[$i];
+            config_save();
+        }
+    }
+}
+
+########################################
+# path management
+
+sub path_backup {
+    my ($path,$token)=@_;
+    if($token) { return $path.'#'.$token; }
+    else { return $path; }
+}
+
+sub path_valid_prefix {
+    my ($path)=@_;
+    my $prefix;
+    for $prefix (@{$config{prefix}}) {
+ 	  if(rindex($path,$prefix,0)==0) { return 1 }
+    }
+    return 0
+}
+
+sub path_valid {
+    return 1;
+}
+
+########################################
+# file management
+
+sub file_stat {
+    my ($path,$opt)=@_;
+    my (@s) = stat($path);
+
+    return {
+        'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
+        'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
+        'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
+        'blksize'=>$s[11],'blocks'=>$s[12]
+    };
+}
+# read a file into lines
+sub file_get_lines {
+    my ($path)=@_;
+    if(open(Fg,'<',$path)) {
+        chomp(my @lines = <Fg>); close(Fg);
+        return @lines;
+    } else {
+        log_err("CANT READ","Cannot read file:$path");
+    }
+}
+# write a file
+sub file_put {
+    my ($path,$contents)=@_;
+    if(open(Fp,'>',$path)) {
+        print Fp $contents; close(Fp);
+    } else {
+        log_err("CANT WRITE","Cannot write to file:$path");
+    }
+}
+# watch file for changes
+our $file_stat = {};
+sub file_observe {
+    my ($path)=@_;
+    my $stat=file_stat($path);
+    my $old_mtime = $file_stat->{$path}->{mtime};
+    my $new_mtime = $stat->{mtime};
+    log_debug('OBSERVE',"$old_mtime,$new_mtime");
+    $file_stat->{$path}=$stat;
+    if(int($new_mtime)>int($old_mtime)) { return 1; }
+    return 0;
+}
+########################################
+# run sys commands
+
+our $syserr;
+our $sysex;
+
+sub sys {
+    my @args = @_;
+    if($opt_e) { log_msg("SYS",[@args]); }
+    $sysex = undef; $syserr=undef;
+    system(@args) == 0
+	or log_err('SYSFAIL',"system @args failed: $?");
+
+    if ($? == -1) {
+	    $syserr = "failed to execute: $!";
+    }
+    elsif ($? & 127) {
+	    $syserr = sprintf "child died with signal %d, %s coredump",
+	    ($? & 127),  ($? & 128) ? 'with' : 'without';
+    }
+    else {
+    	my $ex = $? >> 8;
+	    if($ex > 0) {
+	        $syserr = sprintf "child exited with value %d", $ex;
+	    }
+        $sysex = $ex;
+    }
+    if($syserr) { log_err('SYSERR',$syserr); }
+}
+
+########################################
+# logging
+
+sub log_debug {
+    my ($txt,$data)=@_;
+    if($opt_v) {
+    	print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    }
+}
+
+sub log_msg {
+    my ($txt,$data)=@_;
+    print "$txt:".(ref($data)?$json->encode($data):$data)."\n";
+}
+
+sub log_err {
+    my ($txt,$data)=@_;
+    push @err,[$txt,$data];
+    if($opt_e) {
+        print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+    }
+}
+
+sub log_fatal {
+    my ($txt,$data)=@_;
+    print STDERR "FATAL:$txt\n";
+    if($data) {
+  	  print (ref($data)?$json->encode($data):$data)."\n";
+    }
+    die;
+}
+
+sub iso_timestamp {
+  my ($time)=@_;
+  my ($y,$m,$d,$hh24,$mi,$ss);
+  if(defined($time)) {
+    ($y,$m,$d,$hh24,$mi,$ss)=(gmtime($time))[5,4,3,2,1,0];
+  } else {
+    ($y,$m,$d,$hh24,$mi,$ss)=(gmtime)[5,4,3,2,1,0];
+  }
+  sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ",1900+$y,$m+1,$d,$hh24,$mi,$ss);
+}
+
+########################################
+# daemon stuff
+
+our $NAME;
+our $DAEMON;
+our $DAEMON_LOG;
+our $DAEMON_PID;
+our $DAEMON_RUNNING=0;
+our @DAEMON_ARGS;
+
+sub daemon_setup {
+    $NAME=$config{appname};
+    $DAEMON = `realpath $0`;
+    chomp($DAEMON);
+    $DAEMON_LOG="/var/log/postgresql/$NAME.log";
+    $DAEMON_PID="/var/run/postgresql/$NAME.pid";
+}
+
+sub daemon_start {
+    $opt_e = 0;
+    daemon_setup();
+    daemon_stop();
+    sys("start-stop-daemon","--start",
+        "--name",$NAME,
+        "--pidfile",$DAEMON_PID,"--make-pidfile",
+        "--background","--no-close",
+        "--exec","$DAEMON","--", 
+        "-l",$DAEMON_LOG,"run");
+}
+
+sub daemon_stop {
+    $opt_e = 0;
+    daemon_setup();
+    sys("start-stop-daemon","--stop",
+        "--pidfile",$DAEMON_PID,"--remove-pidfile",
+        "--name",$NAME);
+}
+
+sub daemon_status {
+    $opt_e = 0;
+    daemon_setup();
+    sys("start-stop-daemon","--status",
+        "--pidfile",$DAEMON_PID,
+         "--name",$NAME);
+    if($sysex) { 
+        $DAEMON_RUNNING = 0;
+        log_msg('STOPPED');
+    } else {
+        $DAEMON_RUNNING = 1;
+        log_msg('RUNNING');
+    }
+}
+
+sub daemon_log {
+    $opt_e = 0;
+    daemon_setup();
+    if(-f $DAEMON_LOG) { sys("less","+F",$DAEMON_LOG); }
+}
