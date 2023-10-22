@@ -28,6 +28,16 @@ update sample_datalinks6 set link2 = link;
 update sample_datalinks6 set link = link2;
 update sample_datalinks6 set link2 = null;
 
+set client_min_messages=warning;
+drop role if exists datalink_test_user_123;
+create role datalink_test_user_123;
+set role datalink_test_user_123;
+--select length(datalink.read_text(dlurlpath(link)) > 0 from sample_datalinks6;
+--select length(datalink.read_text('/var/www/datalink/CHANGELOG.md')) > 0;
+reset role;
+drop role datalink_test_user_123;
+set client_min_messages=notice;
+
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 2'));
