@@ -155,12 +155,14 @@ $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a table column';
 
-CREATE OR REPLACE FUNCTION dl_lco(dl_token) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
+CREATE OR REPLACE FUNCTION dl_lco(datalink) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
 AS $function$
-select coalesce((select lco from datalink.dl_linked_files f where f.token = $1),0)
+select coalesce((select lco 
+                   from datalink.dl_linked_files f where f.token = ($1->>'b')::datalink.dl_token)
+               ,0)
 $function$;
-COMMENT ON FUNCTION dl_lco(dl_token) 
-IS 'Find dl_lco for a datalink token';
+COMMENT ON FUNCTION dl_lco(datalink) 
+IS 'Find dl_lco for a datalink';
 
 ---------------------------------------------------
 
@@ -183,7 +185,7 @@ CREATE OR REPLACE FUNCTION link_control_options(datalink)
 AS $function$
 select lco.*
   from datalink.link_control_options lco
- where lco.lco = datalink.dl_lco(($1->>'b')::datalink.dl_token)
+ where lco.lco = datalink.dl_lco($1)
 $function$
 ;
 
