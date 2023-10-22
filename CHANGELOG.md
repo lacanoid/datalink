@@ -2,7 +2,7 @@ Version 0.22
 ------------
 - fixed utf8 decoding in `curl_get`, `read_file` and `read_lines`
 - slightly changed order and assignments in link_control_options
-- functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens, for READ_ACCESS='DB'
+- functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens, for READ ACCESS DB
 
 Version 0.21
 ------------
