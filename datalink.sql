@@ -1604,27 +1604,35 @@ $function$
 COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 ---------------------------------------------------
-create or replace function datalink.dl_authorize(datalink.file_path) returns datalink.file_path
+create or replace function datalink.dl_authorize(datalink.file_path,myrole regrole default user::regrole) 
+returns datalink.file_path
+language plpgsql security definer
 as $$
 declare
-  path0 text;
+  mypath text;
   t text;
   f record;
   m text[];
 begin
+ -- check for read token
  m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36});)?(.*)$','i');
- path0 := m[1]||m[4];
+ mypath := coalesce(m[1]||m[4],$1);
  t := m[3];
+ -- check access
  select token,read_access
    from datalink.dl_linked_files
    join datalink.link_control_options lco using(lco)
-  where path=path0
+  where path=mypath
    into f;
-  if f.read_access = 'DB' then
-    return case when f.token::text = t then path0 end;
-  end if;
+ if f.read_access = 'DB' and f.token::text = t then return mypath; end if;
+ if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
+ raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
+ using errcode = 'HW007',
+       detail = format('no SELECT permission for directory'),
+       hint = format('add SELECT privilege for user %I to table DATALINK.ACCESS',myrole);
  return null;
-end$$ language plpgsql security definer;
+end$$;
+
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
  RETURNS text LANGUAGE plpgsql
@@ -1648,12 +1656,10 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok, datalink.dl_authorize($1) as path};
-  my $p = spi_prepare($q,'datalink.file_path','text');
-  my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
+  my $q=q{select datalink.dl_authorize($1) as path};
+  my $p = spi_prepare($q,'datalink.file_path');
+  my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
-  else { unless($fs->{ok} eq 't') { 
-    die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }}
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -1674,12 +1680,10 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok, datalink.dl_authorize($1) as path};
-  my $p = spi_prepare($q,'datalink.file_path','text');
-  my $fs = spi_exec_prepared($p,$filename,'select')->{rows}->[0];
+  my $q=q{select datalink.dl_authorize($1) as path};
+  my $p = spi_prepare($q,'datalink.file_path');
+  my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
-  else { unless($fs->{ok} eq 't') { 
-    die "DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  $filename\n"; }}
 
   open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
   if($pos>1) { seek($fh,$pos-1,0); }
