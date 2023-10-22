@@ -46,6 +46,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | curl_get(text,boolean)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
+ datalink     | dl_lco(dl_token)                                                                             | sql      | Find dl_lco for a datalink token
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
  datalink     | file_stat(file_path)                                                                         | plperlu  | Return info record from stat(2)
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
@@ -87,7 +88,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
+ datalink     | link_control_options(datalink)                                                               | sql      | 
  datalink     | url(datalink)                                                                                | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(68 rows)
+(70 rows)
 

@@ -139,7 +139,7 @@ COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from enumerated options';
 
-create or replace function datalink.dl_lco(regclass regclass,column_name name) returns datalink.dl_lco
+create or replace function dl_lco(regclass regclass,column_name name) returns dl_lco
 as $$
  select coalesce(
           case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco,
@@ -155,6 +155,13 @@ $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a table column';
 
+CREATE OR REPLACE FUNCTION dl_lco(dl_token) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
+AS $function$
+select coalesce((select lco from datalink.dl_linked_files f where f.token = $1),0)
+$function$;
+COMMENT ON FUNCTION dl_lco(dl_token) 
+IS 'Find dl_lco for a datalink token';
+
 ---------------------------------------------------
 
 CREATE FUNCTION link_control_options(dl_lco) 
@@ -168,6 +175,17 @@ $_$;
 
 COMMENT ON FUNCTION link_control_options(dl_lco)
 IS 'Calculate link_control_options from dl_lco';
+
+CREATE OR REPLACE FUNCTION link_control_options(datalink)
+ RETURNS link_control_options
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+select lco.*
+  from datalink.link_control_options lco
+ where lco.lco = datalink.dl_lco(($1->>'b')::datalink.dl_token)
+$function$
+;
 
 ---------------------------------------------------
 -- init options table
