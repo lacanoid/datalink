@@ -1620,7 +1620,7 @@ begin
  -- check for read token
  m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36});)?(.*)$','i');
  mypath := coalesce(m[1]||m[4],$1);
- t := m[3];
+ t := m[3]::datalink.dl_token;
  -- check access
  select token,read_access
    from datalink.dl_linked_files
@@ -1628,6 +1628,11 @@ begin
   where path=mypath
    into f;
  if f.read_access = 'DB' and f.token::text = t then return mypath; end if;
+ update datalink.insight
+    set n=n+1, atime=now()
+  where read_token=t::datalink.dl_token 
+    and link_token=f.token;
+ if found then return mypath; end if;
  if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
  using errcode = 'HW007',
