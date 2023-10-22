@@ -32,7 +32,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlcomplete(text)                                                                          | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcompleteonly(text)                                                                      | sql      | SQL/MED - Returns normalized URL value
- pg_catalog   | dlurlpath(datalink)                                                                          | sql      | SQL/MED - Returns the file path from DATALINK value
+ pg_catalog   | dlurlpath(datalink,boolean)                                                                  | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpath(text)                                                                              | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathonly(datalink)                                                                      | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpathonly(text)                                                                          | sql      | SQL/MED - Returns the file path from URL
@@ -76,6 +76,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_directory(file_path)                                                                      | sql      | 
  datalink     | dl_file_link(file_path,dl_token,dl_lco,regclass,name)                                        | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
+ datalink     | dl_newinsight(dl_token)                                                                      | sql      | 
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_trigger_access()                                                                          | plpgsql  | 
  datalink     | dl_trigger_advice()                                                                          | sql      | 
@@ -91,5 +92,5 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | link_control_options(datalink)                                                               | sql      | 
  datalink     | url(datalink)                                                                                | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(70 rows)
+(71 rows)
 
