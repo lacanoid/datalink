@@ -27,7 +27,7 @@ CREATE DOMAIN file_path AS text;
 COMMENT ON DOMAIN file_path IS 'Absolute file system path';
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  CHECK(value not like all('{../%,%/../%,%/..}'));
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_nopercent CHECK(not value ~* '[%]');
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(value like '/%');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(length(value)=0 or value like '/%');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  CHECK(not value like '%//%');
 /*
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
@@ -1498,8 +1498,9 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink)
                                   coalesce(($1->>'b')||';','')||
                                   datalink.uri_get($1->>'a','basename'))
                ,'path')
-          else format('%s%s',datalink.uri_get($1->>'a','path'),
-               '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token')))
+          else coalesce(datalink.filepath($1),
+	                format('%s%s',datalink.uri_get($1->>'a','path'),
+                        '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))))
           end
 $function$;
 
@@ -1624,16 +1625,17 @@ begin
 end$$ language plpgsql security definer;
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
- RETURNS text LANGUAGE sql
+ RETURNS text LANGUAGE plpgsql
 AS $$
-select case 
-       when dlurlscheme($1)='FILE' and dlurlserver($1) is null 
-       then datalink.read_text(datalink.filepath($1),$2,$3)
-       else case
+begin
+  if dlurlscheme($1)='FILE' and dlurlserver($1) is null then
+    return datalink.read_text(dlurlpath($1),$2,$3);
+  end if;
+  return case
          when $2 > 1 or $3 is not null
          then substr((datalink.curl_get(dlurlcomplete($1))).body,$2::integer,$3::integer)
-         else (datalink.curl_get(dlurlcomplete($1))).body end
-       end
+         else (datalink.curl_get(dlurlcomplete($1))).body end;
+end
 $$;
 COMMENT ON FUNCTION read_text(datalink,bigint,bigint) IS 
   'Read datalink contents as text';

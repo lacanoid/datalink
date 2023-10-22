@@ -132,7 +132,7 @@ select link,
 link              | file:///var/www/datalink/test4.txt#krneki
 dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
 dlurlcompleteonly | file:///var/www/datalink/test4.txt
-dlurlpath         | /var/www/datalink/test4.txt#krneki
+dlurlpath         | /var/www/datalink/test4.txt
 dlurlpathonly     | /var/www/datalink/test4.txt
 
 with d as (
@@ -148,7 +148,7 @@ select link,
 link              | {"a": "file:///var/www/datalink/test4.txt#krneki"}
 dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
 dlurlcompleteonly | file:///var/www/datalink/test4.txt
-dlurlpath         | /var/www/datalink/test4.txt#krneki
+dlurlpath         | /var/www/datalink/test4.txt
 dlurlpathonly     | /var/www/datalink/test4.txt
 
 with d as (

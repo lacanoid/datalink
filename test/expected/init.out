@@ -59,7 +59,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for datalink column
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream file referenced by a datalink as lines of text
  datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream file as lines of text
- datalink     | read_text(datalink,bigint,bigint)                                                            | sql      | Read datalink contents as text
+ datalink     | read_text(datalink,bigint,bigint)                                                            | plpgsql  | Read datalink contents as text
  datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read file contents as text
  datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI

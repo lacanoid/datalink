@@ -26,7 +26,7 @@ Wanted
 - make datalinks work with arrays
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
-- punycode support in `dlvalue()`
+- better punycode support in `dlvalue()`
 - support for http ranges in `curl_get()`
 
 Issues
@@ -86,9 +86,9 @@ Maybe
 
 BFile API
 =========
-FUNCTION FILEEXISTS (file_loc IN BFILE) RETURN INTEGER;  
+✔︎ FUNCTION FILEEXISTS (file_loc IN BFILE) RETURN INTEGER;  
 
-PROCEDURE FILEGETNAME (file_loc IN BFILE, dir_alias OUT TEXT, filename OUT TEXT); 
+✔︎ PROCEDURE FILEGETNAME (file_loc IN BFILE, dir_alias OUT TEXT, filename OUT TEXT); 
 
 PROCEDURE OPEN (file_loc IN OUT BFILE, open_mode IN INTEGER := file_readonly);
 
