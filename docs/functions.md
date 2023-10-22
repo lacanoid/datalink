@@ -29,14 +29,15 @@ Check if file exists.
 
 getlength(datalink)
 -------------------
-Return file size.
+Return file size in bytes.
 
 instr(datalink,text)
 --------------------
-Search for a string in file, returns offset where found.
+Search for a string in text file, returns offset where found.
 
 substr(datalink [,position [,length] ] )
 ----------------------------------------
+Return substring from a file.
 
 
 
