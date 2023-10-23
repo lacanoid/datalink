@@ -13,8 +13,8 @@ COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 ---------------------------------------------------
 
 ALTER extension uri SET schema pg_catalog;
--- CREATE DOMAIN dl_url AS text;
-CREATE DOMAIN dl_url AS uri;
+-- CREATE DOMAIN url AS text;
+CREATE DOMAIN url AS uri;
 
 ---------------------------------------------------
 -- datalink type
@@ -874,8 +874,8 @@ begin
  if my_uri is null or length(my_uri)<=0 then 
    return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
- my_uri := my_uri::datalink.dl_url; -- validate URL
- my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
+ my_uri := my_uri::datalink.url; -- validate URL
+ my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.url,'canonical'));
  if comment is not null then
    my_dl:=jsonb_set(my_dl::jsonb,array['c'],to_jsonb(comment));
  end if;
@@ -927,7 +927,7 @@ begin
       when others then
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
-    u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+    u1 := datalink.uri_set(u1::datalink.url,'token',null);
     link := jsonb_set(link,'{a}',to_jsonb(u1));
   end if;
   if token is null then token := link->>'b'; end if;
@@ -964,7 +964,7 @@ begin
       link := jsonb_set(link,'{o}',to_jsonb(t1));
     end if;
   end if;
-  u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+  u1 := datalink.uri_set(u1::datalink.url,'token',null);
   link := jsonb_set(link,'{a}',to_jsonb(u1));
     -- generate new token
   token := datalink.dl_newtoken();  
@@ -1577,7 +1577,7 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 ---------------------------------------------------
 
 -- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
-alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
+alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 
 create function dl_url(datalink) returns uri 
   language sql strict immutable 

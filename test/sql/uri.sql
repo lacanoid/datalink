@@ -3,7 +3,7 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 
-alter table sample_urls alter url type datalink.dl_url;
+alter table sample_urls alter url type datalink.url;
 
 insert into sample_urls (url)
 values 
