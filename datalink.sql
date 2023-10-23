@@ -1606,8 +1606,10 @@ $function$
 ;
 COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
+
 ---------------------------------------------------
-create or replace function datalink.dl_authorize(datalink.file_path,myrole regrole default user::regrole) 
+create or replace function datalink.dl_authorize(
+  datalink.file_path, myrole regrole default user::regrole) 
 returns datalink.file_path
 language plpgsql security definer
 as $$
@@ -1627,12 +1629,14 @@ begin
    join datalink.link_control_options lco using(lco)
   where path=mypath
    into f;
- if f.read_access = 'DB' and f.token::text = t then return mypath; end if;
- update datalink.insight
-    set n=n+1, atime=now()
-  where read_token=t::datalink.dl_token 
-    and link_token=f.token;
- if found then return mypath; end if;
+ if f.read_access = 'DB' then
+  if f.token::text = t then return mypath; end if;
+  update datalink.insight
+     set n=n+1, atime=now()
+   where read_token=t::datalink.dl_token 
+     and link_token=f.token;
+  if found then return mypath; end if;
+ end if;
  if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
  using errcode = 'HW007',
@@ -1640,7 +1644,6 @@ begin
        hint = format('add SELECT privilege for user %I to table DATALINK.ACCESS',myrole);
  return null;
 end$$;
----------------------------------------------------
 
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
