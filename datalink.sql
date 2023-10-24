@@ -848,10 +848,10 @@ declare
  map_p boolean;
 begin
  if linktype is null then -- try http to file mapping
-   select dirpath||uri_unescape(substr(url,length(dirurl)+1))
+   select dirpath||uri_unescape(substr(url,length(dirurl::text)+1))
      from datalink.directory
     where dirurl is not null and url like dirurl||'%'
-    order by length(dirurl) desc limit 1
+    order by length(dirurl::text) desc limit 1
      into my_uri;
    if my_uri is not null then linktype:='FS'; map_p:=true; end if;
  end if;
@@ -1493,7 +1493,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink,newinsight boolean default false)
    STRICT
    AS $function$
    select case 
-          when $1->>'r' is not null 
+          when (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
                  datalink.uri_set(($1->>'a')::uri,'basename',
                                   coalesce(case when $2 
@@ -1780,7 +1780,7 @@ create table dl_directory (
   dirowner   regrole,
   diracl     aclitem[],
   dirlco     dl_lco,
-  dirurl     text unique,
+  dirurl     uri unique,
   diroptions text[] collate "C",
   dirlink    datalink(2) not null
 );
@@ -1842,7 +1842,7 @@ CREATE TRIGGER "directory_touch"
 INSTEAD OF UPDATE OR INSERT ON datalink.directory FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
-create or replace function dl_directory(file_path)
+create or replace function getdirectory(file_path)
 returns directory as $$
   select * 
     from datalink.directory 
@@ -1928,7 +1928,7 @@ CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.fi
 select (current_setting('is_superuser')::boolean and $4) or exists (
   select dirpath from datalink.access 
    where privilege_type=upper($3)
-     and dirpath = (datalink.dl_directory ($2)).dirpath
+     and dirpath = (datalink.getdirectory ($2)).dirpath
      and (grantee = 'PUBLIC' or grantee = $1::text)
 )
 $$ LANGUAGE sql;

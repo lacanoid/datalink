@@ -73,7 +73,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_ref(datalink,dl_lco,regclass,name)                                               | plpgsql  | 
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
- datalink     | dl_directory(file_path)                                                                      | sql      | 
  datalink     | dl_file_link(file_path,dl_token,dl_lco,regclass,name)                                        | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
  datalink     | dl_newinsight(dl_token)                                                                      | sql      | 
@@ -86,6 +85,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | filepath(datalink)                                                                           | plpgsql  | 
+ datalink     | getdirectory(file_path)                                                                      | sql      | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
