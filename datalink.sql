@@ -1402,7 +1402,7 @@ COMMENT ON FUNCTION pg_catalog.dlcomment(datalink)
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
-
+-- inverse map file datalink to url via datalink.directory.dirurl
 CREATE FUNCTION url(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select coalesce((
