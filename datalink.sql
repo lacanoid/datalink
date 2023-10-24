@@ -157,9 +157,9 @@ IS 'Find dl_lco for a table column';
 
 CREATE OR REPLACE FUNCTION dl_lco(datalink) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
 AS $function$
-select coalesce((select lco 
+select coalesce((select lco
                    from datalink.dl_linked_files f where f.token = ($1->>'b')::datalink.dl_token)
-               ,0)
+               ,0)::datalink.dl_lco
 $function$;
 COMMENT ON FUNCTION dl_lco(datalink) 
 IS 'Find dl_lco for a datalink';
