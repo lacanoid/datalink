@@ -13,8 +13,8 @@ COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 ---------------------------------------------------
 
 ALTER extension uri SET schema pg_catalog;
--- CREATE DOMAIN dl_url AS text;
-CREATE DOMAIN dl_url AS uri;
+-- CREATE DOMAIN url AS text;
+CREATE DOMAIN url AS uri;
 
 ---------------------------------------------------
 -- datalink type
@@ -874,8 +874,8 @@ begin
  if my_uri is null or length(my_uri)<=0 then 
    return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
- my_uri := my_uri::datalink.dl_url; -- validate URL
- my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.dl_url,'canonical'));
+ my_uri := my_uri::datalink.url; -- validate URL
+ my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.url,'canonical'));
  if comment is not null then
    my_dl:=jsonb_set(my_dl::jsonb,array['c'],to_jsonb(comment));
  end if;
@@ -927,7 +927,7 @@ begin
       when others then
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
-    u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+    u1 := datalink.uri_set(u1::datalink.url,'token',null);
     link := jsonb_set(link,'{a}',to_jsonb(u1));
   end if;
   if token is null then token := link->>'b'; end if;
@@ -964,7 +964,7 @@ begin
       link := jsonb_set(link,'{o}',to_jsonb(t1));
     end if;
   end if;
-  u1 := datalink.uri_set(u1::datalink.dl_url,'token',null);
+  u1 := datalink.uri_set(u1::datalink.url,'token',null);
   link := jsonb_set(link,'{a}',to_jsonb(u1));
     -- generate new token
   token := datalink.dl_newtoken();  
@@ -1577,7 +1577,7 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 ---------------------------------------------------
 
 -- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
-alter domain dl_url add check (datalink.uri_get(value,'scheme') is not null);
+alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 
 create function dl_url(datalink) returns uri 
   language sql strict immutable 
@@ -1606,8 +1606,10 @@ $function$
 ;
 COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
+
 ---------------------------------------------------
-create or replace function datalink.dl_authorize(datalink.file_path,myrole regrole default user::regrole) 
+create or replace function datalink.dl_authorize(
+  datalink.file_path, myrole regrole default user::regrole) 
 returns datalink.file_path
 language plpgsql security definer
 as $$
@@ -1627,12 +1629,14 @@ begin
    join datalink.link_control_options lco using(lco)
   where path=mypath
    into f;
- if f.read_access = 'DB' and f.token::text = t then return mypath; end if;
- update datalink.insight
-    set n=n+1, atime=now()
-  where read_token=t::datalink.dl_token 
-    and link_token=f.token;
- if found then return mypath; end if;
+ if f.read_access = 'DB' then
+  if f.token::text = t then return mypath; end if;
+  update datalink.insight
+     set n=n+1, atime=now()
+   where read_token=t::datalink.dl_token 
+     and link_token=f.token;
+  if found then return mypath; end if;
+ end if;
  if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
  using errcode = 'HW007',
@@ -1640,7 +1644,6 @@ begin
        hint = format('add SELECT privilege for user %I to table DATALINK.ACCESS',myrole);
  return null;
 end$$;
----------------------------------------------------
 
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)

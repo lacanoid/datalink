@@ -5,6 +5,7 @@ Version 0.22
 - functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens, for READ ACCESS DB
 - new function `dl_authorize` to authorize a path 
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
+- renamed `datalink.dl_url` to `datalink.url`
 
 Version 0.21
 ------------
