@@ -31,7 +31,7 @@ testfiles:
 	cp README.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	cp docs/utf8.txt /var/www/datalink/
 	rm -f /var/www/datalink/test3.txt
-	date > /var/www/datalink/test4.txt
+	date +%F > /var/www/datalink/test4.txt
 
 dump:
 	pg_dump -Fc contrib_regression > db.pg_dump
