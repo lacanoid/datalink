@@ -1609,7 +1609,7 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
 
 ---------------------------------------------------
 create or replace function datalink.dl_authorize(
-  datalink.file_path, myrole regrole default user::regrole) 
+  datalink.file_path, for_web boolean default true, myrole regrole default user::regrole) 
 returns datalink.file_path
 language plpgsql security definer
 as $$
@@ -1636,12 +1636,17 @@ begin
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
   if found then return mypath; end if;
+  if for_web then return null; end if;
  end if;
- if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
- raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
- using errcode = 'HW007',
-       detail = format('no SELECT permission for directory'),
-       hint = format('add SELECT privilege for user %I to table DATALINK.ACCESS',myrole);
+ if for_web then 
+  return mypath;
+ else 
+  if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
+  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
+  using errcode = 'HW007',
+        detail = format('no SELECT permission for directory'),
+        hint = format('add SELECT privilege for user %s to table DATALINK.ACCESS',myrole);
+ end if;
  return null;
 end$$;
 
@@ -1668,7 +1673,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.dl_authorize($1) as path};
+  my $q=q{select datalink.dl_authorize($1,false) as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
@@ -1692,7 +1697,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.dl_authorize($1) as path};
+  my $q=q{select datalink.dl_authorize($1,false) as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
