@@ -1120,7 +1120,8 @@ begin
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
+   if link1->>'a' is distinct from link2->>'a'
+   or link1->>'b' is distinct from link2->>'b' then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_datalink_unref(link1,r.lco,tg_relid,r.column_name);
@@ -1139,7 +1140,8 @@ begin
    opt := datalink.link_control_options(r.lco);
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if dlurlcomplete(link1) is distinct from dlurlcomplete(link2) then
+   if link1->>'a' is distinct from link2->>'a'
+   or link1->>'b' is distinct from link2->>'b' then
     if tg_op in ('INSERT','UPDATE') then
       if dlurlcomplete(link2) is not null then
          -- check for write_access = BLOCKED and prevent updates
@@ -1402,22 +1404,13 @@ COMMENT ON FUNCTION pg_catalog.dlcomment(datalink)
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
--- inverse map file datalink to url via datalink.directory.dirurl
-CREATE FUNCTION url(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select coalesce((
-       select dirurl||uri_escape(substr(dlurlpathonly($1),length(dirpath)+1))
-         from datalink.directory
-        where dirurl is not null and dlurlpathonly($1) like dirpath||'%'
-        order by length(dirpath) desc limit 1),$1->>'a')
-$_$;
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ 
   select case
     when $1->>'m' is not null 
-    then datalink.url($1)
+    then dlurlcompleteonly($1)
     else case
       when $1->>'b' is not null
       then format('%s#%s',$1->>'a',$1->>'b')
@@ -1425,9 +1418,6 @@ AS $_$
     end
   end as url
 $_$;
-/* CREATE FUNCTION pg_catalog.dlurlcomplete1(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
-AS $_$select $1->>'a'$_$; */
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
@@ -1440,8 +1430,17 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select case when $1->>'m' is not null then datalink.url($1)
-              else datalink.uri_get($1->>'a','only') end
+AS $_$ select
+  case when $1->>'a' ilike 'file:///%'
+       then coalesce((
+               select dirurl||uri_escape(substr(dlurlpathonly($1),length(dirpath)+1))
+                 from datalink.directory
+                where dirurl is not null
+                  and dlurlpathonly($1) like dirpath||'%'
+                order by length(dirpath) desc limit 1
+            ),$1->>'a')
+       else datalink.uri_get($1->>'a','only')
+  end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
@@ -1632,7 +1631,7 @@ begin
  if f.read_access = 'DB' then
   if f.token::text = t then return mypath; end if;
   update datalink.insight
-     set n=n+1, atime=now()
+     set n=n+1, atime=now(), grantee=myrole
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
   if found then return mypath; end if;
@@ -1968,7 +1967,8 @@ create table insight (
   ctime timestamptz not null default now(),
   atime timestamptz,
   n int not null default 0,
-  role regrole not null default user::regrole,
+  grantor regrole not null default user::regrole,
+  grantee regrole,
   pid int not null default pg_backend_pid(),
   data jsonb
 );
