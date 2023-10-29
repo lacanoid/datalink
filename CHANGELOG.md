@@ -2,17 +2,17 @@ Version 0.22
 ------------
 - fixed utf8 decoding in `curl_get`, `read_file` and `read_lines`
 - slightly changed order and assignments in link_control_options
-- functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens, for READ ACCESS DB
-- new function `dl_authorize` to authorize a file path 
-- new function `dl_lco(datalink)` to get LCO for a (linked) datalink
+- improved support for file path to url mapping
+- improved support for READ ACCESS DB
+- new function `dl_authorize(file_path)` to authorize a file path 
+- functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens
+- added simple apache2 mod_perl module to authorize access
 - renamed `datalink.dl_url` to `datalink.url`
-- remove read_access flag in datalink (r)
+- new function `dl_lco(datalink)` to get LCO for a (linked) datalink
 
 Version 0.21
 ------------
 - shortened json keys (url,token,text,old,type) -> (a,b,c,o,t)
-- include read_access flag in datalink (r)
-- include mapping flag in datalink (m)
 - new view `datalink.access` with triggers to update `datalink.directory.diracl`
 - new function `datalink.has_file_privilege()` to enquire about file privileges
 - initial `datalink.insight` table for future read access management
