@@ -13,21 +13,21 @@ Wanted
   - ✔︎ SELECT - read file contents
   - REFERENCES - link to files from database (WRITE ACCESS BLOCKED)
   - ✔︎ DELETE - delete files (ON UNLINK DELETE)
-- some sort of file to url mapping. dlurl* functions could use these.
-- make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
-- make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
+- ✔︎ some sort of file to url mapping. dlurl* functions could use these.
+- ✔︎ make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
+- ✔︎ make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
 - SUID root shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
-- apache module to make it work with embedded read tokens, returned by dlurlcomplete(), ngingx module
-- build simple webserver into pg_gatalinker
+- ✔︎ apache module to make it work with embedded read tokens, returned by dlurlcomplete()
 - make `dlfm` command line tool for datalinker admin
-- ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - make it possible to change LCO with datalink values present
+- ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
+- build simple webserver into pg_datalinker
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - better punycode support in `dlvalue()`
-- support for http ranges in `curl_get()`
+- support for http ranges in `curl_get()` (and apache handler!)
 
 Issues
 ======
