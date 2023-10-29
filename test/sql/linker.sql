@@ -132,3 +132,6 @@ insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/d
 insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink_xxx/','PUBLIC','REFERENCES');
 
 select dirpath,privilege_type,grantee from datalink.access;
+
+select datalink.url_insight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
+

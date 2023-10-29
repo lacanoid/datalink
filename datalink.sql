@@ -657,34 +657,26 @@ COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
- RETURNS text
-  LANGUAGE sql
-  IMMUTABLE STRICT
-  AS $function$
-select case part
-       when 'scheme' then uri_scheme($1)
-       when 'server' then uri_host($1)
-       when 'userinfo' then uri_userinfo($1)
-       when 'host' then uri_host($1)
-       when 'path' then uri_unescape(uri_path($1))
-       when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
-       when 'query' then uri_query($1)
-       when 'fragment' then uri_fragment($1)
-       when 'token' then uri_unescape(uri_fragment($1))
-       when 'canonical' then uri_normalize($1)::text
-       -- without fragment
-       when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
-       end
-$function$
-;
-
+  RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
+   select case part
+          when 'scheme' then uri_scheme($1)
+          when 'server' then uri_host($1)
+          when 'userinfo' then uri_userinfo($1)
+          when 'host' then uri_host($1)
+          when 'path' then uri_unescape(uri_path($1))
+          when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'query' then uri_query($1)
+          when 'fragment' then uri_fragment($1)
+          when 'token' then uri_unescape(uri_fragment($1))
+          when 'canonical' then uri_normalize($1)::text
+          -- without fragment
+          when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
+          end $$;
 COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
 
 CREATE OR REPLACE FUNCTION uri_get(link datalink, part text)
  RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
-select datalink.uri_get($1->>'a',$2)
-$$
-;
+  select datalink.uri_get($1->>'a',$2) $$;
 
 COMMENT ON FUNCTION uri_get(datalink,text) IS 'Get (extract) parts of datalink URI';
 
@@ -1470,23 +1462,32 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink,newinsight boolean default false)
+CREATE FUNCTION url_insight(url text, link_token dl_token, safer boolean default false) 
+RETURNS text LANGUAGE plpgsql strict
+AS $$
+declare
+  m text[];
+begin
+ -- check for read token
+ m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
+ if safer then
+  insert into datalink.insight (link_token) values (link_token) 
+  returning read_token into link_token;
+ end if;
+ return coalesce(m[1]||link_token||';'||m[4],$1);
+end
+$$;
+
+CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
  RETURNS text
   LANGUAGE sql
    STRICT
    AS $function$
    select case 
-          when $1->>'b' is not null 
+          when $1->>'a' ilike 'file:///%' and $1->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
-                 datalink.uri_set(($1->>'a')::uri,'basename',
-                                  coalesce(case when $2 
-                                                then datalink.dl_newinsight(($1->>'b')::datalink.dl_token)::text
-                                                else ($1->>'b')::text
-                                           end || ';'
-                                          ,'') ||
-                                  datalink.uri_get($1->>'a','basename'))
-                               ,'path')
+            datalink.url_insight($1->>'a',($1->>'b')::datalink.dl_token,safer),'path')
           else coalesce(datalink.filepath($1),
 	                format('%s%s',datalink.uri_get($1->>'a','path'),
                         '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))))
@@ -1960,12 +1961,6 @@ create table insight (
 alter table insight add foreign key (link_token) references 
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
-
-CREATE FUNCTION dl_newinsight(dl_token) RETURNS dl_token LANGUAGE sql strict
-AS $$
-  insert into datalink.insight (link_token) 
-  values ($1) returning read_token;
-$$;
 
 ---------------------------------------------------
 -- volume usage statistics

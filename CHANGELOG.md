@@ -4,7 +4,6 @@ Version 0.22
 - slightly changed order and assignments in link_control_options
 - functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens, for READ ACCESS DB
 - new function `dl_authorize` to authorize a file path 
-- new function `dl_newinsight` to create READ ACCESS DB read token in table `datalink.insight`  
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
 - renamed `datalink.dl_url` to `datalink.url`
 - remove read_access flag in datalink (r)
