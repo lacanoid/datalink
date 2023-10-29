@@ -64,6 +64,8 @@ Todo
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
 - datalinker: better configurator
+- datalinker: don't die so easily
+- function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
