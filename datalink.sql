@@ -1476,7 +1476,8 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink,newinsight boolean default false)
    STRICT
    AS $function$
    select case 
-          when (datalink.link_control_options($1)).read_access = 'DB'
+          when $1->>'b' is not null 
+           and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
                  datalink.uri_set(($1->>'a')::uri,'basename',
                                   coalesce(case when $2 
