@@ -28,8 +28,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
  pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
- pg_catalog   | dlurlcomplete(datalink)                                                                      | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
- pg_catalog   | dlurlcomplete(text)                                                                          | sql      | SQL/MED - Returns normalized URL value
+ pg_catalog   | dlurlcomplete(datalink,boolean)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
+ pg_catalog   | dlurlcomplete(text,boolean)                                                                  | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcompleteonly(text)                                                                      | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlpath(datalink,boolean)                                                                  | sql      | SQL/MED - Returns the file path from DATALINK value

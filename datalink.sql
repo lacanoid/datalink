@@ -1391,15 +1391,23 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, safer boolean default false) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1->>'a','fragment'))$_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
+AS $_$ 
+   select case 
+          when $1->>'b' is not null 
+           and (datalink.link_control_options($1)).read_access = 'DB'
+          then datalink.url_insight(pg_catalog.dlurlcompleteonly($1)
+                                   ,($1->>'b')::datalink.dl_token,safer)
+          else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1->>'a','fragment'))
+          end
+$_$;
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, boolean) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(text) RETURNS text LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1)) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text) 
+CREATE FUNCTION pg_catalog.dlurlcomplete(text, boolean default false) RETURNS text LANGUAGE sql STRICT IMMUTABLE
+AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1),$2) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, boolean) 
 IS 'SQL/MED - Returns normalized URL value';
 
 ---------------------------------------------------
@@ -1461,22 +1469,6 @@ COMMENT ON FUNCTION pg_catalog.dlurlscheme(text)
 IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
-
-CREATE FUNCTION url_insight(url text, link_token dl_token, safer boolean default false) 
-RETURNS text LANGUAGE plpgsql strict
-AS $$
-declare
-  m text[];
-begin
- -- check for read token
- m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
- if safer then
-  insert into datalink.insight (link_token) values (link_token) 
-  returning read_token into link_token;
- end if;
- return coalesce(m[1]||link_token||';'||m[4],$1);
-end
-$$;
 
 CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
  RETURNS text
@@ -1560,9 +1552,8 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(text)
 IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
-
--- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 alter domain url add check (datalink.uri_get(value,'scheme') is not null);
+-- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
 create function dl_url(datalink) returns uri 
   language sql strict immutable 
@@ -1961,6 +1952,22 @@ create table insight (
 alter table insight add foreign key (link_token) references 
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
+
+CREATE FUNCTION url_insight(url text, link_token dl_token, safer boolean default false) 
+RETURNS text LANGUAGE plpgsql strict
+AS $$
+declare
+  m text[];
+begin
+ -- check for read token
+ m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
+ if safer then
+  insert into datalink.insight (link_token) values (link_token) 
+  returning read_token into link_token;
+ end if;
+ return coalesce(m[1]||link_token||';'||m[4],$1);
+end
+$$;
 
 ---------------------------------------------------
 -- volume usage statistics

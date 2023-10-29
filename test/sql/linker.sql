@@ -135,3 +135,7 @@ select dirpath,privilege_type,grantee from datalink.access;
 
 select datalink.url_insight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
 
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/CHANGELOG.md#11111111-2222-3333-4444-abecedabeced'));
+select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
+truncate sample_datalinks6;
+

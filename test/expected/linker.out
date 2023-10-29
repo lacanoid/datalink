@@ -281,3 +281,15 @@ select datalink.url_insight('http://server/dir/file.ext','11111111-2222-3333-444
  http://server/dir/11111111-2222-3333-4444-abecedabeced;file.ext
 (1 row)
 
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/CHANGELOG.md#11111111-2222-3333-4444-abecedabeced'));
+WARNING:  DATALINK WARNING - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
+NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
+                                dlurlcomplete                                |                              dlurlpath                              
+-----------------------------------------------------------------------------+---------------------------------------------------------------------
+ http://localhost/datalink/11111111-2222-3333-4444-abecedabeced;CHANGELOG.md | /var/www/datalink/11111111-2222-3333-4444-abecedabeced;CHANGELOG.md
+(1 row)
+
+truncate sample_datalinks6;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
