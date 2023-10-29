@@ -995,8 +995,8 @@ declare
  has_token integer;
  url text;
 begin 
- url := dlurlcomplete($1);
--- raise notice 'DATALINK: dl_datalink_ref(''%'',%,%,%)',url,$2,$3,$4;
+ url := format('%s%s',$1->>'a','#'||($1->>'b'));
+-- raise exception 'DATALINK: dl_datalink_ref(''%'',%,%,%)',url,$2,$3,$4;
 
  has_token := 0;
  if link_options > 0 then
@@ -1055,12 +1055,6 @@ begin
       end if;
       perform datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
-
-  if lco.read_access = 'DB' then 
-      link := jsonb_set(link::jsonb,array['r'],to_jsonb(1));
-  else 
-      link := link-'r';
-  end if;
 
  end if; -- link options
  return link;
@@ -1407,22 +1401,12 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ 
-  select case
-    when $1->>'m' is not null 
-    then dlurlcompleteonly($1)
-    else case
-      when $1->>'b' is not null
-      then format('%s#%s',$1->>'a',$1->>'b')
-      else $1->>'a'
-    end
-  end as url
-$_$;
+AS $_$ select format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1->>'a','fragment'))$_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(text) RETURNS text LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select dlurlcomplete(dlvalue($1)) $_$;
+AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text) 
 IS 'SQL/MED - Returns normalized URL value';
 
@@ -1430,17 +1414,17 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select
+AS $_$ select datalink.uri_get(
   case when $1->>'a' ilike 'file:///%'
        then coalesce((
-               select dirurl||uri_escape(substr(dlurlpathonly($1),length(dirpath)+1))
+               select dirurl||uri_escape(substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1))
                  from datalink.directory
                 where dirurl is not null
-                  and dlurlpathonly($1) like dirpath||'%'
+                  and pg_catalog.dlurlpathonly($1) like dirpath||'%'
                 order by length(dirpath) desc limit 1
             ),$1->>'a')
-       else datalink.uri_get($1->>'a','only')
-  end
+       else $1->>'a'
+  end,'only')
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
@@ -1654,7 +1638,7 @@ CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default nul
  RETURNS text LANGUAGE plpgsql
 AS $$
 begin
-  if dlurlscheme($1)='FILE' and dlurlserver($1) is null then
+  if $1->>'a' ilike 'file:///%' then
     return datalink.read_text(dlurlpath($1),$2,$3);
   end if;
   return case

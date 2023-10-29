@@ -128,10 +128,10 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+------------------------------------------
+-[ RECORD 1 ]-----+-------------------------------------------
 link              | file:///var/www/datalink/test4.txt#krneki
-dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
-dlurlcompleteonly | file:///var/www/datalink/test4.txt
+dlurlcomplete     | http://localhost/datalink/test4.txt#krneki
+dlurlcompleteonly | http://localhost/datalink/test4.txt
 dlurlpath         | /var/www/datalink/test4.txt
 dlurlpathonly     | /var/www/datalink/test4.txt
 
@@ -146,8 +146,8 @@ select link,
   from d;
 -[ RECORD 1 ]-----+---------------------------------------------------
 link              | {"a": "file:///var/www/datalink/test4.txt#krneki"}
-dlurlcomplete     | file:///var/www/datalink/test4.txt#krneki
-dlurlcompleteonly | file:///var/www/datalink/test4.txt
+dlurlcomplete     | http://localhost/datalink/test4.txt#krneki
+dlurlcompleteonly | http://localhost/datalink/test4.txt
 dlurlpath         | /var/www/datalink/test4.txt
 dlurlpathonly     | /var/www/datalink/test4.txt
 
@@ -160,10 +160,10 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+------------------------------------------------------------------------
+-[ RECORD 1 ]-----+-------------------------------------------------------------------------
 link              | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
-dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
-dlurlcompleteonly | file:///var/www/datalink/test3.txt
+dlurlcomplete     | http://localhost/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcompleteonly | http://localhost/datalink/test3.txt
 dlurlpath         | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 dlurlpathonly     | /var/www/datalink/test3.txt
 
@@ -178,8 +178,8 @@ select link,
   from d;
 -[ RECORD 1 ]-----+---------------------------------------------------------------------------------
 link              | {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
-dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
-dlurlcompleteonly | file:///var/www/datalink/test3.txt
+dlurlcomplete     | http://localhost/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+dlurlcompleteonly | http://localhost/datalink/test3.txt
 dlurlpath         | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 dlurlpathonly     | /var/www/datalink/test3.txt
 
@@ -193,8 +193,8 @@ select link,
   from d;
 -[ RECORD 1 ]-----+-----------------------------------------------------------------------------------------
 link              | {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
-dlurlcomplete     | file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
-dlurlcompleteonly | file:///var/www/datalink/test3.txt
+dlurlcomplete     | http://localhost/datalink/test3.txt
+dlurlcompleteonly | http://localhost/datalink/test3.txt
 basename          | test3.txt
 
 ;
