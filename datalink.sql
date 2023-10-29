@@ -2016,3 +2016,12 @@ comment on table sample_datalinks
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
 
+---------------------------------------------------
+do $$ 
+declare file text = '/etc/postgresql-common/dl_directory';
+begin 
+  if datalink.fileexists(dlvalue(file))
+  then execute 'copy datalink.dl_directory from '||quote_literal(file);
+  end if;
+end 
+$$;

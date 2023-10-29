@@ -93,3 +93,4 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uuid_generate_v4()                                                                           | c        | 
 (70 rows)
 
+truncate datalink.dl_directory;  -- clean for tests

@@ -14,3 +14,4 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  order by 1, obj_description(p.oid) is null,
        cast(p.oid::regprocedure as text) collate "C";
 
+truncate datalink.dl_directory;  -- clean for tests
