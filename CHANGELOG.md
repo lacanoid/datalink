@@ -9,6 +9,7 @@ Version 0.22
 - added simple apache2 mod_perl module to authorize access
 - renamed `datalink.dl_url` to `datalink.url`
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
+- load initial contents of `datalink.dl_directory` from file `/etc/postgresql-common/dl_directory` if it exists
 
 Version 0.21
 ------------
