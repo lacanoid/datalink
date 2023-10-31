@@ -1,5 +1,9 @@
 Version 0.22
 ------------
+- nothing yet
+
+Version 0.22
+------------
 - fixed utf8 decoding in `curl_get`, `read_file` and `read_lines`
 - slightly changed order and assignments in link_control_options
 - improved support for file path to url mapping

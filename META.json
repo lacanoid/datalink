@@ -2,7 +2,7 @@
    "name": "datalink",
    "abstract": "SQL/MED DATALINK type and functions",
    "description": "An implementation SQL/MED datalinks",
-   "version": "0.22.0",
+   "version": "0.23.0",
    "maintainer": [
       "Ziga Kranjec <ziga@ljudmila.org>"
    ],
@@ -14,10 +14,12 @@
          "requires": {
             "pgperlu": 0,
             "plpgsql": 0,
+            "uri": 0,
             "PostgreSQL": "9.5.0"
          },
          "recommends": {
-            "PostgreSQL": "9.5.0"
+            "PostgreSQL": "9.5.0",
+            "dblink": 0
          }
       }
    },
@@ -25,7 +27,7 @@
      "datalink": {
        "file": "datalink.sql",
        "docfile": "README.md",
-       "version": "0.22.0",
+       "version": "0.23.0",
        "abstract": "SQL/MED DATALINK type and functions"
      }
    },
