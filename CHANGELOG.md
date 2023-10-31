@@ -1,4 +1,4 @@
-Version 0.22
+Version 0.23
 ------------
 - nothing yet
 
