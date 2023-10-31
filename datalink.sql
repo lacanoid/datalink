@@ -476,7 +476,7 @@ begin
   -- this is needed to eliminate problems during pg_restore
   if r.token = my_token and r.path = file_path and r.lco = my_lco and
      r.attrelid = my_regclass and r.attnum = my_attnum then
-    raise warning 'DATALINK EXCEPTION - external file possibly already linked' 
+    raise warning 'DATALINK WARNING - external file possibly already linked' 
       using detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
   end if;
 
@@ -1614,8 +1614,8 @@ begin
   if found then return mypath; end if;
   if for_web then return null; end if;
  end if;
- if for_web then 
-  return mypath;
+ mypath := $1;
+ if for_web then return mypath;
  else 
   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
   raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
