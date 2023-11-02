@@ -33,7 +33,7 @@ our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
-our $version="0.18.20220618";
+our $version="0.22.20231102";
 
 getopt('l');
 
@@ -107,25 +107,22 @@ sub main() {
     #---------------------------------------
 
     %q = (
-        'get_jobs'=>$dbh->prepare(q{
-          select lf.*,lco.*,
-                 c.relowner::regrole::text as relowner 
-            from dl_linked_files lf 
-            join link_control_options lco using (lco)
+        'get_jobs'=>$dbh->prepare(
+        q{select lf.*,lco.*,c.relowner::regrole::text as relowner 
+            from dl_linked_files lf join link_control_options lco using (lco)
             join pg_class c on c.oid=lf.attrelid
-            where state in ('LINK','UNLINK')
-            order by txid
-            for update of lf
+           where state in ('LINK','UNLINK')
+           order by txid for update of lf
         }),
-        'set_linked'=>$dbh->prepare(q{
-         update dl_linked_files 
+        'set_linked'=>$dbh->prepare(
+       q{update dl_linked_files 
             set state = $2,
                 info  = $3,
                 err   = $4
           where path  = $1
         }),
-        'delete'=>$dbh->prepare(q{
-         delete from dl_linked_files
+        'delete'=>$dbh->prepare(
+       q{delete from dl_linked_files
           where path = $1
         })
     );
