@@ -1,17 +1,18 @@
 Version 0.23
 ------------
-- nothing yet
+- more documentation
 
 Version 0.22
 ------------
 - fixed utf8 decoding in `curl_get`, `read_file` and `read_lines`
 - slightly changed order and assignments in link_control_options
+- renamed `datalink.dl_url` to `datalink.url`
 - improved support for file path to url mapping
 - improved support for READ ACCESS DB
+- functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate 
+- function `read_text` and `read_lines` now support read access tokens
 - new function `dl_authorize(file_path)` to authorize a file path 
-- functions `dlurlpath`, `read_text` and `read_lines` now support read access tokens
 - added simple apache2 mod_perl module to authorize access
-- renamed `datalink.dl_url` to `datalink.url`
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
 - load initial contents of `datalink.dl_directory` from file `/etc/postgresql-common/dl_directory` if it exists
 

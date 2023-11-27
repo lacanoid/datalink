@@ -71,6 +71,11 @@ Note that successful checks for web datalinks do not mean that the the web page 
 [HTTP response code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) is stored in the resulting datalink so that one can check further.
 `404 NOT FOUND` errors were successfully inserted in the above example, because HTTP server returned a valid response.
 
+To additionally check for successful web pages, one can use a check constraint:
+
+    mydb-# alter table my_table add check ((link->>'rc')::int between 200 and 299);
+
+
 After values are stored, no further checks are done.
 
 Full referential integrity
@@ -127,9 +132,9 @@ A user can see all of his currently linked files in `datalink.linked_files` view
     (1 row)
 
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
-to perform file operations on datalinks. Further settings require its use to be effective. Postgres server process by itself does
-not have high enough privileges to change file permissions nor does extension perform any file changes by itself. It is all done by
-the datalinker process.
+to perform file operations on datalinks. Setting READ_ACCESS or WRITE_ACCESS to something other than FS will require that it runs
+for this to work. Postgres server process by itself does not have high enough privileges to change file permissions nor does 
+extension perform any file changes by itself. It is all done by the datalinker process.
 
 
 

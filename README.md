@@ -11,6 +11,7 @@ The standard states: "The purpose of datalinks is to provide a mechanism to sync
 
 Datalinks as defined by SQL/MED should provide:
 - DATALINK SQL type
+- Scalar functions operating on DATALINK type
 - Transactional semantics
 - URL syntax validation
 - Checking if file exists
@@ -21,11 +22,13 @@ Datalinks as defined by SQL/MED should provide:
 - Automatic deletion of files no longer referenced from database
 - Access to files on different servers
 
-It is implemented in two parts, a PostgreSQL extension `datalink` to be used from SQL 
-and a a special deamon [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), 
-which handles all file manipulations.
-The extension can be used without a daemon, but this looses some of the functionality.
-The extension by itself does not perform any file system changes. 
+It is implemented in three main components:
+- a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any file system changes. 
+- datalink file manager deamon (DLFM) [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), 
+which handles all file manipulations. The extension can be used without a daemon, but this disables some of the functionality.
+- datalink file filter (DLFF), which applies READ ACCESS DB policy to file accesses. Currently, this is available as mod_perl handler for Apache2 web server.
+It is currently not implemented for file system access. 
+It is implemented in SQL environment file functions provided by the datalink extension.
 
 Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
@@ -38,12 +41,13 @@ Currently, it implements the following:
 - Setting [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with UPDATE DATALINK.COLUMNS
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)
-- PlPerlu interface to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
-- URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/petere/pguri)
+- PlPerlu interface `curl_get()` to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
+- URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize them
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also works for web
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep track of linked files in `datalink.dl_linked_files` table
 - Simple datalinker to provide other LCOs, see below
+- Foreign server support for file:// URLs (for files on other postgres_fdw foreign servers)
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database (chown, chmod)
@@ -57,7 +61,6 @@ With datalinker:
 Missing features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
-- Foreign server support for file:// URLs (for files on other servers)
 
 This extension uses a number of advanced Postgres features for implementation,
 including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
@@ -74,7 +77,7 @@ On Debian, you will need to install `libwww-curl-perl` and `libdbd-pg-perl` pack
 
     apt install libwww-curl-perl libdbd-pg-perl
 
-Also required is [pguri](https://github.com/petere/pguri) extension, which must
+Also required is [pguri](https://github.com/lacanoid/pguri) extension, which must
 be installed separately.
 
 To build and install this module:

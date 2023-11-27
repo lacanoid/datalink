@@ -1756,14 +1756,14 @@ comment on function instr(datalink,text) is
 -- directories
 ---------------------------------------------------
 create table dl_directory (
-  dirname    text collate "C" unique check(dirname not in ('URL','FS')),
-  dirpath    file_path not null,
-  dirowner   regrole,
-  diracl     aclitem[],
-  dirlco     dl_lco,
-  dirurl     uri unique,
-  diroptions text[] collate "C",
-  dirlink    datalink(2) not null
+       dirname    text collate "C" unique check(dirname not in ('URL','FS')),
+       dirpath    file_path not null,
+       dirowner   regrole,
+       diracl     aclitem[],
+       dirlco     dl_lco,
+       dirurl     uri unique,
+       diroptions text[] collate "C",
+       dirlink    datalink(2) not null
 );
 
 create view directory as
@@ -1815,7 +1815,7 @@ begin
 end
 $$;
 
-CREATE TRIGGER "directory_touch"
+CREATE TRIGGER "dl_directory_touch"
 BEFORE INSERT OR UPDATE ON datalink.dl_directory FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 

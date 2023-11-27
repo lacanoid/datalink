@@ -33,7 +33,7 @@ our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
-our $version="0.22.20231102";
+our $version="0.23.20231102";
 
 getopt('l');
 

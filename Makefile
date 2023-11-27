@@ -9,7 +9,7 @@ DATA_built = datalink--$(extension_version).sql
 REGRESS = init type sqlmed selective link linker uri user bfile
 REGRESS_OPTS = --inputdir=test
 
-SCRIPTS = bin/pg_datalinker
+SCRIPTS = bin/pg_datalinker bin/dlfm
 
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)

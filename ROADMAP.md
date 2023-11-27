@@ -24,6 +24,7 @@ Wanted
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
 - build simple webserver into pg_datalinker
+- perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful for this? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - better punycode support in `dlvalue()`

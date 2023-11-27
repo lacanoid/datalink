@@ -8,11 +8,11 @@ Use CURL to fetch a URL from the World Wide Web.
 
 read_text(file_path [,position [,length] ] )
 --------------------------------------------
-Read datalink contents as text. Returns text.
+Read file contents as text. Returns text.
 
 read_lines(file_path [,position] )
 ----------------------------------
-Read datalink contents as lines of text.
+Read file contents as lines of text.
 Returns set of lines with line numbers and file offset.
 
 uri_get(url, part)
