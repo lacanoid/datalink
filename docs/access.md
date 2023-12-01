@@ -24,7 +24,7 @@ When `read_access` is `FS` then file owner and mode are left unmodified.
 This option does not require a datalinker.
 
 When `read_access` is `DB` then file owner and mode are changed to a value, 
-configured in the datalinker, normally `postgres.postgres` and `0440`.
+configured in the datalinker, normally `postgres.www-data` and `0440`.
 This makes file effectively owned and readable by the database server.
 
 In addition, if owner (of the table containing the datalink column) is equal to an
