@@ -1,6 +1,7 @@
 Version 0.23
 ------------
 - more documentation
+- new `write_file()` functions
 
 Version 0.22
 ------------

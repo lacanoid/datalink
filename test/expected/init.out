@@ -91,6 +91,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | link_control_options(datalink)                                                               | sql      | 
  datalink     | url_insight(text,dl_token,boolean)                                                           | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(70 rows)
+ datalink     | write_text(datalink,text)                                                                    | plpgsql  | 
+ datalink     | write_text(file_path,text)                                                                   | plperlu  | 
+(72 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

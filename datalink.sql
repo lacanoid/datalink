@@ -1702,6 +1702,36 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
      IS 'Stream file referenced by a datalink as lines of text';
 
 ---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION datalink.write_text(filename datalink.file_path, content text)
+ RETURNS bigint
+ LANGUAGE plperlu
+AS $function$
+  use strict vars; 
+  my ($filename,$bufr)=@_;
+  my $fh;
+  if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
+  open($fh,">",$filename) or die "DATALINK EXCEPTION - Can't open $filename for writing: $!\n";
+  if(defined($bufr)) { utf8::encode($bufr); }
+  print $fh $bufr;
+  close $fh;
+  return 1;
+$function$;
+
+---------------------------------------------------
+
+CREATE OR REPLACE FUNCTION datalink.write_text(link datalink, content text)
+ RETURNS datalink
+ LANGUAGE plpgsql
+AS $function$
+begin
+ link := dlnewcopy(link);
+ perform datalink.write_text(dlurlpathwrite(link),content);
+ return link;
+end
+$function$;
+
+---------------------------------------------------
 -- bfile compatibility functions
 ---------------------------------------------------
 
