@@ -568,6 +568,12 @@ begin
     where path  = $1
       and state = 'ERROR';
 
+  elsif r.state = 'UNLINK' then
+        raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
+              using errcode = 'HW000', 
+                    detail = format('file is ''%s'' waiting for unlink by the datalinker process',r.path),
+                      hint = 'run pg_datalinker';
+
   else
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000', 
@@ -767,7 +773,7 @@ begin
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
 	          detail = format('Invalid link control options'),
-                  hint = 'see table datalink.link_control_options for valid link control options';
+            hint = 'see table datalink.link_control_options for valid link control options';
    end if;
  end if; -- tg_tag in (...)
 
@@ -1703,7 +1709,7 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.write_text(filename datalink.file_path, content text)
+CREATE OR REPLACE FUNCTION write_text(filename file_path, content text)
  RETURNS bigint
  LANGUAGE plperlu
 AS $function$
@@ -1720,7 +1726,7 @@ $function$;
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.write_text(link datalink, content text)
+CREATE OR REPLACE FUNCTION write_text(link datalink, content text)
  RETURNS datalink
  LANGUAGE plpgsql
 AS $function$
