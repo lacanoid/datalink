@@ -1716,6 +1716,12 @@ AS $function$
   use strict vars; 
   my ($filename,$bufr)=@_;
   my $fh;
+
+  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $p = spi_prepare($q,'datalink.file_path','text');
+  my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
+  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - CREATE permission denied on directory.\nFILE: $filename\n"; }
+
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Can't open $filename for writing: $!\n";
   if(defined($bufr)) { utf8::encode($bufr); }

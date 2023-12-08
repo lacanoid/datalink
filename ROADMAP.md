@@ -9,7 +9,7 @@ Wanted
 - install init.d scripts 
 - Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
-- datalink.create_text() function to create new files
+- datalink.write_text() function to create new files
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
   - ✔︎ SELECT - read file contents
   - REFERENCES - link to files from database (WRITE ACCESS BLOCKED)
@@ -30,15 +30,14 @@ Wanted
 - perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful for this? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
-- better punycode support in `dlvalue()`
-- support for http ranges in `curl_get()` (and apache handler!)
+- better documentation
 
 Issues
 ======
 - ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
-- fordbid setting of lco<>0 for non superusers 
-- create table as bug (data is loaded before triggers are run)
+- forbid setting of lco<>0 for non superusers 
+- `create table as` / `select into` bug (data is loaded before triggers are run)
 
 Todo
 ====
@@ -89,6 +88,8 @@ Maybe
 - allow backups for read_access=fs LCO
 - more pluggable filename+token handling so we can support more common token;basename convention
 - ✔︎ add timing info to curl_get()
+- better punycode support in `dlvalue()`
+- support for http ranges in `curl_get()` (and apache handler!)
 
 BFile API
 =========
