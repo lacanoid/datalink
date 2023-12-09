@@ -353,9 +353,9 @@ create table dl_linked_files (
   token dl_token not null unique,
   txid bigint not null default txid_current(),
   state file_link_state not null default 'LINK',
-  lco dl_lco not null,
-  attrelid regclass,
-  attnum smallint,
+  lco dl_lco not null references datalink.link_control_options,
+  attrelid regclass not null,
+  attnum smallint not null,
   path file_path primary key,
   address text unique,
   fstat jsonb,
@@ -539,8 +539,9 @@ begin
 
  select * into r
    from datalink.dl_linked_files
+   join datalink.link_control_options using (lco)
   where path = file_path
-    for update;
+    for update of dl_linked_files;
  if not found then
       raise exception 'DATALINK EXCEPTION - external file not linked' 
             using errcode = 'HW001', 
@@ -551,21 +552,21 @@ begin
       set state = 'UNLINK',
           token = cast(info->>'b' as datalink.dl_token),
 	        lco   = cast(info->>'lco' as datalink.dl_lco)
-    where path  = $1 and info is not null
+    where path  = file_path and info is not null
       and state = 'LINK';
 
    delete from datalink.dl_linked_files
-    where path  = $1 and info is null
+    where path  = file_path and info is null
       and state = 'LINK';
 
   elsif r.state = 'LINKED' then
    update datalink.dl_linked_files
       set state = 'UNLINK'
-    where path  = $1 and state = 'LINKED';
+    where path  = file_path and state = 'LINKED';
 
   elsif r.state = 'ERROR' then
    delete from datalink.dl_linked_files
-    where path  = $1
+    where path  = file_path
       and state = 'ERROR';
 
   elsif r.state = 'UNLINK' then
@@ -1717,7 +1718,7 @@ AS $function$
   my ($filename,$bufr)=@_;
   my $fh;
 
-  my $q=q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $q = q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
   unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - CREATE permission denied on directory.\nFILE: $filename\n"; }
