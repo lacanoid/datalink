@@ -18,7 +18,7 @@
             "PostgreSQL": "9.5.0"
          },
          "recommends": {
-            "PostgreSQL": "9.5.0",
+            "PostgreSQL": "15.0.0",
             "dblink": 0
          }
       }
@@ -48,7 +48,7 @@
       "url": "http://pgxn.org/meta/spec.txt"
    },
    "tags": [
-      "datatype",
+      "datatype","data type","type",
       "function",
       "sql med",
       "external data"

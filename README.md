@@ -64,7 +64,8 @@ Missing features:
 
 This extension uses a number of advanced Postgres features for implementation,
 including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
-It also requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
+Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and perl.
+However also requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking. All these together provide a powerful file and web framework within SQL environment.
 
 Installation

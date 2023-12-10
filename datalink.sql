@@ -421,7 +421,7 @@ $function$;
 COMMENT ON FUNCTION datalink.file_stat(file_path) IS 'Return info record from stat(2)';
 
 ---------------------------------------------------
-
+-- link a file to SQL
 create function dl_file_link(file_path file_path,
                           my_token dl_token,
 			                    my_lco dl_lco,
@@ -528,7 +528,7 @@ $$ language plpgsql strict;
 revoke execute on function dl_file_link from public;
 
 ---------------------------------------------------
-
+-- unlink a file from SQL
 create function dl_file_unlink(file_path file_path)
 returns boolean as
 $$
@@ -560,6 +560,15 @@ begin
       and state = 'LINK';
 
   elsif r.state = 'LINKED' then
+   if r.on_unlink = 'DELETE' then
+    if not datalink.has_file_privilege(file_path,'delete',false) then
+     raise exception e'DATALINK EXCEPTION - DELETE permission denied on directory\nPATH:  %',file_path 
+           using errcode = 'HW005', 
+                 detail = 'delete permission is required on directory',
+                 hint = 'add appropriate entry in table datalink.access';
+    end if;
+   end if;
+
    update datalink.dl_linked_files
       set state = 'UNLINK'
     where path  = file_path and state = 'LINKED';
@@ -1242,7 +1251,7 @@ use JSON;
 # Starts and times the actual request
 my $t0 = [gettimeofday];
 
-# Check if this is a file on a foreign server
+# Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
   # then execute curl_get on that foreign server instead
   my $q=q{
@@ -1728,7 +1737,7 @@ AS $function$
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
-  return 1;
+  return length($bufr);
 $function$;
 
 ---------------------------------------------------

@@ -13,9 +13,9 @@ You can create datalink values from text URLs by using `dlvalue()` function.
 
 One can think of datalinks as 'bookmarks' to internet resources.
 
-Note that datalinks are internally represented as JSONB values, but should generally be considered opaque values.
+Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque values.
 
-URLs are checked for syntax and wrong ones throw errors.
+URLs are checked for syntax and wrong ones throw errors:
 
     mydb=# select dlvalue('foo bar');
     ERROR:  invalid input syntax for type uri at or near " bar"
