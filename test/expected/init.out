@@ -54,13 +54,13 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
  datalink     | has_datalinker()                                                                             | sql      | Is datalinker process currently running?
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
- datalink     | instr(datalink,text)                                                                         | sql      | BFILE - Returns the matching position of a pattern in a datalink file
+ datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
- datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for datalink column
- datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream file referenced by a datalink as lines of text
- datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream file as lines of text
+ datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for a datalink column
+ datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream local file referenced by a datalink as lines of text
+ datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream local file as lines of text
  datalink     | read_text(datalink,bigint,bigint)                                                            | plpgsql  | Read datalink contents as text
- datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read file contents as text
+ datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read local file contents as text
  datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI

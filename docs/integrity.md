@@ -95,12 +95,12 @@ To enable full referential integrity set integrity to `ALL` for this column.
      my_table   | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
     (1 row)
 
-With full referential integrity each link can be stored (linked) only once, insuring uniqueness among links across the whole database.
-Once a datalink to a file is stored somewhere, the file is said to be *linked* and cannot be linked again until unlinked first.
+With full referential integrity each link can be stored (linked) only once, ensuring uniqueness among links across the whole database.
+Once a datalink to a file is stored somewhere, the file is said to be *linked* and cannot be linked again elsewhere until unlinked first.
 
-For security reasons files are restricted to a set of directories or *volumes*. 
+For security reasons files are restricted to a set of directories or *prefixes*. 
 These are configured externally to postgres, using `pg_datalinker` command.
-By default, volume `/var/www/datalink/` is created.
+By default, prefix `/var/www/datalink/` is created.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));
     ERROR:  INTEGRITY ALL can only be used with file URLs

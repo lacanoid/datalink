@@ -1391,7 +1391,7 @@ end;
 $_$;
 
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
-IS 'Modify link control options for datalink column';
+IS 'Modify link control options for a datalink column';
 
 grant usage on schema datalink to public;
 
@@ -1680,7 +1680,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   return $bufr;
 $$;
 COMMENT ON FUNCTION read_text(file_path,bigint,bigint) IS 
-  'Read file contents as text';
+  'Read local file contents as text';
 
 ---------------------------------------------------
 CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
@@ -1707,7 +1707,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   return undef;
 $$;
 COMMENT ON FUNCTION read_lines(file_path,bigint)
-     IS 'Stream file as lines of text';
+     IS 'Stream local file as lines of text';
 
 CREATE OR REPLACE FUNCTION read_lines(link datalink, pos bigint default 1)
  RETURNS TABLE(i integer, o bigint, line text)
@@ -1715,7 +1715,7 @@ CREATE OR REPLACE FUNCTION read_lines(link datalink, pos bigint default 1)
 select * from datalink.read_lines(dlurlpath($1),pos)
 $$;
 COMMENT ON FUNCTION read_lines(datalink, bigint)
-     IS 'Stream file referenced by a datalink as lines of text';
+     IS 'Stream local file referenced by a datalink as lines of text';
 
 ---------------------------------------------------
 
@@ -1799,9 +1799,9 @@ $$ select datalink.read_text($1,$2,$3) $$ language sql;
 comment on function substr(datalink, integer, integer) is 
   'BFILE - Returns part of the datalink file starting at the specified offset and length';
 
-create or replace function instr(datalink, pattern text) returns integer as 
-$$ select position($2 in datalink.read_text($1)) $$ language sql;
-comment on function instr(datalink,text) is 
+create or replace function instr(datalink, pattern text, pos integer default 1) returns integer as 
+$$ select position($2 in datalink.read_text($1,$3::bigint)) $$ language sql;
+comment on function instr(datalink,text, integer) is 
   'BFILE - Returns the matching position of a pattern in a datalink file';
 
 ---------------------------------------------------
@@ -1838,24 +1838,24 @@ CREATE FUNCTION dl_trigger_directory() RETURNS trigger
 AS $$
 declare
 begin
- if tg_relid = 'datalink.directory'::regclass then
-   update datalink.dl_directory
-      set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
+  if tg_relid = 'datalink.directory'::regclass then
+    update datalink.dl_directory
+       set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
           (new.dirname,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions)
-    where dirpath = new.dirpath;
+     where dirpath = new.dirpath;
     if not found then
       insert into datalink.dl_directory (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
       values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
     end if;
- end if;  -- if datalink.directory
- if tg_relid = 'datalink.dl_directory'::regclass then
-   new.dirpath := trim(trailing '/' from new.dirpath) || '/';
-   if not datalink.has_valid_prefix(new.dirpath) then 
+  end if;  -- if datalink.directory
+  if tg_relid = 'datalink.dl_directory'::regclass then
+    new.dirpath := trim(trailing '/' from new.dirpath) || '/';
+    if not datalink.has_valid_prefix(new.dirpath) then 
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',new.dirpath),
                     hint = 'run "pg_datalinker add" to add prefixes';
-   end if;
+    end if;
 
   if tg_op = 'INSERT' or 
      (tg_op = 'UPDATE' and dlurlpathonly(old.dirlink) is distinct from new.dirpath) then
