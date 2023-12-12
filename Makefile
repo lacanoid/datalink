@@ -20,6 +20,7 @@ installcheck: testfiles
 
 installextras:
 	if [ ! -f /sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/pg_datalinker ; fi
+	if [ ! -f /sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/dlfm ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
 
