@@ -21,7 +21,7 @@ Wanted
 - SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
 - ✔︎ apache module to make it work with embedded read tokens, returned by dlurlcomplete()
 - make `dlfm` command line tool for datalinker admin
-- add suspend/unsuspend operations to datalinker for better dump/restore (suspend=stop datalinker+restore all file permissions)
+- add suspend/unsuspend operations to datalinker for better dump/restore (suspend=stop datalinker and restore all original file permissions)
 - make it possible to change LCO with datalink values present
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
