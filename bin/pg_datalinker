@@ -91,7 +91,7 @@ sub main() {
         'get_jobs'=>$dbh->prepare(
         q{select lf.*,lco.*,c.relowner::regrole::text as relowner 
             from dl_linked_files lf join link_control_options lco using (lco)
-            join pg_class c on c.oid=lf.attrelid
+            left join pg_class c on c.oid=lf.attrelid
            where state in ('LINK','UNLINK')
            order by txid for update of lf
         }),

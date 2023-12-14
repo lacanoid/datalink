@@ -2,10 +2,13 @@
 SQL Scalar functions
 --------------------
 
-Most of these are overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
+These are specified by the SQL/MED standard.
+
+Most of these have been overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
 ### dlurlcomplete(datalink)
-Use `dlurlcomplete()` function to convert datalinks back to URLs. URL may contain access token.
+Use `dlurlcomplete()` function to convert datalinks back to URLs. For READ ACCESS DB datalinks URL will contain read access token.
+Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
 
     mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
             dlurlcomplete      
@@ -17,6 +20,17 @@ Use `dlurlcomplete()` function to convert datalinks back to URLs. URL may contai
             dlurlcomplete      
     ----------------------------
      http://www.github.io/a/b/e
+    (1 row)
+
+    mydb=# create table t ( link datalink(122) ); insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
+    NOTICE:  DATALINK DDL:TRIGGER on t
+    CREATE TABLE
+    NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+    INSERT 0 1
+    mydb=# select dlurlcomplete(link) from t;
+                                  dlurlcomplete                              
+    -------------------------------------------------------------------------
+     file:///var/www/datalink/1342bf5a-4b01-455d-a056-5624d90d4a49;test1.txt
     (1 row)
 
 ### dlurlcompleteonly(datalink)
@@ -126,7 +140,25 @@ This function is not in SQL standard, but is available in other implementations.
 
 Additional functions
 ====================
-These are all in `datalink` schema.
+
+These are not specified by the SQL standard, but are provided for the user's convenience.
+Thay are all in the `datalink` schema.
+
+URI manipulation
+----------------
+
+### uri_get(uri, part)
+Get a part of URI, returns text.
+Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+
+### uri_get(datalink, part)
+Get a part of a datalink's URI, returns text.
+Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+
+### uri_set(uri, part, value text)
+Set a part of URI to a value, returns new URI.
+Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+
 
 Web access
 ----------
@@ -177,22 +209,6 @@ User must have CREATE privilege on the directory.
 Write datalink contents as text. 
 New version of file is created.
 Returns new datalink, which can be used for update of a datalink column.
-
-
-URI manipulation
-----------------
-
-### uri_get(uri, part)
-Get a part of URI, returns text.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
-
-### uri_get(datalink, part)
-Get a part of a datalink's URI, returns text.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
-
-### uri_set(uri, part, value text)
-Set a part of URI to a value, returns new URI.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
 
 
 Compatibility functions
