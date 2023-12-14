@@ -137,5 +137,6 @@ for this to work. Postgres server process by itself does not have high enough pr
 extension perform any file changes by itself. It is all done by the datalinker process.
 
 
-
-Next: [Access control](access.md)
+Next
+----
+[Access control](access.md)

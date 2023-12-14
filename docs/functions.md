@@ -1,3 +1,129 @@
+
+SQL Scalar functions
+--------------------
+
+Most of these are overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
+
+### dlurlcomplete(datalink)
+Use `dlurlcomplete()` function to convert datalinks back to URLs. URL may contain access token.
+
+    mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+            dlurlcomplete      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
+    mydb=# select dlurlcomplete('http://www.github.io/a/b/c/d/../../e');
+            dlurlcomplete      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
+### dlurlcompleteonly(datalink)
+Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
+
+    mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+          dlurlcompleteonly      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
+    mydb=# select dlurlcompleteonly('http://www.github.io/a/b/c/d/../../e');
+          dlurlcompleteonly      
+    ----------------------------
+     http://www.github.io/a/b/e
+    (1 row)
+
+### dlurlpath(datalink)
+Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
+
+    mydb=# select dlurlpath(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlpath 
+    -----------
+     /foo/bar
+    (1 row)
+    
+    mydb=# select dlurlpath('https://user:password@www.gitgub.io:1234/foo/bar');
+     dlurlpath 
+    -----------
+     /foo/bar
+    (1 row)
+
+### dlurlpathonly(datalink)
+Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
+
+    mydb=# select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+             dlurlpathonly         
+    ------------------------------
+     /var/www/datalink/index.html
+    (1 row)
+
+    mydb=# select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlpathonly 
+    ---------------
+     /foo/bar
+    (1 row)
+
+### dlurlscheme(datalink)
+Use `dlurlscheme()` function to get URL scheme part of datalink.
+
+    mydb=# select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlscheme 
+    -------------
+     HTTPS
+    (1 row)
+
+### dlurlserver(datalink)
+Use `dlurlserver()` function to get URL server part of datalink.
+This does not include username and password if they are present in URL.
+
+    mydb=# select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
+      dlurlserver  
+    ---------------
+     www.github.io
+    (1 row)
+
+    mydb=# select dlurlserver('https://user:password@www.github.io:1234/foo/bar');
+      dlurlserver  
+    ---------------
+     www.github.io
+    (1 row)
+
+### dlcomment(datalink)
+Use `dlcomment()` function to get datalink comment.
+
+    mydb=# select dlcomment(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar','URL','A comment...'));
+      dlcomment 
+    --------------
+     A comment...
+    (1 row)
+
+This function is not in SQL standard, but is available in other implementations.
+
+### dllinktype(datalink)
+Use `dllinktype()` function to get datalink type, as specified or determined in `dlvalue()`.
+
+    mydb=# select dllinktype(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    dllinktype 
+    ------------
+     URL
+    (1 row)
+
+    mydb=# select dllinktype(dlvalue('/var/www/datalink/test1.txt'));
+    dllinktype 
+    ------------
+     FS
+    (1 row)
+
+    mydb=# select dllinktype(dlvalue('test1.txt','www'));
+    dllinktype 
+    ------------
+    www
+    (1 row)
+
+This function is not in SQL standard, but is available in other implementations.
+
+
 Additional functions
 ====================
 These are all in `datalink` schema.
@@ -85,5 +211,6 @@ Search for a string in text file, returns offset where found.
 Return substring of length from a file starting with offset.
 
 
-
-
+Next
+----
+[Referential integrity](integrity.md)

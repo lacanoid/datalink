@@ -58,3 +58,4 @@ when `on_unlink` is `DELETE` then then file is deleted by the datalinker.
 Files created for recovery are not deleted.
 
 
+Next: [Configuration](configuration.md)

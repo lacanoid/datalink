@@ -25,12 +25,19 @@ This option does not require a datalinker.
 
 When `read_access` is `DB` then file owner and mode are changed to a value, 
 configured in the datalinker, normally `postgres.www-data` and `0440`.
-This makes file effectively owned and readable by the database server.
+This makes file effectively owned and readable by the database server and also
+the web server (apache).
 
-In addition, if owner (of the table containing the datalink column) is equal to an
-existing OS user, it is set as the owner of the file thus making it readable to 
+Also provided is a mod-perl handler for apache web server, which authenticates
+access for filenames containing read access tokens. This lets you serve links to
+your files returned by the `DLURLCOMPLETE` function.
+
+Datalinker option $opt_O: if owner (of the table containing the datalink column) 
+is equal to an existing OS user, it is set as the owner of the file thus making it readable to 
 that user. This is meant to work with Postgres *ident* authetication on Debian 
 linux and elsewhere, where database user is same as OS user.
 
 
-Next: [Point in time recovery](recovery.md)
+Next
+----
+[Point in time recovery](recovery.md)
