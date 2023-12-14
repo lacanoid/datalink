@@ -1,17 +1,8 @@
 #!/usr/bin/perl
 # pg_datalinker - SQL/MED datalinker daemon
-#
-### BEGIN INIT INFO
-# Provides:          pg_datalinker
-# Required-Start:    postgresql $remote_fs $syslog $time
-# Required-Stop:     postgresql $remote_fs $syslog $time
-# Default-Start:     2 3 4 5
-# Default-Stop:
-# Short-Description: SQL/MED datalinker daemon
-# Description:       pg_datalinker is a daemon and a tool
-#                    to manage SQL/MED datalinks for Postgresql
-### END INIT INFO
+# version 0.23 by lacanoid@ljudmila.org
 
+our $version="0.23.20231214";
 
 use strict;
 use DBI;
@@ -31,9 +22,9 @@ our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
+our $opt_r = 10; # when fatal error wait this long then restarts
 our $opt_e = 1;  # echo commands
-
-our $version="0.23.20231102";
+our $macOS = 0;  # running on macOS
 
 getopt('l');
 
@@ -48,18 +39,12 @@ our %config = (
     prefix => ["/var/www/datalink/"]
 );
 
-my $operation=shift @ARGV;
+my ($operation)=@ARGV;
 if($operation eq 'init') { config_init(); exit; }
 config_load();
 if($operation eq 'list') { config_list(); exit; }
-if($operation eq 'add') { config_add(@ARGV[0]); exit; }
-if($operation eq 'del') { config_del(@ARGV[0]); exit; }
-
-if($operation eq 'start') { daemon_start(); exit; }
-if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
-if($operation eq 'stop') { daemon_stop(); exit; }
-if($operation eq 'status') { daemon_status(); exit; }
-if($operation eq 'log') { daemon_log(); exit; }
+if($operation eq 'add') { config_add(@ARGV[1]); exit; }
+if($operation eq 'del') { config_del(@ARGV[1]); exit; }
 
 if($operation eq 'run') { main(); exit; }
 
@@ -69,11 +54,7 @@ Commands:
     add    - add volume
     del    - delete volume
 
-    start  - start datalinker
-    stop   - stop datalinker
-    status - check if datalinker is running
     run    - run datalinker interactively
-    log    - monitor log
 };
 
 exit 1;
@@ -128,6 +109,8 @@ sub main() {
     );
 
     #---------------------------------------
+
+    log_msg("VERSION",$version);
 
     $dbmeta = $dbh->selectrow_hashref(qq{
      select current_database() as datname,
@@ -472,12 +455,14 @@ sub file_backup_restore {
 # block file for writing
 sub file_block {
     my ($path,$opt)=@_;
-    sys("chattr","+i",$path);
+    if($macOS) { sys("chflags","schg",$path); } 
+    else { sys("chattr","+i",$path); }
 }
 # unblock file for writing
 sub file_unblock {
     my ($path,$opt)=@_;
-    sys("chattr","-i",$path);
+    if($macOS) { sys("chflags","noschg",$path); } 
+    else { sys("chattr","-i",$path); }
 }
 # read a file into lines
 sub file_get_lines {
@@ -485,9 +470,8 @@ sub file_get_lines {
     if(open(Fg,'<',$path)) {
         chomp(my @lines = <Fg>); close(Fg);
         return @lines;
-    } else {
-        log_err("CANT READ","Cannot read file:$path");
-    }
+    } 
+    else { log_err("CANT READ","Cannot read file:$path"); }
 }
 # write a file
 sub file_put {
@@ -589,11 +573,21 @@ sub log_err {
 sub log_fatal {
     my ($txt,$data)=@_;
     print STDERR "FATAL:$txt\n";
+    if ($DBI::err) {
+        print STDERR "DBI-ERROR:".$DBI::err.":".$DBI::errstr."\n";
+    }
     if($data) {
   	  print (ref($data)?$json->encode($data):$data)."\n";
     }
+    if($opt_r) {
+        print STDERR "RESTART:\n";
+        sleep $opt_r;
+        exec($^X, $0, @ARGV); # restart
+    }
     die;
 }
+
+########################################
 
 sub iso_timestamp {
   my ($time)=@_;
@@ -604,63 +598,4 @@ sub iso_timestamp {
     ($y,$m,$d,$hh24,$mi,$ss)=(gmtime)[5,4,3,2,1,0];
   }
   sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ",1900+$y,$m+1,$d,$hh24,$mi,$ss);
-}
-
-########################################
-# daemon stuff
-
-our $NAME;
-our $DAEMON;
-our $DAEMON_LOG;
-our $DAEMON_PID;
-our $DAEMON_RUNNING=0;
-our @DAEMON_ARGS;
-
-sub daemon_setup {
-    $NAME=$config{appname};
-    $DAEMON = `realpath $0`;
-    chomp($DAEMON);
-    $DAEMON_LOG="/var/log/postgresql/$NAME.log";
-    $DAEMON_PID="/var/run/postgresql/$NAME.pid";
-}
-
-sub daemon_start {
-    $opt_e = 0;
-    daemon_setup();
-    daemon_stop();
-    sys("start-stop-daemon","--start",
-        "--name",$NAME,
-        "--pidfile",$DAEMON_PID,"--make-pidfile",
-        "--background","--no-close",
-        "--exec","$DAEMON","--", 
-        "-l",$DAEMON_LOG,"run");
-}
-
-sub daemon_stop {
-    $opt_e = 0;
-    daemon_setup();
-    sys("start-stop-daemon","--stop",
-        "--pidfile",$DAEMON_PID,"--remove-pidfile",
-        "--name",$NAME);
-}
-
-sub daemon_status {
-    $opt_e = 0;
-    daemon_setup();
-    sys("start-stop-daemon","--status",
-        "--pidfile",$DAEMON_PID,
-         "--name",$NAME);
-    if($sysex) { 
-        $DAEMON_RUNNING = 0;
-        log_msg('STOPPED');
-    } else {
-        $DAEMON_RUNNING = 1;
-        log_msg('RUNNING');
-    }
-}
-
-sub daemon_log {
-    $opt_e = 0;
-    daemon_setup();
-    if(-f $DAEMON_LOG) { sys("less","+F",$DAEMON_LOG); }
 }

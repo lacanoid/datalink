@@ -63,9 +63,9 @@ Missing features:
 - SQL/MED function DLREPLACECONTENT
 
 This extension uses a number of advanced Postgres features for implementation,
-including types, transactions, jsonb, event and instead-of triggers, listen/notify, file_fdw, plperlu...
+including types, transactions, jsonb, triggers, updatable views, listen/notify, file_fdw, plperlu...
 Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and perl.
-However also requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
+However it requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking. All these together provide a powerful file and web framework within SQL environment.
 
 Installation

@@ -2,6 +2,8 @@ Version 0.23
 ------------
 - more documentation
 - new `write_file()` functions
+- datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
+- improved systemd support
 
 Version 0.22
 ------------

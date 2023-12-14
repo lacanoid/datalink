@@ -75,6 +75,7 @@ Todo
 - dlvalue better error handling
 - make this work for non-superusers
 - datalink.file_stat() execute permissions
+- remove requirements to have `root` (pg_datalinker DB user) be a superuser
 
 Maybe
 =====

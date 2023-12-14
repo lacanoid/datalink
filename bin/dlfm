@@ -1,4 +1,16 @@
 #!/usr/bin/perl
+# pg_datalinker - SQL/MED datalinker daemon
+#
+### BEGIN INIT INFO
+# Provides:          pg_datalinker
+# Required-Start:    postgresql $remote_fs $syslog $time
+# Required-Stop:     postgresql $remote_fs $syslog $time
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: SQL/MED datalinker daemon
+# Description:       pg_datalinker is a daemon and a tool
+#                    to manage SQL/MED datalinks for Postgresql
+### END INIT INFO
 
 use strict;
 use DBI;
@@ -21,6 +33,7 @@ our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
 our $version="0.18.20220618";
+our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
 
@@ -29,8 +42,6 @@ getopt('l');
 our %config = (
     appname => 'pg_datalinker',
     dsn => 'dbi:Pg:service=datalinker',
-    db_owner => 'postgres.postgres',
-    db_mode => '0440',
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => ["/var/www/datalink/"]
 );
@@ -365,7 +376,7 @@ our @DAEMON_ARGS;
 
 sub daemon_setup {
     $NAME=$config{appname};
-    $DAEMON = `realpath $0`;
+    $DAEMON = "/usr/sbin/pg_datalinker";
     chomp($DAEMON);
     $DAEMON_LOG="/var/log/postgresql/$NAME.log";
     $DAEMON_PID="/var/run/postgresql/$NAME.pid";
@@ -375,34 +386,46 @@ sub daemon_start {
     $opt_e = 0;
     daemon_setup();
     daemon_stop();
-    sys("start-stop-daemon","--start",
-        "--name",$NAME,
-        "--pidfile",$DAEMON_PID,"--make-pidfile",
-        "--background","--no-close",
-        "--exec","$DAEMON","--", 
-        "-l",$DAEMON_LOG,"run");
+    if($systemctl) {
+        sys("systemctl start $NAME");
+    } else {
+        sys("start-stop-daemon","--start",
+            "--name",$NAME,
+            "--pidfile",$DAEMON_PID,"--make-pidfile",
+            "--background","--no-close",
+            "--exec","$DAEMON","--", 
+            "-l",$DAEMON_LOG,"run");
+    }
 }
 
 sub daemon_stop {
     $opt_e = 0;
     daemon_setup();
-    sys("start-stop-daemon","--stop",
-        "--pidfile",$DAEMON_PID,"--remove-pidfile",
-        "--name",$NAME);
+    if($systemctl) {
+        sys("systemctl stop $NAME");
+    } else {
+        sys("start-stop-daemon","--stop",
+            "--pidfile",$DAEMON_PID,"--remove-pidfile",
+            "--name",$NAME);
+    }
 }
 
 sub daemon_status {
     $opt_e = 0;
     daemon_setup();
-    sys("start-stop-daemon","--status",
-        "--pidfile",$DAEMON_PID,
-         "--name",$NAME);
-    if($sysex) { 
-        $DAEMON_RUNNING = 0;
-        log_msg('STOPPED');
+    if($systemctl) {
+        sys("systemctl status $NAME");
     } else {
-        $DAEMON_RUNNING = 1;
-        log_msg('RUNNING');
+        sys("start-stop-daemon","--status",
+            "--pidfile",$DAEMON_PID,
+            "--name",$NAME);
+        if($sysex) { 
+            $DAEMON_RUNNING = 0;
+            log_msg('STOPPED');
+        } else {
+            $DAEMON_RUNNING = 1;
+            log_msg('RUNNING');
+        }
     }
 }
 
