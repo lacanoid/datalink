@@ -58,6 +58,7 @@ if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
 if($operation eq 'stop') { daemon_stop(); exit; }
 if($operation eq 'status') { daemon_status(); exit; }
 if($operation eq 'log') { daemon_log(); exit; }
+if($operation eq 'see') { daemon_see(); exit; }
 
 if($operation eq 'run') { main(); exit; }
 
@@ -387,7 +388,7 @@ sub daemon_start {
     daemon_setup();
     daemon_stop();
     if($systemctl) {
-        sys("systemctl start $NAME");
+        sys("systemctl","start",$NAME);
     } else {
         sys("start-stop-daemon","--start",
             "--name",$NAME,
@@ -402,7 +403,7 @@ sub daemon_stop {
     $opt_e = 0;
     daemon_setup();
     if($systemctl) {
-        sys("systemctl stop $NAME");
+        sys("systemctl","stop",$NAME);
     } else {
         sys("start-stop-daemon","--stop",
             "--pidfile",$DAEMON_PID,"--remove-pidfile",
@@ -414,7 +415,7 @@ sub daemon_status {
     $opt_e = 0;
     daemon_setup();
     if($systemctl) {
-        sys("systemctl status $NAME");
+        sys("systemctl","status",$NAME);
     } else {
         sys("start-stop-daemon","--status",
             "--pidfile",$DAEMON_PID,
@@ -433,4 +434,9 @@ sub daemon_log {
     $opt_e = 0;
     daemon_setup();
     if(-f $DAEMON_LOG) { sys("less","+F",$DAEMON_LOG); }
+}
+
+sub daemon_see {
+    $opt_e = 0;
+    sys("ps aux | grep pg_datalinker | grep -v grep");
 }

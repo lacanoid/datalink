@@ -45,10 +45,10 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | curl_get(text,boolean)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | dl_file_stat(file_path)                                                                      | plperlu  | Return info record from stat(2)
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
- datalink     | file_stat(file_path)                                                                         | plperlu  | Return info record from stat(2)
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
  datalink     | filegetname(datalink)                                                                        | sql      | BFILE - Returns directory name and filename for a datalink
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
@@ -83,8 +83,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
+ datalink     | filegetdirectory(file_path)                                                                  | sql      | 
  datalink     | filepath(datalink)                                                                           | plpgsql  | 
- datalink     | getdirectory(file_path)                                                                      | sql      | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 

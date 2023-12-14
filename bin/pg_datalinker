@@ -33,7 +33,7 @@ getopt('l');
 our %config = (
     appname => 'pg_datalinker',
     dsn => 'dbi:Pg:service=datalinker',
-    db_owner => 'postgres.www-data',
+    db_owner => 'postgres:www-data',
     db_mode => '0440',
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => ["/var/www/datalink/"]

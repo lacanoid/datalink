@@ -385,7 +385,7 @@ grant select on linked_files to public;
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.file_stat(file_path file_path,
+CREATE OR REPLACE FUNCTION datalink.dl_file_stat(file_path file_path,
   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
   OUT uid integer, OUT gid integer,
   OUT rdev integer, OUT size numeric, 
@@ -418,7 +418,7 @@ return {
 };
 $function$;
 
-COMMENT ON FUNCTION datalink.file_stat(file_path) IS 'Return info record from stat(2)';
+COMMENT ON FUNCTION datalink.dl_file_stat(file_path) IS 'Return info record from stat(2)';
 
 ---------------------------------------------------
 -- link a file to SQL
@@ -447,9 +447,9 @@ begin
                     ;
    end if;
 -- end if;
- fstat := row_to_json(datalink.file_stat(file_path))::jsonb;
+ fstat := row_to_json(datalink.dl_file_stat(file_path))::jsonb;
  if fstat is null then
-   fstat := row_to_json(datalink.file_stat(file_path||'#'||my_token))::jsonb;
+   fstat := row_to_json(datalink.dl_file_stat(file_path||'#'||my_token))::jsonb;
  end if;
  if fstat is null then
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
@@ -1035,7 +1035,7 @@ begin
       r := datalink.curl_get(url,true);
     end if;
     if not r.ok and dlurlscheme(link) = 'FILE' then
-      r.ok := not (datalink.file_stat(dlurlpathonly(link))).inode is null;
+      r.ok := not (datalink.dl_file_stat(dlurlpathonly(link))).inode is null;
     end if;
 
     if not r.ok then
@@ -1761,9 +1761,9 @@ create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
   p := dlurlpathwrite($1);
-  if (datalink.file_stat(p)).size is not null then return p; end if;
+  if (datalink.dl_file_stat(p)).size is not null then return p; end if;
   p := dlurlpathonly($1);
-  if (datalink.file_stat(p)).size is not null then return p; end if;
+  if (datalink.dl_file_stat(p)).size is not null then return p; end if;
   return null;
 end
 $$ language plpgsql;
@@ -1790,7 +1790,7 @@ comment on function filegetname(datalink) is
   'BFILE - Returns directory name and filename for a datalink';
 
 create or replace function getlength(datalink) returns bigint as 
-$$ select (datalink.file_stat(datalink.filepath($1))).size::bigint $$ language sql;
+$$ select (datalink.dl_file_stat(datalink.filepath($1))).size::bigint $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
 
@@ -1875,7 +1875,7 @@ CREATE TRIGGER "directory_touch"
 INSTEAD OF UPDATE OR INSERT ON datalink.directory FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
-create or replace function getdirectory(file_path)
+create or replace function filegetdirectory(file_path)
 returns directory as $$
   select * 
     from datalink.directory 
@@ -1961,7 +1961,7 @@ CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.fi
 select (current_setting('is_superuser')::boolean and $4) or exists (
   select dirpath from datalink.access 
    where privilege_type=upper($3)
-     and dirpath = (datalink.getdirectory ($2)).dirpath
+     and dirpath = (datalink.filegetdirectory ($2)).dirpath
      and (grantee = 'PUBLIC' or grantee = $1::text)
 )
 $$ LANGUAGE sql;
@@ -2038,7 +2038,7 @@ WITH f AS (
             lf.attname,
             lf.owner,
             lf.err,
-            (datalink.file_stat(lf.path)).size AS size
+            (datalink.dl_file_stat(lf.path)).size AS size
            FROM datalink.dl_prfx p
           LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
         )
