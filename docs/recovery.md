@@ -13,7 +13,7 @@ such as one returned by `DLURLPATHONLY()`,
 for example `/var/www/datalink.test3.txt`.
 
 Let `backup_file` be a corresponding file path for a datalink including token, 
-such as one returned by `DLURLPATH()`.
+such as one returned by `DLURLPATHWRITE()`.
 for example `/var/www/datalink.test3.txt#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
 
 The backup/restore works as follows:
@@ -45,6 +45,7 @@ Note that this is true link, not a symbolic one.
 
 4. If neither file exists, then it is error. This is checked for in advance in `datalink.file_link()` function.
 
+
 On unlink
 ---------
 
@@ -58,4 +59,6 @@ when `on_unlink` is `DELETE` then then file is deleted by the datalinker.
 Files created for recovery are not deleted.
 
 
-Next: [Configuration](configuration.md)
+Next
+----
+[Configuration](configuration.md)
