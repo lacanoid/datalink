@@ -27,10 +27,11 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
     CREATE TABLE
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
+
     mydb=# select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
-     file:///var/www/datalink/1342bf5a-4b01-455d-a056-5624d90d4a49;test1.txt
+     file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
 ### dlurlcompleteonly(datalink)
@@ -48,6 +49,12 @@ Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never 
      http://www.github.io/a/b/e
     (1 row)
 
+    postgres=# select dlurlcompleteonly(link) from t;
+             dlurlcompleteonly          
+    ------------------------------------
+     file:///var/www/datalink/test1.txt
+    (1 row)
+
 ### dlurlpath(datalink)
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
@@ -63,6 +70,12 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
      /foo/bar
     (1 row)
 
+    mydb=# select dlurlpath(link) from t;
+                                dlurlpath                             
+    ------------------------------------------------------------------
+     /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+    (1 row)
+
 ### dlurlpathonly(datalink)
 Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
 
@@ -76,6 +89,12 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      dlurlpathonly 
     ---------------
      /foo/bar
+    (1 row)
+
+    mydb=# select dlurlpathonly(link) from t;
+            dlurlpathonly        
+    -----------------------------
+     /var/www/datalink/test1.txt
     (1 row)
 
 ### dlurlscheme(datalink)
