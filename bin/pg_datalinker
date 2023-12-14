@@ -504,8 +504,7 @@ sub sys {
     my @args = @_;
     if($opt_e) { log_msg("SYS",[@args]); }
     $sysex = undef; $syserr=undef;
-    system(@args) == 0
-	or log_err('SYSFAIL',"system @args failed: $?");
+    system(@args);
 
     if ($? == -1) {
 	    $syserr = "failed to execute: $!";
@@ -521,7 +520,7 @@ sub sys {
 	    }
         $sysex = $ex;
     }
-    if($syserr) { log_err('SYSERR',$syserr); }
+    if($?) { log_err('SYSERR',"@args failed: $?"."; ".$syserr); }
 }
 
 ########################################

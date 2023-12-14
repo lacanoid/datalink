@@ -64,15 +64,17 @@ if($operation eq 'run') { main(); exit; }
 
 print STDERR qq{Usage: $0 <command> [arguments...]
 Commands:
-    list   - list volumes
-    add    - add volume
-    del    - delete volume
+    list           - list all registered file systems (directories)
+    add            - register a file system (directory)
+    del            - unregister a file system (directory)
 
-    start  - start datalinker
-    stop   - stop datalinker
-    status - check if datalinker is running
-    run    - run datalinker interactively
-    log    - monitor log
+    start          - starts the file manager
+    stop           - stop the file manager
+    restart        - restart file manager
+    status         - check file manager status
+    see            - shows the file manager processes running on the system
+    run            - run file manager interactively
+    log            - monitor file manager log
 
 Possible future commands:
     add_db         - register a database
@@ -86,14 +88,10 @@ Possible future commands:
     list databases - list all registered databases
     list prefixes  - list all registered file systems (directories)
     refresh key    - refresh read access key
-    restart        - restart file manager
     retrieve       - display the status of files managed by the file manager
-    see            - shows the file manager processes running on the system
     setup          - creates the datalink database and extension
     shutdown       - shutdown the file manager cleanly
-    start          - starts the file manager
     startdbm       - starts the datalink database manager
-    stop           - stop the file manager
     stopdbm        - stop the datalink database manager
 };
 
@@ -302,8 +300,7 @@ sub sys {
     my @args = @_;
     if($opt_e) { log_msg("SYS",[@args]); }
     $sysex = undef; $syserr=undef;
-    system(@args) == 0
-	or log_err('SYSFAIL',"system @args failed: $?");
+    system(@args);
 
     if ($? == -1) {
 	    $syserr = "failed to execute: $!";
@@ -319,7 +316,7 @@ sub sys {
 	    }
         $sysex = $ex;
     }
-    if($syserr) { log_err('SYSERR',$syserr); }
+    if($syserr) { log_err('SYSERR',"@args failed: $?"."\n".$syserr); }
 }
 
 ########################################
