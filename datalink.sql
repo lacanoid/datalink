@@ -111,12 +111,12 @@ grant select on link_control_options to public;
 ---------------------------------------------------
 
 CREATE FUNCTION dl_lco(
-	link_control dl_link_control DEFAULT 'NO'::dl_link_control, 
-	integrity dl_integrity DEFAULT 'NONE'::dl_integrity, 
-	read_access dl_read_access DEFAULT 'FS'::dl_read_access, 
-	write_access dl_write_access DEFAULT 'FS'::dl_write_access, 
-	recovery dl_recovery DEFAULT 'NO'::dl_recovery, 
-	on_unlink dl_on_unlink DEFAULT 'NONE'::dl_on_unlink) 
+  link_control dl_link_control DEFAULT 'NO'::dl_link_control, 
+  integrity dl_integrity DEFAULT 'NONE'::dl_integrity, 
+  read_access dl_read_access DEFAULT 'FS'::dl_read_access, 
+  write_access dl_write_access DEFAULT 'FS'::dl_write_access, 
+  recovery dl_recovery DEFAULT 'NO'::dl_recovery, 
+  on_unlink dl_on_unlink DEFAULT 'NONE'::dl_on_unlink) 
 RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
@@ -296,7 +296,7 @@ WITH
            FROM pg_trigger t0
            JOIN pg_class c0_1 ON t0.tgrelid = c0_1.oid
           WHERE t0.tgname = '~RI_DatalinkTrigger'::name
-	    AND datalink.has_class_privilege(c0_1.oid)
+      AND datalink.has_class_privilege(c0_1.oid)
  ),
  classes AS (
          SELECT dl_columns.regclass,
@@ -334,7 +334,7 @@ SELECT
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
                ||  regclass::text) 
                || E' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();\n', '')
-	       ||
+         ||
      COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON '
                ||  regclass::text) 
                || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();', '') 
@@ -424,8 +424,8 @@ COMMENT ON FUNCTION datalink.dl_file_stat(file_path) IS 'Return info record from
 -- link a file to SQL
 create function dl_file_link(file_path file_path,
                           my_token dl_token,
-			                    my_lco dl_lco,
-			                    my_regclass regclass,my_attname name)
+                          my_lco dl_lco,
+                          my_regclass regclass,my_attname name)
 returns boolean as
 $$
 declare
@@ -543,15 +543,15 @@ begin
   where path = file_path
     for update of dl_linked_files;
  if not found then
-      raise exception 'DATALINK EXCEPTION - external file not linked' 
-            using errcode = 'HW001', 
-                  detail = file_path;
+        raise exception 'DATALINK EXCEPTION - external file not linked' 
+        using errcode = 'HW001', 
+              detail = file_path;
  else
   if r.state = 'LINK' then
    update datalink.dl_linked_files
       set state = 'UNLINK',
           token = cast(info->>'b' as datalink.dl_token),
-	        lco   = cast(info->>'lco' as datalink.dl_lco)
+          lco   = cast(info->>'lco' as datalink.dl_lco)
     where path  = file_path and info is not null
       and state = 'LINK';
 
@@ -769,7 +769,7 @@ begin
              in_extension
         from pg_event_trigger_ddl_commands()
     )
-  	select json_agg(row_to_json(info)) 
+    select json_agg(row_to_json(info)) 
        from info 
        into js;
 --    RAISE NOTICE 'ALTER TABLE %',js;
@@ -782,7 +782,7 @@ begin
       ) then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-	          detail = format('Invalid link control options'),
+            detail = format('Invalid link control options'),
             hint = 'see table datalink.link_control_options for valid link control options';
    end if;
  end if; -- tg_tag in (...)
@@ -795,7 +795,7 @@ begin
     where attrelid in 
       (select tdo.objid
          from pg_event_trigger_dropped_objects() tdo
-	where object_type = 'table'
+  where object_type = 'table'
        )
   loop
     perform datalink.dl_file_unlink(obj.path);
@@ -806,10 +806,10 @@ begin
     select *
       from
       (select objid::regclass as regclass,
-	      objsubid as attnum,
+        objsubid as attnum,
               address_names[3] as attname
          from pg_event_trigger_dropped_objects()
-	where object_type = 'table column'
+  where object_type = 'table column'
        ) as tdo
       join datalink.dl_linked_files f on f.attrelid=tdo.regclass and f.attnum=tdo.attnum
   loop
@@ -1343,7 +1343,7 @@ begin
  if not found then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-	    detail = 'Not a DATALINK column';
+      detail = 'Not a DATALINK column';
  end if; 
 
  select * into my_options
@@ -1353,7 +1353,7 @@ begin
  if not found then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-	          detail = format('Invalid link control options (%s)',my_lco),
+            detail = format('Invalid link control options (%s)',my_lco),
                   hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
@@ -1364,8 +1364,8 @@ begin
    if n > 0 then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-	          detail = format('Can''t change link control options; %s non-null values present in column "%s"',
-		                  n,my_column_name),
+            detail = format('Can''t change link control options; %s non-null values present in column "%s"',
+                      n,my_column_name),
                   hint = format('Perhaps you can "truncate %s"',my_regclass);
    end if;
 
@@ -1497,7 +1497,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
           then datalink.uri_get(
             datalink.url_insight($1->>'a',($1->>'b')::datalink.dl_token,safer),'path')
           else coalesce(datalink.filepath($1),
-	                format('%s%s',datalink.uri_get($1->>'a','path'),
+                  format('%s%s',datalink.uri_get($1->>'a','path'),
                         '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))))
           end
 $function$;
@@ -1582,7 +1582,7 @@ create cast (datalink as uri) with function datalink.dl_url;
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
 
 CREATE FOREIGN TABLE dl_prfx (
-	prefix text NULL
+  prefix text NULL
 )
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');

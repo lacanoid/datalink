@@ -31,6 +31,8 @@ Wanted
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - better documentation
+- better handling of immutable files
+- apache mod_perl directory autoconfigurator
 
 Issues
 ======
@@ -61,6 +63,7 @@ Todo
 - ✔︎ optimize table triggers (do not install them if mco=0)
 - ✔︎ throw warnings/errors if datalinker is not running when it should
 - additional permission checks for delete, references
+- consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
 - handle // urls and paths better
 - datalinker: use config file
@@ -74,9 +77,10 @@ Todo
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
 - make this work for non-superusers
-- datalink.file_stat() execute permissions
-- remove requirements to have `root` (pg_datalinker DB user) be a superuser
-- add copy and move file operations
+- datalink.dl_file_stat() execute permissions
+- remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
+- add copy file and move file operations
+- comment and token diffusion in dlvalue()
 
 Maybe
 =====
