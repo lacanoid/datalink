@@ -39,7 +39,7 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by ussing atttypmod (ie `datalink(122)`)
-- Directory based permission management for file access control
+- Directory and role based permission management for file system access control
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)
 - PlPerlu interface `curl_get()` to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
