@@ -22,9 +22,10 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
      http://www.github.io/a/b/e
     (1 row)
 
-    mydb=# create table t ( link datalink(122) ); insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
+    mydb=# create table t ( link datalink(122) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
+    mydb=# insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
 

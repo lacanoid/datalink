@@ -27,7 +27,8 @@ It is implemented in three main components:
 - datalink file manager deamon (DLFM) [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), 
 which handles all file manipulations. The extension can be used without a daemon, but this disables some of the functionality.
 - datalink file filter (DLFF), which applies READ ACCESS DB policy to file accesses. Currently, this is available as mod_perl handler for Apache2 web server.
-It is currently not implemented for file system access. 
+
+It is currently not implemented for direct file system access (using libc). Perhaps FUSE filesystem might help here. 
 It is implemented in SQL environment file functions provided by the datalink extension.
 
 Currently, it implements the following:
@@ -38,7 +39,7 @@ Currently, it implements the following:
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
 - DLLINKTYPE function
 - DLCOMMENT function
-- Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by ussing atttypmod (ie `datalink(122)`)
+- Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (ie `datalink(122)`)
 - Directory and role based permission management for file system access control
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)

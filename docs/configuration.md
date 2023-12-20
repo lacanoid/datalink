@@ -20,12 +20,12 @@ SQL extension
 ### prefixes
 A list of directories where linked files are allowed.
 Normally found in `/etc/postgresql-common/pg_datalinker.prefix`.
-These are set by the system administrator (root).
+These are managed by the system administrator (root).
 
 ### directories
 Updatable view `datalink.directories` is a set directories, where datalinks are to be located. 
+They typically mirror (and are limited to) prefixes. They are managed by the database administrator.
 Several additional options can be set, such as directory short name, permissions and url mapping.
-These are set by the database adnimistrator.
 
 ### directory access privileges
 Exploded permissions for directories are in updatable view `datalink.access`. 
