@@ -28,4 +28,5 @@ in file `~/.pg_service.conf`.
 Files in state `LINK` go into state `LINKED` when successfully linked otherwise they go into state `ERROR`.
 
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
+If `ON_UNLINK` is `DELETE` then the files are also deleted when unlinked.
 
