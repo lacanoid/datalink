@@ -1770,9 +1770,9 @@ $$ language plpgsql;
 
 create or replace function fileexists(datalink) returns boolean as $$
 select case 
-       when dlurlscheme($1)='FILE' and dlurlserver($1) is null 
+       when $1->>'a' ilike 'file:///%'
        then datalink.filepath($1) is not null
-       else (datalink.curl_get(dlurlcomplete($1),true)).ok
+       else (datalink.curl_get(dlurlcomplete($1),true)).rc between 200 and 299
        end
 $$ language sql;
 comment on function fileexists(datalink) is 

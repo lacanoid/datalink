@@ -75,8 +75,9 @@ Commands:
     see            - shows the file manager processes running on the system
     run            - run file manager interactively
     log            - monitor file manager log
+};
 
-Possible future commands:
+my $future = qq{Possible future commands:
     add_db         - register a database
     add_prefix     - register a file system (directory)
     bind           - bind file manager to a database
@@ -272,8 +273,10 @@ sub file_get_lines {
 # write a file
 sub file_put {
     my ($path,$contents)=@_;
-    if(open(Fp,'>',$path)) {
+    my $path1=$path."$new$";
+    if(open(Fp,'>',$path1)) {
         print Fp $contents; close(Fp);
+        rename $path1,$path;
     } else {
         log_err("CANT WRITE","Cannot write to file:$path");
     }
