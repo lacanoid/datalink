@@ -74,6 +74,7 @@ Todo
 - datalinker: don't die so easily
 - function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
+- better file handling wrt. immutable state
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - dlvalue better error handling
 - make this work for non-superusers
