@@ -7,6 +7,7 @@
 SET client_min_messages = warning;
 
 COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
+GRANT USAGE ON SCHEMA datalink TO PUBLIC;
 
 ---------------------------------------------------
 -- url type
@@ -385,7 +386,7 @@ grant select on linked_files to public;
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.dl_file_stat(file_path file_path,
+CREATE OR REPLACE FUNCTION datalink.stat(file_path file_path,
   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
   OUT uid integer, OUT gid integer,
   OUT rdev integer, OUT size numeric, 
@@ -418,7 +419,18 @@ return {
 };
 $function$;
 
-COMMENT ON FUNCTION datalink.dl_file_stat(file_path) IS 'Return info record from stat(2)';
+COMMENT ON FUNCTION datalink.stat(file_path) IS 'Return info record from stat(2)';
+
+create or replace function filepath(datalink) returns text as $$
+declare p text;
+begin
+  p := dlurlpathwrite($1);
+  if (datalink.stat(p)).size is not null then return p; end if;
+  p := dlurlpathonly($1);
+  if (datalink.stat(p)).size is not null then return p; end if;
+  return null;
+end
+$$ language plpgsql;
 
 ---------------------------------------------------
 -- link a file to SQL
@@ -447,9 +459,9 @@ begin
                     ;
    end if;
 -- end if;
- fstat := row_to_json(datalink.dl_file_stat(file_path))::jsonb;
+ fstat := row_to_json(datalink.stat(file_path))::jsonb;
  if fstat is null then
-   fstat := row_to_json(datalink.dl_file_stat(file_path||'#'||my_token))::jsonb;
+   fstat := row_to_json(datalink.stat(file_path||'#'||my_token))::jsonb;
  end if;
  if fstat is null then
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
@@ -1035,7 +1047,7 @@ begin
       r := datalink.curl_get(url,true);
     end if;
     if not r.ok and dlurlscheme(link) = 'FILE' then
-      r.ok := not (datalink.dl_file_stat(dlurlpathonly(link))).inode is null;
+      r.ok := not (datalink.stat(dlurlpathonly(link))).inode is null;
     end if;
 
     if not r.ok then
@@ -1393,8 +1405,6 @@ $_$;
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Modify link control options for a datalink column';
 
-grant usage on schema datalink to public;
-
 ---------------------------------------------------
 -- SQL/MED functions
 ---------------------------------------------------
@@ -1636,8 +1646,8 @@ begin
   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
   raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
   using errcode = 'HW007',
-        detail = format('no SELECT permission for directory'),
-        hint = format('add SELECT privilege for user %s to table DATALINK.ACCESS',myrole);
+        detail  = format('no SELECT permission for directory'),
+        hint    = format('add SELECT privilege for user %s to table DATALINK.ACCESS',myrole);
  end if;
  return null;
 end$$;
@@ -1757,17 +1767,6 @@ $function$;
 -- bfile compatibility functions
 ---------------------------------------------------
 
-create or replace function filepath(datalink) returns text as $$
-declare p text;
-begin
-  p := dlurlpathwrite($1);
-  if (datalink.dl_file_stat(p)).size is not null then return p; end if;
-  p := dlurlpathonly($1);
-  if (datalink.dl_file_stat(p)).size is not null then return p; end if;
-  return null;
-end
-$$ language plpgsql;
-
 create or replace function fileexists(datalink) returns boolean as $$
 select case 
        when $1->>'a' ilike 'file:///%'
@@ -1790,7 +1789,7 @@ comment on function filegetname(datalink) is
   'BFILE - Returns directory name and filename for a datalink';
 
 create or replace function getlength(datalink) returns bigint as 
-$$ select (datalink.dl_file_stat(datalink.filepath($1))).size::bigint $$ language sql;
+$$ select (datalink.stat(datalink.filepath($1))).size::bigint $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
 
@@ -2038,7 +2037,7 @@ WITH f AS (
             lf.attname,
             lf.owner,
             lf.err,
-            (datalink.dl_file_stat(lf.path)).size AS size
+            (datalink.stat(lf.path)).size AS size
            FROM datalink.dl_prfx p
           LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
         )

@@ -45,7 +45,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | curl_get(text,boolean)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
- datalink     | dl_file_stat(file_path)                                                                      | plperlu  | Return info record from stat(2)
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
@@ -61,6 +60,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream local file as lines of text
  datalink     | read_text(datalink,bigint,bigint)                                                            | plpgsql  | Read datalink contents as text
  datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read local file contents as text
+ datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
  datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI

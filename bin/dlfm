@@ -273,7 +273,8 @@ sub file_get_lines {
 # write a file
 sub file_put {
     my ($path,$contents)=@_;
-    my $path1=$path."$new$";
+
+    my $path1=$path.".$$";
     if(open(Fp,'>',$path1)) {
         print Fp $contents; close(Fp);
         rename $path1,$path;
