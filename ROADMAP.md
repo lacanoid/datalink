@@ -7,7 +7,7 @@ Wanted
 - ✔︎ systemd scripts for datalinker
 - ✔︎ install pg_wrapper for pg_datalinker
 - install init.d scripts 
-- Transactional File IO functions + file directories / bfile like fileio functionality
+- ✔︎ Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - ✔︎ datalink.write_text() function to create new files
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
@@ -23,6 +23,7 @@ Wanted
 - make `dlfm` command line tool for datalinker admin
 - add suspend/unsuspend operations to datalinker for better dump/restore (suspend=stop datalinker and restore all original file permissions)
 - make it possible to change LCO with datalink values present
+- add copy file and move file operations
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
@@ -30,9 +31,11 @@ Wanted
 - perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful for this? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
-- better documentation
+- better documentation (manual)
 - better handling of immutable files
 - apache mod_perl directory autoconfigurator
+- `curl_get(url,params json)` function which supplies query string from json
+- add `curl_post` and `curl_put` functions
 
 Issues
 ======
@@ -80,7 +83,6 @@ Todo
 - make this work for non-superusers
 - datalink.dl_file_stat() execute permissions
 - remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
-- add copy file and move file operations
 - comment and token diffusion in dlvalue()
 
 Maybe

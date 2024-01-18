@@ -832,6 +832,7 @@ end if;
 
 end
 $$;
+alter function dl_trigger_event() owner to postgres;
 
 ---------------------------------------------------
 
@@ -2024,32 +2025,34 @@ $$;
 -- volume usage statistics
 ---------------------------------------------------
 
-create view volume_usage as
-WITH f AS (
-         SELECT p.prefix,
-            lf.path,
-            lf.state,
-            lf.read_access,
-            lf.write_access,
-            lf.recovery,
-            lf.on_unlink,
-            lf.regclass,
-            lf.attname,
-            lf.owner,
-            lf.err,
-            (datalink.stat(lf.path)).size AS size
-           FROM datalink.dl_prfx p
-          LEFT JOIN datalink.linked_files lf ON lf.path::text ~~ (p.prefix || '%'::text)
+create view usage as
+WITH a AS (
+         SELECT (datalink.filegetname(dlvalue(linked_files.path::text))).dirname AS dirname,
+            (datalink.filegetname(dlvalue(linked_files.path::text))).filename AS filename,
+            (datalink.filegetname(dlvalue(linked_files.path::text))).dirpath AS dirpath,
+            (datalink.stat(linked_files.path)).size AS size,
+            linked_files.path,
+            linked_files.state,
+            linked_files.read_access,
+            linked_files.write_access,
+            linked_files.recovery,
+            linked_files.on_unlink,
+            linked_files.regclass,
+            linked_files.attname,
+            linked_files.owner,
+            linked_files.err
+           FROM datalink.linked_files
         )
- SELECT f.prefix,
-    count(f.path) AS files,
-    pg_size_pretty(sum(f.size)) AS size
-   FROM f
-  GROUP BY GROUPING SETS ((f.prefix), ())
-  ORDER BY f.prefix;
-COMMENT ON VIEW volume_usage
-     IS 'Disk volume usage statistics';
-grant select on volume_usage to public;
+ SELECT a.dirpath,
+    count(a.filename) FILTER (WHERE length(a.filename) > 0) AS count,
+    sum(a.size) FILTER (WHERE length(a.filename) > 0) AS size,
+    array_agg(DISTINCT a.state) AS states
+   FROM a
+  GROUP BY GROUPING SETS ((a.dirpath), ())
+  ORDER BY a.dirpath;
+COMMENT ON VIEW usage
+     IS 'Disk directory usage statistics';
+grant select on usage to public;
 
 ---------------------------------------------------
 -- play tables
