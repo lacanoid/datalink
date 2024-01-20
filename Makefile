@@ -5,6 +5,10 @@ extension_version = 0.23
 
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
+PROGRAM = dlcat
+INCLUDES = -I/usr/include/postgresql
+PG_LIBS = -L$(shell $(PG_CONFIG) --pkglibdir)
+BINDIR = $(shell $(PG_CONFIG) --bindir)
 
 REGRESS = init type sqlmed selective link linker uri user bfile
 REGRESS_OPTS = --inputdir=test
@@ -15,12 +19,15 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
 install: installextras
+	chown www-data:www-data ${BINDIR}/dlcat
+	chmod u+s,g+s ${BINDIR}/dlcat
 
 installcheck: testfiles
 
 installextras:
 	if [ ! -f /sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/pg_datalinker ; fi
 	if [ ! -f /sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/dlfm ; fi
+	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
 	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 apache/datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
@@ -43,6 +50,13 @@ dump:
 
 datalink--$(extension_version).sql: datalink.sql
 	cat $^ >$@
+
+dlcat: dlcat.c
+	$(CC) -Wall -Wextra -I`pg_config --includedir` dlcat.c -lpq -o dlcat
+	chown www-data:www-data dlcat
+	chmod 755 dlcat
+	chmod g+s dlcat
+	chmod u+s dlcat
 
 testall.sh:
 	pg_lsclusters -h | perl -ne '@_=split("\\s+",$$_); print "make PGPORT=$$_[2] PG_CONFIG=/usr/lib/postgresql/$$_[0]/bin/pg_config clean install installcheck\n";' > testall.sh

@@ -43,17 +43,12 @@ my ($operation)=@ARGV;
 if($operation eq 'init') { config_init(); exit; }
 config_load();
 if($operation eq 'list') { config_list(); exit; }
-if($operation eq 'add') { config_add(@ARGV[1]); exit; }
-if($operation eq 'del') { config_del(@ARGV[1]); exit; }
 
 if($operation eq 'run') { main(); exit; }
 
 print STDERR qq{Usage: $0 <command> [arguments...]
 Commands:
     list   - list volumes
-    add    - add volume
-    del    - delete volume
-
     run    - run datalinker interactively
 };
 
@@ -237,14 +232,6 @@ sub config_list {
     }
 }
 # config list [refixes]
-sub config_save {
-    if($config{prefix_file}) {
-        my $data=join("\n",@{$config{prefix}});
-        $data=~s|\n+|\n|g;
-        file_put($config{prefix_file},$data);
-    } else { log_fatal("config.prefix_file not set"); }
-}
-# config list [refixes]
 sub config_observe {
     if($config{prefix_file}) {
         if(file_observe($config{prefix_file})) { 
@@ -257,31 +244,6 @@ sub config_observe {
 sub config_init {
     if(-f $config{prefix_file}) {
         log_err("FILE EXISTS","Config file ".$config{prefix_file}." exists.");
-    } else {
-        config_save();
-    }
-}
-# create inital system configuration if there is none
-sub config_add {
-    my ($path)=@_;
-    $path =~ s|/+$||; if(!$path) {return}; $path="$path/";
-    if($path) {
-        if(! -d $path) { log_err("NOT DIR","Not a directory:$path"); return; }
-        for my $prefix (@{$config{prefix}}) {
-            if($path eq $prefix) { log_err("PDUPE","Prefix already exists"); return; }
-        }
-        push @{$config{prefix}}, $path;
-        config_save();
-    }
-}
-# create inital system configuration if there is none
-sub config_del {
-    my ($path)=@_;
-    foreach my $i (0 .. $#{$config{prefix}}) {
-        if($config{prefix}[$i] eq $path) {
-            delete ${$config{prefix}}[$i];
-            config_save();
-        }
     }
 }
 
@@ -399,12 +361,12 @@ sub file_restore {
     my $info = $opt->{info};
     log_debug('RESTORE',$opt);
     if($info) {
-	if(defined($info->{own})) {
-	    sys("chown",$info->{own},$path);
-	}
-	if(defined($info->{mod})) {
-	    sys("chmod",$info->{mod},$path);
-	}
+        if(defined($info->{own})) {
+            sys("chown",$info->{own},$path);
+        }
+        if(defined($info->{mod})) {
+            sys("chmod",$info->{mod},$path);
+        }
     }
 }
 
@@ -412,14 +374,14 @@ sub file_delete {
     my ($path,$opt)=@_;
     my $info = $opt->{info};
     if($info && $info->{del}) {
-	if($opt_D) {
-	    log_debug('DELETE',$opt);
-	    if(defined($info->{own})) {
-		    sys("rm",$path);
-	    }
-	} else {
-	    log_msg('NO DELETE',"Refusing to delete '$path'. Hint: use -D datalinker option.");
-	}
+        if($opt_D) {
+            log_debug('DELETE',$opt);
+            if(defined($info->{own})) {
+                sys("rm",$path);
+            }
+        } else {
+            log_msg('NO DELETE',"Refusing to delete '$path'. Hint: use -D datalinker option.");
+        }
     }
 }
 # does file have a backup copy
@@ -472,15 +434,6 @@ sub file_get_lines {
         return @lines;
     } 
     else { log_err("CANT READ","Cannot read file:$path"); }
-}
-# write a file
-sub file_put {
-    my ($path,$contents)=@_;
-    if(open(Fp,'>',$path)) {
-        print Fp $contents; close(Fp);
-    } else {
-        log_err("CANT WRITE","Cannot write to file:$path");
-    }
 }
 # watch file for changes
 our $file_stat = {};

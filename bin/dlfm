@@ -24,11 +24,7 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 #---------------------------------------
 
 our $opt_v = 0;  # verbosity
-our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
-our $opt_O = 1;  # for read_access='DB' set linked file owner to relowner if possible
-our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
-our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
@@ -37,11 +33,12 @@ our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
 
-#---------------------------------------
+our $SERVICE = 'service=datalinker';
 
+#---------------------------------------
 our %config = (
     appname => 'pg_datalinker',
-    dsn => 'dbi:Pg:service=datalinker',
+    dsn => 'dbi:Pg:'.$SERVICE,
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => ["/var/www/datalink/"]
 );
@@ -53,27 +50,35 @@ if($operation eq 'list') { config_list(); exit; }
 if($operation eq 'add') { config_add(@ARGV[0]); exit; }
 if($operation eq 'del') { config_del(@ARGV[0]); exit; }
 
+if($operation eq 'usage') { show_usage(); exit; }
+if($operation eq 'dirs') { show_dirs(); exit; }
+if($operation eq 'show') { show_version(); exit; }
+
 if($operation eq 'start') { daemon_start(); exit; }
 if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
 if($operation eq 'stop') { daemon_stop(); exit; }
 if($operation eq 'status') { daemon_status(); exit; }
 if($operation eq 'log') { daemon_log(); exit; }
-if($operation eq 'see') { daemon_see(); exit; }
+if($operation eq 'ps') { daemon_see(); exit; }
 
 if($operation eq 'run') { main(); exit; }
 
-print STDERR qq{Usage: $0 <command> [arguments...]
+print STDERR qq{Datalink file manager control program
+Usage: $0 <command> [arguments...]
 Commands:
     list           - list all registered file systems (directories)
     add            - register a file system (directory)
     del            - unregister a file system (directory)
 
+    dirs           - show directories
+    usage          - show directory usage
+
+    show           - show version and system configuration
     start          - starts the file manager
     stop           - stop the file manager
     restart        - restart file manager
     status         - check file manager status
-    see            - shows the file manager processes running on the system
-    run            - run file manager interactively
+    ps             - shows the file manager processes running on the system
     log            - monitor file manager log
 };
 
@@ -440,4 +445,27 @@ sub daemon_log {
 sub daemon_see {
     $opt_e = 0;
     sys("ps aux | grep pg_datalinker | grep -v grep");
+}
+
+########################################
+# psql stuff
+
+sub show_usage {
+    $opt_e = 0;
+    psql("select * from datalink.usage");
+}
+
+sub show_dirs {
+    $opt_e = 0;
+    psql("select * from datalink.directory");
+}
+
+sub show_version {
+    $opt_e = 0;
+    psql("select current_database() as database, current_setting('port') as port, user, extname,extowner::regrole,extversion from pg_extension where extname='datalink'");
+}
+
+sub psql {
+    my $q = shift;
+    sys('psql',$SERVICE,'-c',$q);
 }

@@ -4,6 +4,7 @@ Version 0.23
 - new `write_file()` functions
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
+- added preliminary `dlcat` shell command which (another DLFF)
 
 Version 0.22
 ------------
@@ -15,7 +16,7 @@ Version 0.22
 - functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate 
 - function `read_text` and `read_lines` now support read access tokens
 - new function `dl_authorize(file_path)` to authorize a file path 
-- added simple apache2 mod_perl module to authorize access
+- added simple apache2 mod_perl module to authorize access (DLFF)
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
 - load initial contents of `datalink.dl_directory` from file `/etc/postgresql-common/dl_directory` if it exists
 
