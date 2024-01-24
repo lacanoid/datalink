@@ -916,7 +916,7 @@ IS 'SQL/MED - Construct a DATALINK value';
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
-    AS $$select dlvalue(datalink.uri_set(dlurlcompleteonly($2)::uri,'src',$1),'URL',$3)$$;
+    AS $$select dlvalue(datalink.uri_set(($2->>'a')::uri,'src',$1),null::datalink.dl_linktype,$3)$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
@@ -2028,19 +2028,19 @@ $$;
 create view usage as
 WITH a AS (
          SELECT (datalink.filegetname(dlvalue(linked_files.path::text))).dirname AS dirname,
-            (datalink.filegetname(dlvalue(linked_files.path::text))).filename AS filename,
-            (datalink.filegetname(dlvalue(linked_files.path::text))).dirpath AS dirpath,
-            (datalink.stat(linked_files.path)).size AS size,
-            linked_files.path,
-            linked_files.state,
-            linked_files.read_access,
-            linked_files.write_access,
-            linked_files.recovery,
-            linked_files.on_unlink,
-            linked_files.regclass,
-            linked_files.attname,
-            linked_files.owner,
-            linked_files.err
+                (datalink.filegetname(dlvalue(linked_files.path::text))).filename AS filename,
+                (datalink.filegetname(dlvalue(linked_files.path::text))).dirpath AS dirpath,
+                (datalink.stat(linked_files.path)).size AS size,
+                linked_files.path,
+                linked_files.state,
+                linked_files.read_access,
+                linked_files.write_access,
+                linked_files.recovery,
+                linked_files.on_unlink,
+                linked_files.regclass,
+                linked_files.attname,
+                linked_files.owner,
+                linked_files.err
            FROM datalink.linked_files
         )
  SELECT a.dirpath,

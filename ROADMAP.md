@@ -18,9 +18,9 @@ Wanted
 - ✔︎ some sort of file to url mapping. dlurl* functions could use these.
 - ✔︎ make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - ✔︎ make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
-- SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
+- ✔︎ SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
 - ✔︎ apache module to make it work with embedded read tokens, returned by dlurlcomplete()
-- make `dlfm` command line tool for datalinker admin
+- ✔︎ make `dlfm` command line tool for datalinker admin
 - add suspend/unsuspend operations to datalinker for better dump/restore (suspend=stop datalinker and restore all original file permissions)
 - make it possible to change LCO with datalink values present
 - add copy file and move file operations

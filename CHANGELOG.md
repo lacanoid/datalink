@@ -4,7 +4,7 @@ Version 0.23
 - new `write_file()` functions
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
-- added preliminary `dlcat` shell command which (another DLFF)
+- added preliminary `dlcat` shell command (another DLFF)
 
 Version 0.22
 ------------
