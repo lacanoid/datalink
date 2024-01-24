@@ -158,7 +158,6 @@ update datalink.directory
        dirowner=current_role::regrole,
        dirurl='http://localhost/datalink/'
  where dirpath='/var/www/datalink/';
-NOTICE:  DATALINK LINK:/var/www/datalink/
 select dlvalue('hello.txt','www');
                          dlvalue                         
 ---------------------------------------------------------

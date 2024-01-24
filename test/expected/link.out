@@ -218,7 +218,7 @@ create table my_table3(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
 NOTICE:  DATALINK DDL:TRIGGER on my_table3
 create table my_table4(link datalink);
-update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',recovery='YES',on_unlink='DELETE' where table_name='my_table4';
 NOTICE:  DATALINK DDL:TRIGGER on my_table4
 select * from datalink.columns order by table_name;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
@@ -231,7 +231,7 @@ select * from datalink.columns order by table_name;
  my_table                  | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  my_table2                 | link        | FILE         | ALL       | FS          | FS           | NO       | NONE
  my_table3                 | link        | FILE         | ALL       | FS          | BLOCKED      | NO       | RESTORE
- my_table4                 | link        | FILE         | ALL       | DB          | BLOCKED      | NO       | DELETE
+ my_table4                 | link        | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
  sample_datalinks          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
@@ -256,3 +256,26 @@ DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 60 at RAISE
 PL/pgSQL function dl_trigger_table() line 75 at assignment
+insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
+NOTICE:  DATALINK LINK:/var/www/datalink/
+insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
+WARNING:  DATALINK WARNING - datalinker required
+HINT:  make sure pg_datalinker process is running to finalize your commits
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
+update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';
+ERROR:  DATALINK EXCEPTION
+DETAIL:  Can't change link control options; 1 non-null values present in column "link"
+HINT:  Perhaps you can "truncate my_table4"
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 42 at RAISE
+SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_columns() line 21 at PERFORM
+delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
+select * from datalink.columns where table_name='my_table4';
+ table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+ my_table4  | link        | FILE         | ALL       | DB          | ADMIN        | NO       | RESTORE
+(1 row)
+
+truncate my_table4;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt

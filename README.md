@@ -6,6 +6,7 @@ It implements a number of SQL/MED specified datalink behaviours.
 
 DATALINK is special SQL type intended to store references to external files in the database.
 Only references to external files are stored in the database, not the content of the files themselves.
+Files are addressed with Uniform Resource Locators (URLs).
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the integrity control, recovery, and access control of the files and the SQL-data associated with them. "
 
@@ -23,7 +24,7 @@ Datalinks as defined by SQL/MED should provide:
 - Access to files on different servers
 
 It is implemented in three main components:
-- a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any file system changes, but it can potentially create new files. 
+- a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any potentionally destructive file system changes, although it can create new files. 
 - [datalink file manager](https://github.com/lacanoid/datalink/blob/master/docs/dlfm.md) (DLFM) deamon, [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations. 
 The extension can be used without a daemon, but this disables some of the functionality.
 - [datalink file filter](https://github.com/lacanoid/datalink/blob/master/docs/dlff.md) (DLFF), which applies READ ACCESS DB policy to file accesses. 
@@ -106,8 +107,7 @@ so they are accessible regardless of the search_path.
 
 Event trigger `datalink_event_trigger` is installed. 
 It takes care of adding and removing datalink triggers on tables, which contain datalink columns.
-Datalink triggers take care of referencing and dereferencing datalinks 
-as values are assigned to datalink columns.
+Datalink triggers take care of referencing and dereferencing datalinks as values are assigned to datalink columns.
 
 DATALINK type
 =============

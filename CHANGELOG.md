@@ -5,6 +5,7 @@ Version 0.23
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
 - added preliminary `dlcat` shell command (another DLFF)
+- add support for changing column `lco` with values present for easy cases. In particular, this allows for changing of `ON UNLINK` and can be used to prevent deletion of files already linked with `ON ONLINK DELETE`.
 
 Version 0.22
 ------------
@@ -12,7 +13,7 @@ Version 0.22
 - slightly changed order and assignments in link_control_options
 - renamed `datalink.dl_url` to `datalink.url`
 - improved support for file path to url mapping
-- improved support for READ ACCESS DB
+- improved support for `READ ACCESS DB`
 - functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate 
 - function `read_text` and `read_lines` now support read access tokens
 - new function `dl_authorize(file_path)` to authorize a file path 

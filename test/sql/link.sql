@@ -120,8 +120,17 @@ update datalink.columns set integrity='ALL' where table_name='my_table2';
 create table my_table3(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
 create table my_table4(link datalink);
-update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',on_unlink='DELETE' where table_name='my_table4';
+update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',recovery='YES',on_unlink='DELETE' where table_name='my_table4';
 select * from datalink.columns order by table_name;
 
 insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
 insert into my_table4 values (dlvalue('/etc/issue')); 
+
+insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
+insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
+update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
+update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';
+delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
+
+select * from datalink.columns where table_name='my_table4';
+truncate my_table4;
