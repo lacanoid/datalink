@@ -177,9 +177,9 @@ select dlvalue(NULL,'www');
 (1 row)
 
 select dlvalue('http://localhost/datalink/CHANGELOG.md');
-                        dlvalue                         
---------------------------------------------------------
- {"a": "file:///var/www/datalink/CHANGELOG.md", "m": 1}
+                    dlvalue                     
+------------------------------------------------
+ {"a": "file:///var/www/datalink/CHANGELOG.md"}
 (1 row)
 
 select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));

@@ -422,3 +422,15 @@ select * from datalink.columns where table_name in ('foo','bar');
 (1 row)
 
 abort;
+select dlvalue('robots.txt',dlvalue('http://localhost/index.html',null,'foo'));
+                     dlvalue                      
+--------------------------------------------------
+ {"a": "http://localhost/robots.txt", "c": "foo"}
+(1 row)
+
+select dlvalue('robots.txt',dlvalue('http://localhost/index.html',null,'foo'),'bar');
+                     dlvalue                      
+--------------------------------------------------
+ {"a": "http://localhost/robots.txt", "c": "bar"}
+(1 row)
+

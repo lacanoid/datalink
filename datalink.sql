@@ -904,9 +904,6 @@ begin
  if my_type not in ('URL','FS') then
     my_dl:=jsonb_set(my_dl::jsonb,array['t'],to_jsonb(my_type));
  end if;
- if map_p then 
-    my_dl:=jsonb_set(my_dl::jsonb,array['m'],to_jsonb(1));
- end if;
  return my_dl;
 end;
 $$;
@@ -917,7 +914,7 @@ IS 'SQL/MED - Construct a DATALINK value';
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
-    AS $$select dlvalue(datalink.uri_set(($2->>'a')::uri,'src',$1),null::datalink.dl_linktype,$3)$$;
+    AS $$select dlvalue(datalink.uri_set(($2->>'a')::uri,'src',$1),null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';

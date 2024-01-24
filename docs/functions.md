@@ -39,6 +39,7 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
 
 ### dlurlcompleteonly(datalink)
 Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
+The function also omits any `fragment` part of the URL (stuff after #)
 
     mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
           dlurlcompleteonly      
@@ -57,6 +58,7 @@ Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never 
     ------------------------------------
      file:///var/www/datalink/test1.txt
     (1 row)
+
 
 ### dlurlpath(datalink)
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
