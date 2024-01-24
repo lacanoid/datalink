@@ -36,6 +36,8 @@ Wanted
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
 - add `curl_post` and `curl_put` functions
+- add vacuum procedure for deleting temporary files (those not linked)
+- add vacuum procedure for managing `datalink.insight`
 
 Issues
 ======
@@ -43,6 +45,7 @@ Issues
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
 - forbid setting of lco<>0 for non superusers 
 - `create table as` / `select into` bug (data is loaded before triggers are run)
+- domain on domain on datalink doesn't work
 
 Todo
 ====

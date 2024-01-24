@@ -72,8 +72,8 @@ Commands:
 
     dirs           - show directories
     usage          - show directory usage
-
     show           - show version and system configuration
+
     start          - starts the file manager
     stop           - stop the file manager
     restart        - restart file manager
@@ -463,6 +463,7 @@ sub show_dirs {
 sub show_version {
     $opt_e = 0;
     psql("select current_database() as database, current_setting('port') as port, user, extname,extowner::regrole,extversion from pg_extension where extname='datalink'");
+    psql("select datalink.has_datalinker()");
 }
 
 sub psql {

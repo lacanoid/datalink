@@ -2,6 +2,36 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 alter table sample_urls alter url type datalink.url;
+select dlvalue('http://localhost/datalink/test1.txt');
+                       dlvalue                       
+-----------------------------------------------------
+ {"a": "file:///var/www/datalink/test1.txt", "m": 1}
+(1 row)
+
+select dlvalue(datalink.uri_set((dlvalue('http://localhost/datalink/test1.txt')->>'a')::uri,'src','index.rtf'),null,'hello');
+                          dlvalue                          
+-----------------------------------------------------------
+ {"a": "file:///var/www/datalink/index.rtf", "c": "hello"}
+(1 row)
+
+select dlvalue('index.html',dlvalue('http://localhost/datalink/test1.txt'));
+                   dlvalue                    
+----------------------------------------------
+ {"a": "file:///var/www/datalink/index.html"}
+(1 row)
+
+select dlvalue('',dlvalue('http://localhost/datalink/test1.txt'));
+                   dlvalue                   
+---------------------------------------------
+ {"a": "file:///var/www/datalink/test1.txt"}
+(1 row)
+
+select dlvalue(null,dlvalue('http://localhost/datalink/test1.txt'));
+                   dlvalue                   
+---------------------------------------------
+ {"a": "file:///var/www/datalink/test1.txt"}
+(1 row)
+
 insert into sample_urls (url)
 values 
   ('file://user@fs1.arch.net/file1.jpg'),

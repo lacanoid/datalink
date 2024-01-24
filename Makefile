@@ -20,7 +20,7 @@ include $(PGXS)
 
 INSTALL_PROGRAM = $(INSTALL) -m 6755 -o www-data -g www-data
 
-install-info: installextras
+install: installextras
 
 installcheck: testfiles
 

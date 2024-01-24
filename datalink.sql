@@ -250,6 +250,7 @@ CREATE VIEW dl_columns AS
     a.attoptions,
     a.attfdwoptions,
     c.oid::regclass AS regclass,
+    a.atttypid::regtype as regtype,
     col_description(c.oid, (a.attnum)::integer) AS comment
    FROM pg_class c
    JOIN pg_namespace s ON (s.oid = c.relnamespace)
