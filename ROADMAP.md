@@ -87,6 +87,7 @@ Todo
 - datalink.dl_file_stat() execute permissions
 - remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
 - comment and token diffusion in dlvalue()
+- verify if ok: user (current role vs table owner) vs directory acls
 
 Maybe
 =====

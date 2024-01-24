@@ -1338,7 +1338,7 @@ comment on function curl_get(text,boolean)
 CREATE FUNCTION modlco(
   my_regclass regclass,
   my_column_name name, 
-  my_lco dl_lco)
+  new_lco dl_lco)
 RETURNS link_control_options
     LANGUAGE plpgsql
     AS $_$
@@ -1347,12 +1347,12 @@ declare
  obj record;
  e text;
  n bigint;
- my_options datalink.link_control_options;
+ old_options datalink.link_control_options;
+ new_options datalink.link_control_options;
+ complicated boolean;
 begin
- select into co *
- from datalink.dl_columns
- where regclass = my_regclass
-   and column_name = my_column_name; 
+ select into co * from datalink.dl_columns
+  where regclass = my_regclass and column_name = my_column_name; 
 
  if not found then
       raise exception 'DATALINK EXCEPTION' 
@@ -1360,37 +1360,48 @@ begin
       detail = 'Not a DATALINK column';
  end if; 
 
- select * into my_options
-    from datalink.link_control_options
-   where lco = my_lco;
+ select * into old_options from datalink.link_control_options where lco = co.lco;
+ select * into new_options from datalink.link_control_options where lco = new_lco;
 
  if not found then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-            detail = format('Invalid link control options (%s)',my_lco),
+            detail = format('Invalid link control options (%s)',new_lco),
                   hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 
- if my_lco is distinct from co.lco then
-   e := format('select count(%I) from %s where %I is not null limit 1',
-     my_column_name,cast(my_regclass as text),my_column_name);
-   execute e into n;
-   if n > 0 then
-      raise exception 'DATALINK EXCEPTION' 
-            using errcode = 'HW000',
-            detail = format('Can''t change link control options; %s non-null values present in column "%s"',
-                      n,my_column_name),
-                  hint = format('Perhaps you can "truncate %s"',my_regclass);
-   end if;
+ if new_lco is distinct from co.lco then
+   complicated := (old_options.integrity is distinct from new_options.integrity)
+               or (old_options.read_access='FS' and new_options.read_access>'FS')
+               or (old_options.read_access>'FS' and new_options.read_access='FS')
+               or (old_options.write_access='FS' and new_options.write_access>'FS')
+               or (old_options.write_access>'FS' and new_options.write_access='FS')
+               or (old_options.recovery='NO' and new_options.recovery='YES');
+   if complicated then
+    e := format('select count(%I) from %s where %I is not null limit 1',
+      my_column_name,cast(my_regclass as text),my_column_name);
+    execute e into n;
+    if n > 0 then
+        raise exception 'DATALINK EXCEPTION' 
+              using errcode = 'HW000',
+              detail = format('Can''t change link control options; %s non-null values present in column "%s"',
+                        n,my_column_name),
+                    hint = format('Perhaps you can "truncate %s"',my_regclass);
+    end if; -- values present
+   end if; -- complicated
 
-   -- update fdw options with new lco
+   -- update column options with new lco
    update pg_attribute 
       set -- attfdwoptions=array['dl_lco='||my_lco],
-          atttypmod=case when my_lco > 0 then my_lco+4 else -1 end
+          atttypmod=case when new_lco > 0 then new_lco+4 else -1 end
     where attrelid=my_regclass and attname=my_column_name;
 
-   -- update triggers
+   -- update linked files
+   update datalink.dl_linked_files
+      set lco = new_lco
+    where attrelid = my_regclass and attnum = co.attnum;
 
+   -- update triggers
    for obj in select * from datalink.dl_trigger_advice()
    where not valid and regclass = my_regclass
    loop
@@ -1400,7 +1411,7 @@ begin
 
 end if; -- lco has changed
 
- return my_options;
+ return new_options;
 end;
 $_$;
 
@@ -1636,7 +1647,9 @@ begin
  if f.read_access = 'DB' then
   if f.token::text = t then return mypath; end if;
   update datalink.insight
-     set n=n+1, atime=now(), grantee=myrole
+     set atimes=atimes||array[now()], 
+         grantees=grantees||array[myrole],
+         pids=pids||array[pg_backend_id()]
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
   if found then return mypath; end if;
@@ -1995,11 +2008,10 @@ create table insight (
   link_token dl_token not null,
   read_token dl_token default datalink.dl_newtoken() primary key,
   ctime timestamptz not null default now(),
-  atime timestamptz,
-  n int not null default 0,
   grantor regrole not null default user::regrole,
-  grantee regrole,
-  pid int not null default pg_backend_pid(),
+  atimes timestamptz[],
+  grantees regrole[],
+  pids int[],
   data jsonb
 );
 alter table insight add foreign key (link_token) references 

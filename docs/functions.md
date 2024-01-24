@@ -7,8 +7,7 @@ These are specified by the SQL/MED standard.
 Most of these have been overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
 ### dlurlcomplete(datalink)
-Use `dlurlcomplete()` function to convert datalinks back to URLs. For READ ACCESS DB datalinks URL will contain read access token.
-Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
+Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
     mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
             dlurlcomplete      
@@ -21,6 +20,9 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
     ----------------------------
      http://www.github.io/a/b/e
     (1 row)
+
+For READ ACCESS DB datalinks URL will contain read access token.
+Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
 
     mydb=# create table t ( link datalink(122) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t

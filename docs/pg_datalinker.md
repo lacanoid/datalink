@@ -23,10 +23,10 @@ Responsibilities
 * Delete files no longer referenced (on_unlink=delete)
 
 Datalinker connects to postgres service "datalinker", so make sure it is configured
-in file `~/.pg_service.conf`.
+in file `/etc/postgresql-common/pg_service.conf`.
 
 Files in state `LINK` go into state `LINKED` when successfully linked otherwise they go into state `ERROR`.
 
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
-If `ON_UNLINK` is `DELETE` then the files are also deleted when unlinked.
+If `ON_UNLINK` is `DELETE` then the files are also deleted from filesystem.
 

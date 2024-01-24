@@ -58,6 +58,8 @@ int main(int argc, char **argv) {
         if (PQresultStatus(res) == PGRES_TUPLES_OK) {
             char *path = PQgetvalue(res,0,0);
             if(strlen(path)>0) {
+                // dl_authorize returns true filename if authorized
+                // spawn a new cat to stream the content
                 pid_t pid=fork();
                 if(!pid) {
                     execl("/usr/bin/cat", "cat", path, NULL);
@@ -70,7 +72,7 @@ int main(int argc, char **argv) {
                     }
                 }
             } else {
-                fprintf(stderr, "dlcat: %s:Datalink read permission denied\n", resolved_path);
+                fprintf(stderr, "dlcat: %s: Datalink read permission denied\n", resolved_path);
                 PQclear(res);
                 exit(EXIT_FAILURE);
             }
