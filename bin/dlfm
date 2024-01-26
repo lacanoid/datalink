@@ -17,7 +17,9 @@ use DBI;
 use JSON;
 #use IPC::Run 'run';
 use Getopt::Std;
+use Config::Tiny;
 our $json = JSON->new->allow_nonref;
+
 
 BEGIN { $ENV{LC_ALL} = "C"; }
 #---------------------------------------
@@ -44,6 +46,13 @@ our %config = (
     prefix => ["/var/www/datalink/"]
 );
 
+our $has_bind=0;
+our $services;
+our $dbname='postgres';
+our $port=5432;
+
+services_load();
+
 my $operation=shift @ARGV;
 if($operation eq 'init') { config_init(); exit; }
 config_load();
@@ -69,20 +78,24 @@ if($operation eq 'see') { daemon_see(); exit; }
 print STDERR qq{Datalink file manager control program
 Usage: $0 <command> [arguments...]
 Commands:
-    list           - list all registered file systems (directories)
-    add            - register a file system (directory)
-    del            - unregister a file system (directory)
+    show                 - show version and system configuration
+    bind [dbname] [port] - bind file manager to a database
+    unbind               - unbind file manager from a database
 
-    dirs           - show directories
-    usage          - show directory usage
-    show           - show version and system configuration
+    list                 - list all registered file systems (directories)
+    add <directory>      - register a file system (directory)
+    del <directory>      - unregister a file system (directory)
 
-    start          - starts the file manager
-    stop           - stop the file manager
-    restart        - restart file manager
-    status         - check file manager status
-    ps             - shows the file manager processes running on the system
-    log            - monitor file manager log
+    dirs                 - show directories
+    usage                - show directory usage
+
+    start                - starts the file manager
+    stop                 - stop the file manager
+    restart              - restart file manager
+    status               - show file manager status
+    ps                   - show the file manager processes running on the system
+    log                  - monitor file manager log
+    
 };
 
 my $future = qq{Possible future commands:
@@ -156,6 +169,36 @@ sub queryOrDie {
 
 ########################################
 # configuration
+
+use Data::Dumper;
+
+sub config_bind() {
+    if(!ref($services)) {
+        $services = Config::Tiny->new({$SERVICE=>{dbname=>$dbname,port=>$port}});
+    }
+    if(!defined($services->{$SERVICE})) { $services->{$SERVICE}={}}
+    $services->{$SERVICE}->{dbname}=$dbname;
+    $services->{$SERVICE}->{port}=$port;
+    services_save();
+}
+
+sub config_unbind() {
+    delete($services->{$SERVICE});
+    services_save();
+    daemon_stop();
+}
+
+sub services_load() {
+    $services = Config::Tiny->read($config{service_file});
+    if(defined($services->{$SERVICE})) { $has_bind=1; } 
+    else { $has_bind=0; }
+}
+
+sub services_save() {
+    if(ref($services)) {
+        $services->write($config{service_file});
+    }
+}
 
 # load configuration
 sub config_load {
@@ -267,6 +310,16 @@ sub file_stat {
         'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
         'blksize'=>$s[11],'blocks'=>$s[12]
     };
+}
+# read a file into string
+sub file_get {
+    my ($path)=@_;
+    if(open(Fg,'<',$path)) {
+        chomp(my @lines = <Fg>); close(Fg);
+        return join("\n",@lines);
+    } else {
+        return undef;
+    }
 }
 # read a file into lines
 sub file_get_lines {
@@ -463,12 +516,18 @@ sub show_dirs {
 
 sub show_version {
     $opt_e = 0;
-    psql(qq{
-          select current_database() as database, 
-                 current_setting('port') as port, user, 
-                 extname,extowner::regrole,extversion 
-            from pg_extension where extname='datalink'});
-    psql("select datalink.has_datalinker()");
+    print "HAS_BIND=$has_bind\n";
+    if($has_bind) {
+        psql(qq{
+              select current_setting('server_version') as server_version, 
+                     current_database() as dbname, 
+                     user, 
+                     current_setting('port') as port,
+                     current_setting('cluster_name') as cluster_name,
+                     extname,extowner::regrole, extversion 
+                from pg_extension where extname='datalink'});
+        psql("select datalink.has_datalinker()");
+    }
 }
 
 sub psql {
