@@ -27,7 +27,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from sample_datalinks6.link as '/var/www/datalink/CHANGELOG.md'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 56 at RAISE
-SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name)"
+SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 66 at PERFORM
 PL/pgSQL function dl_trigger_table() line 75 at assignment
 update sample_datalinks6 set link = link2;
@@ -106,7 +106,7 @@ insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/CHANGELO
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
-select link-'b' from sample_datalinks6; truncate sample_datalinks6;
+select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
                     ?column?                    
 ------------------------------------------------
  {"a": "file:///var/www/datalink/CHANGELOG.md"}

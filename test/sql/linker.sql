@@ -67,7 +67,7 @@ select *
 truncate sample_datalinks6;
 
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/CHANGELOG.md'));
-select link-'b' from sample_datalinks6; truncate sample_datalinks6;
+select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
 
 insert into my_table2
 select dlvalue(filename)

@@ -33,7 +33,7 @@ values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
 insert into sample_datalinks2 (link)
 values (dlvalue('http://blah','URL','Broken datalink'));
 
-select dlurlcomplete(link), (link)->>'b' is not null as has_token from sample_datalinks2;
+select dlurlcomplete(link), link::jsonb->>'b' is not null as has_token from sample_datalinks2;
 
 create table sample_datalinks3 as 
 select *

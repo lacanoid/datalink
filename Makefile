@@ -25,8 +25,6 @@ install: installextras
 installcheck: testfiles
 
 installextras:
-	chown www-data:www-data ${BINDIR}/dlcat
-	chmod u+s,g+s ${BINDIR}/dlcat
 	if [ ! -f /sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/pg_datalinker ; fi
 	if [ ! -f /sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /sbin/dlfm ; fi
 	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi

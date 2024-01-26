@@ -6,6 +6,7 @@ Version 0.23
 - improved systemd support
 - added preliminary `dlcat` shell command (another DLFF)
 - add support for changing column `lco` with values present for easy cases. In particular, this allows for changing of `ON UNLINK` and can be used to prevent deletion of files already linked with `ON ONLINK DELETE`.
+- removed implicit from datalink to jsonb cast
 
 Version 0.22
 ------------

@@ -69,8 +69,8 @@ CREATE TYPE pg_catalog.datalink (
 );
 
 COMMENT ON TYPE pg_catalog.datalink IS 'SQL/MED DATALINK type for external file references';
--- create cast (datalink as jsonb) without function; 
-create cast (datalink as jsonb) without function as implicit;
+create cast (datalink as jsonb) without function; 
+-- create cast (datalink as jsonb) without function as implicit;
 -- create cast (datalink as jsonb) with inout as implicit;
 -- create cast (jsonb as datalink) with inout;
 
@@ -159,7 +159,7 @@ IS 'Find dl_lco for a table column';
 CREATE OR REPLACE FUNCTION dl_lco(datalink) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
 AS $function$
 select coalesce((select lco
-                   from datalink.dl_linked_files f where f.token = ($1->>'b')::datalink.dl_token)
+                   from datalink.dl_linked_files f where f.token = ($1::jsonb->>'b')::datalink.dl_token)
                ,0)::datalink.dl_lco
 $function$;
 COMMENT ON FUNCTION dl_lco(datalink) 
@@ -388,23 +388,23 @@ grant select on linked_files to public;
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION datalink.stat(file_path file_path,
-  OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
-  OUT uid integer, OUT gid integer,
-  OUT rdev integer, OUT size numeric, 
+   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT nlink integer,
+   OUT uid integer, OUT gid integer,
+   OUT rdev integer, OUT size numeric, 
 /*
-  OUT atime timestamp without time zone,
-  OUT mtime timestamp without time zone, 
-  OUT ctime timestamp without time zone,
+   OUT atime timestamp without time zone,
+   OUT mtime timestamp without time zone, 
+   OUT ctime timestamp without time zone,
 */
-  OUT atime numeric,
-  OUT mtime numeric, 
-  OUT ctime numeric,
-  OUT blksize integer, OUT blocks bigint)
- RETURNS record
+   OUT atime numeric,
+   OUT mtime numeric, 
+   OUT ctime numeric,
+   OUT blksize integer, OUT blocks bigint)
+   RETURNS record
   LANGUAGE plperlu
    STRICT
    AS $function$
-   use Date::Format;
+use Date::Format;
 
 my ($filename) = @_;
 unless(-e $filename) { return undef; }
@@ -422,6 +422,8 @@ $function$;
 
 COMMENT ON FUNCTION datalink.stat(file_path) IS 'Return info record from stat(2)';
 
+-- return most appropriate path to a file 
+-- return NULL if file does not exist
 create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
@@ -705,7 +707,7 @@ COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
 
 CREATE OR REPLACE FUNCTION uri_get(link datalink, part text)
  RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
-  select datalink.uri_get($1->>'a',$2) $$;
+  select datalink.uri_get($1::jsonb->>'a',$2) $$;
 
 COMMENT ON FUNCTION uri_get(datalink,text) IS 'Get (extract) parts of datalink URI';
 
@@ -914,7 +916,7 @@ IS 'SQL/MED - Construct a DATALINK value';
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
-    AS $$select dlvalue(datalink.uri_set(($2->>'a')::uri,'src',$1),null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
+    AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1),null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
@@ -933,8 +935,8 @@ declare
  u1     text;
 begin 
  if has_token > 0 then
-  u1 := link->>'a';
-  t1 := coalesce(link->>'o',datalink.uri_get(u1,'token'));
+  u1 := link::jsonb->>'a';
+  t1 := coalesce(link::jsonb->>'o',datalink.uri_get(u1,'token'));
   if t1 is not null then
     begin
       token := t1::datalink.dl_token;
@@ -947,12 +949,12 @@ begin
         raise exception 'Error code: % name: %',SQLSTATE,SQLERRM;
     end;
     u1 := datalink.uri_set(u1::datalink.url,'token',null);
-    link := jsonb_set(link,'{a}',to_jsonb(u1));
+    link := jsonb_set(link::jsonb,'{a}',to_jsonb(u1));
   end if;
-  if token is null then token := link->>'b'; end if;
+  if token is null then token := link::jsonb->>'b'; end if;
   if token is null then token := datalink.dl_newtoken() ; end if;
-  link := jsonb_set(link,'{b}',to_jsonb(token));
-  link := link - 'o';
+  link := jsonb_set(link::jsonb,'{b}',to_jsonb(token));
+  link := link::jsonb - 'o';
  end if; -- has token
  return link;
 end
@@ -976,18 +978,18 @@ declare
  t1 text;
  u1 text;
 begin 
-  u1 := link->>'a';
+  u1 := link::jsonb->>'a';
   if has_token > 0 then
-    t1 := coalesce(link->>'b',datalink.uri_get(u1,'token'));
+    t1 := coalesce(link::jsonb->>'b',datalink.uri_get(u1,'token'));
     if t1 is not null then 
-      link := jsonb_set(link,'{o}',to_jsonb(t1));
+      link := jsonb_set(link::jsonb,'{o}',to_jsonb(t1));
     end if;
   end if;
   u1 := datalink.uri_set(u1::datalink.url,'token',null);
-  link := jsonb_set(link,'{a}',to_jsonb(u1));
+  link := jsonb_set(link::jsonb,'{a}',to_jsonb(u1));
     -- generate new token
   token := datalink.dl_newtoken();  
-  link := jsonb_set(link,'{b}',to_jsonb(token));
+  link := jsonb_set(link::jsonb,'{b}',to_jsonb(token));
  return link;
 end
 $_$;
@@ -1014,7 +1016,7 @@ declare
  has_token integer;
  url text;
 begin 
- url := format('%s%s',$1->>'a','#'||($1->>'b'));
+ url := format('%s%s',$1::jsonb->>'a','#'||($1::jsonb->>'b'));
 -- raise exception 'DATALINK: dl_datalink_ref(''%'',%,%,%)',url,$2,$3,$4;
 
  has_token := 0;
@@ -1057,7 +1059,7 @@ begin
     end if;
     -- store HTTP response code if one was returned
     if r.rc > 0 then
-      link := jsonb_set(link,array['rc'],to_jsonb(r.rc));
+      link := jsonb_set(link::jsonb,array['rc'],to_jsonb(r.rc));
     end if;
   end if; -- file link control,  
   
@@ -1072,7 +1074,7 @@ begin
                       hint = 'add appropriate entry in table datalink.access';
         end if;
       end if;
-      perform datalink.dl_file_link(dlurlpathonly(link),(link->>'b')::datalink.dl_token,link_options,regclass,column_name);
+      perform datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name);
   end if; -- integrity all
 
  end if; -- link options
@@ -1133,8 +1135,8 @@ begin
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if link1->>'a' is distinct from link2->>'a'
-   or link1->>'b' is distinct from link2->>'b' then
+   if link1::jsonb->>'a' is distinct from link2::jsonb->>'a'
+   or link1::jsonb->>'b' is distinct from link2::jsonb->>'b' then
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_datalink_unref(link1,r.lco,tg_relid,r.column_name);
@@ -1153,8 +1155,8 @@ begin
    opt := datalink.link_control_options(r.lco);
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
    if tg_op in ('INSERT','UPDATE') then link2 := rn->>r.column_name; end if;
-   if link1->>'a' is distinct from link2->>'a'
-   or link1->>'b' is distinct from link2->>'b' then
+   if link1::jsonb->>'a' is distinct from link2::jsonb->>'a'
+   or link1::jsonb->>'b' is distinct from link2::jsonb->>'b' then
     if tg_op in ('INSERT','UPDATE') then
       if dlurlcomplete(link2) is not null then
          -- check for write_access = BLOCKED and prevent updates
@@ -1168,7 +1170,7 @@ begin
         end if; -- blocked
          -- check for write_access = TOKEN and prevent updates if needed
         if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
-            if link2->>'o' is null or link2->>'o' is distinct from link1->>'b' then
+            if link2::jsonb->>'o' is null or link2::jsonb->>'o' is distinct from link1::jsonb->>'b' then
                     raise exception 'DATALINK EXCEPTION - invalid write token' 
                               using errcode = 'HW004',
                               detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
@@ -1176,7 +1178,7 @@ begin
                                 hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
                           ;
             end if; -- tokens not matching
-            link2 := link2 - 'o';
+            link2 := link2::jsonb - 'o';
         end if; -- token
    
         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
@@ -1421,7 +1423,7 @@ IS 'Modify link control options for a datalink column';
 
 CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $$ select $1->>'c' $$;
+AS $$ select $1::jsonb->>'c' $$;
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
@@ -1431,11 +1433,11 @@ CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, safer boolean default false) 
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ 
    select case 
-          when $1->>'b' is not null 
+          when $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.url_insight(pg_catalog.dlurlcompleteonly($1)
-                                   ,($1->>'b')::datalink.dl_token,safer)
-          else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1->>'a','fragment'))
+                                   ,($1::jsonb->>'b')::datalink.dl_token,safer)
+          else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, boolean) 
@@ -1451,15 +1453,15 @@ IS 'SQL/MED - Returns normalized URL value';
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select datalink.uri_get(
-  case when $1->>'a' ilike 'file:///%'
+  case when $1::jsonb->>'a' ilike 'file:///%'
        then coalesce((
                select dirurl||uri_escape(substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1))
                  from datalink.directory
                 where dirurl is not null
                   and pg_catalog.dlurlpathonly($1) like dirpath||'%'
                 order by length(dirpath) desc limit 1
-            ),$1->>'a')
-       else $1->>'a'
+            ),$1::jsonb->>'a')
+       else $1::jsonb->>'a'
   end,'only')
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink) 
@@ -1477,7 +1479,7 @@ CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select nullif(datalink.uri_get($1->>'a','host'),'')$function$;
+   AS $function$select nullif(datalink.uri_get($1::jsonb->>'a','host'),'')$function$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
 
@@ -1493,7 +1495,7 @@ CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select upper(datalink.uri_get($1->>'a','scheme'))$function$;
+   AS $function$select upper(datalink.uri_get($1::jsonb->>'a','scheme'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
      IS 'SQL/MED - Returns the scheme from DATALINK value';
@@ -1512,13 +1514,13 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
    STRICT
    AS $function$
    select case 
-          when $1->>'a' ilike 'file:///%' and $1->>'b' is not null 
+          when $1::jsonb->>'a' ilike 'file:///%' and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
-            datalink.url_insight($1->>'a',($1->>'b')::datalink.dl_token,safer),'path')
+            datalink.url_insight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,safer),'path')
           else coalesce(datalink.filepath($1),
-                  format('%s%s',datalink.uri_get($1->>'a','path'),
-                        '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))))
+                  format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
+                        '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))))
           end
 $function$;
 
@@ -1539,8 +1541,8 @@ CREATE FUNCTION pg_catalog.dlurlpathwrite(datalink)
    IMMUTABLE STRICT
    AS $function$
    select format('%s%s',
-                  datalink.uri_get($1->>'a','path'),
-                  '#'||coalesce($1->>'b',datalink.uri_get($1->>'a','token'))
+                  datalink.uri_get($1::jsonb->>'a','path'),
+                  '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))
           )
 $function$;
 
@@ -1559,7 +1561,7 @@ CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1->>'a','path')$function$;
+   AS $function$select datalink.uri_get($1::jsonb->>'a','path')$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
      IS 'SQL/MED - Returns the file path from DATALINK value';
@@ -1576,7 +1578,7 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $$ select coalesce($1->>'t',case when $1->>'a' ilike 'file:///%' then 'FS' else 'URL' end )$$;
+   AS $$ select coalesce($1::jsonb->>'t',case when $1::jsonb->>'a' ilike 'file:///%' then 'FS' else 'URL' end )$$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
@@ -1669,7 +1671,7 @@ CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default nul
  RETURNS text LANGUAGE plpgsql
 AS $$
 begin
-  if $1->>'a' ilike 'file:///%' then
+  if $1::jsonb->>'a' ilike 'file:///%' then
     return datalink.read_text(dlurlpath($1),$2,$3);
   end if;
   return case
@@ -1781,7 +1783,7 @@ $function$;
 
 create or replace function fileexists(datalink) returns boolean as $$
 select case 
-       when $1->>'a' ilike 'file:///%'
+       when $1::jsonb->>'a' ilike 'file:///%'
        then datalink.filepath($1) is not null
        else (datalink.curl_get(dlurlcomplete($1),true)).rc between 200 and 299
        end

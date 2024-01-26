@@ -22,7 +22,7 @@ Use `dlurlcomplete()` function to convert datalinks back to URLs.
     (1 row)
 
 For READ ACCESS DB datalinks URL will contain read access token.
-Tokens are generated when INTEGRITY ALL datalinks are stored in tables.
+Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are used to authorize read access to the file content.
 
     mydb=# create table t ( link datalink(122) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t

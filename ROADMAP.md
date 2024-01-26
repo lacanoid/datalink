@@ -18,8 +18,8 @@ Wanted
 - ✔︎ some sort of file to url mapping. dlurl* functions could use these.
 - ✔︎ make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
 - ✔︎ make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
-- ✔︎ SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by dlurlpath()
-- ✔︎ apache module to make it work with embedded read tokens, returned by dlurlcomplete()
+- ✔︎ SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by `dlurlpath()`
+- ✔︎ apache module to make it work with embedded read tokens, returned by `dlurlcomplete()`
 - ✔︎ make `dlfm` command line tool for datalinker admin
 - add suspend/unsuspend operations to datalinker for better dump/restore (suspend=stop datalinker and restore all original file permissions)
 - make it possible to change LCO with datalink values present
@@ -32,12 +32,13 @@ Wanted
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - better documentation (manual)
-- better handling of immutable files
+- better handling of already immutable files
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
 - add `curl_post` and `curl_put` functions
 - add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
+- add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 
 Issues
 ======
@@ -78,6 +79,7 @@ Todo
 - datalinker: optimise verbosity
 - datalinker: better configurator
 - datalinker: don't die so easily
+- datalinker: update owner+group in dl_linked_files.info only if not default
 - function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
 - better file handling wrt. immutable state

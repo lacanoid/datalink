@@ -3,14 +3,14 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 
-alter table sample_urls alter url type datalink.url;
-
+-- test dirurl mapping
 select dlvalue('http://localhost/datalink/test1.txt');
-select dlvalue(datalink.uri_set((dlvalue('http://localhost/datalink/test1.txt')->>'a')::uri,'src','index.rtf'),null,'hello');
+select dlvalue(datalink.uri_set((dlvalue('http://localhost/datalink/test1.txt')::jsonb->>'a')::uri,'src','index.rtf'),null,'hello');
 select dlvalue('index.html',dlvalue('http://localhost/datalink/test1.txt'));
 select dlvalue('',dlvalue('http://localhost/datalink/test1.txt'));
 select dlvalue(null,dlvalue('http://localhost/datalink/test1.txt'));
 
+alter table sample_urls alter url type datalink.url;
 
 insert into sample_urls (url)
 values 

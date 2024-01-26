@@ -112,31 +112,31 @@ select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-44
  {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0) - 'b';
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0)::jsonb - 'b';
                   ?column?                   
 ---------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt"}
 (1 row)
 
-select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1) - 'b';
+select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1)::jsonb - 'b';
                                          ?column?                                         
 ------------------------------------------------------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'b';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
                   ?column?                   
 ---------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt"}
 (1 row)
 
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'b';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
                                          ?column?                                         
 ------------------------------------------------------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'b';
+select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
                   ?column?                   
 ---------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt"}
@@ -148,37 +148,37 @@ select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-22
  {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
                   ?column?                   
 ---------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt"}
 (1 row)
 
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
                   ?column?                   
 ---------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt"}
 (1 row)
 
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
                                          ?column?                                         
 ------------------------------------------------------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1) - 'b';
+select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1)::jsonb - 'b';
                                          ?column?                                         
 ------------------------------------------------------------------------------------------
  {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
-select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0) - 'b';
+select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0)::jsonb - 'b';
              ?column?              
 -----------------------------------
  {"a": "http://www.ljudmila.org/"}
 (1 row)
 
-select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))->>'b' is not null;
+select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is not null;
  ?column? 
 ----------
  t
@@ -190,7 +190,7 @@ select dlpreviouscopy(dlvalue('http://www.ljudmila.org/'),0);
  {"a": "http://www.ljudmila.org/"}
 (1 row)
 
-select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))->>'b' is not null;
+select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is not null;
  ?column? 
 ----------
  t
@@ -203,7 +203,7 @@ select dlpreviouscopy(dlvalue('/tmp/file1','FS'),0);
 (1 row)
 
 select key,case when key is distinct from 'b' then value end as value
-  from jsonb_each(dlpreviouscopy(dlvalue('/tmp/file1','FS','Previous copy'),1));
+  from jsonb_each(dlpreviouscopy(dlvalue('/tmp/file1','FS','Previous copy'),1)::jsonb);
  key |        value        
 -----+---------------------
  a   | "file:///tmp/file1"
