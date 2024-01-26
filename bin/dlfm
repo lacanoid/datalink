@@ -15,9 +15,8 @@
 use strict;
 use DBI;
 use JSON;
-use IPC::Run 'run';
+#use IPC::Run 'run';
 use Getopt::Std;
-use Time::HiRes qw{usleep};
 our $json = JSON->new->allow_nonref;
 
 BEGIN { $ENV{LC_ALL} = "C"; }
@@ -33,13 +32,15 @@ our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
 
-our $SERVICE = 'service=datalinker';
+our $SERVICE = 'datalinker';
+our $NAME = 'pg_datalinker';
+our $DAEMON = "/usr/sbin/pg_datalinker";
 
 #---------------------------------------
 our %config = (
-    appname => 'pg_datalinker',
-    dsn => 'dbi:Pg:'.$SERVICE,
+    dsn => 'dbi:Pg:service='.$SERVICE,
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
+    service_file => "/etc/postgresql-common/pg_service.conf",
     prefix => ["/var/www/datalink/"]
 );
 
@@ -54,14 +55,16 @@ if($operation eq 'usage') { show_usage(); exit; }
 if($operation eq 'dirs') { show_dirs(); exit; }
 if($operation eq 'show') { show_version(); exit; }
 
+if($operation eq 'bind') { config_bind(); exit; }
+if($operation eq 'unbind') { config_unbind(); exit; }
+
 if($operation eq 'start') { daemon_start(); exit; }
 if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
 if($operation eq 'stop') { daemon_stop(); exit; }
 if($operation eq 'status') { daemon_status(); exit; }
 if($operation eq 'log') { daemon_log(); exit; }
 if($operation eq 'ps') { daemon_see(); exit; }
-
-if($operation eq 'run') { main(); exit; }
+if($operation eq 'see') { daemon_see(); exit; }
 
 print STDERR qq{Datalink file manager control program
 Usage: $0 <command> [arguments...]
@@ -124,7 +127,7 @@ sub main() {
     if(!$dbh) { log_fatal("Database not available"); }
 
 
-    $dbh->do("set application_name='".$config{appname}."'");
+    $dbh->do("set application_name='$NAME'");
     $dbh->do("set search_path=datalink");
     $dbh->do('listen "datalink.linker_jobs"');
 
@@ -374,17 +377,15 @@ sub iso_timestamp {
 ########################################
 # daemon stuff
 
-our $NAME;
-our $DAEMON;
 our $DAEMON_LOG;
 our $DAEMON_PID;
 our $DAEMON_RUNNING=0;
 our @DAEMON_ARGS;
 
 sub daemon_setup {
-    $NAME=$config{appname};
-    $DAEMON = "/usr/sbin/pg_datalinker";
-    chomp($DAEMON);
+#    $NAME=$config{appname};
+#    $DAEMON = "/usr/sbin/pg_datalinker";
+#    chomp($DAEMON);
     $DAEMON_LOG="/var/log/postgresql/$NAME.log";
     $DAEMON_PID="/var/run/postgresql/$NAME.pid";
 }
@@ -462,11 +463,15 @@ sub show_dirs {
 
 sub show_version {
     $opt_e = 0;
-    psql("select current_database() as database, current_setting('port') as port, user, extname,extowner::regrole,extversion from pg_extension where extname='datalink'");
+    psql(qq{
+          select current_database() as database, 
+                 current_setting('port') as port, user, 
+                 extname,extowner::regrole,extversion 
+            from pg_extension where extname='datalink'});
     psql("select datalink.has_datalinker()");
 }
 
 sub psql {
     my $q = shift;
-    sys('psql',$SERVICE,'-c',$q);
+    sys('psql','service='.$SERVICE,'-c',$q);
 }

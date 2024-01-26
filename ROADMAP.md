@@ -79,6 +79,7 @@ Todo
 - datalinker: optimise verbosity
 - datalinker: better configurator
 - datalinker: don't die so easily
+- datalinker: signal handler
 - datalinker: update owner+group in dl_linked_files.info only if not default
 - function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
