@@ -100,7 +100,8 @@ Pro: Provides better referential integrity because files don't suddenly disappea
 
 Provides point-in-time recovery of file contents.
 
-Con: More space usage
+Con: More space usage. It might be good to make use of *copy-on-write* feature of some filesystems, but I don't know
+which ones support it and how to turn it on. It should be allways on by default, anyway.
 
 ### LCO=122 READ ACCESS DB
 
@@ -119,9 +120,11 @@ Pro: Access file contents from the database environment
 
 ### LCO=142 WRITE ACCESS TOKEN
 
-Modify file contents from the database environment, when write token present.
+Modify file contents from the database environment. Write write token must be present.
 
-This required access to the (previous) datalink value to be able to modify it.
+This requires access to the (previous) datalink value to be able to modify it.
+
+Note that this requires at least READ ACCESS DB option.
 
 Pro: Provides transactional write access for files
 
@@ -129,9 +132,11 @@ Con: Potentionally destructive for files
 
 ### LCO=162 WRITE ACCESS ADMIN
 
-Modify file contents from the database environment.
+Modify file contents from the database environment. Write token is not required.
 
 This is somewhat less strict version of WRITE ACCESS TOKEN.
+
+Note that this requires at least READ ACCESS DB option.
 
 Pro: Provides transactional write access for files
 

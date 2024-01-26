@@ -9,11 +9,11 @@ This function is then used by the various front-ends.
 
 Firstly, let us make some datalinks:
 
-    my_db=# create table t ( link datalink(122) );
+    mydb=# create table t ( link datalink(122) );
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
 
-    my_db=# insert into t values (dlvalue('/var/www/datalink/test1.txt'));
+    mydb=# insert into t values (dlvalue('/var/www/datalink/test1.txt'));
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
 
@@ -31,11 +31,11 @@ This can be used with links provided by `DLURLCOMPLETE()` SQL function.
 
 Be sure to also set `dirurl` in `datalink.directory` to enable file-to-URL mapping to get HTTP instead of FILE URLs.
 
-    my_db=# update datalink.directory set dirurl='http://localhost/datalink/' where dirpath='/var/www/datalink/';
+    mydb=# update datalink.directory set dirurl='http://localhost/datalink/' where dirpath='/var/www/datalink/';
 
 You will probably want to eventually set `dirurl` to a fully qualified URL for your server.
 
-    my_db=# select dlurlcomplete(link) from t;
+    mydb=# select dlurlcomplete(link) from t;
                                     dlurlcomplete                                 
     ------------------------------------------------------------------------------
     http://localhost/datalink/738a74c2-4126-4350-947b-e9f0c0735411;test1.txt
