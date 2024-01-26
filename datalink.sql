@@ -2039,9 +2039,9 @@ $$;
 
 create view usage as
 WITH a AS (
-         SELECT (datalink.filegetname(dlvalue(linked_files.path::text))).dirname AS dirname,
-                (datalink.filegetname(dlvalue(linked_files.path::text))).filename AS filename,
-                (datalink.filegetname(dlvalue(linked_files.path::text))).dirpath AS dirpath,
+         SELECT d.dirname AS dirname,
+                d.filename AS filename,
+                d.dirpath AS dirpath,
                 (datalink.stat(linked_files.path)).size AS size,
                 linked_files.path,
                 linked_files.state,
@@ -2053,7 +2053,8 @@ WITH a AS (
                 linked_files.attname,
                 linked_files.owner,
                 linked_files.err
-           FROM datalink.linked_files
+           FROM datalink.linked_files,
+                datalink.filegetname(dlvalue(linked_files.path::text)) as d
         )
  SELECT a.dirpath,
     count(a.filename) FILTER (WHERE length(a.filename) > 0) AS count,

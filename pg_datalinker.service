@@ -1,5 +1,6 @@
 [Unit]
 Description=PostgreSQL SQL/MED Datalinker
+After=postgresql.service
 
 [Service]
 User=root
