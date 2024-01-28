@@ -13,11 +13,11 @@ For link type `FS`, address is specified as absolute file path (beginning with /
 
 Make a datalink, relative to another datalink.
 
-## dlpreviouscopy( datalink )
+### dlpreviouscopy( datalink )
 
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
 
-## dlnewcopy( datalink [ , has_token ] )
+### dlnewcopy( datalink [ , has_token ] )
 
 Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
 If `has_token` > 0 then the previous value of token will also be stored in a datalink as write token for update of WRITE ACCESS TOKEN columns.
