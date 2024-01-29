@@ -371,7 +371,7 @@ select dl_lco(link_control=>'FILE');
 select dl_lco(link_control=>'FILE',integrity=>'ALL',read_access=>'DB',write_access=>'BLOCKED');
  dl_lco 
 --------
-    122
+     52
 (1 row)
 
 select * from link_control_options(dl_lco(link_control=>'NO'));
@@ -397,7 +397,7 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					  recovery=>'YES',on_unlink=>'DELETE'));
  lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
 -----+--------------+-----------+-------------+--------------+----------+-----------
- 332 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
+ 352 | FILE         | ALL       | DB          | BLOCKED      | YES      | DELETE
 (1 row)
 
 select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
@@ -405,7 +405,7 @@ select * from link_control_options(dl_lco(link_control=>'FILE',integrity=>'ALL',
 					  recovery=>'YES',on_unlink=>'RESTORE'));
  lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
 -----+--------------+-----------+-------------+--------------+----------+-----------
- 132 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
+ 152 | FILE         | ALL       | DB          | BLOCKED      | YES      | RESTORE
 (1 row)
 
 create table bar ( link datalink(123) );

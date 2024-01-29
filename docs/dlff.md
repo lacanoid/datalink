@@ -9,7 +9,7 @@ This function is then used by the various front-ends.
 
 Firstly, let us make some datalinks:
 
-    mydb=# create table t ( link datalink(122) );
+    mydb=# create table t ( link datalink(52) );
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
 

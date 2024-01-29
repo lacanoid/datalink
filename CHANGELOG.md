@@ -5,8 +5,9 @@ Version 0.23
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
 - added preliminary `dlcat` shell command (another DLFF)
-- add support for changing column `lco` with values present for easy cases. In particular, this allows for changing of `ON UNLINK` and can be used to prevent deletion of files already linked with `ON ONLINK DELETE`.
+- add support for changing column `lco` with values present for many cases
 - removed implicit from datalink to jsonb cast
+- lco number assignments in `link_control_options` again to be more logical
 
 Version 0.22
 ------------
