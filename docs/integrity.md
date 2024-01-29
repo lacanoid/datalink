@@ -18,7 +18,6 @@ Datalinks are only checked for valid URL syntax but not processed further.
 
 To enable integrity checks set integrity to `SELECTIVE` for this column.
 One can change link control options for a column with an SQL UPDATE DATALINK.COLUMNS statement.
-Please note that currently only the super user can change column options.
 
     mydb=# update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
     UPDATE 1

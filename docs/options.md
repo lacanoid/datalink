@@ -91,7 +91,7 @@ Pro: Does not modify files in any way.
 
 Con: Only for local files.
 
-### LCO=x1x READ ACCESS BLOCKED
+### LCO=x1x WRITE ACCESS BLOCKED
 
 Files are made immutable, so that they cannot be changed, renamed nor deleted, not even by the UNIX superuser.
 
@@ -101,9 +101,9 @@ Pro: Provides better referential integrity because files don't suddenly disappea
 
 File is made to be "owned by the database", access control to file contents is to be controlled by the database environment.
 
-File owner is changed to `postgresql`, used by PostgreSQL server process.
+File owner is changed to `postgresql`. This makes file readable PostgreSQL server process and thus database superuser.
 
-File group is changed to `www-data`, used by Apache server and `dlcat` command.
+File group is changed to `www-data`. This makes file readable by Apache server and `dlcat` command.
 
 Read permissions on the file are given for said user and group. This makes the file readable by postgres server and apache, dlcat... 
 Other permissions are removed, so the normal users can'r read the file anymore.
@@ -138,7 +138,7 @@ Con: Potentionally destructive for files
 
 ### LCO=1xx,3xx RECOVERY YES
 
-Provides point-in-time recovery of file contents.
+Provides point-in-time recovery of file contents. See [recovery](recovery.md)
 
 Con: More space usage. It might be good to make use of *copy-on-write* feature of some filesystems, but I don't know
 which ones support it and how to turn it on. It should be always on by default, anyway.

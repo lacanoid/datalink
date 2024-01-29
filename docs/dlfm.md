@@ -23,7 +23,7 @@ Responsibilities
 
   *Base file* is designated by path, for example `/dir1/dir2/file.ext`.
   *Backup file* is base file with appended token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
-  If backup file does not exist, it is created by creating a copy of base file.
+  If backup file does not exist, it is created by creating a copy of the base file.
 
 * Restore files from backups (recovery=yes)
 * Make files owned by database (read_access=db)

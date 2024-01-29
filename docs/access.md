@@ -26,7 +26,7 @@ update transaction commits. If the transaction is aborted, the file will not be 
 When `write_access` is `ADMIN` then file is changed to 'immutable' state.
 Datalink column can always be updated.
 
-    mydb=# UPDATE my_table SET link=DLVALUE('http://some.where.net/');
+    mydb=# UPDATE my_table SET link=DLVALUE('file:///var/www/datalink/test2.txt');
 
 Read access
 -----------  

@@ -39,6 +39,7 @@ Wanted
 - add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
+- foreign servers only somewhat work. They should work for `stat()`
 
 Issues
 ======
@@ -47,6 +48,7 @@ Issues
 - forbid setting of lco<>0 for non superusers 
 - `create table as` / `select into` bug (data is loaded before triggers are run)
 - domain on domain on datalink doesn't work
+- datalinker service spoofing (~www-data/.pg_service.conf vs dlcat)
 
 Todo
 ====
@@ -85,13 +87,16 @@ Todo
 - better link state handling: unlink → linked, error → ?
 - better file handling wrt. immutable state
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
+- fix DLPREVIOUSCOPY wrt to old token vs has_token vs read_access
 - dlvalue better error handling
 - make this work for non-superusers
-- datalink.dl_file_stat() execute permissions
+- `datalink.stat()` execute permissions
 - remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
-- comment and token diffusion in dlvalue()
+- extra json stuff  `dlvalue(address,datalink)`
 - verify if ok: user (current role vs table owner) vs directory acls
 - DLPREVOIUSCOPY broken for has_token=0 ?
+- add dlfm client name to dl_authorize
+- dl_trigger_table check URL syntax again
 
 Maybe
 =====

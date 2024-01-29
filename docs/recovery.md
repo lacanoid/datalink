@@ -43,7 +43,7 @@ Note that this is true link, not a symbolic one.
 
 3. If both files exist, then `base_file` is first deleted and then `backup_file` is linked.
 
-4. If neither file exists, then it is error. This is checked for in advance in `datalink.file_link()` function.
+4. If neither file exists, then it is an error. This is normally checked for in advance in `datalink.file_link()` function.
 
 
 On unlink

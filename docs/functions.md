@@ -1,26 +1,69 @@
 SQL Datalink constructors
 -------------------------
 
-### dlvalue( address text [ , link_type text [ , comment ] ] ) 
+### dlvalue( address text [ , link_type text [ , comment text ] ] ) 
 
 Make a datalink by specifying file `address`.
 
-Address depends on `link_type`. For link type `URL`, address is specified as URL. 
-For link type `FS`, address is specified as absolute file path (beginning with /).
+Address depends on `link_type`. Internally, address is always stored as URL.
 
+For link type `URL`, address is specified as URL: 
 
-### dlvalue( address text [ , datalink [ , comment ] ] ) 
+    mydb=# select dlvalue('http://www.github.org','URL');
+                dlvalue             
+    --------------------------------
+     {"a": "http://www.github.org"}
+    (1 row)
+
+For link type `FS`, address is specified as absolute file path (beginning with /):
+
+    mydb=# select dlvalue('/var/www/datalink/test1.txt','FS');
+                      dlvalue                   
+    ---------------------------------------------
+     {"a": "file:///var/www/datalink/test1.txt"}
+    (1 row)
+
+If link type is NULL or ommitted, then it is auto-detected from `address`:
+
+    mydb=# select dlvalue('http://www.github.org');
+                 dlvalue             
+    --------------------------------
+     {"a": "http://www.github.org"}
+    (1 row)
+
+    mydb=# select dlvalue('/var/www/datalink/test1.txt');
+                      dlvalue                   
+    ---------------------------------------------
+     {"a": "file:///var/www/datalink/test1.txt"}
+    (1 row)
+
+When link type is equal to some `dirname` in table `datalink.directory`, 
+`address` is taken to be relative to that directory:
+
+    postgres=# select dlvalue('test1.txt','www');
+                            dlvalue                         
+    ---------------------------------------------------------
+     {"a": "file:///var/www/datalink/test1.txt", "t": "www"}
+    (1 row)
+
+### dlvalue( address text [ , base datalink [ , comment text ] ] ) 
 
 Make a datalink, relative to another datalink.
 
-### dlpreviouscopy( datalink )
+    =# select dlvalue('style.css',dlvalue('http://www.github.org/index.html'));
+                     dlvalue                  
+    ------------------------------------------
+     {"a": "http://www.github.org/style.css"}
+    (1 row)
+
+## dlpreviouscopy( datalink )
 
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
 
-### dlnewcopy( datalink [ , has_token ] )
+## dlnewcopy( datalink [ , has_token ] )
 
 Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
-If `has_token` > 0 then the previous value of token will also be stored in a datalink as write token for update of WRITE ACCESS TOKEN columns.
+If `has_token` > 0 then the previous token will also be stored in a datalink as write token for update.
 
 SQL Datalink scalar functions
 -----------------------------
@@ -47,7 +90,7 @@ Use `dlurlcomplete()` function to convert datalinks back to URLs.
 For READ ACCESS DB datalinks URL will contain read access token.
 Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are used to authorize read access to the file content.
 
-    mydb=# create table t ( link datalink(122) ); 
+    mydb=# create table t ( link datalink(52) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
     mydb=# insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
