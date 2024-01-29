@@ -1016,6 +1016,7 @@ declare
  url text;
 begin 
  url := format('%s%s',$1::jsonb->>'a','#'||($1::jsonb->>'b'));
+ url := url::datalink.url;
 -- raise exception 'DATALINK: dl_datalink_ref(''%'',%,%,%)',url,$2,$3,$4;
 
  has_token := 0;

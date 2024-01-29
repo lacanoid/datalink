@@ -96,7 +96,7 @@ Todo
 - verify if ok: user (current role vs table owner) vs directory acls
 - DLPREVOIUSCOPY broken for has_token=0 ?
 - add dlfm client name to dl_authorize
-- dl_trigger_table check URL syntax again
+- dl_link_ref check URL syntax again
 
 Maybe
 =====
