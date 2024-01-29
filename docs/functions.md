@@ -37,8 +37,8 @@ If link type is NULL or ommitted, then it is auto-detected from `address`:
      {"a": "file:///var/www/datalink/test1.txt"}
     (1 row)
 
-When link type is equal to some `dirname` in table `datalink.directory`, 
-`address` is taken to be relative to that directory:
+When link type is equal to some `dirname` in table `datalink.directory` 
+then `address` is taken to be relative to that directory:
 
     postgres=# select dlvalue('test1.txt','www');
                             dlvalue                         
