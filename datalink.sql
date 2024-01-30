@@ -1781,12 +1781,12 @@ $function$;
 -- bfile compatibility functions
 ---------------------------------------------------
 
-create or replace function fileexists(datalink) returns boolean as $$
+create or replace function fileexists(datalink) returns integer as $$
 select case 
        when $1::jsonb->>'a' ilike 'file:///%'
        then datalink.filepath($1) is not null
        else (datalink.curl_get(dlurlcomplete($1),true)).rc between 200 and 299
-       end
+       end :: integer
 $$ language sql;
 comment on function fileexists(datalink) is 
   'BFILE - Returns whether datalink file exists';
