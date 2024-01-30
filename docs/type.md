@@ -1,5 +1,32 @@
+Datalink type
+==============
+
+You can create datalink values from text URLs by using `dlvalue()` function.
+
+    mydb=> select dlvalue('http://www.github.io/');
+                  dlvalue              
+    ----------------------------------
+     {"a": "http://www.github.io/"}
+    (1 row)
+
+One can think of datalinks as 'bookmarks' to internet resources.
+
+Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque values.
+
+You will normally want to store datalinks in tables:
+
+    mydb=> create table t ( link datalink );
+    CREATE TABLE
+    mydb=> insert into t values (dlvalue('http://www.github.com'));
+    INSERT 0 1
+    mydb=> select dlurlcomplete(link) from t;
+        dlurlcomplete     
+    -----------------------
+    http://www.github.com
+    (1 row)
+
 Link Control Options
-====================
+--------------------
 
 Datalink *link control options* are specified per datalink column 
 and apply to all datalinks stored in that column. They specify datalink behaviour.
