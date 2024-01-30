@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 Datalink type
 ==============
 
@@ -185,3 +187,4 @@ Pro: Automatic cleanup of file no longer needed
 Con: Potentionally destructive for files
 
 
+[Datalink manual](README.md)

@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 Selective referential integrity
 -------------------------------
 
@@ -135,7 +137,4 @@ to perform file operations on datalinks. Setting READ_ACCESS or WRITE_ACCESS to 
 for this to work. Postgres server process by itself does not have high enough privileges to change file permissions nor does 
 extension perform any file changes by itself. It is all done by the datalinker process.
 
-
-Next
-----
-[Access control](access.md)
+[Datalink manual](README.md)

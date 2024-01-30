@@ -1,5 +1,7 @@
+[Datalink manual](README.md)
+
 Write Access
-------------                
+------------
 
 When `write_access` is `FS` then 'immutable' state for a file is left unmodified. 
 This option does not require a datalinker.
@@ -50,7 +52,4 @@ is equal to an existing OS user, it is set as the owner of the file thus making 
 that user. This is meant to work with Postgres *ident* authetication on Debian 
 linux and elsewhere, where database user is same as OS user.
 
-
-Next
-----
-[Point in time recovery](recovery.md)
+[Datalink manual](README.md)

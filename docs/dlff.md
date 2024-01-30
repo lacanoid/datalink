@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 Datalink File Filter
 ====================
 
@@ -79,3 +81,5 @@ Direct file system access (libc)
 File filter is currently not implemented for direct file system access (using libc). 
 
 Perhaps FUSE filesystem might make sense here. 
+
+[Datalink manual](README.md)

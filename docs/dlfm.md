@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 Datalink File Manager
 =====================
 
@@ -26,6 +28,11 @@ Responsibilities
   If backup file does not exist, it is created by creating a copy of the base file.
 
 * Restore files from backups (recovery=yes)
+
+
+
 * Make files owned by database (read_access=db)
 * Restore file permissions (on_unlink=restore)
 * Delete files no longer referenced (on_unlink=delete)
+
+[Datalink manual](README.md)

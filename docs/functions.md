@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 SQL Datalink constructors
 -------------------------
 
@@ -316,7 +318,4 @@ Search for a string in text file, returns offset where found.
 ### substr( datalink [ , position [ , length ] ] ) → text
 Return substring of length from a file starting with offset.
 
-
-Next
-----
-[Referential integrity](integrity.md)
+[Datalink manual](README.md)
