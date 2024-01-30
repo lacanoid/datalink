@@ -83,13 +83,13 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
+ datalink     | dl_url_insight(text,dl_token,boolean)                                                        | plpgsql  | 
  datalink     | filegetdirectory(file_path)                                                                  | sql      | 
  datalink     | filepath(datalink)                                                                           | plpgsql  | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | link_control_options(datalink)                                                               | sql      | 
- datalink     | url_insight(text,dl_token,boolean)                                                           | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
  datalink     | write_text(datalink,text)                                                                    | plpgsql  | 
  datalink     | write_text(file_path,text)                                                                   | plperlu  | 
