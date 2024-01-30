@@ -27,6 +27,15 @@ You will normally want to store datalinks in tables:
     http://www.github.com
     (1 row)
 
+One can see datalink columns for the whole database in view `datalink.columns`.
+
+    mydb=> table datalink.columns ;
+     table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
+    ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
+     t          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
+    (1 row)
+
+
 Link Control Options
 --------------------
 
