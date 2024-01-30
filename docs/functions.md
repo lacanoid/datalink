@@ -346,7 +346,7 @@ Returns new datalink, which can be used for update of a datalink column.
 Compatibility functions
 -----------------------
 
-### fileexists( datalink ) → boolean
+### fileexists( datalink ) → integer
 Check if file exists.
 
 ### getlength( datalink ) → bigint
