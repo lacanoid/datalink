@@ -37,9 +37,10 @@ There are a number of reasons one might want to keep some data in files insted o
 
 Some disciplines, which usually handle external files together with SQL data:
 
-- World Wide Web publishing, where part of the website is often served as files
-- Entertainment industry, where production assests are kept in multimedia files
+- World Wide Web publishing, where parts of the website are often served as files
+- Creative industries, where production assests are kept in multimedia files
 - CAD/CAM, where models and schematics are kept in files
+- Content delivery, where streaming assests are kept in files
 - Administration, where files are used to keep document scans
 - Medical, where X-ray and other scans are kept in files
 
