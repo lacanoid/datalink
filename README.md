@@ -143,7 +143,7 @@ to set them instead.
 If the datalink column already contains data when changing options then there are some limitiations.
 It is best to set options in advance, before storing any data.
 
-For further examples see [Datalink primer](https://github.com/lacanoid/datalink/blob/master/docs/primer.md).
+For further examples see [Datalink manual](https://github.com/lacanoid/datalink/blob/master/docs/README.md).
             
 DATALINK functions
 ==================
@@ -167,7 +167,7 @@ Functions for extracting information from datalink type:
 
 See also
 --------
-- [Datalink primer](https://github.com/lacanoid/datalink/blob/master/docs/primer.md) 
+- [Datalink manual](https://github.com/lacanoid/datalink/blob/master/docs/README.md) 
 - [Slides on design](https://github.com/lacanoid/datalink/blob/master/docs/datalink.pdf) of datalink for Postgres (old)
 - [Tests contain some examples](test/sql)
 - https://wiki.postgresql.org/wiki/DATALINK
