@@ -62,7 +62,7 @@ Make a datalink, relative to another datalink.
 
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
 
-### dlnewcopy( datalink [ , has_token ] ) → datalink
+### dlnewcopy( datalink [ , has_token integer ] ) → datalink
 
 Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
 If `has_token` > 0 then the previous token will also be stored in a datalink as write token for update.
@@ -265,7 +265,7 @@ Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, 
 Web access
 ----------
 
-### curl_get( url text, header_only boolean ) → record
+### curl_get( url text, header_only integer ) → record
 
 Use CURL to fetch content from the World Wide Web.
 
@@ -277,7 +277,7 @@ Use CURL to fetch content from the World Wide Web.
     (1 row)
 
 
-If `header_only` is true then HEAD request is made instead of GET, returning only headers.
+If `header_only` > 0 then HEAD request is made instead of GET, returning only headers.
 This is used to check for the existence of `INTEGRITY SELECTIVE` datalinks.
 
 For URLs of scheme `file` and a non null server, the server name is taken to be a name of `postgres_fdw` foreign server.

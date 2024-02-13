@@ -28,12 +28,12 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
  pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
- pg_catalog   | dlurlcomplete(datalink,boolean)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
- pg_catalog   | dlurlcomplete(text,boolean)                                                                  | sql      | SQL/MED - Returns normalized URL value
+ pg_catalog   | dlurlcomplete(datalink,integer)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
+ pg_catalog   | dlurlcomplete(text,integer)                                                                  | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcompleteonly(text)                                                                      | sql      | SQL/MED - Returns normalized URL value
- pg_catalog   | dlurlpath(datalink,boolean)                                                                  | sql      | SQL/MED - Returns the file path from DATALINK value
- pg_catalog   | dlurlpath(text)                                                                              | sql      | SQL/MED - Returns the file path from URL
+ pg_catalog   | dlurlpath(datalink,integer)                                                                  | sql      | SQL/MED - Returns the file path from DATALINK value
+ pg_catalog   | dlurlpath(text,integer)                                                                      | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathonly(datalink)                                                                      | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpathonly(text)                                                                          | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathwrite(datalink)                                                                     | sql      | SQL/MED - Returns the write file path from DATALINK value
@@ -44,7 +44,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlserver(text)                                                                            | sql      | SQL/MED - Returns the file server from URL
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
- datalink     | curl_get(text,boolean)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
@@ -83,7 +83,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
- datalink     | dl_url_insight(text,dl_token,boolean)                                                        | plpgsql  | 
+ datalink     | dl_url_insight(text,dl_token,integer)                                                        | plpgsql  | 
  datalink     | filegetdirectory(file_path)                                                                  | sql      | 
  datalink     | filepath(datalink)                                                                           | plpgsql  | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 

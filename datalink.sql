@@ -1042,10 +1042,10 @@ begin
 
     if lco.integrity = 'ALL' then has_token := 1; end if;
     -- check if reference exists
-    r := datalink.curl_get(url,true);
+    r := datalink.curl_get(url,1);
     if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
       url := replace(url,'#','%23');
-      r := datalink.curl_get(url,true);
+      r := datalink.curl_get(url,1);
     end if;
     if not r.ok and dlurlscheme(link) = 'FILE' then
       r.ok := not (datalink.stat(dlurlpathonly(link))).inode is null;
@@ -1246,7 +1246,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 ---------------------------------------------------
 
 CREATE FUNCTION curl_get(
-  INOUT url text, head boolean DEFAULT false, 
+  INOUT url text, head integer DEFAULT 0, 
   OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT elapsed float) 
 RETURNS record
 LANGUAGE plperlu
@@ -1294,7 +1294,7 @@ if($url=~m|^file://[^/]|i) {
   return $r;
 }
 
-$head = ($head eq't')?1:0;
+# $head = ($head eq't')?1:0;
 
 my $curl = WWW::Curl::Easy->new;
 $r{url} = $url;  
@@ -1326,8 +1326,8 @@ if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 
 return \%r;
 $_$;
-revoke execute on function curl_get(text,boolean) from public;
-comment on function curl_get(text,boolean)
+revoke execute on function curl_get(text,integer) from public;
+comment on function curl_get(text,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
 ---------------------------------------------------
@@ -1429,7 +1429,7 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, safer boolean default false) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, safer integer default 0) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ 
    select case 
@@ -1440,12 +1440,12 @@ AS $_$
           else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
 $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, boolean) 
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, integer) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(text, boolean default false) RETURNS text LANGUAGE sql STRICT IMMUTABLE
+CREATE FUNCTION pg_catalog.dlurlcomplete(text, integer default 0) RETURNS text LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1),$2) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, boolean) 
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, integer) 
 IS 'SQL/MED - Returns normalized URL value';
 
 ---------------------------------------------------
@@ -1508,7 +1508,7 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer integer default 0)
  RETURNS text
   LANGUAGE sql
    STRICT
@@ -1524,13 +1524,13 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer boolean default false)
           end
 $function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, boolean)
+COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, integer)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpath(text) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlpath(text, safer integer default 0) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select dlurlpath(dlvalue($1)) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlpath(text) 
+AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
+COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
 IS 'SQL/MED - Returns the file path from URL';
 
 ---------------------------------------------------
@@ -1785,7 +1785,7 @@ create or replace function fileexists(datalink) returns integer as $$
 select case 
        when $1::jsonb->>'a' ilike 'file:///%'
        then datalink.filepath($1) is not null
-       else (datalink.curl_get(dlurlcomplete($1),true)).rc between 200 and 299
+       else (datalink.curl_get(dlurlcomplete($1),1)).rc between 200 and 299
        end :: integer
 $$ language sql;
 comment on function fileexists(datalink) is 
@@ -2017,7 +2017,7 @@ alter table insight add foreign key (link_token) references
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
 
-CREATE FUNCTION dl_url_insight(url text, link_token dl_token, safer boolean default false) 
+CREATE FUNCTION dl_url_insight(url text, link_token dl_token, safer integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
 AS $$
 declare
@@ -2025,7 +2025,7 @@ declare
 begin
  -- check for read token
  m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
- if safer then
+ if safer>0 then
   insert into datalink.insight (link_token) values (link_token) 
   returning read_token into link_token;
  end if;

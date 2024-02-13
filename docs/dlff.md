@@ -5,7 +5,7 @@ Datalink File Filter
 
 Datalink File Filter (DLFF) component authorizes access to files linked with `READ ACESS DB` link control option.
 
-For such datalinks, SQL functions `DLURLCOMPLETE()` and `DLURLPATH()` will produce addresses with *embeded read access token*.
+For such datalinks, SQL functions `DLURLCOMPLETE()` and `DLURLPATH()` will produce addresses with embeded *read access token*.
 This token is in turn used by the SQL function `datalink.dl_authorize()` to authorize access to the file. 
 This function is then used by the various front-ends.
 

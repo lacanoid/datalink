@@ -7,6 +7,10 @@ Use Cases
 Datalinks are useful, where data are kept in files, together with metadata in SQL tables.
 This can provide SQL query capabilities for files within SQL.
 
+DATALINK is special SQL type intended to store references to external files in the database.
+Only references to external files are stored in the database, not the content of the files themselves.
+Files are addressed with Uniform Resource Locators (URLs).
+
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
 
