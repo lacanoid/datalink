@@ -4,6 +4,7 @@ Version 0.23
 - new `write_file()` functions
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
+- 'dlfm' supports `bind` and `unbind` operations
 - added preliminary `dlcat` shell command (another DLFF)
 - add support for changing column `lco` with values present for many cases
 - removed implicit from datalink to jsonb cast
