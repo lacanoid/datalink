@@ -1982,7 +1982,16 @@ $$ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
- ---------------------------------------------------
+---------------------------------------------------
+CREATE TABLE dl_status (
+  pid integer default pg_backend_pid(),
+  version text,
+  state "char" default '0'
+);
+insert into dl_status (version) values ('init');
+
+---------------------------------------------------
+
 CREATE FUNCTION has_datalinker()
  RETURNS boolean
  LANGUAGE sql
@@ -1991,6 +2000,7 @@ AS $function$
 select exists (
  select usename
    from pg_stat_activity
+   join datalink.dl_status using (pid)
   where datname = current_database() 
     and application_name='pg_datalinker'
 )

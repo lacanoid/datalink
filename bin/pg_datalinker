@@ -3,6 +3,7 @@
 # version 0.23 by lacanoid@ljudmila.org
 
 our $version="0.23.20231214";
+our $lockid=0x41444154494c4b4e; # DATALINK as ASCII
 
 use strict;
 use DBI;
@@ -79,6 +80,7 @@ sub main() {
     $dbh->do("set application_name='".$config{appname}."'");
     $dbh->do("set search_path=datalink");
     $dbh->do('listen "datalink.linker_jobs"');
+    $dbh->do("update datalink.dl_status set pid=default,version='$version'");
 
     #---------------------------------------
 
@@ -112,7 +114,7 @@ sub main() {
             (select setting from pg_settings where name='port') as port, 
             current_timestamp as start,
             (select count(*) from pg_stat_activity
-            where application_name='}.$config{appname}.q{') as nl,
+            where application_name='$config{appname}') as nl,
             version()
     });
     
@@ -129,54 +131,54 @@ sub main() {
         config_observe();
         my $sleepy = 0;
         while(!$sleepy) {
-        my $rv = queryOrDie('get_jobs');
-        $sleepy = $rv<=0;
-        if(!$sleepy) {
-            while(my $data = $q{get_jobs}->fetchrow_hashref) {
-                if(!$data->{path}) { 
-                    log_err("INPUT","No path in ",$data); next; 
-                }
-                if(!$data->{token}) { 
-                    log_err("INPUT","No token in ",$data); next; 
-                }
-
-                my $path = $data->{path}; 
-                my $path_backup = path_backup($data->{path},$data->{token});
-
-                if(!path_valid_prefix($path)) { 
-                    log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
-                    queryOrDie('set_linked',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
-                    next; 
-                }
-                @err=();
-                my $info;
-                if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
-                log_debug("DATA",$data);
-                my $ts=iso_timestamp();
-                if($data->{state} eq 'LINK') {
-                    if($info) {
-                        log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
-                        file_unlink($path,$data);
-                    } else {
-                        log_msg("LINK:$ts:".$data->{lco},$path_backup);
+            my $rv = queryOrDie('get_jobs');
+            $sleepy = $rv<=0;
+            if(!$sleepy) {
+                while(my $data = $q{get_jobs}->fetchrow_hashref) {
+                    if(!$data->{path}) { 
+                        log_err("INPUT","No path in ",$data); next; 
                     }
-                    my $r=file_link($path,$data);
-                    my $err=(@err)?\@err:undef;
-                    queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode($err));
-                    next;
-                }
-                elsif($data->{state} eq 'UNLINK') {
-                    log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
-                    file_unlink($path,$data);
-                    queryOrDie('delete',$path);
-                    next;
-                }
-                else {
-                    log_err("STATE","Unknown state in ",$data);
-                    next;
+                    if(!$data->{token}) { 
+                        log_err("INPUT","No token in ",$data); next; 
+                    }
+
+                    my $path = $data->{path}; 
+                    my $path_backup = path_backup($data->{path},$data->{token});
+
+                    if(!path_valid_prefix($path)) { 
+                        log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
+                        queryOrDie('set_linked',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
+                        next; 
+                    }
+                    @err=();
+                    my $info;
+                    if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
+                    log_debug("DATA",$data);
+                    my $ts=iso_timestamp();
+                    if($data->{state} eq 'LINK') {
+                        if($info) {
+                            log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
+                            file_unlink($path,$data);
+                        } else {
+                            log_msg("LINK:$ts:".$data->{lco},$path_backup);
+                        }
+                        my $r=file_link($path,$data);
+                        my $err=(@err)?\@err:undef;
+                        queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode($err));
+                        next;
+                    }
+                    elsif($data->{state} eq 'UNLINK') {
+                        log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
+                        file_unlink($path,$data);
+                        queryOrDie('delete',$path);
+                        next;
+                    }
+                    else {
+                        log_err("STATE","Unknown state in ",$data);
+                        next;
+                    }
                 }
             }
-        }
         }
         for(my $i=0;$i<$opt_n;$i++) {
             while(my $not = $dbh->pg_notifies) {
