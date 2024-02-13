@@ -79,6 +79,9 @@ modifier for the `datalink` type:
     ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
     t          | link        | FILE         | ALL       | DB          | BLOCKED      | NO       | RESTORE
 
+When link control is `FILE` (type modifier is distinct from 0) then datalink triggers are added to the table. 
+These take care of managing datalinks as they are stored.
+
 Once the datalink columns are created, one can change control options by updating `datalink.columns` with
 the SQL UPDATE statement. Changing the options has some limitiations when datalink values are already present in the table.
 

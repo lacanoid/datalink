@@ -97,6 +97,10 @@ Todo
 - DLPREVOIUSCOPY broken for has_token=0 ?
 - add dlfm client name to dl_authorize
 - dl_link_ref check URL syntax again
+- function `datalink.sync()` to sync up with the datalinker (wait for it to become idle)
+- `datalink.dl_dlfm` table to hold shared datalinker status
+- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history.
+
 
 Maybe
 =====

@@ -60,6 +60,10 @@ Make a datalink, relative to another datalink.
 
 ### dlpreviouscopy( datalink ) → datalink
 
+Return previous version of the datalink, if available. 
+Updating a `RECOVERY YES` datalink column with the previous value of the datalink will cause datalinker to restore
+previous version of file contents as well.
+
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
 
 ### dlnewcopy( datalink [ , has_token integer ] ) → datalink
@@ -74,7 +78,7 @@ These are specified by the SQL/MED standard.
 
 Most of these have been overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
-### dlurlcomplete( datalink ) → text
+### dlurlcomplete( datalink [ , safer integer ] ) → text
 
 Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
@@ -106,6 +110,9 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
      file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
+When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be created in `datalink.dl_insight` table.
+This can be used to avoid revealing stored tokens.
+
 ### dlurlcompleteonly( datalink ) → text
 
 Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
@@ -129,7 +136,7 @@ The function also omits any `fragment` part of the URL (stuff after #)
      file:///var/www/datalink/test1.txt
     (1 row)
 
-### dlurlpath( datalink ) → text
+### dlurlpath( datalink [ , safer integer ] ) → text
 
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
@@ -150,6 +157,9 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
     ------------------------------------------------------------------
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
+
+When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be created in `datalink.dl_insight` table.
+This can be used to avoid revealing stored tokens.
 
 ### dlurlpathonly( datalink ) → text
 
@@ -175,7 +185,7 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
 
 ### dlurlscheme( datalink ) → text
 
-Use `dlurlscheme()` function to get URL scheme part of datalink.
+Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
 
     mydb=# select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlscheme 
