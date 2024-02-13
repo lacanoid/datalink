@@ -35,6 +35,7 @@ One can see datalink columns for the whole database in view `datalink.columns`.
      t          | link        | NO           | NONE      | FS          | FS           | NO       | NONE
     (1 row)
 
+Superusers will see all datalink columns whereas normal users will see only columns for owned tables.
 
 Link Control Options
 --------------------

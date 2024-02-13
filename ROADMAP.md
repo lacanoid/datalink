@@ -39,7 +39,7 @@ Wanted
 - add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
-- foreign servers only somewhat work. They should work for `stat()`
+- foreign servers only somewhat work. They should work for `stat()`.
 
 Issues
 ======
@@ -92,15 +92,16 @@ Todo
 - make this work for non-superusers
 - `datalink.stat()` execute permissions
 - remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
-- extra json stuff  `dlvalue(address,datalink)`
+- handle extra json stuff  `dlvalue(address,datalink)`
 - verify if ok: user (current role vs table owner) vs directory acls
-- DLPREVOIUSCOPY broken for has_token=0 ?
-- add dlfm client name to dl_authorize
+- DLPREVIOUSCOPY is broken for has_token=0 ?
+- add dlff client name to dl_authorize
 - dl_link_ref check URL syntax again
 - function `datalink.sync()` to sync up with the datalinker (wait for it to become idle)
 - `datalink.dl_dlfm` table to hold shared datalinker status
-- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history.
-
+- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history
+- make `datalink.columns` updatable by normal users
+- show error count in `datalink.usage`
 
 Maybe
 =====
