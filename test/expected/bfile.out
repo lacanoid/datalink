@@ -45,7 +45,7 @@ select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fi
   from bfiles;
  getlength | instr | substr |                             filepath                             | fileexists |              filegetname              
 -----------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
-      8886 |    85 | Versi  | /var/www/datalink/CHANGELOG.md                                   |          1 | (www,CHANGELOG.md,/var/www/datalink/)
+      8919 |    85 | Versi  | /var/www/datalink/CHANGELOG.md                                   |          1 | (www,CHANGELOG.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
         26 |     0 | This   | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
       8426 |     5 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)

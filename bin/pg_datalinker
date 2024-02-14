@@ -23,6 +23,7 @@ our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
 our $opt_n = 10; # number of iterations in fast inner loop
 our $opt_l;      # logfile
+our $opt_L = 1;  # use advisory locks
 our $opt_r = 10; # when fatal error wait this long then restarts
 our $opt_e = 1;  # echo commands
 our $macOS = 0;  # running on macOS
@@ -98,6 +99,10 @@ sub main() {
                 info  = $3,
                 err   = $4
           where path  = $1
+        }),
+        'set_status'=>$dbh->prepare(
+       q{update datalink.dl_status set idle = $1
+          where idle is distinct from $1
         }),
         'delete'=>$dbh->prepare(
        q{delete from dl_linked_files
@@ -180,14 +185,22 @@ sub main() {
                 }
             }
         }
-        for(my $i=0;$i<$opt_n;$i++) {
-            while(my $not = $dbh->pg_notifies) {
-                log_debug('NOTIFY',$not);
-                $sleepy = 0;
+        if($sleepy) {
+            log_debug('IDLE');
+            queryOrDie('set_status',1);
+            if($opt_L) { $dbh->do("select pg_advisory_lock($lockid)"); }
+            for(my $i=0;$i<$opt_n;$i++) {
+                while(my $not = $dbh->pg_notifies) {
+                    log_debug('NOTIFY',$not);
+                    $sleepy = 0;
+                }
+                if(!$sleepy) { next; }
+                else {
+                    usleep(1000000 * 5.0/$opt_n);
+                } 
             }
-            if($sleepy) {
-                usleep(1000000 * 5.0/$opt_n);
-            }
+            if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
+            queryOrDie('set_status',0);
         }
     } # forever loop
 

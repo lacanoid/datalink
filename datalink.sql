@@ -1986,7 +1986,7 @@ CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, priv
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
   version text,
-  state "char" default '0'
+  idle integer
 );
 insert into dl_status (version) values ('init');
 

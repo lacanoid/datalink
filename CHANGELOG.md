@@ -10,6 +10,7 @@ Version 0.23
 - removed implicit from datalink to jsonb cast
 - lco number assignments in `link_control_options` again to be more logical
 - some boolean args changes to integer to be more consistent
+- datalinker status improvements
 
 Version 0.22
 ------------
