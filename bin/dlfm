@@ -193,7 +193,11 @@ sub config_unbind() {
 sub services_load() {
     $services = Config::Tiny->read($config{service_file});
     if(defined($services->{$SERVICE})) { $has_bind=1; } 
-    else { $has_bind=0; }
+    else {
+	$has_bind = 0;
+	$services = Config::Tiny->new;
+	$services->{$SERVICE} = {};
+    }
 }
 
 sub services_save() {
