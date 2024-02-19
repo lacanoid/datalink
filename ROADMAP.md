@@ -98,9 +98,9 @@ Todo
 - verify if ok: user (current role vs table owner) vs directory acls
 - DLPREVIOUSCOPY is broken for has_token=0 ?
 - add dlff client name to dl_authorize
-- dl_link_ref check URL syntax again
-- function `datalink.sync()` to sync up with the datalinker (wait for it to become idle)
-- `datalink.dl_dlfm` table to hold shared datalinker status
+- ✔︎ dl_link_ref check URL syntax again
+- ✔︎ function `datalink.commit()` to sync up with the datalinker (wait for it to become idle)
+- ✔︎ `datalink.dl_status` table to hold shared datalinker status
 - make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history
 - make `datalink.columns` updatable by normal users
 - show error count in `datalink.usage`
