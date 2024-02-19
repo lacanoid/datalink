@@ -1648,7 +1648,7 @@ begin
   update datalink.insight
      set atimes=atimes||array[now()], 
          grantees=grantees||array[myrole],
-         pids=pids||array[pg_backend_id()]
+         pids=pids||array[pg_backend_pid()]
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
   if found then return mypath; end if;
