@@ -1757,7 +1757,7 @@ AS $function$
   unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - CREATE permission denied on directory.\nFILE: $filename\n"; }
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
-  open($fh,">",$filename) or die "DATALINK EXCEPTION - Can't open $filename for writing: $!\n";
+  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
@@ -1790,6 +1790,11 @@ select case
 $$ language sql;
 comment on function fileexists(datalink) is 
   'BFILE - Returns whether datalink file exists';
+create or replace function fileexists(file_path) returns integer as $$
+select datalink.fileexists(dlvalue($1,'FS'))
+$$ language sql;
+comment on function fileexists(file_path) is 
+  'BFILE - Returns whether file exists';
 
 create or replace function filegetname(datalink, OUT dirname text, OUT filename text, OUT dirpath text)
 returns record as $$
@@ -1801,21 +1806,37 @@ returns record as $$
 $$ strict language sql;
 comment on function filegetname(datalink) is 
   'BFILE - Returns directory name and filename for a datalink';
+create or replace function filegetname(file_path, OUT dirname text, OUT filename text, OUT dirpath text)
+returns record as $$ select * from datalink.filegetname(dlvalue($1,'FS') $$ strict language sql;
+comment on function filegetname(file_path) is 
+  'BFILE - Returns directory name and filename for a file';
 
 create or replace function getlength(datalink) returns bigint as 
 $$ select (datalink.stat(datalink.filepath($1))).size::bigint $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
+create or replace function getlength(file_path) returns bigint as 
+$$ select datalink.getlength(dlvalue($1,'FS')) $$ language sql;
+comment on function getlength(file_path) is 
+  'BFILE - Returns file size';
 
 create or replace function substr(datalink, pos integer default 1, len integer default 32767) returns text as 
 $$ select datalink.read_text($1,$2,$3) $$ language sql;
 comment on function substr(datalink, integer, integer) is 
   'BFILE - Returns part of the datalink file starting at the specified offset and length';
+create or replace function substr(file_path, pos integer default 1, len integer default 32767) returns text as 
+$$ select datalink.read_text($1,$2,$3) $$ language sql;
+comment on function substr(file_path, integer, integer) is 
+  'BFILE - Returns part of the file starting at the specified offset and length';
 
 create or replace function instr(datalink, pattern text, pos integer default 1) returns integer as 
 $$ select position($2 in datalink.read_text($1,$3::bigint)) $$ language sql;
 comment on function instr(datalink,text, integer) is 
   'BFILE - Returns the matching position of a pattern in a datalink file';
+create or replace function instr(file_path, pattern text, pos integer default 1) returns integer as 
+$$ select position($2 in datalink.read_text($1,$3::bigint)) $$ language sql;
+comment on function instr(file_path,text, integer) is 
+  'BFILE - Returns the matching position of a pattern in a file';
 
 ---------------------------------------------------
 -- directories
@@ -1989,6 +2010,25 @@ CREATE TABLE dl_status (
   idle integer
 );
 insert into dl_status (version) values ('init');
+
+---------------------------------------------------
+CREATE PROCEDURE commit() language plpgsql as $$
+begin
+
+  if not datalink.has_datalinker() then
+        raise exception 'DATALINK ERROR - datalinker required' 
+              using errcode = 'HW000',
+              hint = 'make sure pg_datalinker process is running to finalize your commits';
+  end if;
+
+  commit;
+  notify "datalink.linker_jobs"; 
+
+  perform pg_advisory_lock(x'41444154494c4b4e'::bigint);
+  perform pg_advisory_unlock(x'41444154494c4b4e'::bigint);
+
+end
+$$;
 
 ---------------------------------------------------
 

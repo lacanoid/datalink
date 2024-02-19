@@ -126,11 +126,12 @@ sub main() {
     log_msg("START",$dbmeta);
 
     if($dbmeta->{nl}>1) {
-        log_err("SYSDUP","There seems to be a datalinker already running!");
+        log_fatal("SYSDUP","There seems to be a datalinker already running!");
     }
 
     #---------------------------------------
 
+    if($opt_L) { $dbh->do("select pg_advisory_lock($lockid)"); }
     while(1) {
         log_debug('READY');
         config_observe();
@@ -181,14 +182,17 @@ sub main() {
                     else {
                         log_err("STATE","Unknown state in ",$data);
                         next;
-                    }
-                }
+                    } 
+		} # while fetchrow
             }
-        }
+        } # while not sleepy
+        if($opt_L) {
+	    $dbh->do("select pg_advisory_unlock($lockid)");
+            $dbh->do("select pg_advisory_lock($lockid)");  }
+
         if($sleepy) {
             log_debug('IDLE');
             queryOrDie('set_status',1);
-            if($opt_L) { $dbh->do("select pg_advisory_lock($lockid)"); }
             for(my $i=0;$i<$opt_n;$i++) {
                 while(my $not = $dbh->pg_notifies) {
                     log_debug('NOTIFY',$not);
@@ -199,10 +203,11 @@ sub main() {
                     usleep(1000000 * 5.0/$opt_n);
                 } 
             }
-            if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
             queryOrDie('set_status',0);
         }
     } # forever loop
+
+    if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
 
     log_msg('END');
 }
@@ -422,8 +427,10 @@ sub file_backup_restore {
     my ($path,$opt)=@_;
     if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
+	my $move = !($opt->{recovery} eq 'YES');
         if(-f $path_backup) {
-            sys("ln","-f",$path_backup,$path);
+	    if($move) { sys("mv","-f",$path_backup,$path); }
+	    else { sys("ln","-f",$path_backup,$path); }
         } else {
             log_err("NO BACKUP","File not found:$path_backup");
         }

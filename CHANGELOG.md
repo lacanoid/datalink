@@ -11,6 +11,7 @@ Version 0.23
 - lco number assignments in `link_control_options` again to be more logical
 - some boolean args changes to integer to be more consistent
 - datalinker status improvements
+- new `datalink.commit()` procedure
 
 Version 0.22
 ------------

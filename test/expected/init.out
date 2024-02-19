@@ -49,11 +49,15 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
+ datalink     | fileexists(file_path)                                                                        | sql      | BFILE - Returns whether file exists
  datalink     | filegetname(datalink)                                                                        | sql      | BFILE - Returns directory name and filename for a datalink
+ datalink     | filegetname(file_path)                                                                       | sql      | BFILE - Returns directory name and filename for a file
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
+ datalink     | getlength(file_path)                                                                         | sql      | BFILE - Returns file size
  datalink     | has_datalinker()                                                                             | sql      | Is datalinker process currently running?
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
+ datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for a datalink column
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream local file referenced by a datalink as lines of text
@@ -62,10 +66,12 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read local file contents as text
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
  datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
+ datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
+ datalink     | commit()                                                                                     | plpgsql  | 
  datalink     | dl_authorize(file_path,boolean,regrole)                                                      | plpgsql  | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
@@ -93,6 +99,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uuid_generate_v4()                                                                           | c        | 
  datalink     | write_text(datalink,text)                                                                    | plpgsql  | 
  datalink     | write_text(file_path,text)                                                                   | plperlu  | 
-(72 rows)
+(78 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
