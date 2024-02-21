@@ -358,7 +358,9 @@ create table dl_linked_files (
   attrelid regclass not null,
   attnum smallint not null,
   path file_path primary key,
-  address text unique,
+  address text[] unique,
+  size bigint,
+  mtime timestamptz,
   fstat jsonb,
   info jsonb,
   err jsonb
@@ -445,9 +447,10 @@ $$
 declare
  r record;
  fstat jsonb;
- addr text;
+ addr text[];
  my_attnum smallint;
-
+ my_mtime timestamptz;
+ my_size bigint;
 begin
 -- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
  raise notice 'DATALINK LINK:%',file_path;
@@ -471,7 +474,9 @@ begin
                   detail = format('stat failed for %s',file_path);
  end if;
 
- addr := array[fstat->>'dev',fstat->>'inode']::text;
+ addr := array[fstat->>'dev',fstat->>'inode'];
+ my_size := fstat->>'size';
+ my_mtime := to_timestamp(cast(fstat->>'mtime' as double precision));
 
  select attnum
    from pg_attribute where attname=my_attname and attrelid=my_regclass
@@ -482,8 +487,8 @@ begin
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address)
-   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr);
+   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime)
+   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr,my_size,my_mtime);
    notify "datalink.linker_jobs"; 
    return true;
  else -- found in dl_linked_files
@@ -1609,7 +1614,7 @@ CREATE FOREIGN TABLE dl_prfx (
 SERVER datalink_file_server
 OPTIONS (filename '/etc/postgresql-common/pg_datalinker.prefix');
 
-CREATE FUNCTION has_valid_prefix(datalink.file_path)
+CREATE FUNCTION has_valid_prefix(file_path)
  RETURNS boolean LANGUAGE sql STABLE STRICT
 AS $function$
 select exists (
@@ -1622,9 +1627,9 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 
 ---------------------------------------------------
-create or replace function datalink.dl_authorize(
-  datalink.file_path, for_web boolean default true, myrole regrole default user::regrole) 
-returns datalink.file_path
+create or replace function dl_authorize(
+  file_path, for_web integer default 1, myrole regrole default user::regrole) 
+returns file_path
 language plpgsql security definer
 as $$
 declare
@@ -1652,10 +1657,10 @@ begin
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
   if found then return mypath; end if;
-  if for_web then return null; end if;
+  if for_web>0 then return null; end if;
  end if;
  mypath := $1;
- if for_web then return mypath;
+ if for_web>0 then return mypath;
  else 
   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
   raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
@@ -1665,6 +1670,8 @@ begin
  end if;
  return null;
 end$$;
+comment on function dl_authorize(file_path, integer, regrole)
+     is 'Authorize access to READ ACCESS DB file via embedded read token';
 
 ---------------------------------------------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
@@ -1689,7 +1696,7 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.dl_authorize($1,false) as path};
+  my $q=q{select datalink.dl_authorize($1,0) as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
@@ -1713,7 +1720,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.dl_authorize($1,false) as path};
+  my $q=q{select datalink.dl_authorize($1,0) as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
@@ -1763,6 +1770,8 @@ AS $function$
   close $fh;
   return length($bufr);
 $function$;
+COMMENT ON FUNCTION write_text(file_path,text) IS 
+  'Write new local file contents as text';
 
 ---------------------------------------------------
 
@@ -1776,6 +1785,8 @@ begin
  return link;
 end
 $function$;
+COMMENT ON FUNCTION write_text(datalink,text) IS 
+  'Write datalink contents as text';
 
 ---------------------------------------------------
 -- bfile compatibility functions
@@ -2006,8 +2017,10 @@ CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, priv
 ---------------------------------------------------
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
+  cpid integer,
   version text,
-  idle integer
+  atime timestamptz,
+  mtime timestamptz
 );
 insert into dl_status (version) values ('init');
 
@@ -2021,14 +2034,16 @@ begin
               hint = 'make sure pg_datalinker process is running to finalize your commits';
   end if;
 
-  commit;
   notify "datalink.linker_jobs"; 
+  commit;
 
   perform pg_advisory_lock(x'41444154494c4b4e'::bigint);
   perform pg_advisory_unlock(x'41444154494c4b4e'::bigint);
 
 end
 $$;
+COMMENT ON PROCEDURE commit() 
+     IS 'Wait for datalinker to apply changes';
 
 ---------------------------------------------------
 
@@ -2087,7 +2102,7 @@ $$;
 -- volume usage statistics
 ---------------------------------------------------
 
-create view usage as
+create or replace view usage as
 WITH a AS (
          SELECT d.dirname AS dirname,
                 d.filename AS filename,
@@ -2107,9 +2122,11 @@ WITH a AS (
                 datalink.filegetname(dlvalue(linked_files.path::text)) as d
         )
  SELECT a.dirpath,
-    count(a.filename) FILTER (WHERE length(a.filename) > 0) AS count,
     sum(a.size) FILTER (WHERE length(a.filename) > 0) AS size,
-    array_agg(DISTINCT a.state) AS states
+    sum(1) FILTER (WHERE length(a.filename) > 0) AS count,
+    sum(case when a.state='LINKED' then 1 end) FILTER (WHERE length(a.filename) > 0) AS linked,
+    sum(case when a.err is not null then 1 end) FILTER (WHERE length(a.filename) > 0) AS error,
+    sum(case when a.state in ('LINK','UNLINK') then 1 end) FILTER (WHERE length(a.filename) > 0) AS waiting
    FROM a
   GROUP BY GROUPING SETS ((a.dirpath), ())
   ORDER BY a.dirpath;

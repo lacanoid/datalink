@@ -44,7 +44,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlserver(text)                                                                            | sql      | SQL/MED - Returns the file server from URL
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
+ datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
  datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | dl_authorize(file_path,integer,regrole)                                                      | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
@@ -71,8 +73,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
- datalink     | commit()                                                                                     | plpgsql  | 
- datalink     | dl_authorize(file_path,boolean,regrole)                                                      | plpgsql  | 
+ datalink     | write_text(datalink,text)                                                                    | plpgsql  | Write datalink contents as text
+ datalink     | write_text(file_path,text)                                                                   | plperlu  | Write new local file contents as text
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
@@ -97,8 +99,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | link_control_options(datalink)                                                               | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
- datalink     | write_text(datalink,text)                                                                    | plpgsql  | 
- datalink     | write_text(file_path,text)                                                                   | plperlu  | 
 (78 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

@@ -63,6 +63,7 @@ if($operation eq 'del') { config_del(@ARGV[0]); exit; }
 if($operation eq 'usage') { show_usage(); exit; }
 if($operation eq 'dirs') { show_dirs(); exit; }
 if($operation eq 'show') { show_version(); exit; }
+if($operation eq 'save') { save_dirs(); exit; }
 
 if($operation eq 'bind') { config_bind(); exit; }
 if($operation eq 'unbind') { config_unbind(); exit; }
@@ -521,19 +522,30 @@ sub show_dirs {
     psql("select * from datalink.directory");
 }
 
+sub save_dirs {
+    $opt_e = 0;
+    psql("copy datalink.dl_directory to '/tmp/dl_directory'");
+    sys("mv","-f","/tmp/dl_directory","/etc/postgresql-common/");
+}
+
 sub show_version {
     $opt_e = 0;
     print "HAS_BIND=$has_bind\n";
     if($has_bind) {
         psql(qq{
               select current_setting('server_version') as server_version, 
-                     current_database() as dbname, 
+                     current_database() as datname, 
                      user, 
                      current_setting('port') as port,
-                     current_setting('cluster_name') as cluster_name,
-                     extname,extowner::regrole, extversion 
-                from pg_extension where extname='datalink'});
-        psql("select datalink.has_datalinker()");
+                     current_setting('cluster_name') as cluster_name
+            });
+        psql(qq{select extname,extowner::regrole, extversion,
+                       (select count(*) from datalink.columns) as columns,
+                       (select count(*) from datalink.linked_files) as files
+                  from pg_extension where extname='datalink'});
+        psql(qq{select pid,cpid,now()-atime as access,now()-mtime modify 
+                  from datalink.dl_status where datalink.has_datalinker()
+            });
     }
 }
 

@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.23 by lacanoid@ljudmila.org
 
-our $version="0.23.20231214";
+our $version="0.23.20240221";
 our $lockid=0x41444154494c4b4e; # DATALINK as ASCII
 
 use strict;
@@ -81,7 +81,7 @@ sub main() {
     $dbh->do("set application_name='".$config{appname}."'");
     $dbh->do("set search_path=datalink");
     $dbh->do('listen "datalink.linker_jobs"');
-    $dbh->do("update datalink.dl_status set pid=default,version='$version'");
+    $dbh->do("update datalink.dl_status set pid=default,version='$version',cpid='$$'");
 
     #---------------------------------------
 
@@ -99,10 +99,6 @@ sub main() {
                 info  = $3,
                 err   = $4
           where path  = $1
-        }),
-        'set_status'=>$dbh->prepare(
-       q{update datalink.dl_status set idle = $1
-          where idle is distinct from $1
         }),
         'delete'=>$dbh->prepare(
        q{delete from dl_linked_files
@@ -169,8 +165,8 @@ sub main() {
                             log_msg("LINK:$ts:".$data->{lco},$path_backup);
                         }
                         my $r=file_link($path,$data);
-                        my $err=(@err)?\@err:undef;
-                        queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$json->encode($err));
+                        my $err=(@err)?to_json(\@err):undef;
+                        queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$err);
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
@@ -183,16 +179,17 @@ sub main() {
                         log_err("STATE","Unknown state in ",$data);
                         next;
                     } 
-		} # while fetchrow
-            }
+	        	} # while fetchrow
+                $dbh->do("update datalink.dl_status set mtime=now()");
+            } # if not sleepy
         } # while not sleepy
+
         if($opt_L) {
 	    $dbh->do("select pg_advisory_unlock($lockid)");
             $dbh->do("select pg_advisory_lock($lockid)");  }
 
         if($sleepy) {
             log_debug('IDLE');
-            queryOrDie('set_status',1);
             for(my $i=0;$i<$opt_n;$i++) {
                 while(my $not = $dbh->pg_notifies) {
                     log_debug('NOTIFY',$not);
@@ -203,8 +200,8 @@ sub main() {
                     usleep(1000000 * 5.0/$opt_n);
                 } 
             }
-            queryOrDie('set_status',0);
         }
+  	    $dbh->do("update datalink.dl_status set atime=now()");
     } # forever loop
 
     if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
