@@ -314,6 +314,7 @@ Datalink extension needs to be installed on the foreign server as well for this 
     
     (1 row)
 
+Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 Reading files
 -------------

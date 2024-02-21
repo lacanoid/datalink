@@ -30,13 +30,13 @@ Datalinks as defined by SQL/MED should provide:
   - [Point-in-time recovery of file contents](recovery.md)
 - Access to files on different servers (for datalinks with `FILE` scheme)
 
-In addition to this, the extension provides a number of additional features:
-- URL manipulation
-- File system to URL mapping
+In addition, this extension provides a number of additional features:
+- [URL manipulation](functions.md#user-content-uri-manipulation)
+- [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)
-- File reading and writing
-- Directory permissions system
-- Compatibility functions
+- [File reading and writing](functions.md#user-content-reading-files)
+- [Directory permissions system](configuration.md)
+- [Compatibility functions](functions.md#user-content-compatibility-functions)
 
 There are a number of reasons one might want to keep some data in files insted of storing it in a database.
 
