@@ -33,7 +33,7 @@ Datalinks as defined by SQL/MED should provide:
 In addition to this, the extension provides a number of additional features:
 - URL manipulation
 - File system to URL mapping
-- Web access via CURL
+- [Web access via CURL](functions.md#user-content-web-access)
 - File reading and writing
 - Directory permissions system
 - Compatibility functions
