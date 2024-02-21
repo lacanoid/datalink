@@ -42,6 +42,7 @@ Wanted
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`.
+- handle symbolic links better (lstat)
 
 Issues
 ======
