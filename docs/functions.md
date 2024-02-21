@@ -3,7 +3,9 @@
 SQL Datalink constructors
 -------------------------
 
-### dlvalue( address text [ , link_type text [ , comment text ] ] ) → datalink
+### dlvalue
+
+#### dlvalue( address text [ , link_type text [ , comment text ] ] ) → datalink
 
 Make a datalink by specifying file `address`.
 
@@ -48,7 +50,7 @@ then `address` is taken to be relative to that directory:
      {"a": "file:///var/www/datalink/test1.txt", "t": "www"}
     (1 row)
 
-### dlvalue( address text [ , base datalink [ , comment text ] ] ) → datalink
+#### dlvalue( address text [ , base datalink [ , comment text ] ] ) → datalink
 
 Make a datalink, relative to another datalink.
 
@@ -58,7 +60,9 @@ Make a datalink, relative to another datalink.
      {"a": "http://www.github.org/style.css"}
     (1 row)
 
-### dlpreviouscopy( datalink ) → datalink
+### dlpreviouscopy
+
+#### dlpreviouscopy( datalink ) → datalink
 
 Return previous version of the datalink, if available. 
 Updating a `RECOVERY YES` datalink column with the previous value of the datalink will cause datalinker to restore
@@ -66,7 +70,9 @@ previous version of file contents as well.
 
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
 
-### dlnewcopy( datalink [ , has_token integer ] ) → datalink
+### dlnewcopy
+
+#### dlnewcopy( datalink [ , has_token integer ] ) → datalink
 
 Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
 If `has_token` > 0 then the previous token will also be stored in a datalink as write token for update.
