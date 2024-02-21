@@ -76,7 +76,7 @@ if($operation eq 'log') { daemon_log(); exit; }
 if($operation eq 'ps') { daemon_see(); exit; }
 if($operation eq 'see') { daemon_see(); exit; }
 
-print STDERR qq{Datalink file manager control program
+print STDERR qq{PostgreSQL datalink file manager control program
 Usage: $0 <command> [arguments...]
 Commands:
     show                 - show version and system configuration
