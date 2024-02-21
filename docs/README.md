@@ -32,9 +32,10 @@ Datalinks as defined by SQL/MED should provide:
 
 In addition to this, the extension provides a number of additional features:
 - URL manipulation
+- File system to URL mapping
 - Web access via CURL
 - File reading and writing
-- File system to URL mapping
+- Directory permissions system
 - Compatibility functions
 
 There are a number of reasons one might want to keep some data in files insted of storing it in a database.

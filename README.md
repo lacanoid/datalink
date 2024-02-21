@@ -8,26 +8,9 @@ DATALINK is special SQL type intended to store references to external files in t
 Only references to external files are stored in the database, not the content of the files themselves.
 Files are addressed with Uniform Resource Locators (URLs).
 
+For detailed documentation see [Datalink manual](https://github.com/lacanoid/datalink/blob/master/docs/README.md).
+
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the integrity control, recovery, and access control of the files and the SQL-data associated with them. "
-
-Datalinks as defined by SQL/MED should provide:
-- DATALINK SQL type
-- Scalar functions operating on DATALINK type
-- Transactional semantics
-- URL syntax validation
-- Checking if file exists
-- Protection of linked file against renaming or deletion
-- Read access control through database
-- Write access control through database
-- Point-in-time recovery of file contents
-- Automatic deletion of files no longer referenced from database
-- Access to files on different servers
-
-It is implemented in three main components:
-- a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any potentionally destructive file system changes, although it can create new files. 
-- [datalink file manager](https://github.com/lacanoid/datalink/blob/master/docs/dlfm.md) (DLFM) deamon, [`pg_datalinker`](https://github.com/lacanoid/datalink/blob/master/docs/pg_datalinker.md), which handles all file manipulations. 
-The extension can be used without a daemon, but this disables some of the functionality.
-- [datalink file filter](https://github.com/lacanoid/datalink/blob/master/docs/dlff.md) (DLFF), which applies READ ACCESS DB policy to file accesses. 
 
 Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
@@ -38,16 +21,12 @@ Currently, it implements the following:
 - DLLINKTYPE function
 - DLCOMMENT function
 - Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (ie `datalink(122)`)
-- Directory and role based permission management for file system access control
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)
-- PlPerlu interface `curl_get()` to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
-- URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize them
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also works for web
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep track of linked files in `datalink.dl_linked_files` table
-- Simple datalinker to provide other LCOs, see below
-- Foreign server support for file:// URLs (for files on other postgres_fdw foreign servers)
+- Simple file manager  to provide other LCOs, see below
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database (chown, chmod)
@@ -62,8 +41,16 @@ Missing features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
 - SQL/MED function DLREPLACECONTENT
 
+Extra features not in SQL standard:
+- URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
+- PlPerlu interface `curl_get()` to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
+- Directory and role based permission management for file system access control
+- Directory to URL mapping
+- Foreign server support for file:// URLs (for files on other postgres_fdw foreign servers)
+- Compatibility functions from other databases
+
 This extension uses a number of advanced Postgres features for implementation,
-including types, transactions, jsonb, triggers, updatable views, listen/notify, file_fdw, plperlu...
+including types, transactions, jsonb, triggers, updatable views, listen/notify, file_fdw, plperlu, advisory locks...
 Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and perl.
 However it requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking. All these together provide a powerful file and web framework within SQL environment.
@@ -101,7 +88,7 @@ This requires superuser privileges.
 Using
 -----
 
-This extension lives mostly in `datalink` schema.
+This extension lives mostly in the `datalink` schema.
 SQL/MED standard compliant functions are installed in `pg_catalog` schema, 
 so they are accessible regardless of the search_path.
 

@@ -15,7 +15,7 @@
             "pgperlu": 0,
             "plpgsql": 0,
             "uri": 0,
-            "PostgreSQL": "9.5.0"
+            "PostgreSQL": "13.0.0"
          },
          "recommends": {
             "PostgreSQL": "15.0.0",
