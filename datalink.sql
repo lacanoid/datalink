@@ -469,7 +469,7 @@ begin
    if not datalink.has_valid_prefix(file_path) THEN
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
-                    detail = format('unknown path prefix for %s',file_path),
+                    detail = format('unknown path prefix for "%s"',file_path),
                     hint = 'run "pg_datalinker add" to add prefixes'
                     ;
    end if;
@@ -481,7 +481,12 @@ begin
  if fstat is null then
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
-                  detail = format('stat failed for %s',file_path);
+                  detail = format('stat failed for "%s"',file_path);
+ end if;
+ if fstat->>'typ' not in ('-','d') then 
+      raise exception 'DATALINK EXCEPTION - referenced file not valid' 
+            using errcode = 'HW007',
+                  detail = format('file "%s" is neither file nor directory, but "%s"',file_path,fstat->>'typ');
  end if;
 
  addr := array[fstat->>'dev',fstat->>'inode'];
