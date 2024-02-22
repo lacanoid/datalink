@@ -388,15 +388,10 @@ grant select on linked_files to public;
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION datalink.stat(file_path file_path,
+CREATE OR REPLACE FUNCTION stat(file_path file_path,
    OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
    OUT uid integer, OUT gid integer,
    OUT rdev integer, OUT size numeric, 
-/*
-   OUT atime timestamp without time zone,
-   OUT mtime timestamp without time zone, 
-   OUT ctime timestamp without time zone,
-*/
    OUT atime numeric,
    OUT mtime numeric, 
    OUT ctime numeric,
@@ -410,10 +405,10 @@ use Date::Format;
 my ($filename) = @_;
 unless(-e $filename) { return undef; }
 my (@s) = lstat($filename);
-
+my $typs="?pc?d?b?-?l?s???"; # file types as shown by ls(1)
 return {
  'dev'=>$s[0],'inode'=>$s[1],
- 'mode'=>($s[2] & 07777),'typ'=>substr("?pc?d?b?-?l?s???",(($s[2] & 0170000)>>12),1),
+ 'mode'=>($s[2] & 07777),'typ'=>substr($typs,(($s[2] & 0170000)>>12),1),
  'nlink'=>$s[3],
  'uid'=>$s[4],'gid'=>$s[5],
  'rdev'=>$s[6],'size'=>$s[7],
@@ -422,16 +417,7 @@ return {
  'blksize'=>$s[11],'blocks'=>$s[12]
 };
 $function$;
-/* types: 
-   1 fifo (p)ipe
-   2 (c)haracter device
-   4 (d)irectory
-   6 (b)lock device
-   8 (-)regular file
-  10 symbolic (l)ink
-  12 (s)ocket
-*/
-COMMENT ON FUNCTION datalink.stat(file_path) IS 'Return info record from stat(2)';
+COMMENT ON FUNCTION stat(file_path) IS 'Return info record from stat(2)';
 
 -- return most appropriate path to a file 
 -- return NULL if file does not exist
