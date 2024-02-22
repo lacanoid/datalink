@@ -21,11 +21,13 @@ For link type `URL`, address is specified as URL:
 
 For link type `FS`, address is specified as absolute file path (beginning with /):
 
-    mydb=# select dlvalue('/var/www/datalink/test1.txt','FS');
+    mydb=# select dlvalue('/var/www/datalink/my file.txt','FS');
                       dlvalue                   
     ---------------------------------------------
-     {"a": "file:///var/www/datalink/test1.txt"}
+     {"a": "file:///var/www/datalink/my%20file.txt"}
     (1 row)
+
+Please not that URLs are escaped, while file paths are not.
 
 If link type is NULL or ommitted, then it is auto-detected from `address`:
 
@@ -60,7 +62,7 @@ Make a datalink, relative to another datalink.
      {"a": "http://www.github.org/style.css"}
     (1 row)
 
-### dlpreviouscopy
+### versioning
 
 #### dlpreviouscopy( datalink ) → datalink
 
@@ -69,8 +71,6 @@ Updating a `RECOVERY YES` datalink column with the previous value of the datalin
 previous version of file contents as well.
 
 Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
-
-### dlnewcopy
 
 #### dlnewcopy( datalink [ , has_token integer ] ) → datalink
 
@@ -84,7 +84,7 @@ These are specified by the SQL/MED standard.
 
 Most of these have been overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
-### dlurlcomplete( datalink [ , safer integer ] ) → text
+#### dlurlcomplete( datalink [ , safer integer ] ) → text
 
 Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
@@ -116,10 +116,10 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
      file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be created in `datalink.dl_insight` table.
-This can be used to avoid revealing stored tokens.
+When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
+This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
 
-### dlurlcompleteonly( datalink ) → text
+#### dlurlcompleteonly( datalink ) → text
 
 Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
 The function also omits any `fragment` part of the URL (stuff after #)
@@ -142,7 +142,7 @@ The function also omits any `fragment` part of the URL (stuff after #)
      file:///var/www/datalink/test1.txt
     (1 row)
 
-### dlurlpath( datalink [ , safer integer ] ) → text
+#### dlurlpath( datalink [ , safer integer ] ) → text
 
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
@@ -164,10 +164,10 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be created in `datalink.dl_insight` table.
-This can be used to avoid revealing stored tokens.
+When `safer` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
+This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
 
-### dlurlpathonly( datalink ) → text
+#### dlurlpathonly( datalink ) → text
 
 Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
 
@@ -189,7 +189,7 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      /var/www/datalink/test1.txt
     (1 row)
 
-### dlurlscheme( datalink ) → text
+#### dlurlscheme( datalink ) → text
 
 Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
 
@@ -199,7 +199,7 @@ Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
      HTTPS
     (1 row)
 
-### dlurlserver( datalink ) → text
+#### dlurlserver( datalink ) → text
 
 Use `dlurlserver()` function to get URL server part of datalink.
 This does not include username and password if they are present in URL.
@@ -216,7 +216,7 @@ This does not include username and password if they are present in URL.
      www.github.io
     (1 row)
 
-### dlcomment( datalink ) → text
+#### dlcomment( datalink ) → text
 
 Use `dlcomment()` function to get datalink comment.
 
@@ -228,7 +228,7 @@ Use `dlcomment()` function to get datalink comment.
 
 This function is not in SQL standard, but is available in other implementations.
 
-### dllinktype( datalink ) → text
+#### dllinktype( datalink ) → text
 
 Use `dllinktype()` function to get datalink type, as specified or determined in `dlvalue()`.
 
@@ -262,17 +262,17 @@ Thay are all in the `datalink` schema.
 URI manipulation
 ----------------
 
-### uri_get( uri , part ) → text
+#### uri_get( uri , part ) → text
 
 Get a part of URI, returns text.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
 
-### uri_get( datalink , part ) → text
+#### uri_get( datalink , part ) → text
 
 Get a part of a datalink's URI, returns text.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
 
-### uri_set( uri , part , value text ) → text
+#### uri_set( uri , part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
@@ -281,7 +281,7 @@ Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, 
 Web access
 ----------
 
-### curl_get( url text, header_only integer ) → record
+#### curl_get( url text, header_only integer ) → record
 
 Use CURL to fetch content from the World Wide Web.
 
@@ -319,7 +319,7 @@ Only superuser can execute this function, execute permission for other users mus
 Reading files
 -------------
 
-### read_text( file_path [ , position [ , length ] ] ) → text 
+#### read_text( file_path [ , position [ , length ] ] ) → text 
 Read local file contents as text. 
 
 Returns text.
@@ -328,17 +328,17 @@ If the file is linked with `READ ACCESS DB` access is first checked with `dl_aut
 This implements access with filename-embedded read tokens as per SQL standard.
 A user can alternatively have SELECT privilege on the directory to read the file.
 
-### read_text( datalink [ , position [ , length ] ] ) → text
+#### read_text( datalink [ , position [ , length ] ] ) → text
 Read datalink contents as text. 
 
 Returns text.
 
-### read_lines( file_path [ , position ] ) → table (i,o,line)
+#### read_lines( file_path [ , position ] ) → table (i,o,line)
 Read local file contents as lines of text.
 
 Returns set of lines with line numbers and file offset.
 
-### read_lines( datalink [ , position ] ) → table (i,o,line)
+#### read_lines( datalink [ , position ] ) → table (i,o,line)
 Read datalink contents as lines of text. Currently works only for local file datalinks.
 
 Returns set of lines with line numbers and file offset.
@@ -347,14 +347,14 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-### write_text( file_path , content text ) → integer
+#### write_text( file_path , content text ) → integer
 Write local file contents as text. File must not exist.
 
 Returns number of bytes written.
 
 User must have CREATE privilege on the directory.
 
-### write_text( datalink , content text ) → datalink
+#### write_text( datalink , content text ) → datalink
 Write datalink contents as text. New version of file is created.
 
 Returns new datalink, which can be used for update of a datalink column.
@@ -363,16 +363,16 @@ Returns new datalink, which can be used for update of a datalink column.
 Compatibility functions
 -----------------------
 
-### fileexists( datalink ) → integer
+#### fileexists( datalink ) → integer
 Check if file exists.
 
-### getlength( datalink ) → bigint
+#### getlength( datalink ) → bigint
 Return file size in bytes.
 
-### instr( datalink , text ) → integer
+#### instr( datalink , text ) → integer
 Search for a string in text file, returns offset where found.
 
-### substr( datalink [ , position [ , length ] ] ) → text
+#### substr( datalink [ , position [ , length ] ] ) → text
 Return substring of length from a file starting with offset.
 
 [Datalink manual](README.md)

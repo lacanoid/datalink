@@ -43,6 +43,7 @@ Wanted
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`.
 - handle symbolic links better (lstat)
+- update bugs: warnings, file doesn't dissapear when it should
 
 Issues
 ======

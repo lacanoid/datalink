@@ -365,6 +365,9 @@ create table dl_linked_files (
   info jsonb,
   err jsonb
 );
+-- index for datalinker
+create index dl_linked_files_txid on dl_linked_files (txid) 
+ where state = ANY ('{LINK,UNLINK}'::file_link_state[]);
 
 create view linked_files as
 select path,state,
@@ -400,7 +403,7 @@ CREATE OR REPLACE FUNCTION stat(file_path file_path,
   LANGUAGE plperlu
    STRICT
    AS $function$
-use Date::Format;
+#use Date::Format;
 
 my ($filename) = @_;
 unless(-e $filename) { return undef; }
@@ -2127,7 +2130,7 @@ WITH a AS (
     sum(1) FILTER (WHERE length(a.filename) > 0) AS count,
     sum(case when a.state='LINKED' then 1 end) FILTER (WHERE length(a.filename) > 0) AS linked,
     sum(case when a.err is not null then 1 end) FILTER (WHERE length(a.filename) > 0) AS error,
-    sum(case when a.state in ('LINK','UNLINK') then 1 end) FILTER (WHERE length(a.filename) > 0) AS waiting
+    sum(case when a.state = ANY ('{LINK,UNLINK}'::file_link_state[]) then 1 end) FILTER (WHERE length(a.filename) > 0) AS waiting
    FROM a
   GROUP BY GROUPING SETS ((a.dirpath), ())
   ORDER BY a.dirpath;

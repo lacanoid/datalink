@@ -21,7 +21,7 @@ our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_R = 1;  # revert old files from backups
 our $opt_C = 0;  # only check configuration
-our $opt_n = 10; # number of iterations in fast inner loop
+our $opt_n = 20; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 our $opt_L = 1;  # use advisory locks
 our $opt_r = 10; # when fatal error wait this long then restarts
