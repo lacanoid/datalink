@@ -6,8 +6,11 @@
 #include <sys/wait.h>
 #include <libpq-fe.h>
 
+char *conninfo = "service=pg_datalink";
+
 char resolved_path[PATH_MAX];
 int wstatus;
+
 
 int main(int argc, char **argv) {
     PGresult *res;
@@ -17,7 +20,6 @@ int main(int argc, char **argv) {
     // conninfo is a string of keywords and values separated by spaces.
     // Create a connection
 
-    char *conninfo = "service=datalinker";
     PGconn *conn = PQconnectdb(conninfo);
 
     // Check if the connection is successful

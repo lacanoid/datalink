@@ -34,7 +34,7 @@ getopt('l');
 
 our %config = (
     appname => 'pg_datalinker',
-    dsn => 'dbi:Pg:service=datalinker',
+    dsn => 'dbi:Pg:service=pg_datalink',
     db_owner => 'postgres:www-data',
     db_mode => '0440',
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
@@ -424,10 +424,10 @@ sub file_backup_restore {
     my ($path,$opt)=@_;
     if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
-	my $move = !($opt->{recovery} eq 'YES');
+	    my $move = !($opt->{recovery} eq 'YES');
         if(-f $path_backup) {
-	    if($move) { sys("mv","-f",$path_backup,$path); }
-	    else { sys("ln","-f",$path_backup,$path); }
+	        if($move) { sys("mv","-f",$path_backup,$path); }
+	        else { sys("ln","-f",$path_backup,$path); }
         } else {
             log_err("NO BACKUP","File not found:$path_backup");
         }

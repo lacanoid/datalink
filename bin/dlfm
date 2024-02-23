@@ -34,7 +34,7 @@ our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
 
-our $SERVICE = 'datalinker';
+our $SERVICE = 'pg_datalink';
 our $NAME = 'pg_datalinker';
 our $DAEMON = "/usr/sbin/pg_datalinker";
 
