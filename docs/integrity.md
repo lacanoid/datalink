@@ -133,8 +133,9 @@ A user can see all of his currently linked files in `datalink.linked_files` view
     (1 row)
 
 Full referential integrity is meant to be supported by [pg_datalinker](pg_datalinker.md), a separate process coupled with postgres
-to perform file operations on datalinks. Setting READ_ACCESS or WRITE_ACCESS to something other than FS will require that it runs
-for this to work. Postgres server process by itself does not have high enough privileges to change file permissions nor does 
-extension perform any file changes by itself. It is all done by the datalinker process.
+to perform file operations on datalinks. Postgres server process by itself does not have high enough privileges to change file permissions nor does 
+extension perform any file changes by itself. 
+
+Together with datalinker, further control of [access](access.md) control and [recovery](recovery.md) is possible.
 
 [Datalink manual](README.md)
