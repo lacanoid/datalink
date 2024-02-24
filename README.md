@@ -61,9 +61,9 @@ Installation
 You will need to have 
 [WWW::Curl](http://search.cpan.org/~szbalint/WWW-Curl-4.17/lib/WWW/Curl.pm#WWW::Curl::Easy) 
 Perl package installed, as it is used by the extension.
-On Debian, you will need to install `libwww-curl-perl` and `libdbd-pg-perl` packages.
+On Debian, you will need to install `libwww-curl-perl` and also `libdbd-pg-perl` and `libconfig-tiny-perl` packages.
 
-    apt install libwww-curl-perl libdbd-pg-perl
+    apt install libwww-curl-perl libdbd-pg-perl libconfig-tiny-perl
 
 Also required is [pguri](https://github.com/lacanoid/pguri) extension, which must
 be installed separately.

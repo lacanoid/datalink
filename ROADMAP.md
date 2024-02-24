@@ -30,9 +30,6 @@ Wanted
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
 - build simple webserver into pg_datalinker
-- perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful for this? 
-- get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set
-- perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - better documentation (manual)
 - better handling of already immutable files
 - apache mod_perl directory autoconfigurator
@@ -56,6 +53,10 @@ Issues
 
 Todo
 ====
+- verify datalinker copy/move when writing files with write_text()
+- permissions on datalink.columns for users
+- backup & restore
+
 - ✔︎ CLI tool for datalinker admin
 - ✔︎ much better error handling in datalinker
 - ✔︎ dlvalue(null) → null, dlvalue('') → null
@@ -84,10 +85,10 @@ Todo
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
 - datalinker: better configurator
-- datalinker: don't die so easily
+- ✔︎ datalinker: don't die so easily
 - datalinker: signal handler
 - datalinker: update owner+group in dl_linked_files.info only if not default
-- function to wait for datalinker to finish
+- ✔︎ function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
 - better file handling wrt. immutable state
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
@@ -105,7 +106,7 @@ Todo
 - ✔︎ `datalink.dl_status` table to hold shared datalinker status
 - make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history
 - make `datalink.columns` updatable by normal users
-- show error count in `datalink.usage`
+- ✔︎ show error count in `datalink.usage`
 
 Maybe
 =====
@@ -121,6 +122,9 @@ Maybe
 - ✔︎ add timing info to curl_get()
 - better punycode support in `dlvalue()`
 - support for http ranges in `curl_get()` (and apache handler!)
+- perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful? 
+- get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...
+- perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 
 BFile API
 =========
