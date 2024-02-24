@@ -147,7 +147,10 @@ PROCEDURE READ (file_loc IN BFILE, amount IN OUT INTEGER, offset IN INTEGER, buf
 ✔︎ FUNCTION SUBSTR (file_loc IN BFILE, amount IN INTEGER := 32767, offset IN INTEGER := 1) RETURN RAW;
 
 ✔︎ FUNCTION INSTR (file_loc IN BFILE, pattern IN RAW, offset IN INTEGER := 1,nth IN INTEGER := 1) RETURN INTEGER;
+- fix to use less memory and respect offset
+- fix to support patterns
 
 PROCEDURE LOADFROMFILE(dest_lob IN OUT CLOB, src_file IN BFILE, amount IN INTEGER, dest_offset IN INTEGER := 1, src_offset IN INTEGER := 1);
 
 FUNCTION COMPARE (lob_1 IN BFILE, lob_2 IN BFILE, amount IN INTEGER, offset_1 IN INTEGER := 1, offset_2 IN INTEGER := 1) RETURN INTEGER;
+- perhaps with File::Compare
