@@ -1043,7 +1043,7 @@ begin
     if lco.integrity = 'ALL' and link_options>10 then
       if not datalink.has_datalinker() then
         raise warning 'DATALINK WARNING - datalinker required' 
-              using errcode = 'HW000',
+              using errcode = '57050',
 --                    detail = 'datalinker process is not available',
                     hint = 'make sure pg_datalinker process is running to finalize your commits';
       end if;
@@ -2034,7 +2034,7 @@ begin
 
   if not datalink.has_datalinker() then
         raise exception 'DATALINK ERROR - datalinker required' 
-              using errcode = 'HW000',
+              using errcode = '57050',
               hint = 'make sure pg_datalinker process is running to finalize your commits';
   end if;
 
