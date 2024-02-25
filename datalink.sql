@@ -2029,6 +2029,7 @@ CREATE TABLE dl_status (
   mtime timestamptz
 );
 insert into dl_status (version) values ('init');
+grant select on dl_status to public;
 
 ---------------------------------------------------
 CREATE PROCEDURE commit() language plpgsql as $$
