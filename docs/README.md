@@ -9,7 +9,7 @@ This can provide SQL query capabilities for files within SQL.
 
 DATALINK is special SQL type intended to store references to external files in the database.
 Only references to external files are stored in the database, not the content of the files themselves.
-Files are addressed with Uniform Resource Locators (URLs).
+Files are addressed with [Uniform Resource Locators (URLs)](https://en.wikipedia.org/wiki/URL).
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
@@ -30,7 +30,7 @@ Datalinks as defined by SQL/MED should provide:
   - [Point-in-time recovery of file contents](recovery.md)
 - Access to files on different servers (for datalinks with `FILE` scheme)
 
-In addition, this extension provides a number of additional features:
+This extension provides a number of additional features:
 - [URL manipulation](functions.md#user-content-uri-manipulation)
 - [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)

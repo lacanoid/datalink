@@ -1187,8 +1187,10 @@ begin
                                 hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
                           ;
             end if; -- tokens not matching
-            link2 := link2::jsonb - 'o';
         end if; -- token
+        if opt.write_access in ('ADMIN','TOKEN') and tg_op='UPDATE' then
+            link2 := link2::jsonb - 'o';
+        end if; -- admin
    
         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));
