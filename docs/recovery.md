@@ -4,7 +4,7 @@ Recovery
 --------
 
 When `recovery` is `NO` then point-in-time recovery is not provided,
-This option does not require datalinker.
+This option does not require a datalinker.
 
 when `recovery` is `YES` then point-in-time recovery is provided by the datalinker.
 
@@ -45,7 +45,7 @@ Note that this is true link, not a symbolic one.
 
 3. If both files exist, then `base_file` is first deleted and then `backup_file` is linked.
 
-4. If neither file exists, then it is an error. This is normally checked for in advance in `datalink.file_link()` function.
+4. If neither file exists, then it is an error. This is normally checked for in advance in SQL environment.
 
 
 On unlink

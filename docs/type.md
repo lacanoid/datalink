@@ -3,7 +3,7 @@
 Datalink type
 ==============
 
-You can create datalink values from text URLs by using `dlvalue()` function.
+You can create datalink values from text URLs by using [`dlvalue()`](functions.md#user-content-sql-datalink-constructors) function.
 
     mydb=> select dlvalue('http://www.github.io/');
                   dlvalue              

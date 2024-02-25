@@ -82,7 +82,7 @@ SQL Datalink scalar functions
 
 These are specified by the SQL/MED standard.
 
-Most of these have been overloaded to work on text as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
+Most of these have been overloaded to work on text URLs as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
 #### dlurlcomplete( datalink [ , anonymous integer ] ) → text
 
@@ -285,7 +285,7 @@ Web access
 
 #### curl_get( url text, header_only integer ) → record
 
-Use CURL to fetch content from the World Wide Web.
+Use CURL to fetch content from the World Wide Web via GET request.
 
     mydb=# select * from datalink.curl_get('http://localhost/datalink/test1.txt');
                      url                 | ok | rc  | body  | error | elapsed  
