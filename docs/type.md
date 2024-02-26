@@ -127,6 +127,8 @@ Linked files are tracked in table `datalink.dl_linked_files`
 
 Linked files are unique, each file can only be linked once.
 
+Files must be located in predefined directories from `datalink.directory`.
+
 Files can still be modified based of the file system permissions.
 
 Pro: Does not modify files in any way.
