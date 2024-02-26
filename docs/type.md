@@ -149,8 +149,7 @@ File owner is changed to `postgresql`. This makes file readable PostgreSQL serve
 
 File group is changed to `www-data`. This makes file readable by Apache server and `dlcat` command.
 
-Read permissions on the file are given for said user and group. This makes the file readable by postgres server and apache, dlcat... 
-Other permissions are removed, so the normal users can'r read the file anymore.
+Read permissions on the file are set for owner and group. other permissions are removed, so that normal users can'r read the file anymore.
 
 Note that this requires at least READ ACCESS BLOCKED option, so file will not be writable anyway.
 
@@ -158,7 +157,7 @@ Pro: Access file contents from the database environment
 
 ### LCO=x6x WRITE ACCESS TOKEN
 
-Modify file contents from the database environment. Write write token must be present.
+Modify file contents from the database environment. Matching write token must be present.
 
 This requires access to the (previous) datalink value to be able to update it.
 
