@@ -13,7 +13,7 @@ Address depends on `link_type`. Internally, address is always stored as URL.
 
 For link type `URL`, address is specified as URL: 
 
-    mydb=# select dlvalue('http://www.github.org','URL');
+    mydb=> select dlvalue('http://www.github.org','URL');
                 dlvalue             
     --------------------------------
      {"a": "http://www.github.org"}
@@ -21,7 +21,7 @@ For link type `URL`, address is specified as URL:
 
 For link type `FS`, address is specified as absolute file path (beginning with /):
 
-    mydb=# select dlvalue('/var/www/datalink/my file.txt','FS');
+    mydb=> select dlvalue('/var/www/datalink/my file.txt','FS');
                       dlvalue                   
     ---------------------------------------------
      {"a": "file:///var/www/datalink/my%20file.txt"}
@@ -31,13 +31,13 @@ Please not that URLs are escaped, while file paths are not.
 
 If link type is NULL or ommitted, then it is auto-detected from `address`:
 
-    mydb=# select dlvalue('http://www.github.org');
+    mydb=> select dlvalue('http://www.github.org');
                  dlvalue             
     --------------------------------
      {"a": "http://www.github.org"}
     (1 row)
 
-    mydb=# select dlvalue('/var/www/datalink/test1.txt');
+    mydb=> select dlvalue('/var/www/datalink/test1.txt');
                       dlvalue                   
     ---------------------------------------------
      {"a": "file:///var/www/datalink/test1.txt"}
@@ -46,7 +46,7 @@ If link type is NULL or ommitted, then it is auto-detected from `address`:
 When link type is equal to some `dirname` in table `datalink.directory` 
 then `address` is taken to be relative to that directory:
 
-    postgres=# select dlvalue('test1.txt','www');
+    mydb=> select dlvalue('test1.txt','www');
                             dlvalue                         
     ---------------------------------------------------------
      {"a": "file:///var/www/datalink/test1.txt", "t": "www"}
@@ -56,7 +56,7 @@ then `address` is taken to be relative to that directory:
 
 Make a datalink, relative to another datalink.
 
-    =# select dlvalue('style.css',dlvalue('http://www.github.org/index.html'));
+    mydb=> select dlvalue('style.css',dlvalue('http://www.github.org/index.html'));
                      dlvalue                  
     ------------------------------------------
      {"a": "http://www.github.org/style.css"}
@@ -88,13 +88,13 @@ Most of these have been overloaded to work on text URLs as well as datalinks. If
 
 Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
-    mydb=# select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+    mydb=> select dlurlcomplete(dlvalue('http://www.github.io/a/b/c/d/../../e'));
             dlurlcomplete      
     ----------------------------
      http://www.github.io/a/b/e
     (1 row)
 
-    mydb=# select dlurlcomplete('http://www.github.io/a/b/c/d/../../e');
+    mydb=> select dlurlcomplete('http://www.github.io/a/b/c/d/../../e');
             dlurlcomplete      
     ----------------------------
      http://www.github.io/a/b/e
@@ -103,14 +103,14 @@ Use `dlurlcomplete()` function to convert datalinks back to URLs.
 For READ ACCESS DB datalinks URL will contain read access token.
 Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are used to authorize read access to the file content.
 
-    mydb=# create table t ( link datalink(52) ); 
+    mydb=> create table t ( link datalink(52) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
-    mydb=# insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
+    mydb=> insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
 
-    mydb=# select dlurlcomplete(link) from t;
+    mydb=> select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
      file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
@@ -124,19 +124,19 @@ This can be used to avoid revealing stored tokens. Access can be revoked by dele
 Use `dlurlcompleteonly()` function to convert datalinks back to URLs. URL never contains access token.
 The function also omits any `fragment` part of the URL (stuff after #)
 
-    mydb=# select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
+    mydb=> select dlurlcompleteonly(dlvalue('http://www.github.io/a/b/c/d/../../e'));
           dlurlcompleteonly      
     ----------------------------
      http://www.github.io/a/b/e
     (1 row)
 
-    mydb=# select dlurlcompleteonly('http://www.github.io/a/b/c/d/../../e');
+    mydb=> select dlurlcompleteonly('http://www.github.io/a/b/c/d/../../e');
           dlurlcompleteonly      
     ----------------------------
      http://www.github.io/a/b/e
     (1 row)
 
-    mydb=# select dlurlcompleteonly(link) from t;
+    mydb=> select dlurlcompleteonly(link) from t;
              dlurlcompleteonly          
     ------------------------------------
      file:///var/www/datalink/test1.txt
@@ -146,19 +146,19 @@ The function also omits any `fragment` part of the URL (stuff after #)
 
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
-    mydb=# select dlurlpath(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    mydb=> select dlurlpath(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlpath 
     -----------
      /foo/bar
     (1 row)
     
-    mydb=# select dlurlpath('https://user:password@www.gitgub.io:1234/foo/bar');
+    mydb=> select dlurlpath('https://user:password@www.gitgub.io:1234/foo/bar');
      dlurlpath 
     -----------
      /foo/bar
     (1 row)
 
-    mydb=# select dlurlpath(link) from t;
+    mydb=> select dlurlpath(link) from t;
                                 dlurlpath                             
     ------------------------------------------------------------------
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
@@ -173,19 +173,19 @@ Access can be revoked by deleting entries from `datalink.insight`.
 
 Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
 
-    mydb=# select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+    mydb=> select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
              dlurlpathonly         
     ------------------------------
      /var/www/datalink/index.html
     (1 row)
 
-    mydb=# select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    mydb=> select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlpathonly 
     ---------------
      /foo/bar
     (1 row)
 
-    mydb=# select dlurlpathonly(link) from t;
+    mydb=> select dlurlpathonly(link) from t;
             dlurlpathonly        
     -----------------------------
      /var/www/datalink/test1.txt
@@ -195,7 +195,7 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
 
 Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
 
-    mydb=# select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    mydb=> select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlscheme 
     -------------
      HTTPS
@@ -206,13 +206,13 @@ Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
 Use `dlurlserver()` function to get URL server part of datalink.
 This does not include username and password if they are present in URL.
 
-    mydb=# select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
+    mydb=> select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
       dlurlserver  
     ---------------
      www.github.io
     (1 row)
 
-    mydb=# select dlurlserver('https://user:password@www.github.io:1234/foo/bar');
+    mydb=> select dlurlserver('https://user:password@www.github.io:1234/foo/bar');
       dlurlserver  
     ---------------
      www.github.io
@@ -222,7 +222,7 @@ This does not include username and password if they are present in URL.
 
 Use `dlcomment()` function to get datalink comment.
 
-    mydb=# select dlcomment(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar','URL','A comment...'));
+    mydb=> select dlcomment(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar','URL','A comment...'));
       dlcomment 
     --------------
      A comment...
@@ -234,19 +234,19 @@ This function is not in SQL standard, but is available in other implementations.
 
 Use `dllinktype()` function to get datalink type, as specified or determined in `dlvalue()`.
 
-    mydb=# select dllinktype(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+    mydb=> select dllinktype(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
     dllinktype 
     ------------
      URL
     (1 row)
 
-    mydb=# select dllinktype(dlvalue('/var/www/datalink/test1.txt'));
+    mydb=> select dllinktype(dlvalue('/var/www/datalink/test1.txt'));
     dllinktype 
     ------------
      FS
     (1 row)
 
-    mydb=# select dllinktype(dlvalue('test1.txt','www'));
+    mydb=> select dllinktype(dlvalue('test1.txt','www'));
     dllinktype 
     ------------
     www

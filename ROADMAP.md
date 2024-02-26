@@ -53,7 +53,6 @@ Issues
 
 Todo
 ====
-- verify datalinker copy/move when writing files with write_text()
 - permissions on datalink.columns for users
 - backup & restore
 
@@ -76,8 +75,9 @@ Todo
 - ✔︎ update trigger on dl_columns to call datalink.modlco()
 - ✔︎ optimize table triggers (do not install them if mco=0)
 - ✔︎ throw warnings/errors if datalinker is not running when it should
-- additional permission checks for delete, references
-- consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
+- ✔︎ additional permission checks for delete
+- additional permission checks for references
+- ✔︎ consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
 - handle // urls and paths better
 - datalinker: use config file
