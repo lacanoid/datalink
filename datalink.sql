@@ -1771,6 +1771,10 @@ AS $function$
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
+
+  $p = spi_prepare(q{select datalink.dl_file_admin($1,'{"w":1}')},'datalink.file_path');
+  spi_exec_prepared($p,$filename);
+
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
@@ -2112,13 +2116,14 @@ $$;
 create table dl_admin_files (
   txid xid8 not null default pg_current_xact_id(),
   ctime timestamptz not null default now(),
+  regrole regrole not null default current_role::regrole,
   file_path file_path primary key,
   token dl_token unique,
   options jsonb
 );
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_admin(file_path) returns text strict
+create or replace function dl_file_admin(file_path, options jsonb default null) returns text strict
 language plpgsql as $$
 declare 
   my_txid xid8;
@@ -2127,7 +2132,7 @@ declare
 begin 
   my_txid := pg_current_xact_id();
   dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
-  sql := format('insert into datalink.dl_admin_files (file_path,txid) values (%L,%L)',$1,my_txid);
+  sql := format('insert into datalink.dl_admin_files (file_path,txid,options) values (%L,%L,%L)',$1,my_txid,$2);
   perform dblink_exec(dsn,sql,true);
   return $1;
 end
