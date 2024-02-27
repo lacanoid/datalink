@@ -54,6 +54,7 @@ This extension provides a number of additional features:
 - [Web access via CURL](functions.md#user-content-web-access)
 - [File reading and writing](functions.md#user-content-reading-files)
 - [Directory permissions system](configuration.md)
+- Enable file access for normal database roles (not only superusers)
 - [Compatibility functions](functions.md#user-content-compatibility-functions)
 
 Architecture

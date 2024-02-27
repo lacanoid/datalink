@@ -352,7 +352,7 @@ CREATE TYPE file_link_state AS ENUM (
 );
 create table dl_linked_files (
   token dl_token not null unique,
-  txid bigint not null default txid_current(),
+  txid xid8 not null default pg_current_xact_id(),
   state file_link_state not null default 'LINK',
   lco dl_lco not null references datalink.link_control_options,
   attrelid regclass not null,
@@ -2102,6 +2102,34 @@ begin
   returning read_token into link_token;
  end if;
  return coalesce(m[1]||link_token||';'||m[4],$1);
+end
+$$;
+
+---------------------------------------------------
+-- temporary files
+---------------------------------------------------
+-- administered (copied, moved, deleted) files
+create table dl_admin_files (
+  txid xid8 not null default pg_current_xact_id(),
+  ctime timestamptz not null default now(),
+  file_path file_path primary key,
+  token dl_token unique,
+  options jsonb
+);
+
+-- mark file as temporary to be deleted if the transaction aborts
+create or replace function dl_file_admin(file_path) returns text strict
+language plpgsql as $$
+declare 
+  my_txid xid8;
+  dsn text;
+  sql text;
+begin 
+  my_txid := pg_current_xact_id();
+  dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
+  sql := format('insert into datalink.dl_admin_files (file_path,txid) values (%L,%L)',$1,my_txid);
+  perform dblink_exec(dsn,sql,true);
+  return $1;
 end
 $$;
 
