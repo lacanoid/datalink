@@ -105,24 +105,24 @@ select url,
 (16 rows)
 
 select url,dlpreviouscopy(url::text,0) from sample_urls;
-                                   url                                   |                                  dlpreviouscopy                                  
--------------------------------------------------------------------------+----------------------------------------------------------------------------------
- http://www.mozilla.org                                                  | {"a": "http://www.mozilla.org"}
- http://www.ljudmila.org                                                 | {"a": "http://www.ljudmila.org"}
- https://www.github.org                                                  | {"a": "https://www.github.org"}
- file:///tmp/a                                                           | {"a": "file:///tmp/a"}
- http://www.debian.org/                                                  | {"a": "http://www.debian.org/"}
- file://user@fs1.arch.net/file1.jpg                                      | {"a": "file://user@fs1.arch.net/file1.jpg"}
- file://user@file-server/a/b/c/../../fileX.jpg                           | {"a": "file://user@file-server/a/fileX.jpg"}
- file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | {"a": "file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321"}
- file://user:pass@host/fileA.txt                                         | {"a": "file://user:pass@host/fileA.txt"}
- ftp://user:pass@host/fileB.txt                                          | {"a": "ftp://user:pass@host/fileB.txt"}
- sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | {"a": "sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1"}
- mailto:lacanoid@ljudmila.org?subject=feedback                           | {"a": "mailto:lacanoid@ljudmila.org?subject=feedback"}
- https://video.kulturnik.si/?qwhat=galerije&q=piran                      | {"a": "https://video.kulturnik.si/?qwhat=galerije&q=piran"}
- file:///var/www/datalink/                                               | {"a": "file:///var/www/datalink/"}
- file:///var/www/datalink                                                | {"a": "file:///var/www/datalink"}
- data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"a": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs="}
+                                   url                                   |                                       dlpreviouscopy                                       
+-------------------------------------------------------------------------+--------------------------------------------------------------------------------------------
+ http://www.mozilla.org                                                  | {"a": "http://www.mozilla.org", "k": "p"}
+ http://www.ljudmila.org                                                 | {"a": "http://www.ljudmila.org", "k": "p"}
+ https://www.github.org                                                  | {"a": "https://www.github.org", "k": "p"}
+ file:///tmp/a                                                           | {"a": "file:///tmp/a", "k": "p"}
+ http://www.debian.org/                                                  | {"a": "http://www.debian.org/", "k": "p"}
+ file://user@fs1.arch.net/file1.jpg                                      | {"a": "file://user@fs1.arch.net/file1.jpg", "k": "p"}
+ file://user@file-server/a/b/c/../../fileX.jpg                           | {"a": "file://user@file-server/a/fileX.jpg", "k": "p"}
+ file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321 | {"a": "file://user@fs2.arch.net/file1.jpg#bb519e69-6bf1-4214-9b7a-4280702c6321", "k": "p"}
+ file://user:pass@host/fileA.txt                                         | {"a": "file://user:pass@host/fileA.txt", "k": "p"}
+ ftp://user:pass@host/fileB.txt                                          | {"a": "ftp://user:pass@host/fileB.txt", "k": "p"}
+ sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | {"a": "sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1", "k": "p"}
+ mailto:lacanoid@ljudmila.org?subject=feedback                           | {"a": "mailto:lacanoid@ljudmila.org?subject=feedback", "k": "p"}
+ https://video.kulturnik.si/?qwhat=galerije&q=piran                      | {"a": "https://video.kulturnik.si/?qwhat=galerije&q=piran", "k": "p"}
+ file:///var/www/datalink/                                               | {"a": "file:///var/www/datalink/", "k": "p"}
+ file:///var/www/datalink                                                | {"a": "file:///var/www/datalink", "k": "p"}
+ data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"a": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=", "k": "p"}
 (16 rows)
 
 select 'foo/bar'::datalink.file_path;
@@ -222,8 +222,8 @@ select link,
        dlurlcompleteonly(link),
        datalink.uri_get(link,'basename') as basename
   from d;
--[ RECORD 1 ]-----+-----------------------------------------------------------------------------------------
-link              | {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
+-[ RECORD 1 ]-----+---------------------------------------------------------------------------------------------------
+link              | {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 dlurlcomplete     | http://localhost/datalink/test3.txt
 dlurlcompleteonly | http://localhost/datalink/test3.txt
 basename          | test3.txt

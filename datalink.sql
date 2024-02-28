@@ -972,8 +972,9 @@ begin
      from datalink.revisions(l1) r
     where r.link::jsonb->>'b' = l1::jsonb->>'b' -- limit 1
      into link;
-       if link is null then return l1; end if;
+       if link is null then link := l1; end if;
  end if; -- has_token
+   link := jsonb_set(link::jsonb,'{k}',to_jsonb('p'::text));
  return link;
 end
 $_$;
@@ -1008,6 +1009,7 @@ begin
     -- generate new token
   token := datalink.dl_newtoken();  
   link := jsonb_set(link::jsonb,'{b}',to_jsonb(token));
+  link := jsonb_set(link::jsonb,'{k}',to_jsonb('n'::text));
  return link;
 end
 $_$;
@@ -1178,17 +1180,25 @@ begin
    or link1::jsonb->>'b' is distinct from link2::jsonb->>'b' then
     if tg_op in ('INSERT','UPDATE') then
       if dlurlcomplete(link2) is not null then
-         -- check for write_access = BLOCKED and prevent updates
-        if opt.write_access = 'BLOCKED' and tg_op='UPDATE' and link1 is not null then
-                raise exception 'DATALINK EXCEPTION - invalid write permission for update' 
-                          using errcode = 'HW006',
-                                detail = format('write_access is BLOCKED for column %s,%I',
-                              tg_relid::regclass::text,r.column_name),
-                                hint = 'set write_access to ADMIN or TOKEN'
-                          ;
-        end if; -- blocked
+         -- check for construction per SQL standard
+        if tg_op = 'INSERT' then
+          if false and link2::jsonb->>'k' is not null then
+             raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+                       using errcode = 'HW005',
+                              detail =  'DLPREVIOUSCOPY and DLNEWCOPY not permitted in INSERT';
+          end if; -- if construction
+        end if; -- if insert
+        if tg_op = 'UPDATE' then
+          -- check for write_access = BLOCKED and prevent updates
+          if opt.write_access = 'BLOCKED' and link1 is not null then
+             raise exception 'DATALINK EXCEPTION - invalid write permission for update' 
+                       using errcode = 'HW006',
+                              detail = format('write_access is BLOCKED for column %s,%I',
+                                               tg_relid::regclass::text,r.column_name),
+                                hint = 'set write_access to ADMIN or TOKEN';
+          end if; -- blocked
          -- check for write_access = TOKEN and prevent updates if needed
-        if opt.write_access = 'TOKEN' and tg_op='UPDATE' and link1 is not null then
+          if opt.write_access = 'TOKEN' and link1 is not null then
             if link2::jsonb->>'o' is null or link2::jsonb->>'o' is distinct from link1::jsonb->>'b' then
                     raise exception 'DATALINK EXCEPTION - invalid write token' 
                               using errcode = 'HW004',
@@ -1197,10 +1207,12 @@ begin
                                 hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN'
                           ;
             end if; -- tokens not matching
-        end if; -- token
-        if opt.write_access in ('ADMIN','TOKEN') and tg_op='UPDATE' then
+          end if; -- token
+          if opt.write_access in ('ADMIN','TOKEN') then
             link2 := link2::jsonb - 'o';
-        end if; -- admin
+          end if; 
+          link2 := link2::jsonb - 'k';
+        end if; -- if update
    
         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
         rn := jsonb_set(rn,array[r.column_name::text],to_jsonb(link2));

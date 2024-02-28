@@ -101,81 +101,81 @@ select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datal
 (1 row)
 
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0);
-                                  dlpreviouscopy                                  
-----------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+                                       dlpreviouscopy                                       
+--------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1);
-                                      dlpreviouscopy                                      
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
+                                           dlpreviouscopy                                           
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0)::jsonb - 'b';
-                  ?column?                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt"}
+                       ?column?                        
+-------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1)::jsonb - 'b';
-                                         ?column?                                         
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                              ?column?                                              
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
-                  ?column?                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt"}
+                       ?column?                        
+-------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
-                                         ?column?                                         
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                              ?column?                                              
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "p", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
-                  ?column?                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt"}
+                       ?column?                        
+-------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1);
-                                      dlpreviouscopy                                      
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced"}
+                                           dlpreviouscopy                                           
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
-                  ?column?                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt"}
+                       ?column?                        
+-------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
-                  ?column?                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt"}
+                       ?column?                        
+-------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
-                                         ?column?                                         
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                              ?column?                                              
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1)::jsonb - 'b';
-                                         ?column?                                         
-------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                              ?column?                                              
+----------------------------------------------------------------------------------------------------
+ {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0)::jsonb - 'b';
-             ?column?              
------------------------------------
- {"a": "http://www.ljudmila.org/"}
+                  ?column?                   
+---------------------------------------------
+ {"a": "http://www.ljudmila.org/", "k": "n"}
 (1 row)
 
 select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is not null;
@@ -185,9 +185,9 @@ select (dlnewcopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is not nul
 (1 row)
 
 select dlpreviouscopy(dlvalue('http://www.ljudmila.org/'),0);
-          dlpreviouscopy           
------------------------------------
- {"a": "http://www.ljudmila.org/"}
+               dlpreviouscopy                
+---------------------------------------------
+ {"a": "http://www.ljudmila.org/", "k": "p"}
 (1 row)
 
 select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is not null;
@@ -197,9 +197,9 @@ select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is no
 (1 row)
 
 select dlpreviouscopy(dlvalue('/tmp/file1','FS'),0);
-       dlpreviouscopy       
-----------------------------
- {"a": "file:///tmp/file1"}
+            dlpreviouscopy            
+--------------------------------------
+ {"a": "file:///tmp/file1", "k": "p"}
 (1 row)
 
 select key,case when key is distinct from 'b' then value end as value
@@ -209,24 +209,25 @@ select key,case when key is distinct from 'b' then value end as value
  a   | "file:///tmp/file1"
  b   | _null_
  c   | "Previous copy"
-(3 rows)
+ k   | "p"
+(4 rows)
 
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),0);
-                         dlpreviouscopy                          
------------------------------------------------------------------
- {"a": "file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121"}
+                              dlpreviouscopy                               
+---------------------------------------------------------------------------
+ {"a": "file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),1);
-                             dlpreviouscopy                              
--------------------------------------------------------------------------
- {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121"}
+                                  dlpreviouscopy                                   
+-----------------------------------------------------------------------------------
+ {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1);
-                             dlpreviouscopy                              
--------------------------------------------------------------------------
- {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121"}
+                                  dlpreviouscopy                                   
+-----------------------------------------------------------------------------------
+ {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy('file:///tmp/file1#krneki',1);
