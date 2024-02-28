@@ -11,7 +11,11 @@ Version 0.23
 - lco number assignment changes in `link_control_options` to be more logical
 - some boolean args changed to integer to be more consistent
 - datalinker status improvements
-- new `datalink.commit()` procedure
+- new `commit()` procedure
+- new `dl_admin_files` table to keep track of *administered* files.
+This is currently used to keep track of files created with `write_file()`.
+- new `dl_file_admin()` function
+- datalinker can now delete files created in aborted transactions
 
 Version 0.22
 ------------

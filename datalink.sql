@@ -704,6 +704,7 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'host' then uri_host($1)
           when 'path' then uri_unescape(uri_path($1))
           when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'dirname' then nullif(to_json(uri_path_array($1))->>-1,'')
           when 'query' then uri_query($1)
           when 'fragment' then uri_fragment($1)
           when 'token' then uri_unescape(uri_fragment($1))
@@ -1440,21 +1441,21 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, safer integer default 0) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, anonymous integer default 0) RETURNS text
+    LANGUAGE sql STRICT stable
 AS $_$ 
    select case 
           when $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.dl_url_insight(pg_catalog.dlurlcompleteonly($1)
-                                   ,($1::jsonb->>'b')::datalink.dl_token,safer)
+                                   ,($1::jsonb->>'b')::datalink.dl_token,anonymous)
           else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, integer) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(text, integer default 0) RETURNS text LANGUAGE sql STRICT IMMUTABLE
+CREATE FUNCTION pg_catalog.dlurlcomplete(text, integer default 0) RETURNS text LANGUAGE sql STRICT stable
 AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, integer) 
 IS 'SQL/MED - Returns normalized URL value';
@@ -1519,7 +1520,7 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer integer default 0)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
  RETURNS text
   LANGUAGE sql
    STRICT
@@ -1528,7 +1529,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, safer integer default 0)
           when $1::jsonb->>'a' ilike 'file:///%' and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
-            datalink.dl_url_insight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,safer),'path')
+            datalink.dl_url_insight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
                         '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))))
@@ -1538,7 +1539,7 @@ $function$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, integer)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpath(text, safer integer default 0) RETURNS text
+CREATE FUNCTION pg_catalog.dlurlpath(text, anonymous integer default 0) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
@@ -1756,13 +1757,14 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION write_text(filename file_path, content text)
+CREATE OR REPLACE FUNCTION write_text(filename file_path, content text, persistent integer default 0)
  RETURNS bigint
  LANGUAGE plperlu
 AS $function$
   use strict vars; 
-  my ($filename,$bufr)=@_;
+  my ($filename,$bufr,$persistent)=@_;
   my $fh;
+  my $op = ($persistent>0)?'w':'t';
 
   my $q = q{select datalink.has_file_privilege($1,$2,true) as ok};
   my $p = spi_prepare($q,'datalink.file_path','text');
@@ -1772,30 +1774,30 @@ AS $function$
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
 
-  $p = spi_prepare(q{select datalink.dl_file_admin($1,'{"w":1}')},'datalink.file_path');
-  spi_exec_prepared($p,$filename);
+  $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
+  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
 
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
   return length($bufr);
 $function$;
-COMMENT ON FUNCTION write_text(file_path,text) IS 
+COMMENT ON FUNCTION write_text(file_path,text,integer) IS 
   'Write new local file contents as text';
 
 ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION write_text(link datalink, content text)
+CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent integer default 0)
  RETURNS datalink
  LANGUAGE plpgsql
 AS $function$
 begin
  link := dlnewcopy(link);
- perform datalink.write_text(dlurlpathwrite(link),content);
+ perform datalink.write_text(dlurlpathwrite(link),content,persistent);
  return link;
 end
 $function$;
-COMMENT ON FUNCTION write_text(datalink,text) IS 
+COMMENT ON FUNCTION write_text(datalink,text,integer) IS 
   'Write datalink contents as text';
 
 ---------------------------------------------------
@@ -2093,7 +2095,7 @@ alter table insight add foreign key (link_token) references
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
 
-CREATE FUNCTION dl_url_insight(url text, link_token dl_token, safer integer default 0) 
+CREATE FUNCTION dl_url_insight(url text, link_token dl_token, anonymous integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
 AS $$
 declare
@@ -2101,7 +2103,7 @@ declare
 begin
  -- check for read token
  m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
- if safer>0 then
+ if anonymous>0 then
   insert into datalink.insight (link_token) values (link_token) 
   returning read_token into link_token;
  end if;
@@ -2117,13 +2119,14 @@ create table dl_admin_files (
   txid xid8 not null default pg_current_xact_id(),
   ctime timestamptz not null default now(),
   regrole regrole not null default current_role::regrole,
-  file_path file_path primary key,
+  path file_path primary key,
   token dl_token unique,
+  op "char" not null,
   options jsonb
 );
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_admin(file_path, options jsonb default null) returns text strict
+create or replace function dl_file_admin(file_path, op "char", options jsonb default null) returns text
 language plpgsql as $$
 declare 
   my_txid xid8;
@@ -2132,8 +2135,10 @@ declare
 begin 
   my_txid := pg_current_xact_id();
   dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
-  sql := format('insert into datalink.dl_admin_files (file_path,txid,options) values (%L,%L,%L)',$1,my_txid,$2);
+  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
+--  execute sql;
   perform dblink_exec(dsn,sql,true);
+  notify "datalink.linker_jobs"; 
   return $1;
 end
 $$;

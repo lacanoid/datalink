@@ -174,6 +174,9 @@ sub queryOrDie {
 use Data::Dumper;
 
 sub config_bind() {
+#   check if already binded
+    if($has_bind) { die "Datalinker already bound to database '$dbname' port '$port'.\nHINT: Use 'dlfm unbind' first\n"; }
+#   get parameters
     if(defined($ARGV[0])) { $dbname=$ARGV[0]; shift @ARGV; }
     if(defined($ARGV[0])) { $port=$ARGV[0]; shift @ARGV; }
 #   test connection
@@ -186,8 +189,9 @@ sub config_bind() {
         $services = Config::Tiny->new({$SERVICE=>{dbname=>$dbname,port=>$port}});
     }
     if(!defined($services->{$SERVICE})) { $services->{$SERVICE}={}}
-    $services->{$SERVICE}->{dbname}=$dbname;
-    $services->{$SERVICE}->{port}=$port;
+    $services->{$SERVICE}->{dbname} = $dbname;
+    $services->{$SERVICE}->{port} = $port;
+    $has_bind = 1;
     services_save();
 }
 
@@ -201,9 +205,9 @@ sub services_load() {
     $services = Config::Tiny->read($config{service_file});
     if(defined($services->{$SERVICE})) { $has_bind=1; } 
     else {
-	$has_bind = 0;
-	$services = Config::Tiny->new;
-	$services->{$SERVICE} = {};
+        $has_bind = 0;
+        $services = Config::Tiny->new;
+        $services->{$SERVICE} = {};
     }
 }
 
@@ -553,7 +557,7 @@ sub show_version {
                   from datalink.dl_status where datalink.has_datalinker()
             });
     } else {
-        die("Datalinker not binded to a database.\nHINT: Use 'dlfm bind'\n")
+        die("Datalinker not bound to a database.\nHINT: Use 'dlfm bind'\n")
     }
 }
 

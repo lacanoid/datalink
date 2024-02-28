@@ -73,15 +73,15 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
- datalink     | write_text(datalink,text)                                                                    | plpgsql  | Write datalink contents as text
- datalink     | write_text(file_path,text)                                                                   | plperlu  | Write new local file contents as text
+ datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
+ datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
  datalink     | dl_datalink_ref(datalink,dl_lco,regclass,name)                                               | plpgsql  | 
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
- datalink     | dl_file_admin(file_path,jsonb)                                                               | plpgsql  | 
+ datalink     | dl_file_admin(file_path,"char",jsonb)                                                        | plpgsql  | 
  datalink     | dl_file_link(file_path,dl_token,dl_lco,regclass,name)                                        | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 

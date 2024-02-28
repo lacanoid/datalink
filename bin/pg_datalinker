@@ -20,10 +20,11 @@ our $opt_v = 0;  # verbosity
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_R = 1;  # revert old files from backups
+our $opt_A = 1;  # process dl_admin_files
+our $opt_L = 1;  # use advisory locks
 our $opt_C = 0;  # only check configuration
 our $opt_n = 20; # number of iterations in fast inner loop
 our $opt_l;      # logfile
-our $opt_L = 1;  # use advisory locks
 our $opt_r = 10; # when fatal error wait this long then restarts
 our $opt_e = 1;  # echo commands
 our $macOS = 0;  # running on macOS
@@ -35,7 +36,8 @@ getopt('l');
 our %config = (
     appname => 'pg_datalinker',
     dsn => 'dbi:Pg:service=pg_datalink',
-    db_owner => 'postgres:www-data',
+    group => 'www-data',
+    owner => 'postgres',
     db_mode => '0440',
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
     prefix => ["/var/www/datalink/"]
@@ -86,24 +88,26 @@ sub main() {
     #---------------------------------------
 
     %q = (
-        'get_jobs'=>$dbh->prepare(
-        q{select lf.*,lco.*,c.relowner::regrole::text as relowner 
+        'jobs_get'=>$dbh->prepare(q{
+          select lf.*,lco.*,c.relowner::regrole::text as relowner 
             from dl_linked_files lf join link_control_options lco using (lco)
             left join pg_class c on c.oid=lf.attrelid
            where state in ('LINK','UNLINK')
            order by txid for update of lf
         }),
-        'set_linked'=>$dbh->prepare(
-       q{update dl_linked_files 
-            set state = $2,
-                info  = $3,
-                err   = $4
-          where path  = $1
+        'job_set'=>$dbh->prepare(q{
+          update dl_linked_files set state = $2, info  = $3, err   = $4
+           where path  = $1
         }),
-        'delete'=>$dbh->prepare(
-       q{delete from dl_linked_files
-          where path = $1
-        })
+        'job_delete'=>$dbh->prepare(q{ delete from dl_linked_files where path = $1 }),
+
+        'admin_get'=>$dbh->prepare(q{
+          select pg_xact_status(txid) as state, op, path 
+            from dl_admin_files af
+           where pg_xact_status(txid) is distinct from 'in progress'
+           order by txid for update of af
+        }),
+        'admin_delete'=>$dbh->prepare(q{ delete from dl_admin_files where path = $1 })
     );
 
     #---------------------------------------
@@ -133,10 +137,10 @@ sub main() {
         config_observe();
         my $sleepy = 0;
         while(!$sleepy) {
-            my $rv = queryOrDie('get_jobs');
+            my $rv = queryOrDie('jobs_get');
             $sleepy = $rv<=0;
             if(!$sleepy) {
-                while(my $data = $q{get_jobs}->fetchrow_hashref) {
+                while(my $data = $q{jobs_get}->fetchrow_hashref) {
                     if(!$data->{path}) { 
                         log_err("INPUT","No path in ",$data); next; 
                     }
@@ -149,7 +153,7 @@ sub main() {
 
                     if(!path_valid_prefix($path)) { 
                         log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
-                        queryOrDie('set_linked',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
+                        queryOrDie('job_set',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
                         next; 
                     }
                     @err=();
@@ -166,26 +170,28 @@ sub main() {
                         }
                         my $r=file_link($path,$data);
                         my $err=(@err)?to_json(\@err):undef;
-                        queryOrDie('set_linked',$path,'LINKED',$json->encode($r),$err);
+                        queryOrDie('job_set',$path,'LINKED',$json->encode($r),$err);
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
                         log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
                         file_unlink($path,$data);
-                        queryOrDie('delete',$path);
+                        queryOrDie('job_delete',$path);
                         next;
                     }
                     else {
                         log_err("STATE","Unknown state in ",$data);
                         next;
                     } 
-	        	} # while fetchrow
+                } # while fetchrow
                 $dbh->do("update datalink.dl_status set mtime=now()");
             } # if not sleepy
         } # while not sleepy
 
-        if($opt_L) {
-	    $dbh->do("select pg_advisory_unlock($lockid)");
+        process_admin(); # process dl_admin_files
+
+        if($opt_L) { # this is to make datalink.commit() work
+            $dbh->do("select pg_advisory_unlock($lockid)");
             $dbh->do("select pg_advisory_lock($lockid)");  }
 
         if($sleepy) {
@@ -201,13 +207,46 @@ sub main() {
                 } 
             }
         }
-  	    $dbh->do("update datalink.dl_status set atime=now()");
+        $dbh->do("update datalink.dl_status set atime=now()");
     } # forever loop
 
     if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
 
     log_msg('END');
 }
+
+########################################
+# process entries in dl_admin_files
+# 1. delete files created in aborted transactions
+
+sub process_admin {
+    my $rv = queryOrDie('admin_get');
+    while(my $data = $q{admin_get}->fetchrow_hashref) {
+        my $path = $data->{path}; 
+        if(path_valid_prefix($path)) {
+            my $state = $data->{state};
+            my $op = $data->{op};
+            if($state eq 'in progress') { next; } 
+            my $stat = file_stat($path);
+            if($stat) {
+                if($stat->{owner} eq $config{owner}) {
+                    log_msg('PURGE',"$op,$state,$path");
+                    if($state eq 'aborted' || 
+                      ($state eq 'committed' && $op eq 't')) {
+                        sys('rm','-f',$path);
+                    }
+                } else { 
+                    log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+                }
+            } else { 
+                log_err("FILE DOES NOT EXISTS","File '$path' does not exist.");
+            }
+        } 
+        queryOrDie('admin_delete',$path);
+    }
+}
+
+########################################
 
 sub queryOrDie {
     my $query=shift @_;
@@ -277,7 +316,7 @@ sub path_valid_prefix {
     my ($path)=@_;
     my $prefix;
     for $prefix (@{$config{prefix}}) {
- 	  if(rindex($path,$prefix,0)==0) { return 1 }
+       if(rindex($path,$prefix,0)==0) { return 1 }
     }
     return 0
 }
@@ -293,11 +332,13 @@ sub file_stat {
     my ($path,$opt)=@_;
     my (@s) = stat($path);
 
+
     return {
         'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
         'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
         'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
-        'blksize'=>$s[11],'blocks'=>$s[12]
+        'blksize'=>$s[11],'blocks'=>$s[12],
+        'owner'=>getpwuid($s[4]),'group'=>getgrgid($s[5])
     };
 }
 # link file to sql environment
@@ -316,7 +357,7 @@ sub file_link {
     }
 
     if($opt->{read_access} eq 'DB') {
-    	file_read_access_db($path1,$opt);
+        file_read_access_db($path1,$opt);
     }
 
     if($opt_R && file_has_backup($path,$opt)) {
@@ -324,15 +365,15 @@ sub file_link {
         file_backup_restore($path,$opt);
     } else {
         if($opt->{recovery} eq 'YES') {
-        	file_backup($path,$opt);
+            file_backup($path,$opt);
         }
     } 
 
     my $r = { own => $s->{uid}.":".$s->{gid}, 
-	          mod => sprintf("%#o",$s->{mode} & 0777),
-	          lco => $opt->{lco},
+              mod => sprintf("%#o",$s->{mode} & 0777),
+              lco => $opt->{lco},
               token => $opt->{token},
-	          del => ($opt->{on_unlink} eq 'DELETE'),
+              del => ($opt->{on_unlink} eq 'DELETE'),
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
@@ -352,15 +393,19 @@ sub file_unlink {
         file_restore($path,$opt);
     }
     if($opt->{info} && $opt->{info}{del}) {
-    	file_delete($path,$opt);
+        file_delete($path,$opt);
     }
 }
 # set file permissions for read_access db
 sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
-    if(defined($config{db_owner})) {
-    	sys("chown",$config{db_owner},$path);
+    if(defined($config{owner})) {
+        if(defined($config{group})) {
+            sys("chown",$config{owner}.':'.$config{group},$path);
+        } else {
+            sys("chown",$config{owner},$path);
+        }
     }
     if($opt->{relowner}) {
         my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
@@ -369,7 +414,7 @@ sub file_read_access_db {
         }
     }
     if(defined($config{db_mode})) {
-	    sys("chmod",$config{db_mode},$path);
+        sys("chmod",$config{db_mode},$path);
     }
 }
 
@@ -404,7 +449,7 @@ sub file_delete {
 # does file have a backup copy
 sub file_has_backup {
     my ($path,$opt)=@_;
-	my $path_backup = path_backup($path,$opt->{token});
+    my $path_backup = path_backup($path,$opt->{token});
     return -f $path_backup;
 }
 # backup a file
@@ -424,10 +469,10 @@ sub file_backup_restore {
     my ($path,$opt)=@_;
     if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
-	    my $move = !($opt->{recovery} eq 'YES');
+        my $move = !($opt->{recovery} eq 'YES');
         if(-f $path_backup) {
-	        if($move) { sys("mv","-f",$path_backup,$path); }
-	        else { sys("ln","-f",$path_backup,$path); }
+            if($move) { sys("mv","-f",$path_backup,$path); }
+            else { sys("ln","-f",$path_backup,$path); }
         } else {
             log_err("NO BACKUP","File not found:$path_backup");
         }
@@ -479,17 +524,17 @@ sub sys {
     system(@args);
 
     if ($? == -1) {
-	    $syserr = "failed to execute: $!";
+        $syserr = "failed to execute: $!";
     }
     elsif ($? & 127) {
-	    $syserr = sprintf "child died with signal %d, %s coredump",
-	    ($? & 127),  ($? & 128) ? 'with' : 'without';
+        $syserr = sprintf "child died with signal %d, %s coredump",
+        ($? & 127),  ($? & 128) ? 'with' : 'without';
     }
     else {
-    	my $ex = $? >> 8;
-	    if($ex > 0) {
-	        $syserr = sprintf "child exited with value %d", $ex;
-	    }
+        my $ex = $? >> 8;
+        if($ex > 0) {
+            $syserr = sprintf "child exited with value %d", $ex;
+        }
         $sysex = $ex;
     }
     if($?) { log_err('SYSERR',"@args failed: $?"."; ".$syserr); }
@@ -510,7 +555,7 @@ sub wget {
 
     my %rc;
     while($res=~s/response\.\.\.\s*(\d+)//) {
-	$rc{$1}++;
+    $rc{$1}++;
     }
 
     my $diff = Time::HiRes::tv_interval($start_time);
@@ -524,7 +569,7 @@ sub wget {
 sub log_debug {
     my ($txt,$data)=@_;
     if($opt_v) {
-    	print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+        print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
     }
 }
 
@@ -548,7 +593,7 @@ sub log_fatal {
         print STDERR "DBI-ERROR:".$DBI::err.":".$DBI::errstr."\n";
     }
     if($data) {
-  	  print (ref($data)?$json->encode($data):$data)."\n";
+        print (ref($data)?$json->encode($data):$data)."\n";
     }
     if($opt_r) {
         print STDERR "RESTART:\n";

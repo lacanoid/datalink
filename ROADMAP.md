@@ -41,6 +41,7 @@ Wanted
 - foreign servers only somewhat work. They should work for `stat()`.
 - handle symbolic links better (lstat)
 - update bugs: warnings, file doesn't dissapear when it should
+- add 'dirname','extension','basename','filename' to uri_get/set
 
 Issues
 ======
