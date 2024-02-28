@@ -940,12 +940,15 @@ CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer defau
     AS $_$
 declare
  token  datalink.dl_token;
+ l1     datalink;
  t1     text;
  u1     text;
 begin 
+ l1 := link;
+ u1 := link::jsonb->>'a';
+ t1 := link::jsonb->>'o';
  if has_token > 0 then
-  u1 := link::jsonb->>'a';
-  t1 := coalesce(link::jsonb->>'o',datalink.uri_get(u1,'token'));
+  t1 := coalesce(t1,datalink.uri_get(u1,'token'));
   if t1 is not null then
     begin
       token := t1::datalink.dl_token;
@@ -964,7 +967,13 @@ begin
   if token is null then token := datalink.dl_newtoken() ; end if;
   link := jsonb_set(link::jsonb,'{b}',to_jsonb(token));
   link := link::jsonb - 'o';
- end if; -- has token
+ else -- not has_token
+   select lead(r.link) over(order by rev desc)
+     from datalink.revisions(l1) r
+    where r.link::jsonb->>'b' = l1::jsonb->>'b' -- limit 1
+     into link;
+       if link is null then return l1; end if;
+ end if; -- has_token
  return link;
 end
 $_$;
@@ -2141,6 +2150,39 @@ begin
   notify "datalink.linker_jobs"; 
   return $1;
 end
+$$;
+
+---------------------------------------------------
+-- list versions
+---------------------------------------------------
+
+create or replace function revisions(datalink.file_path) 
+returns table(rev bigint,ctime timestamptz,link datalink)
+strict LANGUAGE plpgsql as $$
+DECLARE
+  dirs text[];
+   dir text;
+BEGIN
+  dirs := string_to_array($1,'/');
+  dirs := dirs[1:cardinality(dirs)-1];
+   dir := array_to_string(dirs,'/');
+return query
+  with ls as (select dir||'/'||filename as path from pg_ls_dir(dir) filename)
+select -row_number() over(order by s.mtime desc),
+       to_timestamp(s.mtime),
+       dlpreviouscopy(dlvalue(path,'FS'),1)
+  from ls, datalink.stat(path) s
+ where path ~* '#[0-9a-z\-]{36}$'
+   and path like $1||'%'
+ order by s.mtime desc;
+end
+$$;
+
+create or replace function revisions(datalink) 
+returns table(rev bigint,ctime timestamptz,link datalink)
+strict LANGUAGE sql as $$
+select rev,ctime,link
+  from datalink.revisions(pg_catalog.dlurlpathonly($1))
 $$;
 
 ---------------------------------------------------

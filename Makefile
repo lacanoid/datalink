@@ -38,7 +38,7 @@ testfiles:
 	cp CHANGELOG.md /var/www/datalink/
 	echo "Hello" > /var/www/datalink/test1.txt
 	echo "This is for Friday, yeah." > /var/www/datalink/test2.txt
-	cp README.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
+	cp -a README.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	cp docs/utf8.txt /var/www/datalink/
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt

@@ -232,7 +232,7 @@ select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1
 select dlpreviouscopy('file:///tmp/file1#krneki',1);
 ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  invalid input syntax for type uuid: "krneki"
-CONTEXT:  PL/pgSQL function dlpreviouscopy(datalink,integer) line 15 at RAISE
+CONTEXT:  PL/pgSQL function dlpreviouscopy(datalink,integer) line 18 at RAISE
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
    dlurlserver    
 ------------------

@@ -64,13 +64,17 @@ Make a datalink, relative to another datalink.
 
 ### versioning
 
-#### dlpreviouscopy( datalink ) → datalink
+#### dlpreviouscopy( datalink [ , has_token integer ] ) → datalink
 
 Return previous version of the datalink, if available. 
+
 Updating a `RECOVERY YES` datalink column with the previous value of the datalink will cause datalinker to restore
 previous version of file contents as well.
 
-Establish token value for a datalink, either by looking at the token embedded in the URL or by generating a new one.
+If `has_token` > 0 then try to stablish token value for a datalink in the following order:
+1. previous token value stored in a datalink
+2. look for token in datalink filename
+3. generate a new token
 
 #### dlnewcopy( datalink [ , has_token integer ] ) → datalink
 

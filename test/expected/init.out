@@ -99,7 +99,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | link_control_options(datalink)                                                               | sql      | 
+ datalink     | revisions(datalink)                                                                          | sql      | 
+ datalink     | revisions(file_path)                                                                         | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(79 rows)
+(81 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
