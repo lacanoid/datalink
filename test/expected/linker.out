@@ -107,9 +107,9 @@ WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
-                         ?column?                         
-----------------------------------------------------------
- {"a": "file:///var/www/datalink/CHANGELOG.md", "k": "p"}
+                    ?column?                    
+------------------------------------------------
+ {"a": "file:///var/www/datalink/CHANGELOG.md"}
 (1 row)
 
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md

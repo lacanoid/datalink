@@ -1084,7 +1084,7 @@ begin
     end if;
   end if; -- file link control,  
   
-  link := dlpreviouscopy(link,has_token);
+  link := dlpreviouscopy(link,has_token)::jsonb - 'k';
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
       if lco.on_unlink = 'DELETE' THEN
