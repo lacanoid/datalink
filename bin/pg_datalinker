@@ -136,6 +136,7 @@ sub main() {
         log_debug('READY');
         config_observe();
         my $sleepy = 0;
+	my $cl = 0; my $cu = 0; # link/unlink counters
         while(!$sleepy) {
             my $rv = queryOrDie('jobs_get');
             $sleepy = $rv<=0;
@@ -162,6 +163,7 @@ sub main() {
                     log_debug("DATA",$data);
                     my $ts=iso_timestamp();
                     if($data->{state} eq 'LINK') {
+			$cl++;
                         if($info) {
                             log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
                             file_unlink($path,$data);
@@ -174,6 +176,7 @@ sub main() {
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
+			$cu++;
                         log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
                         file_unlink($path,$data);
                         queryOrDie('job_delete',$path);

@@ -133,8 +133,8 @@ insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/test1.txt'
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 64 at RAISE
-SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
+CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 64 at RAISE
+SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
@@ -163,8 +163,8 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/test4.txt'
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 64 at RAISE
-SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
+CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 64 at RAISE
+SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --

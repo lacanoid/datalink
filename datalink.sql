@@ -355,6 +355,7 @@ create table dl_linked_files (
   token dl_token not null unique,
   txid xid8 not null default pg_current_xact_id(),
   state file_link_state not null default 'LINK',
+  cons "char",
   lco dl_lco not null references datalink.link_control_options,
   attrelid regclass not null,
   attnum smallint not null,
@@ -439,10 +440,12 @@ $$ language plpgsql;
 ---------------------------------------------------
 -- link a file to SQL
 create function dl_file_link(file_path file_path,
-                          my_token dl_token,
-                          my_lco dl_lco,
-                          my_regclass regclass,my_attname name)
-returns boolean as
+                             my_token dl_token,
+			     my_cons "char",
+                             my_lco dl_lco,
+                             my_regclass regclass,my_attname name)
+returns boolean
+language plpgsql as
 $$
 declare
  r record;
@@ -492,8 +495,8 @@ begin
   where path = file_path or address = addr
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime)
-   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr,my_size,my_mtime);
+   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
+   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr,my_size,my_mtime,my_cons);
    notify "datalink.linker_jobs"; 
    return true;
  else -- found in dl_linked_files
@@ -524,7 +527,8 @@ begin
         update datalink.dl_linked_files
            set state='LINKED',
                attrelid=my_regclass,
-               attnum=my_attnum
+               attnum=my_attnum,
+	       cons=my_cons
          where path = file_path and state='UNLINK';
         return true;
      else -- relink
@@ -532,7 +536,8 @@ begin
            set state='LINK',
                token=my_token,
                attrelid=my_regclass,
-               attnum=my_attnum
+               attnum=my_attnum,
+	       cons=my_cons
          where path = file_path and state='UNLINK';
         return true;
 
@@ -548,7 +553,7 @@ begin
   end if;
  end if; -- if found
 end
-$$ language plpgsql strict;
+$$;
 revoke execute on function dl_file_link from public;
 
 ---------------------------------------------------
@@ -1035,7 +1040,7 @@ declare
  lco datalink.link_control_options;
  r record;
  has_token integer;
- url text;
+ url text; cons "char";
 begin 
  url := format('%s%s',$1::jsonb->>'a','#'||($1::jsonb->>'b'));
  url := url::datalink.url;
@@ -1085,7 +1090,7 @@ begin
     end if;
   end if; -- file link control,  
 
-  link := link::jsonb - 'o';
+  link := link::jsonb - 'o'; cons := link::jsonb ->> 'k';
   link := dlpreviouscopy(link,has_token)::jsonb - 'k';
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
@@ -1097,7 +1102,7 @@ begin
                       hint = 'add appropriate entry in table datalink.access';
         end if;
       end if;
-      perform datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name);
+      perform datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name);
   end if; -- integrity all
 
  end if; -- link options
@@ -2073,7 +2078,9 @@ CREATE TABLE dl_status (
   cpid integer,
   version text,
   atime timestamptz,
-  mtime timestamptz
+  mtime timestamptz,
+  links bigint default 0,
+  unlinks bigint default 0
 );
 insert into dl_status (version) values ('init');
 grant select on dl_status to public;
