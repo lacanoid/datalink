@@ -167,22 +167,20 @@ sub main() {
                     log_debug("DATA",$data);
                     my $ts=iso_timestamp();
                     if($data->{state} eq 'LINK') {
-			            $cl++;
                         if($info) {
                             log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
-                            file_unlink($path,$data);
+                            file_unlink($path,$data); $cu++;
                         } else {
                             log_msg("LINK:$ts:".$data->{lco},$path_backup);
                         }
-                        my $r=file_link($path,$data);
+                        my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
                         queryOrDie('job_set',$path,'LINKED',$json->encode($r),$err);
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
-			            $cu++;
                         log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
-                        file_unlink($path,$data);
+                        file_unlink($path,$data); $cu++;
                         queryOrDie('job_delete',$path);
                         next;
                     }
