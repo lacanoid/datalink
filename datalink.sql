@@ -280,6 +280,7 @@ COMMENT ON VIEW columns
  IS 'Current link control options for datalink dl_columns. You can set them here.';
 
 grant select on columns to public;
+grant update on columns to public;
 
 ---------------------------------------------------
 
@@ -1258,7 +1259,7 @@ begin
                       end as datalink.dl_on_unlink)
     );
     if new.link_control is distinct from old.link_control and new.link_control = 'NO'
-    then my_lco := 0; end if;
+       then my_lco := 0; end if;
     perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
     return new;
  end if; -- if datalink.columns
@@ -1380,6 +1381,7 @@ CREATE FUNCTION modlco(
   new_lco dl_lco)
 RETURNS link_control_options
     LANGUAGE plpgsql
+    SECURITY DEFINER
     AS $_$
 declare
  co record;
@@ -1396,8 +1398,14 @@ begin
  if not found then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-      detail = 'Not a DATALINK column';
+            detail = 'Not a DATALINK column';
  end if; 
+
+ if not datalink.has_class_privilege(my_regclass) then
+      raise exception 'DATALINK EXCEPTION' 
+            using errcode = 'HW000',
+            detail = format('Must be owner of class '%s' to change link control options',my_regclass);
+ end if;
 
  select * into old_options from datalink.link_control_options where lco = co.lco;
  select * into new_options from datalink.link_control_options where lco = new_lco;
@@ -1405,7 +1413,7 @@ begin
  if not found then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-            detail = format('Invalid link control options (%s)',new_lco),
+                  detail = format('Invalid link control options (%s)',new_lco),
                   hint = 'see table datalink.link_control_options for valid link control options';
  end if; 
 

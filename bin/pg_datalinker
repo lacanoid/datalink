@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.23 by lacanoid@ljudmila.org
 
-our $version="0.23.20240221";
+our $version="0.23.20240302";
 our $lockid=0x41444154494c4b4e; # DATALINK as ASCII
 
 use strict;
@@ -20,8 +20,8 @@ our $opt_v = 0;  # verbosity
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_R = 1;  # revert old files from backups
-our $opt_A = 1;  # process dl_admin_files
-our $opt_L = 1;  # use advisory locks
+our $opt_A = 1;  # process dl_admin_files (autodelete files from aborted transactions)
+our $opt_L = 1;  # use advisory locks (support for datalink.commit())
 our $opt_C = 0;  # only check configuration
 our $opt_n = 20; # number of iterations in fast inner loop
 our $opt_l;      # logfile

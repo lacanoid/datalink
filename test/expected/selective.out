@@ -60,7 +60,7 @@ update datalink.columns
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Can't change link control options; 6 non-null values present in column "link"
 HINT:  Perhaps you can "truncate sample_datalinks3"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 42 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 48 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 21 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

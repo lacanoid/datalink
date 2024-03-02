@@ -20,7 +20,7 @@ Currently, it implements the following:
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
 - DLLINKTYPE function
 - DLCOMMENT function
-- Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (ie `datalink(52)`)
+- Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (i.e. `datalink(52)`)
 - Event and other triggers to make all of this 'just work'
 - Token generator (uses uuid-ossp)
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize them

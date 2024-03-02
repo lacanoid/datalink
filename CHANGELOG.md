@@ -5,17 +5,17 @@ Version 0.23
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
 - `dlfm` supports `bind` and `unbind` operations
-- added preliminary `dlcat` shell command (another DLFF)
-- add support for changing column `lco` with values present for many cases
+- added preliminary `dlcat` shell command (in C, DLFF for DLURLPATH)
+- changing link control options works for non superusers
+- changing link control options works in many cases when values are present
 - removed implicit from datalink to jsonb cast
 - lco number assignment changes in `link_control_options` to be more logical
 - some boolean args changed to integer to be more consistent
-- datalinker status improvements
 - new `commit()` procedure
-- new `dl_admin_files` table to keep track of *administered* files.
-This is currently used to keep track of files created with `write_file()`.
+- new `dl_admin_files` table to keep track of *administered* files, this is currently used to keep track of files created with `write_file()`.
 - new `dl_file_admin()` function
-- datalinker can now delete files created in aborted transactions
+- datalinker status improvements
+- datalinker can now automatically deletes files created in aborted transactions ($opt_A)
 
 Version 0.22
 ------------
@@ -24,10 +24,10 @@ Version 0.22
 - renamed `datalink.dl_url` to `datalink.url`
 - improved support for file path to url mapping
 - improved support for `READ ACCESS DB`
-- functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate 
+- functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate
 - function `read_text` and `read_lines` now support read access tokens
-- new function `dl_authorize(file_path)` to authorize a file path 
-- added simple apache2 mod_perl module to authorize access (DLFF)
+- new function `dl_authorize(file_path)` to authorize a file path
+- added simple apache2 mod_perl module to authorize access (DLFF for DLURLCOMPLETE)
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink
 - load initial contents of `datalink.dl_directory` from file `/etc/postgresql-common/dl_directory` if it exists
 
