@@ -119,11 +119,11 @@ PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- case 1.b.1 invalid datalink construction
 insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt'));
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
-DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY not permitted in INSERT
+DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
 insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt'));
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
-DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY not permitted in INSERT
+DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
@@ -181,7 +181,7 @@ update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  New value doesn't contain a matching write token for update of column med.link
-HINT:  Supply value with valid write token (dlnewcopy) or set write_access to ADMIN or TOKEN
+HINT:  Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN or TOKEN
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 74 at RAISE
 --
 -- case 1.b.ii.2.B invalid write permission for update

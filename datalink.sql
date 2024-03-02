@@ -1192,7 +1192,7 @@ begin
           if link2::jsonb->>'k' is not null then
              raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
                        using errcode = 'HW005',
-                              detail =  'DLPREVIOUSCOPY and DLNEWCOPY not permitted in INSERT';
+                              detail =  'DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT';
           end if; -- if construction
         end if; -- if insert
         if tg_op = 'UPDATE' then
@@ -1212,7 +1212,7 @@ begin
                         errcode = 'HW004',
                          detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
                                          tg_relid::regclass::text,r.column_name),
-                           hint = 'Supply value with valid write token (dlnewcopy) or set write_access to ADMIN or TOKEN';
+                           hint = 'Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN or TOKEN';
               end if; -- tokens not matching
             end if; -- token
             if link1::jsonb->>'a' is distinct from link2::jsonb->>'a' THEN
@@ -1221,11 +1221,11 @@ begin
                          detail = format('File address is different for for update of column %s.%I',
                                          tg_relid::regclass::text,r.column_name);
             end if;
-          end if; -- construction
+          end if; -- construction 'k'
           if opt.write_access in ('ADMIN','TOKEN') then
             link2 := link2::jsonb - 'o';
           end if; 
-          link2 := link2::jsonb - 'k';
+--          link2 := link2::jsonb - 'k';
         end if; -- if update
    
         link2 := datalink.dl_datalink_ref(link2,r.lco,tg_relid,r.column_name);
