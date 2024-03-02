@@ -106,7 +106,7 @@ Todo
 - ✔︎ dl_link_ref check URL syntax again
 - ✔︎ function `datalink.commit()` to sync up with the datalinker (wait for it to become idle)
 - ✔︎ `datalink.dl_status` table to hold shared datalinker status
-- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This will probably require storing revision history
+- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This might require storing revision history
 - make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 

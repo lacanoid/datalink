@@ -15,7 +15,7 @@ Version 0.23
 - new `dl_admin_files` table to keep track of *administered* files, this is currently used to keep track of files created with `write_file()`.
 - new `dl_file_admin()` function
 - datalinker status improvements
-- datalinker can now automatically deletes files created in aborted transactions ($opt_A)
+- datalinker now automatically deletes files created in aborted transactions ($opt_A)
 
 Version 0.22
 ------------

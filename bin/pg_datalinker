@@ -101,6 +101,10 @@ sub main() {
         }),
         'job_delete'=>$dbh->prepare(q{ delete from dl_linked_files where path = $1 }),
 
+        'mtime'=>$dbh->prepare(q{
+            update dl_status set mtime=now(), links = links + $1, unlinks = unlinks + $2
+        }),
+
         'admin_get'=>$dbh->prepare(q{
           select pg_xact_status(txid) as state, op, path 
             from dl_admin_files af
@@ -136,7 +140,7 @@ sub main() {
         log_debug('READY');
         config_observe();
         my $sleepy = 0;
-	my $cl = 0; my $cu = 0; # link/unlink counters
+	    my $cl = 0; my $cu = 0; # link/unlink counters
         while(!$sleepy) {
             my $rv = queryOrDie('jobs_get');
             $sleepy = $rv<=0;
@@ -163,7 +167,7 @@ sub main() {
                     log_debug("DATA",$data);
                     my $ts=iso_timestamp();
                     if($data->{state} eq 'LINK') {
-			$cl++;
+			            $cl++;
                         if($info) {
                             log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
                             file_unlink($path,$data);
@@ -176,7 +180,7 @@ sub main() {
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
-			$cu++;
+			            $cu++;
                         log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
                         file_unlink($path,$data);
                         queryOrDie('job_delete',$path);
@@ -187,7 +191,7 @@ sub main() {
                         next;
                     } 
                 } # while fetchrow
-                $dbh->do("update datalink.dl_status set mtime=now()");
+                queryOrDie('mtime',$cl,$cu);
             } # if not sleepy
         } # while not sleepy
 
