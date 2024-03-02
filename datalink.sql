@@ -2180,13 +2180,22 @@ declare
   my_txid xid8;
   dsn text;
   sql text;
+  ns regnamespace;
 begin 
   my_txid := pg_current_xact_id();
-  dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
-  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
---  execute sql;
-  perform dblink_exec(dsn,sql,true);
-  notify "datalink.linker_jobs"; 
+  select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
+  if not found THEN
+    raise warning 'DATALINK WARNING - dblink extension recommended' 
+    using detail = 'Extension dblink is needed for automatic delete of files from aborted transactions',
+          hint   = 'Install dblink extension';
+  else 
+    dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
+    sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
+  --  execute sql;
+  --  perform dblink_exec(dsn,sql,true);
+    execute format('select %I.dblink_exec(%L,%L,true)',ns,dsn,sql);
+    notify "datalink.linker_jobs"; 
+  end if;
   return $1;
 end
 $$;
