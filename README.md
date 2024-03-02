@@ -122,7 +122,7 @@ but you can use normal SQL UPDATE on table DATALINK.COLUMNS
 to set them instead.
 
     update datalink.columns
-       set link_control='FILE', integrity='ALL',
+       set integrity='ALL',
            read_access='DB', write_access='BLOCKED',
            recovery='YES', on_unlink='RESTORE'
      where table_name='sample_datalinks' and column_name='link';

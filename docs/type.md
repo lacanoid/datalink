@@ -109,17 +109,19 @@ Option description and use cases
 
 Only store datalinks.
 
-Pro: Faster than other because of no trigger
+Pro: Faster than other because there are no triggers to run
 
 ### LCO=xx1 INTEGRITY SELECTIVE
 
 Check if file exists.
 
-Pro: Provides better referential integrity because referenced files have to actually exist.
+Pro: Provides better referential [integrity](integrity.md) because referenced files have to actually exist.
 
 Con: Files can still mysteriously disappear later.
 
 Pro: Works for web as well as local files
+
+Con: Differs from SQL standard (standard requires 'linking' and rename+delete protection if available, we only check if file exists)
 
 ### LCO=xx2 INTEGRITY ALL
 
@@ -134,6 +136,8 @@ Files can still be modified based of the file system permissions.
 Pro: Does not modify files in any way.
 
 Con: Only for local files.
+
+Con: Differs from SQL standard (standard requires rename+delete (but not write) protection)
 
 ### LCO=x1x WRITE ACCESS BLOCKED
 

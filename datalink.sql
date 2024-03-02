@@ -1084,7 +1084,8 @@ begin
       link := jsonb_set(link::jsonb,array['rc'],to_jsonb(r.rc));
     end if;
   end if; -- file link control,  
-  
+
+  link := link::jsonb - 'o';
   link := dlpreviouscopy(link,has_token)::jsonb - 'k';
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
@@ -1258,8 +1259,12 @@ begin
                       else 'NONE'
                       end as datalink.dl_on_unlink)
     );
-    if new.link_control is distinct from old.link_control and new.link_control = 'NO'
-       then my_lco := 0; end if;
+    if new.integrity is not distinct from old.integrity then
+      if new.link_control is distinct from old.link_control then
+        if new.link_control = 'NO' then my_lco := 0; end if;
+--        if new.link_control = 'FILE' then my_lco := 1; end if;
+      end if; -- link control changed
+    end if; -- integrity not changed
     perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
     return new;
  end if; -- if datalink.columns

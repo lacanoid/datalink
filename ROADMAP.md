@@ -42,6 +42,7 @@ Wanted
 - handle symbolic links better (lstat)
 - update bugs: warnings, file doesn't dissapear when it should
 - add 'dirname','extension','basename','filename' to uri_get/set
+- add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 
 Issues
 ======

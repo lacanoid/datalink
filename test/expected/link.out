@@ -18,7 +18,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 67 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
@@ -42,7 +42,7 @@ DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 67 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
@@ -88,7 +88,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "pg_datalinker add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 67 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
@@ -151,7 +151,7 @@ DETAIL:  Invalid link control options (101)
 HINT:  see table datalink.link_control_options for valid link control options
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 30 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_columns() line 21 at PERFORM
+PL/pgSQL function dl_trigger_columns() line 25 at PERFORM
 select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
@@ -245,7 +245,7 @@ ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:///var/www/datalink/test4.txt
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 61 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 62 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
 WARNING:  DATALINK WARNING - datalinker required
@@ -254,7 +254,7 @@ ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:///etc/issue
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 61 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 62 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 NOTICE:  DATALINK LINK:/var/www/datalink/
@@ -269,7 +269,7 @@ DETAIL:  Can't change link control options; 1 non-null values present in column 
 HINT:  Perhaps you can "truncate my_table4"
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 48 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
-PL/pgSQL function dl_trigger_columns() line 21 at PERFORM
+PL/pgSQL function dl_trigger_columns() line 25 at PERFORM
 delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
 select * from datalink.columns where table_name='my_table4';
  table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 

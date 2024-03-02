@@ -47,9 +47,8 @@ Also provided is a mod-perl handler for apache web server, which authenticates
 access for filenames containing read access tokens. This lets you make links to
 your files with the `DLURLCOMPLETE` function.
 
-Datalinker option $opt_O: if owner (of the table containing the datalink column) 
-is equal to an existing OS user, it is set as the owner of the file thus making it readable to 
-that user. This is meant to work with Postgres *ident* authetication on Debian 
-linux and elsewhere, where database user is same as OS user.
+Also provided is a `dlcat` shell command, which authenticates 
+access for filenames containing read access tokens. This lets you access
+the content of files with the help of `DLURLPATH` function.
 
 [Datalink manual](README.md)

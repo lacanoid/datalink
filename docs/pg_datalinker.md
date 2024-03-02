@@ -30,3 +30,12 @@ Files in state `LINK` go into state `LINKED` when successfully linked otherwise 
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
 If `ON_UNLINK` is `DELETE` then the files are also deleted from filesystem.
 
+Options
+-------
+$opt_O: if owner (of the table containing the datalink column) 
+is equal to an existing OS user, it is set as the owner of the file thus making it readable to 
+that user. This is meant to work with Postgres *ident* authetication on Debian 
+linux and elsewhere, where database user is same as OS user.
+
+
+
