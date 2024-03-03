@@ -55,8 +55,7 @@ Issues
 
 Todo
 ====
-- permissions on datalink.columns for users
-- backup & restore
+- check backup & restore
 
 - ✔︎ CLI tool for datalinker admin
 - ✔︎ much better error handling in datalinker
@@ -78,6 +77,7 @@ Todo
 - ✔︎ optimize table triggers (do not install them if mco=0)
 - ✔︎ throw warnings/errors if datalinker is not running when it should
 - ✔︎ additional permission checks for delete
+- ✔︎ permissions on datalink.columns for non superusers
 - additional permission checks for references
 - ✔︎ consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
@@ -96,7 +96,7 @@ Todo
 - token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - fix DLPREVIOUSCOPY wrt to old token vs has_token vs read_access
 - dlvalue better error handling
-- make this work for non-superusers
+- make all this work well for non-superusers as well
 - `datalink.stat()` execute permissions
 - remove requirements to have `root` (pg_datalinker DB user) be a superuser, have a special non supersuser role for this
 - handle extra json stuff  `dlvalue(address,datalink)`

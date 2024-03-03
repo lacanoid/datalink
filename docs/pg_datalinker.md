@@ -1,7 +1,14 @@
+[Datalink manual](README.md)
+
+pg_datalinker
+=============
+
 Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
 Here it sees the results of transactions already commited in postgres.
 
 It then attempts to modify linked files accordingly.
+
+It is not meant to be run directly, but rather managed with [`dlfm`](dlfm.md) command.
 
 Responsibilities
 ----------------
@@ -37,5 +44,6 @@ is equal to an existing OS user, it is set as the owner of the file thus making 
 that user. This is meant to work with Postgres *ident* authetication on Debian 
 linux and elsewhere, where database user is same as OS user.
 
+[Datalink manual](README.md)
 
 
