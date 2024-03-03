@@ -1804,7 +1804,7 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION write_text(filename file_path, content text, persistent integer default 0)
- RETURNS bigint
+ RETURNS text
  LANGUAGE plperlu
 AS $function$
   use strict vars; 
@@ -1812,10 +1812,13 @@ AS $function$
   my $fh;
   my $op = ($persistent>0)?'w':'t';
 
-  my $q = q{select datalink.has_file_privilege($1,$2,true) as ok};
+  my $q = q{select datalink.has_file_privilege($1,$2,true) as ok, user};
   my $p = spi_prepare($q,'datalink.file_path','text');
   my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
-  unless($fs->{ok} eq 't') { die "DATALINK EXCEPTION - CREATE permission denied on directory.\nFILE: $filename\n"; }
+  unless($fs->{ok} eq 't') { 
+    die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
+        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+  }
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
@@ -1826,7 +1829,7 @@ AS $function$
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
-  return length($bufr);
+  return $filename;
 $function$;
 COMMENT ON FUNCTION write_text(file_path,text,integer) IS 
   'Write new local file contents as text';

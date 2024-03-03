@@ -94,12 +94,12 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files order by path;
  state |     regclass      | attname |            path             
 -------+-------------------+---------+-----------------------------
+ LINK  | sample_datalinks5 | link    | /var/www/datalink/test1.txt
  LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt
  LINK  | sample_datalinks4 | link    | /var/www/datalink/test3.txt
- LINK  | sample_datalinks5 | link    | /var/www/datalink/test1.txt
 (3 rows)
 
 drop table sample_datalinks5;

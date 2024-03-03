@@ -108,7 +108,7 @@ create table med (link datalink(2));
 NOTICE:  DATALINK DDL:TRIGGER on med
 -- 15.2 Effect of inserting tables into base tables
 -- case 1.a.1 referenced file does not exist
-insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file')); -- err
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
@@ -117,19 +117,19 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
 -- case 1.b.1 invalid datalink construction
-insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
-insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 -- 
 -- case 1.b.2 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- err
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/test1.txt'
@@ -139,12 +139,12 @@ PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERF
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
 -- 15.3 Effect of replacing rows in base tables
-update med set link = dlvalue('file:///var/www/datalink/test2.txt');
+update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 --
 -- case 1.b.i.1 referenced file does not exist
-update med set link = dlvalue('file:///var/www/datalink/non_existant_file');
+update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///var/www/datalink/non_existant_file
@@ -154,9 +154,9 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --
 -- case 1.b.ii.1 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
-update med set link = dlvalue('file:///var/www/datalink/test4.txt');
+update med set link = dlvalue('file:///var/www/datalink/test4.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
@@ -173,11 +173,11 @@ delete from med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  New value doesn't contain a matching write token for update of column med.link
@@ -186,7 +186,7 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 74 at RAISE
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write permission for update
 DETAIL:  write_access is BLOCKED for column med,link
@@ -195,17 +195,17 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 65 at RAISE
 --
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  File address is different for for update of column med.link
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
-update med set link = dlvalue('file:///var/www/datalink/test2.txt');
+update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits

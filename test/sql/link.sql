@@ -62,7 +62,7 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
 
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files order by path;
 
 drop table sample_datalinks5;
 

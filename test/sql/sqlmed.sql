@@ -85,40 +85,40 @@ create table med (link datalink(2));
 -- 15.2 Effect of inserting tables into base tables
 
 -- case 1.a.1 referenced file does not exist
-insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file')); -- err
 -- 
 -- case 1.b.1 invalid datalink construction
-insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt'));
-insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt'));
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 -- 
 -- case 1.b.2 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- err
 -- 
 -- 15.3 Effect of replacing rows in base tables
-update med set link = dlvalue('file:///var/www/datalink/test2.txt');
+update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 --
 -- case 1.b.i.1 referenced file does not exist
-update med set link = dlvalue('file:///var/www/datalink/non_existant_file');
+update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
 --
 -- case 1.b.ii.1 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
-update med set link = dlvalue('file:///var/www/datalink/test4.txt');
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
+update med set link = dlvalue('file:///var/www/datalink/test4.txt'); -- err
 --
 -- case 1.b.ii.2.A.I invalid write token
 delete from med;
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt'));
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
+update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
 --
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
-update med set link = dlvalue('file:///var/www/datalink/test2.txt');
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt');
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
+update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
+update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
 
 drop table med;

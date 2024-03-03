@@ -353,10 +353,10 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-#### write_text( file_path , content text ) → integer
+#### write_text( file_path , content text ) → text
 Write local file contents as text. File must not exist.
 
-Returns number of bytes written.
+Returns given file path.
 
 User must have CREATE privilege on the directory.
 
