@@ -16,6 +16,7 @@ Version 0.23
 - new `dl_file_admin()` function
 - datalinker status improvements
 - datalinker now automatically deletes temporary files and files created in aborted transactions ($opt_A)
+- preliminary `revisions()` and `revision()` functions
 
 Version 0.22
 ------------

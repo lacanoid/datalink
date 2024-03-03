@@ -4,7 +4,7 @@ Datalink File Manager
 =====================
 
 Datalink File Manager (DLFM) component. Also known as *the datalinker*.
-A process, external to PostgreSQL, which manages file persmissions, backup, restore, replacement and deletion of files.
+A process, external to PostgreSQL, which manages file permissions, backup, restore, replacement and deletion of files.
 
 It needs to run as UNIX superuser `root` because it needs to.
 

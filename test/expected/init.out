@@ -66,6 +66,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream local file as lines of text
  datalink     | read_text(datalink,bigint,bigint)                                                            | plpgsql  | Read datalink contents as text
  datalink     | read_text(file_path,bigint,bigint)                                                           | plperlu  | Read local file contents as text
+ datalink     | revisions(datalink)                                                                          | sql      | Return a particular datalink revision
+ datalink     | revisions(file_path)                                                                         | plpgsql  | All available previous revisions of a file as datalinks
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
  datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
  datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
@@ -99,9 +101,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | link_control_options(datalink)                                                               | sql      | 
- datalink     | revisions(datalink)                                                                          | sql      | 
- datalink     | revisions(file_path)                                                                         | plpgsql  | 
+ datalink     | revision(datalink,integer)                                                                   | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(81 rows)
+(82 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

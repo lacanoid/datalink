@@ -258,7 +258,7 @@ sub queryOrDie {
     my @args=@_;
     my $rv=$q{$query}->execute(@args);
     if(!defined($rv)) {
-        log_fatal("Can't execute '$query' query.\nMake sure datalink extension is installed.\n");
+        log_fatal("Can't execute '$query' query.\nHINT: Make sure datalink extension is installed.\n");
     }
     return $rv;
 }

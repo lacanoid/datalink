@@ -1821,11 +1821,11 @@ AS $function$
   }
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
-  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
 
   $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
 
+  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
@@ -2207,7 +2207,7 @@ $$;
 -- list versions
 ---------------------------------------------------
 
-create or replace function revisions(datalink.file_path) 
+create or replace function revisions(file_path) 
 returns table(rev bigint,ctime timestamptz,link datalink)
 strict LANGUAGE plpgsql as $$
 DECLARE
@@ -2228,6 +2228,8 @@ select -row_number() over(order by s.mtime desc),
  order by s.mtime desc;
 end
 $$;
+comment on function revisions(file_path)
+is 'All available previous revisions of a file as datalinks';
 
 create or replace function revisions(datalink) 
 returns table(rev bigint,ctime timestamptz,link datalink)
@@ -2235,6 +2237,16 @@ strict LANGUAGE sql as $$
 select rev,ctime,link
   from datalink.revisions(pg_catalog.dlurlpathonly($1))
 $$;
+comment on function revisions(datalink)
+is 'All available previous revisions of a datalink';
+
+create or replace function revision(datalink, revision int default -1) returns datalink 
+language sql strict as $$
+ select link from datalink.revisions($1) where rev = $2
+$$;
+comment on function revisions(datalink)
+is 'Return a particular datalink revision';
+
 
 ---------------------------------------------------
 -- volume usage statistics
