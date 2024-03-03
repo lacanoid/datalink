@@ -1716,10 +1716,10 @@ begin
  if for_web>0 then return mypath;
  else 
   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
-  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory.\nFILE:  %\n',mypath 
+  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory for role "%".\nFILE:  %\n',myrole,mypath 
   using errcode = 'HW007',
         detail  = format('no SELECT permission for directory'),
-        hint    = format('add SELECT privilege for user %s to table DATALINK.ACCESS',myrole);
+        hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
  end if;
  return null;
 end$$;

@@ -47,7 +47,7 @@ drop role if exists datalink_test_user_123;
 create role datalink_test_user_123;
 set role datalink_test_user_123;
 select length(datalink.read_text('/var/www/datalink/CHANGELOG.md')) > 0;
-ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory.
+ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory for role "datalink_test_user_123".
 FILE:  /var/www/datalink/CHANGELOG.md
 CONTEXT:  PL/Perl function "read_text"
 --select length(datalink.read_text(dlurlpath(link)) > 0 from sample_datalinks6;
