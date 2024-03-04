@@ -39,25 +39,27 @@ Wanted
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`.
-- handle symbolic links better (lstat)
-- update bugs: warnings, file doesn't dissapear when it should
+- handle symbolic links better (resolve?)
 - add 'dirname','extension','basename','filename' to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
+- url beautifier function for sanitizing broken urls
 
 Issues
 ======
 - ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
-- forbid setting of lco<>0 for non superusers 
+- ✔︎ forbid setting of lco<>0 for non superusers 
 - `create table as` / `select into` bug (data is loaded before triggers are run)
 - domain on domain on datalink doesn't work
 - datalinker service spoofing (~www-data/.pg_service.conf vs dlcat)
 
+- update link=dlnewcopy(link) for on unlink delete looses file
+- datalinker: permissions are wrong on restored files
+- dl_linked_files status not updating to ERROR
+
 Todo
 ====
-- check backup & restore
-
-- ✔︎ CLI tool for datalinker admin
+- ✔︎ CLI tool for datalinker admin (dlfm)
 - ✔︎ much better error handling in datalinker
 - ✔︎ dlvalue(null) → null, dlvalue('') → null
 - ✔︎ file path sanity checking (handle or forbid ..)
