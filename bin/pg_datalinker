@@ -234,7 +234,7 @@ sub process_admin {
             my $op = $data->{op};
             if($state eq 'in progress') { next; } 
             my $stat = file_stat($path);
-            if($stat) {
+            if($stat->{inode}) {
                 if($stat->{owner} eq $config{owner}) {
                     log_msg('PURGE',"$op,$state,$path");
                     if($state eq 'aborted' || ($state eq 'committed' && $op eq 't')) {
@@ -244,7 +244,7 @@ sub process_admin {
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
                 }
             } else { 
-                log_err("FILE DOES NOT EXISTS","File '$path' does not exist.");
+                # log_err("FILE DOES NOT EXISTS","File '$path' does not exist.");
             }
         } 
         queryOrDie('admin_delete',$path);
@@ -366,7 +366,6 @@ sub file_link {
 #    }
 
     if($opt_R && file_has_backup($path,$opt)) {
-        log_msg('REVERT',"$path#".$opt->{token});
         file_backup_restore($path,$opt);
 	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
     } else {
@@ -442,6 +441,10 @@ sub file_delete {
     my ($path,$opt)=@_;
     my $info = $opt->{info};
     if($info && $info->{del}) {
+	if(!($opt->{on_unlink} eq 'DELETE')) {
+	    log_err('NO DELETE',"Not ON UNLINK DELETE");
+	    return;
+	}
         if($opt_D) {
             log_debug('DELETE',$opt);
             if(defined($info->{own})) {
@@ -463,6 +466,7 @@ sub file_backup {
     my ($path,$opt)=@_;
     if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
+        log_msg('BACKUP',$path_backup);
         if(-f $path_backup) {
             log_err("COPY EXISTS","File exists:$path_backup");
         } else {
@@ -473,12 +477,18 @@ sub file_backup {
 # revert a file to previous version from backup
 sub file_backup_restore {
     my ($path,$opt)=@_;
-    if($opt->{token}) {
+    my $move = !($opt->{recovery} eq 'YES');
+     if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
-        my $move = !($opt->{recovery} eq 'YES');
         if(-f $path_backup) {
-            if($move) { sys("mv","-f",$path_backup,$path); }
-            else { sys("ln","-f",$path_backup,$path); }
+            if($move) {
+		log_msg('REPLACE',$path_backup);
+		sys("mv","-f",$path_backup,$path);
+	    }
+            else {
+		log_msg('REVERT',$path_backup);
+		sys("ln","-f",$path_backup,$path);
+	    }
         } else {
             log_err("NO BACKUP","File not found:$path_backup");
         }

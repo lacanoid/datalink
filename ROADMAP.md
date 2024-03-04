@@ -57,6 +57,7 @@ Issues
 - update link=dlnewcopy(link) for on unlink delete looses file
 - datalinker: permissions are wrong on restored files
 - dl_linked_files status not updating to ERROR
+- multiple updates with write_text() in one transaction fail
 
 Todo
 ====
