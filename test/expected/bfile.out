@@ -68,10 +68,10 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 (1 row)
 
 drop table bfiles;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 select read_text('/var/www/datalink/utf8.txt');
                                                     read_text                                                    
 -----------------------------------------------------------------------------------------------------------------

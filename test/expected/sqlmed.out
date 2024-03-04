@@ -189,7 +189,7 @@ update datalink.columns set read_access='DB',write_access='BLOCKED' where table_
 update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write permission for update
-DETAIL:  write_access is BLOCKED for column med,link
+DETAIL:  write access is BLOCKED for column med.link
 HINT:  set write_access to ADMIN or TOKEN
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 65 at RAISE
 --

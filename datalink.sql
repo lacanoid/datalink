@@ -1202,13 +1202,13 @@ begin
             if opt.write_access = 'BLOCKED' and link1 is not null then
               raise exception 'DATALINK EXCEPTION - invalid write permission for update' using
                       errcode = 'HW006',
-                       detail = format('write_access is BLOCKED for column %s,%I',
+                       detail = format('write access is BLOCKED for column %s.%I',
                                        tg_relid::regclass::text,r.column_name),
                          hint = 'set write_access to ADMIN or TOKEN';
             end if; -- blocked
           -- check for write_access = TOKEN and prevent updates if needed
             if opt.write_access = 'TOKEN' and link1 is not null then
-              if link2::jsonb->>'o' is null or link2::jsonb->>'o' is distinct from link1::jsonb->>'b' then
+             if link2::jsonb->>'o' is null or link2::jsonb->>'o' is distinct from link1::jsonb->>'b' then
                 raise exception 'DATALINK EXCEPTION - invalid write token' using 
                         errcode = 'HW004',
                          detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
