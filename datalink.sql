@@ -825,8 +825,9 @@ begin
     where attrelid in 
       (select tdo.objid
          from pg_event_trigger_dropped_objects() tdo
-  where object_type = 'table'
+        where object_type = 'table'
        )
+    order by txid
   loop
     perform datalink.dl_file_unlink(obj.path);
   end loop;
@@ -835,13 +836,13 @@ begin
   for obj in
     select *
       from
-      (select objid::regclass as regclass,
-        objsubid as attnum,
+      (select objid::regclass as regclass, objsubid as attnum,
               address_names[3] as attname
          from pg_event_trigger_dropped_objects()
-  where object_type = 'table column'
+        where object_type = 'table column'
        ) as tdo
       join datalink.dl_linked_files f on f.attrelid=tdo.regclass and f.attnum=tdo.attnum
+     order by txid
   loop
     perform datalink.dl_file_unlink(obj.path);
   end loop;
