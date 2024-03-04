@@ -19,7 +19,7 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 our $opt_v = 0;  # verbosity
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
-our $opt_R = 1;  # revert old files from backups
+our $opt_R = 1;  # restore old files from backups
 our $opt_A = 1;  # process dl_admin_files (autodelete files from aborted transactions)
 our $opt_L = 1;  # use advisory locks (support for datalink.commit())
 our $opt_C = 0;  # only check configuration
@@ -350,9 +350,11 @@ sub file_stat {
 sub file_link {
     my ($path,$opt)=@_;
     $path =~ s|/+$||;
+    my $path1 = $path; # backup path
+    my $have = 0;      # have base file
     my $s = file_stat($path,$opt);
-    my $path1 = $path;
-    if(!$s->{inode}) {
+    if($s->{inode}) { $have=1; }
+    else {
         $path1 = path_backup($path,$opt->{token});
         $s = file_stat($path1,$opt);
     }
@@ -365,14 +367,18 @@ sub file_link {
 #        file_read_access_db($path1,$opt);
 #    }
 
-    if($opt_R && file_has_backup($path,$opt)) {
-        file_backup_restore($path,$opt);
+    if(file_has_backup($path,$opt)) {
+	if(!$have || $opt->{recovery} eq 'YES' ||
+	   $opt->{write_access} eq 'ADMIN' ||
+	   $opt->{write_access} eq 'TOKEN') {
+	    file_backup_restore($path,$opt);
+	}
 	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
     } else {
 	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
-        if($opt->{recovery} eq 'YES') { file_backup($path,$opt); }
+	if($opt->{recovery} eq 'YES') { file_backup($path,$opt); }
     } 
-
+    
     my $r = { own => $s->{uid}.":".$s->{gid}, 
               mod => sprintf("%#o",$s->{mode} & 0777),
               lco => $opt->{lco},
@@ -426,7 +432,7 @@ sub file_read_access_db {
 sub file_restore {
     my ($path,$opt)=@_;
     my $info = $opt->{info};
-    log_debug('RESTORE',$opt);
+    log_debug('RESTOR',$opt);
     if($info) {
         if(defined($info->{own})) {
             sys("chown",$info->{own},$path);
@@ -479,20 +485,24 @@ sub file_backup_restore {
     my ($path,$opt)=@_;
     my $move = !($opt->{recovery} eq 'YES');
      if($opt->{token}) {
-        my $path_backup = path_backup($path,$opt->{token});
-        if(-f $path_backup) {
-            if($move) {
-		log_msg('REPLACE',$path_backup);
-		sys("mv","-f",$path_backup,$path);
-	    }
-            else {
-		log_msg('REVERT',$path_backup);
-		sys("ln","-f",$path_backup,$path);
-	    }
-        } else {
-            log_err("NO BACKUP","File not found:$path_backup");
-        }
-    }
+	 my $path_backup = path_backup($path,$opt->{token});
+	 if(-f $path && !$opt_R) {
+	     log_err("NO RESTORE","Restore disabled: HINT: use option -R");
+	     return;
+	 }
+	 if(-f $path_backup) {
+	     if($move) {
+		 log_msg('REPLACE',$path_backup);
+		 sys("mv","-f",$path_backup,$path);
+	     }
+	     else {
+		 log_msg('RESTORE',$path_backup);
+		 sys("ln","-f",$path_backup,$path);
+	     }
+	 } else {
+	     log_err("NO BACKUP","File not found:$path_backup");
+	 }
+     }
 }
 # block file for writing
 sub file_block {
