@@ -169,13 +169,14 @@ sub main() {
                     if($data->{state} eq 'LINK') {
                         if($info) {
                             log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
+			    $info->{del}=0;
                             file_unlink($path,$data); $cu++;
                         } else {
                             log_msg("LINK:$ts:".$data->{lco},$path_backup);
                         }
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
-                        queryOrDie('job_set',$path,'LINKED',$json->encode($r),$err);
+                        queryOrDie('job_set',$path,$err?'ERROR':'LINKED',$json->encode($r),$err);
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
@@ -236,10 +237,9 @@ sub process_admin {
             if($stat) {
                 if($stat->{owner} eq $config{owner}) {
                     log_msg('PURGE',"$op,$state,$path");
-                    if($state eq 'aborted' || 
-                      ($state eq 'committed' && $op eq 't')) {
-                        sys('rm','-f',$path);
-                    }
+                    if($state eq 'aborted' || ($state eq 'committed' && $op eq 't')) {
+			unlink($path);
+		    }
                 } else { 
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
                 }
@@ -361,17 +361,17 @@ sub file_link {
         return undef;
     }
 
-    if($opt->{read_access} eq 'DB') {
-        file_read_access_db($path1,$opt);
-    }
+#    if($opt->{read_access} eq 'DB') {
+#        file_read_access_db($path1,$opt);
+#    }
 
     if($opt_R && file_has_backup($path,$opt)) {
         log_msg('REVERT',"$path#".$opt->{token});
         file_backup_restore($path,$opt);
+	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
     } else {
-        if($opt->{recovery} eq 'YES') {
-            file_backup($path,$opt);
-        }
+	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
+        if($opt->{recovery} eq 'YES') { file_backup($path,$opt); }
     } 
 
     my $r = { own => $s->{uid}.":".$s->{gid}, 
@@ -397,6 +397,7 @@ sub file_unlink {
     if($opt->{read_access} eq 'DB') {
         file_restore($path,$opt);
     }
+#    if($opt->{on_unlink} eq 'DELETE') {
     if($opt->{info} && $opt->{info}{del}) {
         file_delete($path,$opt);
     }
@@ -447,7 +448,7 @@ sub file_delete {
                 sys("rm",$path);
             }
         } else {
-            log_msg('NO DELETE',"Refusing to delete '$path'. Hint: use -D datalinker option.");
+            log_msg('NO DELETE',"Refusing to delete '$path'. HINT: use -D datalinker option.");
         }
     }
 }

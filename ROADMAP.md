@@ -43,6 +43,7 @@ Wanted
 - add 'dirname','extension','basename','filename' to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - url beautifier function for sanitizing broken urls
+- file writes for non superusers
 
 Issues
 ======
