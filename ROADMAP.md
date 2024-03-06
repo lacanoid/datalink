@@ -44,6 +44,7 @@ Wanted
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - url beautifier function for sanitizing broken urls
 - file writes for non superusers
+- make `read_file()` read updated but not commited files
 
 Issues
 ======
