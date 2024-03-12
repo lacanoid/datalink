@@ -1,3 +1,6 @@
+Version 0.24
+------------
+
 Version 0.23
 ------------
 - more documentation

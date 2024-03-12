@@ -52,7 +52,7 @@ rollback to p1;
 select * from datalink.read_text('/var/www/datalink/CHANGELOG.md',1,12);
   read_text   
 --------------
- Version 0.23
+ Version 0.24
 (1 row)
 
 reset role;

@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 # pg_datalinker - SQL/MED datalinker daemon
-# version 0.23 by lacanoid@ljudmila.org
+# version 0.24 by lacanoid@ljudmila.org
 
-our $version="0.23.20240302";
+our $version="0.24.0302";
 our $lockid=0x41444154494c4b4e; # DATALINK as ASCII
 
 use strict;

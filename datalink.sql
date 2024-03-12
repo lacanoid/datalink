@@ -1,6 +1,6 @@
 --
 --  datalink
---  version 0.23 lacanoid@ljudmila.org
+--  version 0.24 lacanoid@ljudmila.org
 --
 ---------------------------------------------------
 

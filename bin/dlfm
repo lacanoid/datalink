@@ -29,7 +29,7 @@ our $opt_C = 0;  # only check configuration
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
-our $version="0.23.20240302";
+our $version="0.24.0302";
 our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
