@@ -1,5 +1,7 @@
 Version 0.24
 ------------
+- added preliminary `dlreplacecontent()` function.
+- `dl_directory` check if dirpath like '/%/'
 
 Version 0.23
 ------------

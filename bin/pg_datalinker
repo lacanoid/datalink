@@ -67,6 +67,8 @@ our $dbmeta = {};
 our %q;
 our @err;
 
+$|=1;
+
 #---------------------------------------
 
 sub main() {
@@ -494,23 +496,23 @@ sub file_backup_restore {
     my ($path,$opt)=@_;
     my $move = !($opt->{recovery} eq 'YES');
      if($opt->{token}) {
-	 my $path_backup = path_backup($path,$opt->{token});
-	 if(-f $path && !$opt_R) {
-	     log_err("NO RESTORE","Restore disabled: HINT: use option -R");
-	     return;
-	 }
-	 if(-f $path_backup) {
-	     if($move) {
-		 log_msg('REPLACE',$path_backup);
-		 sys("mv","-f",$path_backup,$path);
-	     }
-	     else {
-		 log_msg('RESTORE',$path_backup);
-		 sys("ln","-f",$path_backup,$path);
-	     }
-	 } else {
-	     log_err("NO BACKUP","File not found:$path_backup");
-	 }
+        my $path_backup = path_backup($path,$opt->{token});
+        if(-f $path && !$opt_R) {
+            log_err("NO RESTORE","Restore disabled: HINT: use option -R");
+            return;
+        }
+        if(-f $path_backup) {
+            if($move) {
+            log_msg('REPLACE',$path_backup);
+            sys("mv","-f",$path_backup,$path);
+            }
+            else {
+            log_msg('RESTORE',$path_backup);
+            sys("ln","-f",$path_backup,$path);
+            }
+        } else {
+            log_err("NO BACKUP","File not found:$path_backup");
+        }
      }
 }
 # block file for writing

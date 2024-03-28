@@ -35,8 +35,8 @@ our $systemctl=`which systemctl`; chomp($systemctl);
 getopt('l');
 
 our $SERVICE = 'pg_datalink';
-our $NAME = 'pg_datalinker';
-our $DAEMON = "/usr/sbin/pg_datalinker";
+our $NAME    = 'pg_datalinker';
+our $DAEMON  = "/usr/sbin/pg_datalinker";
 
 #---------------------------------------
 our %config = (
@@ -89,6 +89,7 @@ Commands:
 
     dirs                 - show directories
     usage                - show directory usage
+    save                 - save db dir settings to /etc
 
     start                - starts the file manager
     stop                 - stop the file manager

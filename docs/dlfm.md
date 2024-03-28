@@ -10,29 +10,33 @@ It needs to run as UNIX superuser `root` because it needs to.
 
 It consists of two parts:
 - `dlfm` command for administrators to configure and monitor the file manager
-- `pg_datalinker` command, which is an actual file manager program which runs in the background
-
-Responsibilities
-----------------
-
-* Protect files from renaming or deletion (write_access=blocked,admin or token)
-  
-  This is done by setting the *immutable* flag on the file with `chattr +i` command.
-  This prevents file from being renamed or modified, even by root.
-  Datalinker itself must run as root to change file attributes.
-  
-* Make backups of files (recovery=yes)
-
-  *Base file* is designated by path, for example `/dir1/dir2/file.ext`.
-  *Backup file* is base file with appended token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
-  If backup file does not exist, it is created by creating a copy of the base file.
-
-* Restore files from backups (recovery=yes)
+- [`pg_datalinker`](pg_datalinker.md) command, which is an actual file manager program which runs in the background
 
 
+dlfm
+-----
 
-* Make files owned by database (read_access=db)
-* Restore file permissions (on_unlink=restore)
-* Delete files no longer referenced (on_unlink=delete)
+PostgreSQL datalink file manager control program
+
+    # dlfm 
+
+        show                 - show version and system configuration
+        bind [dbname] [port] - bind file manager to a database
+        unbind               - unbind file manager from a database
+
+        list                 - list all registered file systems (directories)
+        add <directory>      - register a file system (directory)
+        del <directory>      - unregister a file system (directory)
+
+        dirs                 - show directories
+        usage                - show directory usage
+
+        start                - starts the file manager
+        stop                 - stop the file manager
+        restart              - restart file manager
+        status               - show file manager status
+        ps                   - show the file manager processes running on the system
+        log                  - monitor file manager log
+
 
 [Datalink manual](README.md)

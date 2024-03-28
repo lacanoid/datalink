@@ -1649,6 +1649,23 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(text)
 IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
+
+create or replace function pg_catalog.dlreplacecontent(link datalink, path file_path, comment text) returns datalink
+language plpgsql as $$
+DECLARE
+  loid oid;
+BEGIN
+  loid := lo_import($2);
+  link := dlnewcopy(link);
+  perform lo_export(loid,dlurlpathwrite(link));
+  perform lo_unlink(loid);
+  return link;
+end
+$$;
+COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, file_path, text) 
+IS 'SQL/MED - Replace contents of datalink with contents of another file';
+
+---------------------------------------------------
 alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 -- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
@@ -1862,7 +1879,7 @@ select case
        end :: integer
 $$ language sql;
 comment on function fileexists(datalink) is 
-  'BFILE - Returns whether datalink file exists';
+  'BFILE - Returns whether datalink file ur URL exists';
 create or replace function fileexists(file_path) returns integer as $$
 select datalink.fileexists(dlvalue($1,'FS'))
 $$ language sql;
@@ -1916,7 +1933,7 @@ comment on function instr(file_path,text, integer) is
 ---------------------------------------------------
 create table dl_directory (
        dirname    text collate "C" unique check(dirname not in ('URL','FS')),
-       dirpath    file_path not null,
+       dirpath    file_path not null check(dirpath like '/%/'),
        dirowner   regrole,
        diracl     aclitem[],
        dirlco     dl_lco,
@@ -1994,6 +2011,7 @@ $$ strict language sql;
 ---------------------------------------------------
 -- access permitions
 ---------------------------------------------------
+
 CREATE OR REPLACE VIEW access
 AS SELECT d.dirpath,
     e.privilege_type,
@@ -2077,6 +2095,9 @@ CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, priv
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
 ---------------------------------------------------
+-- datalinker status
+---------------------------------------------------
+
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
   cpid integer,

@@ -35,7 +35,7 @@ installextras:
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink
-	cp CHANGELOG.md /var/www/datalink/
+	cp LICENSE.md /var/www/datalink/
 	echo "Hello" > /var/www/datalink/test1.txt
 	echo "This is for Friday, yeah." > /var/www/datalink/test2.txt
 	cp -a README.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced

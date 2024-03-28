@@ -3,6 +3,12 @@
 Transactional semantics
 =======================
 
+Note that synchronizing things between transactional environment like SQL 
+and external non-transactional environment poses certrain chalenges. 
+
+It is esentially a two stage commit process, where changes are first recorded
+in a database and then applied by the [datalinker](dlfm.md) process.
+
 Postgres and datalinker
 -----------------------
 
@@ -18,6 +24,7 @@ Use procedure `datalink.commit()` to wait for datalinker to finish work.
     mydb=> call datalink.commit()
     CALL
  
+Note that this has to be called outside a transaction.
 
 Transactions and files
 ----------------------
