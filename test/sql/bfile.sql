@@ -15,7 +15,7 @@ select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 
-insert into bfiles (bfile) values (dlvalue('CHANGELOG.md','www'));
+insert into bfiles (bfile) values (dlvalue('LICENSE.md','www'));
 insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));

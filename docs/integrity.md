@@ -74,7 +74,7 @@ Note that successful checks for web datalinks do not mean that the the web page 
 
 To additionally check for successful web pages, one can use a check constraint:
 
-    mydb-# alter table my_table add check ((link->>'rc')::int between 200 and 299);
+    mydb-# alter table my_table add check ((link::jsonb->>'rc')::int between 200 and 299);
 
 
 After values are stored, no further checks are done.

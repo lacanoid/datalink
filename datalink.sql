@@ -1650,14 +1650,17 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
 
-create or replace function pg_catalog.dlreplacecontent(link datalink, path file_path, comment text) returns datalink
+create or replace function pg_catalog.dlreplacecontent(link datalink, path file_path, comment text default null) returns datalink
 language plpgsql as $$
 DECLARE
   loid oid;
+  path datalink.file_path;
 BEGIN
   loid := lo_import($2);
   link := dlnewcopy(link);
-  perform lo_export(loid,dlurlpathwrite(link));
+  path := dlurlpathwrite(link);
+  perform lo_export(loid,path);
+  perform datalink.dl_file_admin(path,'t');
   perform lo_unlink(loid);
   return link;
 end
@@ -1859,6 +1862,12 @@ CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent in
  LANGUAGE plpgsql
 AS $function$
 begin
+ if not link::jsonb->>'a' ilike 'file:///%' THEN
+    raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+              using errcode = 'HW005',
+                    detail = 'write_text can only be used with local file URLs',
+                    hint = 'make sure you are using a file: URL scheme';
+ end if;
  link := dlnewcopy(link);
  perform datalink.write_text(dlurlpathwrite(link),content,persistent);
  return link;
@@ -1879,7 +1888,7 @@ select case
        end :: integer
 $$ language sql;
 comment on function fileexists(datalink) is 
-  'BFILE - Returns whether datalink file ur URL exists';
+  'BFILE - Returns whether datalink file exists';
 create or replace function fileexists(file_path) returns integer as $$
 select datalink.fileexists(dlvalue($1,'FS'))
 $$ language sql;
@@ -2208,15 +2217,15 @@ declare
   ns regnamespace;
 begin 
   my_txid := pg_current_xact_id();
+  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
   select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
   if not found THEN
     raise warning 'DATALINK WARNING - dblink extension recommended' 
     using detail = 'Extension dblink is needed for automatic delete of files from aborted transactions',
           hint   = 'Install dblink extension';
+    execute sql;
   else 
     dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
-    sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
-  --  execute sql;
   --  perform dblink_exec(dsn,sql,true);
     execute format('select %I.dblink_exec(%L,%L,true)',ns,dsn,sql);
     notify "datalink.linker_jobs"; 

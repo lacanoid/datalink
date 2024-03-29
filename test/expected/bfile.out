@@ -26,8 +26,8 @@ select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 NOTICE:  DATALINK DDL:TRIGGER on bfiles
-insert into bfiles (bfile) values (dlvalue('CHANGELOG.md','www'));
-NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+insert into bfiles (bfile) values (dlvalue('LICENSE.md','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/LICENSE.md
 insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
@@ -43,9 +43,9 @@ select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri
 
 select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
- getlength | instr | substr |                             filepath                             | fileexists |              filegetname              
------------+-------+--------+------------------------------------------------------------------+------------+---------------------------------------
-      9493 |   208 | Versi  | /var/www/datalink/CHANGELOG.md                                   |          1 | (www,CHANGELOG.md,/var/www/datalink/)
+ getlength | instr | substr |                             filepath                             | fileexists |             filegetname             
+-----------+-------+--------+------------------------------------------------------------------+------------+-------------------------------------
+       939 |     0 | © 20   | /var/www/datalink/LICENSE.md                                     |          1 | (www,LICENSE.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
         26 |     0 | This   | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
       7488 |     5 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
@@ -68,7 +68,7 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 (1 row)
 
 drop table bfiles;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK UNLINK:/var/www/datalink/LICENSE.md
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
