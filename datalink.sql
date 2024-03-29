@@ -450,7 +450,7 @@ $$
 declare
  r record;
  fstat jsonb;
- addr text[];
+ my_address text[];
  my_attnum smallint;
  my_mtime timestamptz;
  my_size bigint;
@@ -482,7 +482,7 @@ begin
                   detail = format('file "%s" is neither file nor directory, but "%s"',file_path,fstat->>'typ');
  end if;
 
- addr := array[fstat->>'dev',fstat->>'inode'];
+ my_address := array[fstat->>'dev',fstat->>'inode'];
  my_size := fstat->>'size';
  my_mtime := to_timestamp(cast(fstat->>'mtime' as double precision));
 
@@ -492,11 +492,11 @@ begin
  select * into r
    from datalink.dl_linked_files
    join pg_attribute a using (attrelid,attnum)
-  where path = file_path or address = addr
+  where path = file_path or address = my_address
     for update;
  if not found then
    insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
-   values (my_token,file_path,my_lco,my_regclass,my_attnum,addr,my_size,my_mtime,my_cons);
+   values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons);
    notify "datalink.linker_jobs"; 
    return true;
  else -- found in dl_linked_files
@@ -528,7 +528,10 @@ begin
            set state='LINKED',
                attrelid=my_regclass,
                attnum=my_attnum,
-	       cons=my_cons
+               address=my_address,
+               size=my_size,
+               mtime=my_mtime,
+	             cons=my_cons
          where path = file_path and state='UNLINK';
         return true;
      else -- relink
@@ -537,13 +540,17 @@ begin
                token=my_token,
                attrelid=my_regclass,
                attnum=my_attnum,
-	       cons=my_cons
+               address=my_address,
+               size=my_size,
+               mtime=my_mtime,
+	             cons=my_cons
          where path = file_path and state='UNLINK';
         return true;
 
-        raise exception 'DATALINK EXCEPTION - external file already linked' 
-        using errcode = 'HW002', 
-        detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
+      --  raise exception 'DATALINK EXCEPTION - external file already linked' 
+      --  using errcode = 'HW002', 
+      --  detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
+
      end if;
 
   else
@@ -1650,18 +1657,27 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
 
-create or replace function pg_catalog.dlreplacecontent(link datalink, path file_path, comment text default null) returns datalink
+create or replace function pg_catalog.dlreplacecontent(link datalink, new_path file_path, comment text default null) returns datalink
 language plpgsql as $$
 DECLARE
   loid oid;
   path datalink.file_path;
 BEGIN
-  loid := lo_import($2);
   link := dlnewcopy(link);
   path := dlurlpathwrite(link);
+
+  if datalink.fileexists(path) > 0 THEN
+    raise exception e'DATALINK EXCEPTIION - File exists\nFILE: %',path;
+  end if;
+
+  if not datalink.has_file_privilege(path,'create',true) then 
+    raise exception e'DATALINK EXCEPTIION - CREATE permission denied on directory % for role "%"',path,current_role;
+  end if;
+
+  loid := lo_import($2);
   perform lo_export(loid,path);
-  perform datalink.dl_file_admin(path,'t');
   perform lo_unlink(loid);
+  perform datalink.dl_file_admin(path,'t');
   return link;
 end
 $$;
@@ -2329,7 +2345,7 @@ comment on table sample_datalinks
 ---------------------------------------------------
 -- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
-SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
+-- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
 
 ---------------------------------------------------
 do $$ 

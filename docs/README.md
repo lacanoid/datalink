@@ -32,6 +32,8 @@ Files are addressed with [Uniform Resource Locators (URLs)](https://en.wikipedia
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
 
+Datalinks provide an interesting and viable alternative to large objects.
+
 Datalinks as defined by SQL/MED should provide:
 
 - [DATALINK SQL datatype](type.md)
@@ -53,14 +55,14 @@ This extension provides a number of additional features:
 - [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)
 - [File reading and writing](functions.md#user-content-reading-files)
+- Enable file access for non superuser database roles
 - [Directory permissions system](configuration.md)
-- Enable file access for normal database roles (not only superusers)
 - [Compatibility functions](functions.md#user-content-compatibility-functions)
 
 Architecture
 ------------
 
-The datalink system is made of three main components:
+The datalink system is made of these three main components:
 
 - a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any potentionally destructive file system changes, although it can create new files if allowed by the file system permissions. 
 - [datalink file manager](dlfm.md) (DLFM) deamon, [`pg_datalinker`](pg_datalinker.md), which handles all file manipulations. 
