@@ -74,12 +74,14 @@ create cast (datalink as jsonb) without function;
 -- create cast (datalink as jsonb) with inout as implicit;
 -- create cast (jsonb as datalink) with inout;
 
+---------------------------------------------------
+
 create or replace function is_local(datalink) returns boolean
 language sql immutable strict as $$
  select $1::jsonb->>'a' ilike 'file:///%'
 $$;
 comment on function is_local(datalink)
-     is 'This datalink references a local file';
+     is 'The address of this datalink references a local file';
 
 create or replace function is_valid(datalink) returns boolean
 language sql immutable strict as $$
@@ -91,6 +93,11 @@ $$;
 comment on function is_valid(datalink)
      is 'The address of this datalink is a valid URI';
 
+create or replace function is_http_success(datalink) returns boolean
+language sql immutable strict as $$
+ select $1::jsonb->>'rc' bethween 200 and 299 $$;
+comment on function is_http_success(datalink)
+     is 'The HTTP return code of this datalink indicates success';
 
 ---------------------------------------------------
 -- link control options
@@ -157,6 +164,8 @@ COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from enumerated options';
 
+---------------------------------------------------
+-- find dl_lco for a column
 create or replace function dl_lco(regclass regclass,column_name name) returns dl_lco
 as $$
  select coalesce(
@@ -173,6 +182,8 @@ $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a table column';
 
+---------------------------------------------------
+-- find dl_lco for a datalink
 CREATE OR REPLACE FUNCTION dl_lco(datalink) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
 AS $function$
 select coalesce((select lco
@@ -180,32 +191,33 @@ select coalesce((select lco
                ,0)::datalink.dl_lco
 $function$;
 COMMENT ON FUNCTION dl_lco(datalink) 
-IS 'Find dl_lco for a datalink';
+IS 'Find dl_lco for a linked datalink';
 
 ---------------------------------------------------
 
 CREATE FUNCTION link_control_options(dl_lco) 
 RETURNS link_control_options
-LANGUAGE sql IMMUTABLE
-    AS $_$
-select *
-  from datalink.link_control_options
- where lco = $1
+LANGUAGE sql IMMUTABLE AS $_$
+select * from datalink.link_control_options where lco = $1
 $_$;
 
 COMMENT ON FUNCTION link_control_options(dl_lco)
 IS 'Calculate link_control_options from dl_lco';
 
+---------------------------------------------------
+
 CREATE OR REPLACE FUNCTION link_control_options(datalink)
  RETURNS link_control_options
- LANGUAGE sql
- IMMUTABLE
+ LANGUAGE sql IMMUTABLE
 AS $function$
 select lco.*
   from datalink.link_control_options lco
  where lco.lco = datalink.dl_lco($1)
 $function$
 ;
+
+COMMENT ON FUNCTION link_control_options(datalink)
+IS 'Get link_control_options for a linked datalink';
 
 ---------------------------------------------------
 -- init options table
@@ -1011,13 +1023,13 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer) 
-IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+IS 'SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored';
 
 CREATE FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer default 1) RETURNS datalink
     LANGUAGE sql
     AS $_$select pg_catalog.dlpreviouscopy(pg_catalog.dlvalue($1),$2)$_$;
 COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer) 
-IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.';
+IS 'SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored';
 
 ---------------------------------------------------
 
@@ -1046,13 +1058,13 @@ begin
 end
 $_$;
 COMMENT ON FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer) 
-IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed';
 
 CREATE FUNCTION pg_catalog.dlnewcopy(url text, has_token integer default 1) RETURNS datalink
     LANGUAGE sql
     AS $_$select pg_catalog.dlnewcopy(pg_catalog.dlvalue($1),$2)$_$;
 COMMENT ON FUNCTION pg_catalog.dlnewcopy(url text, has_token integer) 
-IS 'SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.';
+IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed';
 
 ---------------------------------------------------
 -- referential integrity triggers
@@ -1537,7 +1549,7 @@ IS 'SQL/MED - Returns normalized URL value';
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select datalink.uri_get(
-  case when $1::jsonb->>'a' ilike 'file:///%'
+  case when datalink.is_local($1)
        then coalesce((
                select dirurl||uri_escape(substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1))
                  from datalink.directory
@@ -1598,7 +1610,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
    STRICT
    AS $function$
    select case 
-          when $1::jsonb->>'a' ilike 'file:///%' and $1::jsonb->>'b' is not null 
+          when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
             datalink.dl_url_insight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
@@ -1662,7 +1674,7 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $$ select coalesce($1::jsonb->>'t',case when $1::jsonb->>'a' ilike 'file:///%' then 'FS' else 'URL' end )$$;
+   AS $$ select coalesce($1::jsonb->>'t',case when datalink.is_local($1) then 'FS' else 'URL' end )$$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
@@ -1786,7 +1798,7 @@ CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default nul
  RETURNS text LANGUAGE plpgsql
 AS $$
 begin
-  if $1::jsonb->>'a' ilike 'file:///%' then
+  if datalink.is_local($1) then
     return datalink.read_text(dlurlpath($1),$2,$3);
   end if;
   return case
@@ -1896,7 +1908,7 @@ CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent in
  LANGUAGE plpgsql
 AS $function$
 begin
- if not link::jsonb->>'a' ilike 'file:///%' THEN
+ if not datalink.is_local(link) THEN
     raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
               using errcode = 'HW005',
                     detail = 'write_text can only be used with local file URLs',
@@ -1916,7 +1928,7 @@ COMMENT ON FUNCTION write_text(datalink,text,integer) IS
 
 create or replace function fileexists(datalink) returns integer as $$
 select case 
-       when $1::jsonb->>'a' ilike 'file:///%'
+       when datalink.is_local($1)
        then datalink.filepath($1) is not null
        else (datalink.curl_get(dlurlcomplete($1),1)).rc between 200 and 299
        end :: integer

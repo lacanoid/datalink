@@ -19,15 +19,15 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
         and obj_description(p.oid) like 'SQL/MED%')
  order by 1, obj_description(p.oid) is null,
        cast(p.oid::regprocedure as text) collate "C";
- pronamespace |                                             oid                                              | lanname  |                                                        obj_description                                                         
---------------+----------------------------------------------------------------------------------------------+----------+--------------------------------------------------------------------------------------------------------------------------------
+ pronamespace |                                             oid                                              | lanname  |                                            obj_description                                             
+--------------+----------------------------------------------------------------------------------------------+----------+--------------------------------------------------------------------------------------------------------
  pg_catalog   | dlcomment(datalink)                                                                          | sql      | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
  pg_catalog   | dllinktype(datalink)                                                                         | sql      | SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value
  pg_catalog   | dllinktype(text)                                                                             | sql      | SQL/MED - Returns the link type (URL or FS) from URL
- pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql  | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
- pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the referenced file has changed.
- pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
- pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value which has an attribute indicating that the previous version of the file should be restored.
+ pg_catalog   | dlnewcopy(datalink,integer)                                                                  | plpgsql  | SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed
+ pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed
+ pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
+ pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
  pg_catalog   | dlreplacecontent(datalink,file_path,text)                                                    | plpgsql  | SQL/MED - Replace contents of datalink with contents of another file
  pg_catalog   | dlurlcomplete(datalink,integer)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcomplete(text,integer)                                                                  | sql      | SQL/MED - Returns normalized URL value
@@ -48,7 +48,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
  datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
  datalink     | dl_authorize(file_path,integer,regrole)                                                      | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
- datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a datalink
+ datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a linked datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
@@ -61,8 +61,10 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
  datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file
- datalink     | is_local(datalink)                                                                           | sql      | This datalink references a local file
+ datalink     | is_http_success(datalink)                                                                    | sql      | The HTTP return code of this datalink indicates success
+ datalink     | is_local(datalink)                                                                           | sql      | The address of this datalink references a local file
  datalink     | is_valid(datalink)                                                                           | sql      | The address of this datalink is a valid URI
+ datalink     | link_control_options(datalink)                                                               | sql      | Get link_control_options for a linked datalink
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for a datalink column
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream local file referenced by a datalink as lines of text
@@ -104,8 +106,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
- datalink     | link_control_options(datalink)                                                               | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(85 rows)
+(86 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
