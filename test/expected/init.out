@@ -28,7 +28,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
  pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
- pg_catalog   | dlreplacecontent(datalink,file_path,text)                                                    | plpgsql  | SQL/MED - Replace contents of datalink with contents of another file
+ pg_catalog   | dlreplacecontent(datalink,datalink)                                                          | plpgsql  | SQL/MED - Replace contents of datalink with contents of another datalink
+ pg_catalog   | dlreplacecontent(datalink,text)                                                              | sql      | SQL/MED - Replace contents of datalink with contents of another datalink
  pg_catalog   | dlurlcomplete(datalink,integer)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcomplete(text,integer)                                                                  | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
@@ -47,6 +48,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
  datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | curl_save(file_path,text,integer)                                                            | plperlu  | Save content of remote URL to a local file
  datalink     | dl_authorize(file_path,integer,regrole)                                                      | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a linked datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
@@ -107,6 +109,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(86 rows)
+(88 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

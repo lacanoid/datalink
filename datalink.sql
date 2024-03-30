@@ -85,7 +85,7 @@ comment on function is_local(datalink)
 
 create or replace function is_valid(datalink) returns boolean
 language sql immutable strict as $$
- select case datalink.is_local($1)
+ select case $1::jsonb->>'a' ilike 'file://%'
              then pg_catalog.dlurlpathonly($1)::datalink.file_path is not null
              else ($1::jsonb->>'a')::uri is not null
              end
@@ -95,7 +95,7 @@ comment on function is_valid(datalink)
 
 create or replace function is_http_success(datalink) returns boolean
 language sql immutable strict as $$
- select $1::jsonb->>'rc' bethween 200 and 299 $$;
+ select $1::jsonb->>'rc' between 200 and 299 $$;
 comment on function is_http_success(datalink)
      is 'The HTTP return code of this datalink indicates success';
 
@@ -443,7 +443,8 @@ my (@s) = lstat($filename);
 my $typs="?pc?d?b?-?l?s???"; # file types as shown by ls(1)
 return {
  'dev'=>$s[0],'inode'=>$s[1],
- 'mode'=>($s[2] & 07777),'typ'=>substr($typs,(($s[2] & 0170000)>>12),1),
+ 'mode'=>($s[2] & 07777),
+ 'typ'=>substr($typs,(($s[2] & 0170000)>>12),1),
  'nlink'=>$s[3],
  'uid'=>$s[4],'gid'=>$s[5],
  'rdev'=>$s[6],'size'=>$s[7],
@@ -459,13 +460,15 @@ COMMENT ON FUNCTION stat(file_path) IS 'Return info record from stat(2)';
 create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
-  p := dlurlpathwrite($1);
-  if (datalink.stat(p)).size is not null then return p; end if;
-  p := dlurlpathonly($1);
-  if (datalink.stat(p)).size is not null then return p; end if;
+  if datalink.is_local($1) then
+    p := dlurlpathwrite($1);
+    if (datalink.stat(p)).size is not null then return p; end if;
+    p := dlurlpathonly($1);
+    if (datalink.stat(p)).size is not null then return p; end if;
+  end if;
   return null;
 end
-$$ language plpgsql;
+$$ language plpgsql strict;
 
 ---------------------------------------------------
 -- link a file to SQL
@@ -1366,10 +1369,10 @@ if($url=~m|^file://[^/]|i) {
   my $p = spi_prepare($q,'TEXT');
   $fs = spi_exec_prepared($p,$url)->{rows}->[0];
   unless($fs->{extnamespace}) {
-    elog(ERROR,"Extension dblink is required for files on foreign servers.\n");
+    elog(ERROR,"DATALINK EXCEPTION - Extension dblink is required for files on foreign servers.\n");
   }
   unless($fs->{srvoid}) {
-    elog(ERROR,"Foreign server ".quote_ident($fs->{srvname})." does not exist.\n");
+    elog(ERROR,"DATALINK EXCEPTION - Foreign server ".quote_ident($fs->{srvname})." does not exist.\n");
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
   $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';
@@ -1418,6 +1421,81 @@ $_$;
 revoke execute on function curl_get(text,integer) from public;
 comment on function curl_get(text,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
+
+---------------------------------------------------
+
+CREATE FUNCTION curl_save(
+  INOUT file_path file_path, INOUT url text, IN persistent int default 0,
+  OUT ok boolean, OUT rc integer, OUT error text, OUT size bigint, OUT elapsed float) 
+RETURNS record
+LANGUAGE plperlu
+AS $_$
+my ($filename,$url,$persistent)=@_;
+
+use strict;
+use warnings;
+use WWW::Curl::Easy;
+use JSON;
+
+if(!$filename) {
+    elog(ERROR,"DATALINK EXCEPTION - Filename is NULL\n");
+}
+
+# Check if this is a file on a foreign server and pass on the request
+if($url=~m|^file://[^/]|i) {
+    elog(ERROR,"DATALINK EXCEPTION - Foreign servers not supported in curl_save\nURL: $url");
+}
+
+my %r;
+my $fh;
+my $op = ($persistent>0)?'w':'t';
+
+my $q = q{select datalink.has_file_privilege($1,$2,true) as ok, user};
+my $p = spi_prepare($q,'datalink.file_path','text');
+my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
+unless($fs->{ok} eq 't') { 
+    die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
+        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+}
+if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
+
+$p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
+unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
+
+my $curl = WWW::Curl::Easy->new;
+$r{url} = $url;  
+$curl->setopt(CURLOPT_USERAGENT,
+              "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+$curl->setopt(CURLOPT_URL, $url);
+$curl->setopt(CURLOPT_HEADER,0);
+$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+
+open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
+# A filehandle, reference to a scalar or reference to a typeglob can be used here.
+$curl->setopt(CURLOPT_WRITEDATA,$fh);
+
+my $retcode = $curl->perform;
+close $fh;
+
+# Looking at the results...
+$r{ok} = ($retcode==0)?'yes':'no';
+$r{rc} = $retcode;
+if(!$r{rc}) { 
+  $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
+  if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
+}
+$r{file_path} = $filename;
+#$r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+$r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD);
+$r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
+if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+if($r{ok} eq 'no') { unlink($filename); }
+
+return \%r;
+$_$;
+revoke execute on function curl_save(file_path,text,int) from public;
+comment on function curl_save(file_path,text,int)
+     is 'Save content of remote URL to a local file';
 
 ---------------------------------------------------
 -- admin functions
@@ -1687,7 +1765,7 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
 ---------------------------------------------------
 
-create or replace function pg_catalog.dlreplacecontent(link datalink, new_path file_path, comment text default null) returns datalink
+create or replace function pg_catalog.dlreplacecontent(link datalink, new_content datalink) returns datalink
 language plpgsql as $$
 DECLARE
   loid oid;
@@ -1697,11 +1775,11 @@ BEGIN
   path := dlurlpathwrite(link);
 
   if datalink.fileexists(path) > 0 THEN
-    raise exception e'DATALINK EXCEPTIION - File exists\nFILE: %',path;
+    raise exception e'DATALINK EXCEPTIION - File exists\nFILE: %\n',path;
   end if;
 
   if not datalink.has_file_privilege(path,'create',true) then 
-    raise exception e'DATALINK EXCEPTIION - CREATE permission denied on directory % for role "%"',path,current_role;
+    raise exception e'DATALINK EXCEPTIION - CREATE permission denied on directory for role "%"\nFILE: %\n',current_role,path;
   end if;
 
   loid := lo_import($2);
@@ -1711,8 +1789,14 @@ BEGIN
   return link;
 end
 $$;
-COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, file_path, text) 
-IS 'SQL/MED - Replace contents of datalink with contents of another file';
+COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, datalink) 
+IS 'SQL/MED - Replace contents of datalink with contents of another datalink';
+
+create or replace function pg_catalog.dlreplacecontent(link datalink, new_content text) returns datalink
+language sql as $$ select pg_catalog.dlreplacecontent($1,dlvalue($2)) $$;
+COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, text) 
+IS 'SQL/MED - Replace contents of datalink with contents of another datalink';
+
 
 ---------------------------------------------------
 alter domain url add check (datalink.uri_get(value,'scheme') is not null);
@@ -1887,12 +1971,12 @@ AS $function$
         qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - File exists: $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
 
-  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open $filename for writing: $!\n";
+  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
@@ -2056,11 +2140,9 @@ EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 create or replace function filegetdirectory(file_path)
 returns directory as $$
-  select * 
-    from datalink.directory 
+  select * from datalink.directory 
    where $1 like dirpath||'%'
-   order by length(dirpath) desc
-   limit 1;
+   order by length(dirpath) desc limit 1
 $$ strict language sql;
 
 ---------------------------------------------------
@@ -2263,7 +2345,8 @@ declare
   ns regnamespace;
 begin 
   my_txid := pg_current_xact_id();
-  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L)',$2,$1,my_txid,$3);
+  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L) '||
+                ' on conflict (path) do nothing',$2,$1,my_txid,$3);
   select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
   if not found THEN
     raise warning 'DATALINK WARNING - dblink extension recommended' 
