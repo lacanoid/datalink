@@ -35,11 +35,14 @@ Wanted
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
 - add `curl_post` and `curl_put` functions
-- add vacuum procedure for deleting temporary files (those not linked)
+- add `curl` save-to-file functions, use for DLREPLACECONTENT
+- ✔︎ add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`.
 - handle symbolic links better (resolve?)
+- handle directories/bundles better
+- make new tokens/backups only if file changed
 - add 'dirname','extension','basename','filename' to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - url beautifier function for sanitizing broken urls

@@ -1,7 +1,8 @@
 Version 0.24
 ------------
 - added preliminary `dlreplacecontent()` function.
-- `dl_directory` check if dirpath like '/%/'
+- `dl_directory` check constraint that dirpath like '/%/'
+- new `is_local()` and `is_valid()` immutable functions
 
 Version 0.23
 ------------

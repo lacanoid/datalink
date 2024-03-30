@@ -19,15 +19,17 @@ For link type `URL`, address is specified as URL:
      {"a": "http://www.github.org"}
     (1 row)
 
+Note that address must conform to legal URL syntax (e.g. no spaces).
+
 For link type `FS`, address is specified as absolute file path (beginning with /):
 
     mydb=> select dlvalue('/var/www/datalink/my file.txt','FS');
-                      dlvalue                   
-    ---------------------------------------------
+                         dlvalue                   
+    -------------------------------------------------
      {"a": "file:///var/www/datalink/my%20file.txt"}
     (1 row)
 
-Please not that URLs are escaped, while file paths are not.
+Please observe that URLs are escaped, while file paths are not.
 
 If link type is NULL or ommitted, then it is auto-detected from `address`:
 
@@ -37,10 +39,10 @@ If link type is NULL or ommitted, then it is auto-detected from `address`:
      {"a": "http://www.github.org"}
     (1 row)
 
-    mydb=> select dlvalue('/var/www/datalink/test1.txt');
-                      dlvalue                   
-    ---------------------------------------------
-     {"a": "file:///var/www/datalink/test1.txt"}
+    mydb=> select dlvalue('/var/www/datalink/my file.txt');
+                         dlvalue                   
+    -------------------------------------------------
+     {"a": "file:///var/www/datalink/my%20file.txt"}
     (1 row)
 
 When link type is equal to some `dirname` in table `datalink.directory` 

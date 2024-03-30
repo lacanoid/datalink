@@ -74,6 +74,24 @@ create cast (datalink as jsonb) without function;
 -- create cast (datalink as jsonb) with inout as implicit;
 -- create cast (jsonb as datalink) with inout;
 
+create or replace function is_local(datalink) returns boolean
+language sql immutable strict as $$
+ select $1::jsonb->>'a' ilike 'file:///%'
+$$;
+comment on function is_local(datalink)
+     is 'This datalink references a local file';
+
+create or replace function is_valid(datalink) returns boolean
+language sql immutable strict as $$
+ select case datalink.is_local($1)
+             then pg_catalog.dlurlpathonly($1)::datalink.file_path is not null
+             else ($1::jsonb->>'a')::uri is not null
+             end
+$$;
+comment on function is_valid(datalink)
+     is 'The address of this datalink is a valid URI';
+
+
 ---------------------------------------------------
 -- link control options
 ---------------------------------------------------
@@ -551,9 +569,9 @@ begin
       --  using errcode = 'HW002', 
       --  detail = format('file is waiting for unlink ''%s'' by datalinker process',r.path);
 
-     end if;
+     end if; -- token changed
 
-  else
+  else -- other link state
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
@@ -2291,7 +2309,7 @@ create or replace function revision(datalink, revision int default -1) returns d
 language sql strict as $$
  select link from datalink.revisions($1) where rev = $2
 $$;
-comment on function revisions(datalink)
+comment on function revision(datalink,int)
 is 'Return a particular datalink revision';
 
 
