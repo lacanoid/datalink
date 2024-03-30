@@ -1,8 +1,9 @@
 Version 0.24
 ------------
+- added preliminary `curl_save()` function to download web content to local file.
 - added preliminary `dlreplacecontent()` function.
-- `dl_directory` check constraint that dirpath like '/%/'
-- new `is_local()` and `is_valid()` immutable functions
+- `dl_directory` check constraint that dirpath is like '/%/'
+- new `is_local()`, `is_valid()` as `is_http_success()` immutable functions, for use in check constraints
 
 Version 0.23
 ------------
