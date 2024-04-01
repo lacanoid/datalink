@@ -28,7 +28,7 @@ values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///var/www/datalink/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
-HINT:  make sure url is correct and referenced file actually exists
+HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 45 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
@@ -49,12 +49,12 @@ values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files order by path;
  state |     regclass      | attname |            path             
 -------+-------------------+---------+-----------------------------
+ LINK  | sample_datalinks4 | link    | /var/www/datalink/test1.txt
  LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt
  LINK  | sample_datalinks4 | link    | /var/www/datalink/test3.txt
- LINK  | sample_datalinks4 | link    | /var/www/datalink/test1.txt
 (3 rows)
 
 delete from sample_datalinks4
@@ -64,7 +64,8 @@ delete from sample_datalinks4
  order by txid limit 1);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files
+ order by path;
  state |     regclass      | attname |            path             
 -------+-------------------+---------+-----------------------------
  LINK  | sample_datalinks4 | link    | /var/www/datalink/test2.txt

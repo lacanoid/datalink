@@ -1123,7 +1123,7 @@ begin
       raise exception e'DATALINK EXCEPTION - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
                   detail = format('CURL error %s - %s',r.rc,r.error),
-                  hint = 'make sure url is correct and referenced file actually exists';
+                  hint = 'make sure URL is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned
     if r.rc > 0 then
@@ -1766,26 +1766,25 @@ IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 ---------------------------------------------------
 
 create or replace function pg_catalog.dlreplacecontent(link datalink, new_content datalink) returns datalink
-language plpgsql as $$
+language plpgsql strict as $$
 DECLARE
   loid oid;
   path datalink.file_path;
+  url text;
+  r record;
 BEGIN
   link := dlnewcopy(link);
   path := dlurlpathwrite(link);
+  url := dlurlcompleteonly(new_content);
 
-  if datalink.fileexists(path) > 0 THEN
-    raise exception e'DATALINK EXCEPTIION - File exists\nFILE: %\n',path;
+  r := datalink.curl_save(path,url);
+  if not r.ok then
+    raise exception e'DATALINK EXCEPTIION - Failed to copy resource: \nURL: %',url
+    using errcode = 'HW303',
+          detail = format('CURL error %s - %s',r.rc,r.error),
+          hint = 'make sure URL is correct and referenced file actually exists';
   end if;
 
-  if not datalink.has_file_privilege(path,'create',true) then 
-    raise exception e'DATALINK EXCEPTIION - CREATE permission denied on directory for role "%"\nFILE: %\n',current_role,path;
-  end if;
-
-  loid := lo_import($2);
-  perform lo_export(loid,path);
-  perform lo_unlink(loid);
-  perform datalink.dl_file_admin(path,'t');
   return link;
 end
 $$;

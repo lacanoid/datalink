@@ -3,12 +3,12 @@ Version 0.24
 - added preliminary `curl_save()` function to download web content to local file.
 - added preliminary `dlreplacecontent()` function.
 - `dl_directory` check constraint that dirpath is like '/%/'
-- new `is_local()`, `is_valid()` as `is_http_success()` immutable functions, for use in check constraints
+- new `is_local()`, `is_valid()` as `is_http_success()` immutable functions, for use in check constraints and such
 
 Version 0.23
 ------------
 - more documentation
-- new `write_file()` functions
+- new `write_text()` functions
 - datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
 - `dlfm` supports `bind` and `unbind` operations

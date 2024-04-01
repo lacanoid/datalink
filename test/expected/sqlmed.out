@@ -112,7 +112,7 @@ insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_fi
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
-HINT:  make sure url is correct and referenced file actually exists
+HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 45 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
@@ -149,7 +149,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:///var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
-HINT:  make sure url is correct and referenced file actually exists
+HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 45 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --

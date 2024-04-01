@@ -34,7 +34,7 @@ values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files order by path;
 
 delete from sample_datalinks4
  where link::jsonb->>'b' =
@@ -43,7 +43,8 @@ delete from sample_datalinks4
  order by txid limit 1);
 
 select state,regclass,attname,path
-  from datalink.linked_files;
+  from datalink.linked_files
+ order by path;
 
 create table sample_datalinks5 (
   id serial,
