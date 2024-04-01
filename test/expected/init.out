@@ -77,7 +77,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | revisions(datalink)                                                                          | sql      | All available previous revisions of a datalink
  datalink     | revisions(file_path)                                                                         | plpgsql  | All available previous revisions of a file as datalinks
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
- datalink     | substr(datalink,integer,integer)                                                             | sql      | BFILE - Returns part of the datalink file starting at the specified offset and length
  datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
@@ -85,6 +84,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
  datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
  datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
+ datalink     | datalink.substr(datalink,integer,integer)                                                    | sql      | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 

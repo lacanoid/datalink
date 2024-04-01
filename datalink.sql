@@ -1779,7 +1779,7 @@ BEGIN
 
   r := datalink.curl_save(path,url);
   if not r.ok then
-    raise exception e'DATALINK EXCEPTIION - Failed to copy resource: \nURL: %',url
+    raise exception e'DATALINK EXCEPTIION - Failed to copy resource\nURL: %',url
     using errcode = 'HW303',
           detail = format('CURL error %s - %s',r.rc,r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
@@ -2047,6 +2047,10 @@ create or replace function getlength(file_path) returns bigint as
 $$ select datalink.getlength(dlvalue($1,'FS')) $$ language sql;
 comment on function getlength(file_path) is 
   'BFILE - Returns file size';
+
+create or replace function pg_catalog.substr(datalink, pos integer default 1, len integer default 32767) returns text as 
+$$ select datalink.read_text($1,$2,$3) $$ language sql;
+
 
 create or replace function substr(datalink, pos integer default 1, len integer default 32767) returns text as 
 $$ select datalink.read_text($1,$2,$3) $$ language sql;
