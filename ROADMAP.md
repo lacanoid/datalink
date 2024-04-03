@@ -35,11 +35,11 @@ Wanted
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
 - add `curl_post` and `curl_put` functions
-- add `curl` save-to-file functions, use for DLREPLACECONTENT
+- ✔︎ add `curl` save-to-file functions, use for DLREPLACECONTENT
 - ✔︎ add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
 - add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
-- foreign servers only somewhat work. They should work for `stat()`.
+- foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
@@ -48,6 +48,8 @@ Wanted
 - url beautifier function for sanitizing broken urls
 - file writes for non superusers
 - make `read_file()` read updated but not commited files
+- functions to read and write binary files
+- functions to read and write text files in other encodings
 
 Issues
 ======
@@ -89,6 +91,8 @@ Todo
 - additional permission checks for references
 - ✔︎ consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
+- check that src and dest in curl_save are not one and the same
+- check src read permissions in curl_save
 - handle // urls and paths better
 - datalinker: use config file
 - datalinker: revert files only when recovery=YES
@@ -96,7 +100,7 @@ Todo
 - datalinker: optimise verbosity
 - datalinker: better configurator
 - ✔︎ datalinker: don't die so easily
-- datalinker: signal handler
+- datalinker: signal handler for graceful exit
 - datalinker: update owner+group in dl_linked_files.info only if not default
 - ✔︎ function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
@@ -115,7 +119,7 @@ Todo
 - ✔︎ function `datalink.commit()` to sync up with the datalinker (wait for it to become idle)
 - ✔︎ `datalink.dl_status` table to hold shared datalinker status
 - make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This might require storing revision history
-- make `datalink.columns` updatable by normal users
+- ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 
 Maybe

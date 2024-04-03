@@ -50,8 +50,8 @@ Extra features not in SQL standard:
 - Compatibility functions from other databases
 
 This extension uses a number of advanced Postgres features for implementation,
-including types, transactions, jsonb, triggers, updatable views, listen/notify, file_fdw, plperlu, advisory locks...
-Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and perl.
+including custom types, transactions, jsonb, triggers, updatable views, uuids, listen/notify, file_fdw, plperlu, dblink, advisory locks...
+Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and plperlu.
 However it requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking. All these together provide a powerful file and web framework within SQL environment.
 

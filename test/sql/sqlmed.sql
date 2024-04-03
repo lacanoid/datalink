@@ -11,9 +11,9 @@ create table sample_urls (
 select dlurlserver(dlvalue('file:///etc/issue'));
 select dlurlserver(dlvalue('file://server1/etc/issue'));
 
-select dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS');
-select dlurlpath(dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS'));
-select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&*()[]{}#?','FS'));
+select dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS');
+select dlurlpath(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
+select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
 
 insert into sample_urls (url)
 values 

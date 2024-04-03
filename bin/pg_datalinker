@@ -241,8 +241,8 @@ sub process_admin {
                 if($stat->{owner} eq $config{owner}) {
                     log_msg('PURGE',"$op,$state,$path");
                     if($state eq 'aborted' || ($state eq 'committed' && $op eq 't')) {
-			file_remove($path);
-		    }
+			            file_remove($path);
+		            }
                 } else { 
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
                 }
@@ -330,7 +330,14 @@ sub path_valid_prefix {
 }
 
 sub path_valid {
-    return 1;
+    my ($path)=@_;
+    # illegal chars
+    if($path=~m|[%*]|) { return 0; } 
+    # not absolute
+    if(!(rindex($path,'/')==0)) { return 0; }
+    # parent
+    if(rindex($path,'/../')>=0) { return 0; }
+    return path_valid_prefix($path);
 }
 
 ########################################
@@ -338,11 +345,15 @@ sub path_valid {
 
 sub file_stat {
     my ($path,$opt)=@_;
-    my (@s) = stat($path);
-
+    my (@s) = lstat($path);
+    unless(-e $path) { return undef; }
+    my $typs="?pc?d?b?-?l?s???"; # file types as shown by ls(1)
     return {
-        'dev'=>$s[0],'inode'=>$s[1],'mode'=>$s[2],'nlink'=>$s[3],
-        'uid'=>$s[4],'gid'=>$s[5], 'rdev'=>$s[6],'size'=>$s[7],
+        'dev'=>$s[0],'inode'=>$s[1],'nlink'=>$s[3],
+        'mode'=>($s[2] & 07777),
+        'typ'=>substr($typs,(($s[2] & 0170000)>>12),1),
+        'uid'=>$s[4],'gid'=>$s[5],
+        'rdev'=>$s[6],'size'=>$s[7],
         'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
         'blksize'=>$s[11],'blocks'=>$s[12],
         'owner'=>getpwuid($s[4]),'group'=>getgrgid($s[5])

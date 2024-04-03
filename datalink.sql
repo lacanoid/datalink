@@ -27,7 +27,7 @@ CREATE DOMAIN dl_token AS uuid;
 CREATE DOMAIN file_path AS text;
 COMMENT ON DOMAIN file_path IS 'Absolute file system path';
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  CHECK(value not like all('{../%,%/../%,%/..}'));
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_nopercent CHECK(not value ~* '[%]');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_chars     CHECK(not value ~* '[%*]');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(length(value)=0 or value like '/%');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  CHECK(not value like '%//%');
 /*
@@ -1127,7 +1127,7 @@ begin
     end if;
     -- store HTTP response code if one was returned
     if r.rc > 0 then
-      link := jsonb_set(link::jsonb,array['rc'],to_jsonb(r.rc));
+      link := jsonb_set(link::jsonb,'{rc}',to_jsonb(r.rc));
     end if;
   end if; -- file link control,  
 
@@ -1230,7 +1230,7 @@ begin
       if dlurlcomplete(link2) is not null then
          -- check for construction per SQL standard
         if tg_op = 'INSERT' then
-          if link2::jsonb->>'k' is not null then
+          if link2::jsonb->>'k' in ('n','p') then
              raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
                        using errcode = 'HW005',
                               detail =  'DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT';
@@ -1339,7 +1339,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 CREATE FUNCTION curl_get(
   INOUT url text, head integer DEFAULT 0, 
-  OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT elapsed float) 
+  OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT size bigint, OUT elapsed float) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
@@ -1415,6 +1415,8 @@ if($head) { $r{body} = $response_header; }
 else      { $r{body} = $response_body; }
 if(defined($r{body})) { utf8::decode($r{body}); }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
+else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
 
 return \%r;
 $_$;
@@ -1450,7 +1452,7 @@ my %r;
 my $fh;
 my $op = ($persistent>0)?'w':'t';
 
-my $q = q{select datalink.has_file_privilege($1,$2,true) as ok, user};
+my $q = q{select user, datalink.has_file_privilege($1,$2,true) as ok};
 my $p = spi_prepare($q,'datalink.file_path','text');
 my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
 unless($fs->{ok} eq 't') { 
@@ -1784,7 +1786,7 @@ BEGIN
           detail = format('CURL error %s - %s',r.rc,r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
   end if;
-
+  link := jsonb_set(link::jsonb,'{k}',to_jsonb('r'::text));
   return link;
 end
 $$;
