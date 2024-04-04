@@ -120,6 +120,9 @@ create cast (text as dl_on_unlink) with inout as implicit;
 create domain dl_lco as integer;
 comment on type dl_lco is 'Datalink Link Control Options as integer';
 
+create domain whoami as name check ( value = current_user );
+comment on type whoami is 'Domain which can be set only to current user';
+
 CREATE TABLE link_control_options (
   lco dl_lco primary key,
   link_control dl_link_control,
@@ -184,7 +187,9 @@ IS 'Find dl_lco for a table column';
 
 ---------------------------------------------------
 -- find dl_lco for a datalink
-CREATE OR REPLACE FUNCTION dl_lco(datalink) RETURNS dl_lco LANGUAGE sql SECURITY DEFINER
+CREATE OR REPLACE FUNCTION dl_lco(datalink) 
+RETURNS dl_lco LANGUAGE sql 
+SECURITY DEFINER
 AS $function$
 select coalesce((select lco
                    from datalink.dl_linked_files f where f.token = ($1::jsonb->>'b')::datalink.dl_token)
@@ -813,9 +818,10 @@ COMMENT ON FUNCTION iri(text)
 -- event triggers
 ---------------------------------------------------
 
-CREATE FUNCTION dl_trigger_event() RETURNS event_trigger
-LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
+CREATE FUNCTION dl_trigger_event() 
+RETURNS event_trigger LANGUAGE plpgsql 
+SECURITY DEFINER 
+AS $$
 declare
  obj record;
  js json;
@@ -1188,8 +1194,9 @@ end$_$;
 ---------------------------------------------------
 
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $_X$
+LANGUAGE plpgsql 
+SECURITY DEFINER
+AS $_X$
 declare
   r record;
   ro jsonb;
@@ -1521,9 +1528,9 @@ CREATE FUNCTION modlco(
   my_column_name name, 
   new_lco dl_lco)
 RETURNS link_control_options
-    LANGUAGE plpgsql
-    SECURITY DEFINER
-    AS $_$
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $_$
 declare
  co record;
  obj record;
@@ -1857,7 +1864,8 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
 create or replace function dl_authorize(
   file_path, for_web integer default 1, myrole regrole default user::regrole) 
 returns file_path
-language plpgsql security definer
+language plpgsql 
+SECURITY DEFINER
 as $$
 declare
   mypath text;
@@ -2363,8 +2371,11 @@ create table dl_admin_files (
 );
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_admin(file_path, op "char", options jsonb default null) returns text
-language plpgsql as $$
+create or replace function dl_file_admin(file_path, op "char", options jsonb default null, 
+  caller datalink.whoami default current_user) returns text
+language plpgsql 
+SECURITY DEFINER
+as $$
 declare 
   my_txid xid8;
   dsn text;
@@ -2372,8 +2383,8 @@ declare
   ns regnamespace;
 begin 
   my_txid := pg_current_xact_id();
-  sql := format('insert into datalink.dl_admin_files (op,path,txid,options) values (%L,%L,%L,%L) '||
-                ' on conflict (path) do nothing',$2,$1,my_txid,$3);
+  sql := format('insert into datalink.dl_admin_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
+                ' on conflict (path) do nothing',$2,$1,my_txid,$4,$3);
   select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
   if not found THEN
     raise warning 'DATALINK WARNING - dblink extension recommended' 

@@ -129,6 +129,7 @@ Todo
 - make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This might require storing revision history
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
+- show os owner in `datalink.directory`
 
 Maybe
 =====
@@ -142,7 +143,7 @@ Maybe
 - allow backups for read_access=fs LCO
 - more pluggable filename+token handling so we can support more common token;basename convention
 - ✔︎ add timing info to curl_get()
-- better punycode support in `dlvalue()`
+- ✔︎ better punycode support in `dlvalue()`
 - support for http ranges in `curl_get()` (and apache handler!)
 - perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...

@@ -19,7 +19,18 @@ For link type `URL`, address is specified as URL:
      {"a": "http://www.github.org"}
     (1 row)
 
-Note that address must conform to legal URL syntax (e.g. no spaces).
+Note that address must conform to legal URL syntax (e.g. no spaces, no unicode).
+
+For link type `IRI`, address is specified as IRI where unicode characters are permitted: 
+
+    select dlvalue('http://München.de/resumé.txt','IRI');
+                      dlvalue                      
+    ---------------------------------------------------
+     {"a": "http://xn--mnchen-3ya.de/resum%C3%A9.txt"}
+    (1 row)
+
+For server names [Punycode encoding](https://en.wikipedia.org/wiki/Punycode) is used.
+
 
 For link type `FS`, address is specified as absolute file path (beginning with /):
 
@@ -81,7 +92,7 @@ create a backup of file contents.
 Return previous version of the datalink, if available. 
 
 Updating a `RECOVERY YES` datalink column with the previous value of the datalink will cause datalinker to restore
-previous version of file contents as well.
+previous version of file contents.
 
 If `has_token` > 0 then try to stablish token value for a datalink in the following order:
 1. previous token value stored in a datalink
@@ -95,10 +106,15 @@ If `has_token` > 0 then try to stablish token value for a datalink in the follow
 This function will replace content of `target` datalink (a local file)
 with the contents of `source` (can be on anywhere the web). 
 
-Web page is first downloaded with GET request into the local file with CURL.
-
 Returns a a datalink value, which can be used in an insert or update of a datalink column.
 
+Web page is first downloaded directly into a temporary local file from within
+postgres function `datalink.curl_save()` with CURL GET request.
+
+Updating and commiting a `WRITE ACCESS ADMIN` or `WRITE ACCESS TOKEN` datalink column 
+will then cause datalinker to replace contents of a linked file with the downloaded file.
+
+When the transaction concludes, temporary file is deleted.
 
 SQL Datalink scalar functions
 -----------------------------

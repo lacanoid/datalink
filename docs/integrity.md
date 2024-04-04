@@ -1,20 +1,21 @@
 [Datalink manual](README.md)
 
+Integrity
+=========
+
 Valid URIs
 ----------
 
-The system tries to keep involved URLs valid. 
+The system tries to keep involved URLs valid. Function `dlvalue()` will explicity check for valid URLs.
 
-Sometimes URLs contain unicode characters; these can be handled passing linktype value `IRI` to `dlvalue()` or with `datalink.iri()` function.
+Sometimes URLs contain unicode characters;  these are known as IRIs.
+They can be handled by passing `linktype` value of `IRI` to `dlvalue()` or by escaping them with the `datalink.iri()` function.
 
-Function `dlvalue()` will explicity check for valid URLs.
+Datalink triggers on `FILE LINK CONTROL` columns will also explicitly check for valid URLs.
 
-Datalink triggers on `FILE LINK CONTROL` columns will also explicitly check valid URLs.
-
-Extra checks for `NO LINK CONTROL` columns can be enabled by using constraints:
+Extra syntax checks for `NO LINK CONTROL` columns can be enabled by using constraints:
 
     mydb=> alter table t add check ( datalink.is_valid(link) );
-
 
 
 Selective referential integrity
@@ -24,9 +25,9 @@ One can use datalinks to check whether resources pointed to by URLs exist.
 
 For this, one must first create a table with a column of type datalink.
 
-    mydb=# create table my_table (link datalink);
+    mydb=> create table my_table (link datalink);
     CREATE TABLE
-    mydb=# select * from datalink.columns where table_name='my_table';
+    mydb=> select * from datalink.columns where table_name='my_table';
      table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
     ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
      my_table   | link        | NO           | NONE      | FS          | FS           | NO       | NONE
@@ -38,9 +39,9 @@ Datalinks are only checked for valid URL syntax but not processed further.
 To enable integrity checks set integrity to `SELECTIVE` for this column.
 One can change link control options for a column with an SQL UPDATE DATALINK.COLUMNS statement.
 
-    mydb=# update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
+    mydb=> update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
     UPDATE 1
-    mydb=# select * from datalink.columns where table_name='my_table';
+    mydb=> select * from datalink.columns where table_name='my_table';
      table_name | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
     ------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
      my_table   | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
@@ -48,37 +49,37 @@ One can change link control options for a column with an SQL UPDATE DATALINK.COL
 
 Now one can proceed to insert some datalinks.
 
-    mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));
+    mydb=> insert into my_table values (dlvalue('http://www.ljudmila.org'));
     INSERT 0 1
     
-    mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org/foo'));
+    mydb=> insert into my_table values (dlvalue('http://www.ljudmila.org/foo'));
     INSERT 0 1
     
 Datalinks are checked via [CURL](https://curl.se/) with HEAD request as they are inserted or updated.
 Note that CURL [supports a wide range of protocols](https://curl.se/docs/comparison-table.html).
 If CURL request fails, exception is raised and transaction is aborted.
 
-    mydb=# insert into my_table values (dlvalue('http://www.ljudmila2.org'));
+    mydb=> insert into my_table values (dlvalue('http://www.ljudmila2.org'));
     ERROR:  datalink exception - referenced file does not exist
     DETAIL:  curl error 6 - Couldn't resolve host name
     HINT:  make sure referenced file actually exists
     
-    mydb=# insert into my_table values (dlvalue('https://www.ljudmila.org'));
+    mydb=> insert into my_table values (dlvalue('https://www.ljudmila.org'));
     ERROR:  datalink exception - referenced file does not exist    
     DETAIL:  curl error 60 - Peer certificate cannot be authenticated with given CA certificates
     HINT:  make sure referenced file actually exists
 
-Note that this works equally well for files.
+Note that this works equally well for local files.
 
-    mydb=# insert into my_table values (dlvalue('/etc/issue'));
+    mydb=> insert into my_table values (dlvalue('/etc/issue'));
     INSERT 0 1
 
-    mydb=# insert into my_table values (dlvalue('/etc/issue2'));
+    mydb=> insert into my_table values (dlvalue('/etc/issue2'));
     ERROR:  datalink exception - referenced file does not exist
     DETAIL:  curl error 37 - Couldn't read a file:// file
     HINT:  make sure referenced file actually exists
 
-    mydb=# table my_table;
+    mydb=> table my_table;
                            link                        
     ---------------------------------------------------
      {"rc": 200, "a": "http://www.ljudmila.org"}
@@ -91,7 +92,7 @@ Note that successful checks for web datalinks do not mean that the the web page 
 
 To additionally check for successful web pages, one can use a check constraint:
 
-    mydb-# alter table my_table add check (datalink.is_http_success(link));
+    mydb=> alter table my_table add check (datalink.is_http_success(link));
 
 
 After values are stored, no further checks are done.
@@ -119,8 +120,8 @@ With full referential integrity each link can be stored (linked) only once, ensu
 Once a datalink to a file is stored somewhere, the file is said to be *linked* and cannot be linked again elsewhere until unlinked first.
 
 For security reasons files are restricted to a set of directories or *prefixes*. 
-These are configured externally to postgres, using `dlfm` command.
-By default, prefix `/var/www/datalink/` is created.
+These are configured externally to postgres, using the `dlfm add` and `dlfm del` commands.
+When installed, prefix `/var/www/datalink/` is created.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));
     ERROR:  INTEGRITY ALL can only be used with file URLs
