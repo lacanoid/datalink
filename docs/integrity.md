@@ -1,5 +1,22 @@
 [Datalink manual](README.md)
 
+Valid URIs
+----------
+
+The system tries to keep involved URLs valid. 
+
+Sometimes URLs contain unicode characters; these can be handled passing linktype value `IRI` to `dlvalue()` or with `datalink.iri()` function.
+
+Function `dlvalue()` will explicity check for valid URLs.
+
+Datalink triggers on `FILE LINK CONTROL` columns will also explicitly check valid URLs.
+
+Extra checks for `NO LINK CONTROL` columns can be enabled by using constraints:
+
+    mydb=> alter table t add check ( datalink.is_valid(link) );
+
+
+
 Selective referential integrity
 -------------------------------
 
@@ -74,10 +91,12 @@ Note that successful checks for web datalinks do not mean that the the web page 
 
 To additionally check for successful web pages, one can use a check constraint:
 
-    mydb-# alter table my_table add check ((link::jsonb->>'rc')::int between 200 and 299);
+    mydb-# alter table my_table add check (datalink.is_http_success(link));
 
 
 After values are stored, no further checks are done.
+
+One can also explicitly check for file existence with the `datalink.fileexists()` function.
 
 Full referential integrity
 --------------------------
@@ -100,7 +119,7 @@ With full referential integrity each link can be stored (linked) only once, ensu
 Once a datalink to a file is stored somewhere, the file is said to be *linked* and cannot be linked again elsewhere until unlinked first.
 
 For security reasons files are restricted to a set of directories or *prefixes*. 
-These are configured externally to postgres, using `pg_datalinker` command.
+These are configured externally to postgres, using `dlfm` command.
 By default, prefix `/var/www/datalink/` is created.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));

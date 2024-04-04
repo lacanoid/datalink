@@ -66,6 +66,16 @@ Make a datalink, relative to another datalink.
 
 ### versioning
 
+#### dlnewcopy( datalink [ , has_token integer ] ) → datalink
+
+Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
+
+If `has_token` > 0 then the previous token will also be stored in a datalink. This can be used for update
+of `WRITE ACCESS TOKEN` columns.
+
+Updating a `RECOVERY YES` datalink column with the new value of the datalink will also cause datalinker to 
+create a backup of file contents.
+
 #### dlpreviouscopy( datalink [ , has_token integer ] ) → datalink
 
 Return previous version of the datalink, if available. 
@@ -78,10 +88,17 @@ If `has_token` > 0 then try to stablish token value for a datalink in the follow
 2. look for token in datalink filename
 3. generate a new token
 
-#### dlnewcopy( datalink [ , has_token integer ] ) → datalink
+### copying file contents
 
-Generate a new token value for a datalink. This is used for indicating that the file contents have changed.
-If `has_token` > 0 then the previous token will also be stored in a datalink as write token for update.
+#### dlreplacecontent( target datalink, source datalink ) → datalink
+
+This function will replace content of `target` datalink (a local file)
+with the contents of `source` (can be on anywhere the web). 
+
+Web page is first downloaded with GET request into the local file with CURL.
+
+Returns a a datalink value, which can be used in an insert or update of a datalink column.
+
 
 SQL Datalink scalar functions
 -----------------------------

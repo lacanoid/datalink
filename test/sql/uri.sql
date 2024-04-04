@@ -109,3 +109,28 @@ select link,
 
 ;
 \x
+
+-- IRI
+
+select datalink.iri('http://odž.com/hellošč?foo=barž&š=đ');
+select dlvalue(datalink.iri('http://odž.com/hellošč?foo=barž&š=đ'));
+select dlurlserver(dlvalue(datalink.iri('http://odž.com/hellošč?foo=barž&š=đ')));
+
+-- 
+create table u (url text);
+insert into u (url)
+values
+  ('file:///tmp/file1.txt'),
+  ('file://server2/tmp/file1.txt'),
+  ('http://www.ljudmila.org/robots.txt'),
+  ('http://www.ljudmila.org/robots2.txt')
+;
+
+create table t (link datalink check(datalink.is_valid(link)));
+insert into t select (dlvalue(url)) from u;
+insert into t values ('{"a": "foo bar"}'::datalink);
+select link::uri,datalink.is_local(link) from t;
+drop table t;
+drop table u;
+
+

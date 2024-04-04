@@ -37,6 +37,11 @@ One can see datalink columns for the whole database in view `datalink.columns`.
 
 Superusers will see all datalink columns whereas normal users will see only columns for owned tables.
 
+The above example does not specify any control options for a datalink column. This will not install
+any triggers on the table, resulting in a much faster performance, but potentionally allowing for
+invalid URLs to creep in. Note that `dlvalue()` constructor function does check for valid URLs. 
+
+
 Link Control Options
 --------------------
 

@@ -78,14 +78,14 @@ create cast (datalink as jsonb) without function;
 
 create or replace function is_local(datalink) returns boolean
 language sql immutable strict as $$
- select $1::jsonb->>'a' ilike 'file:///%'
+ select ($1::jsonb->>'a')::text ilike 'file:///%'
 $$;
 comment on function is_local(datalink)
      is 'The address of this datalink references a local file';
 
 create or replace function is_valid(datalink) returns boolean
 language sql immutable strict as $$
- select case $1::jsonb->>'a' ilike 'file://%'
+ select case when ($1::jsonb->>'a')::text ilike 'file://%'
              then pg_catalog.dlurlpathonly($1)::datalink.file_path is not null
              else ($1::jsonb->>'a')::uri is not null
              end
@@ -95,7 +95,7 @@ comment on function is_valid(datalink)
 
 create or replace function is_http_success(datalink) returns boolean
 language sql immutable strict as $$
- select $1::jsonb->>'rc' between 200 and 299 $$;
+ select cast($1::jsonb->>'rc' as int) between 200 and 299 $$;
 comment on function is_http_success(datalink)
      is 'The HTTP return code of this datalink indicates success';
 
@@ -496,7 +496,7 @@ begin
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for "%s"',file_path),
-                    hint = 'run "pg_datalinker add" to add prefixes'
+                    hint = 'run "dlfm add" to add prefixes'
                     ;
    end if;
 -- end if;
@@ -552,10 +552,10 @@ begin
      then
         raise exception 'DATALINK EXCEPTION - external file already linked' 
           using errcode = 'HW002', 
-          detail = format('Cannot change link control option in update');
+          detail = format('Cannot change link control options in update');
      end if;
      
-     if  r.token is not distinct from my_token
+     if r.token is not distinct from my_token
      then -- same file and protection
         update datalink.dl_linked_files
            set state='LINKED',
@@ -651,7 +651,7 @@ begin
         raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
               using errcode = 'HW000', 
                     detail = format('file is ''%s'' waiting for unlink by the datalinker process',r.path),
-                      hint = 'run pg_datalinker';
+                      hint = 'start datalinker with "dlfm start"';
 
   else
       raise exception 'DATALINK EXCEPTION' 
@@ -803,6 +803,13 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
 COMMENT ON FUNCTION uri_set(uri,text,text) IS 'Set (replace) parts of URI';
 
 ---------------------------------------------------
+CREATE OR REPLACE FUNCTION iri(iri text) RETURNS text language sql strict as $$
+ SELECT datalink.uri_set('/','src',$1) $$;
+COMMENT ON FUNCTION iri(text)
+     IS 'Convert IRI (unicode characters) to URI (escaped)';
+
+
+---------------------------------------------------
 -- event triggers
 ---------------------------------------------------
 
@@ -925,20 +932,26 @@ declare
  my_dl datalink;
  my_uri text;
  my_type text;
- map_p boolean;
 begin
- if linktype is null then -- try http to file mapping
+ -- convert IRI to URI
+ if linktype = 'IRI' THEN
+   url := datalink.iri(url); linktype := 'URL';
+ end if;
+ my_uri := coalesce(my_uri,url);
+ my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
+ -- try http to file mapping
+ if my_type = 'URL' then 
    select dirpath||uri_unescape(substr(url,length(dirurl::text)+1))
      from datalink.directory
     where dirurl is not null and url like dirurl||'%'
     order by length(dirurl::text) desc limit 1
      into my_uri;
-   if my_uri is not null then linktype:='FS'; map_p:=true; end if;
+   if my_uri is not null then my_type:='FS'; end if;
  end if;
  my_uri := coalesce(my_uri,url);
- my_type := coalesce(linktype, case when url like '/%' then 'FS' else 'URL' end);
- if my_type not in ('URL','FS') then -- link type is a directory
-  select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=linktype into my_uri;
+ -- linktype is a named directory
+ if my_type not in ('URL','FS') then 
+  select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=my_type into my_uri;
   if not found then 
         raise exception 'DATALINK EXCEPTION - nonexistent directory' 
               using errcode = 'HW005',
@@ -951,7 +964,7 @@ begin
    my_uri := my_uri::datalink.file_path; -- validate path
    my_uri := format('file://%s',replace(replace(uri_escape(''||my_uri),'%2F','/'),'%23','#'));
  end if;
- if my_uri is null or length(my_uri)<=0 then 
+ if my_uri is null or length(my_uri)<=0 then  -- only comment
    return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
  my_uri := my_uri::datalink.url; -- validate URL
@@ -1791,17 +1804,26 @@ BEGIN
 end
 $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, datalink) 
-IS 'SQL/MED - Replace contents of datalink with contents of another datalink';
+IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
 create or replace function pg_catalog.dlreplacecontent(link datalink, new_content text) returns datalink
 language sql as $$ select pg_catalog.dlreplacecontent($1,dlvalue($2)) $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, text) 
-IS 'SQL/MED - Replace contents of datalink with contents of another datalink';
+IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
+create or replace function pg_catalog.dlreplacecontent(link text, new_content datalink) returns datalink
+language sql as $$ select pg_catalog.dlreplacecontent(dlvalue($1),$2) $$;
+COMMENT ON FUNCTION pg_catalog.dlreplacecontent(text, datalink) 
+IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
+
+create or replace function pg_catalog.dlreplacecontent(link text, new_content text) returns datalink
+language sql as $$ select pg_catalog.dlreplacecontent(dlvalue($1),dlvalue($2)) $$;
+COMMENT ON FUNCTION pg_catalog.dlreplacecontent(text, text) 
+IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
 ---------------------------------------------------
 alter domain url add check (datalink.uri_get(value,'scheme') is not null);
--- alter domain add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
+-- alter domain url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
 create function dl_url(datalink) returns uri 
   language sql strict immutable 
@@ -2122,7 +2144,7 @@ begin
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',new.dirpath),
-                    hint = 'run "pg_datalinker add" to add prefixes';
+                    hint = 'run "dlfm add" to add prefixes';
     end if;
 
   if tg_op = 'INSERT' or 

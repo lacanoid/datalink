@@ -230,3 +230,47 @@ basename          | test3.txt
 
 ;
 \x
+-- IRI
+select datalink.iri('http://odž.com/hellošč?foo=barž&š=đ');
+                                 iri                                 
+---------------------------------------------------------------------
+ http://xn--od-3va.com/hello%C5%A1%C4%8D?foo=bar%C5%BE&%C5%A1=%C4%91
+(1 row)
+
+select dlvalue(datalink.iri('http://odž.com/hellošč?foo=barž&š=đ'));
+                                   dlvalue                                    
+------------------------------------------------------------------------------
+ {"a": "http://xn--od-3va.com/hello%C5%A1%C4%8D?foo=bar%C5%BE&%C5%A1=%C4%91"}
+(1 row)
+
+select dlurlserver(dlvalue(datalink.iri('http://odž.com/hellošč?foo=barž&š=đ')));
+  dlurlserver   
+----------------
+ xn--od-3va.com
+(1 row)
+
+-- 
+create table u (url text);
+insert into u (url)
+values
+  ('file:///tmp/file1.txt'),
+  ('file://server2/tmp/file1.txt'),
+  ('http://www.ljudmila.org/robots.txt'),
+  ('http://www.ljudmila.org/robots2.txt')
+;
+create table t (link datalink check(datalink.is_valid(link)));
+insert into t select (dlvalue(url)) from u;
+insert into t values ('{"a": "foo bar"}'::datalink);
+ERROR:  invalid input syntax for type uri at or near " bar"
+CONTEXT:  SQL function "is_valid" statement 1
+select link::uri,datalink.is_local(link) from t;
+                link                 | is_local 
+-------------------------------------+----------
+ file:///tmp/file1.txt               | t
+ file://server2/tmp/file1.txt        | f
+ http://www.ljudmila.org/robots.txt  | f
+ http://www.ljudmila.org/robots2.txt | f
+(4 rows)
+
+drop table t;
+drop table u;

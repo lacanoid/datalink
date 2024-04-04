@@ -15,7 +15,7 @@ values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 NOTICE:  DATALINK LINK:/etc/passwd
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
-HINT:  run "pg_datalinker add" to add prefixes
+HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
@@ -39,7 +39,7 @@ values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/etc/hosts
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/hosts"
-HINT:  run "pg_datalinker add" to add prefixes
+HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM
@@ -86,7 +86,7 @@ values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/etc/passwd
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
-HINT:  run "pg_datalinker add" to add prefixes
+HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 68 at PERFORM

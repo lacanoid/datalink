@@ -45,14 +45,21 @@ Wanted
 - make new tokens/backups only if file changed
 - add 'dirname','extension','basename','filename' to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
-- url beautifier function for sanitizing broken urls
+- ✔︎ url beautifier function for sanitizing broken urls
+- ✔︎ convert URI to/from IRI (unicode URI), punycode
 - file writes for non superusers
-- make `read_file()` read updated but not commited files
+- make `read_text()` read updated but not commited files
 - functions to read and write binary files
-- functions to read and write text files in other encodings
+- functions to read and write text files in encodings other than utf8
 
-Issues
-======
+Advanced
+--------
+
+- better multiple servers support
+- integrate with postgres backup and replication
+
+Bugs and Issues
+===============
 - ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
 - further pg_restore checks ; what happens to stuff in pg_linked_files?
 - ✔︎ forbid setting of lco<>0 for non superusers 
@@ -64,6 +71,7 @@ Issues
 - datalinker: permissions are wrong on restored files
 - dl_linked_files status not updating to ERROR
 - multiple updates with write_text() in one transaction fail
+- apache handler vs unicode urls
 
 Todo
 ====

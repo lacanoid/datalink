@@ -28,8 +28,10 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlnewcopy(text,integer)                                                                      | sql      | SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed
  pg_catalog   | dlpreviouscopy(datalink,integer)                                                             | plpgsql  | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
  pg_catalog   | dlpreviouscopy(text,integer)                                                                 | sql      | SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored
- pg_catalog   | dlreplacecontent(datalink,datalink)                                                          | plpgsql  | SQL/MED - Replace contents of datalink with contents of another datalink
- pg_catalog   | dlreplacecontent(datalink,text)                                                              | sql      | SQL/MED - Replace contents of datalink with contents of another datalink
+ pg_catalog   | dlreplacecontent(datalink,datalink)                                                          | plpgsql  | SQL/MED - Replace contents of a DATALINK with contents of another DATALINK
+ pg_catalog   | dlreplacecontent(datalink,text)                                                              | sql      | SQL/MED - Replace contents of a DATALINK with contents of another DATALINK
+ pg_catalog   | dlreplacecontent(text,datalink)                                                              | sql      | SQL/MED - Replace contents of a DATALINK with contents of another DATALINK
+ pg_catalog   | dlreplacecontent(text,text)                                                                  | sql      | SQL/MED - Replace contents of a DATALINK with contents of another DATALINK
  pg_catalog   | dlurlcomplete(datalink,integer)                                                              | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
  pg_catalog   | dlurlcomplete(text,integer)                                                                  | sql      | SQL/MED - Returns normalized URL value
  pg_catalog   | dlurlcompleteonly(datalink)                                                                  | sql      | SQL/MED - Returns the data location attribute (URL) from a DATALINK value
@@ -63,6 +65,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
  datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file
+ datalink     | iri(text)                                                                                    | sql      | Convert IRI (unicode characters) to URI (escaped)
  datalink     | is_http_success(datalink)                                                                    | sql      | The HTTP return code of this datalink indicates success
  datalink     | is_local(datalink)                                                                           | sql      | The address of this datalink references a local file
  datalink     | is_valid(datalink)                                                                           | sql      | The address of this datalink is a valid URI
@@ -109,6 +112,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(88 rows)
+(91 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
