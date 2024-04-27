@@ -130,6 +130,7 @@ Todo
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 - show os owner in `datalink.directory`
+- check read and write permissions in `curl_save()`
 
 Maybe
 =====

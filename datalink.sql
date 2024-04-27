@@ -479,7 +479,7 @@ $$ language plpgsql strict;
 -- link a file to SQL
 create function dl_file_link(file_path file_path,
                              my_token dl_token,
-			     my_cons "char",
+			                       my_cons "char",
                              my_lco dl_lco,
                              my_regclass regclass,my_attname name)
 returns boolean
@@ -505,9 +505,9 @@ begin
                     ;
    end if;
 -- end if;
- fstat := row_to_json(datalink.stat(file_path))::jsonb;
+ fstat := row_to_json(datalink.stat(file_path||'#'||my_token))::jsonb;
  if fstat is null then
-   fstat := row_to_json(datalink.stat(file_path||'#'||my_token))::jsonb;
+   fstat := row_to_json(datalink.stat(file_path))::jsonb;
  end if;
  if fstat is null then
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
