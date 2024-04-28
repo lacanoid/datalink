@@ -29,7 +29,7 @@ installextras:
 	if [ ! -f /usr/sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/dlfm ; fi
 	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
-	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 apache/datalink.conf /etc/apache2/sites-available ; fi
+	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
 
 testfiles:

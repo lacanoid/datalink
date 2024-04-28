@@ -47,18 +47,33 @@ datalink in a column with `WRITE ACCESS ADMIN` or `WRITE ACCESS TOKEN`:
     NOTICE:  DATALINK DDL:TRIGGER on l
     CREATE TABLE
     
-    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt',fortune())));
+    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
 
-Updating works by writing content into new file(s) referenced by datalinks. 
-When the transaction commits, the datalinker will replace old files with new ones.
+Alternatively, one can use `dlreplacecontent()` function to copy content from the web:
 
-    mydb=# update l set link = datalink.write_text(link,fortune());
+    mydb=# insert into l values (dlreplacecontent('/var/www/datalink/hello.txt','http://www.google.com/robots.txt'));
+    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    INSERT 0 1
+
+
+Updating works by writing content into new file(s) referenced by datalinks:
+
+    mydb=# update l set link = datalink.write_text(link,'New content');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     UPDATE 1
 
-The contents of the file have been updated to the value returned by `fortune()`.
+Again, one can use `dlreplacecontent()` function to fetch new content from the web:
+
+    mydb=# update l set link = dlreplacecontent(link,'http://www.google.com/robots.txt');
+    NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
+    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    UPDATE 1
+
+When the transaction commits, the datalinker will replace old files with new ones.
+
+Thus the contents of the file have been updated to the value 'New content'.
 
 [Datalink manual](README.md)

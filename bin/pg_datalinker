@@ -85,7 +85,7 @@ sub main() {
     $dbh->do("set application_name='".$config{appname}."'");
     $dbh->do("set search_path=datalink");
     $dbh->do('listen "datalink.linker_jobs"');
-    $dbh->do("update datalink.dl_status set pid=default,version='$version',cpid='$$'");
+    $dbh->do("update datalink.dl_status set pid=default,version='$version',cpid='$$',ctime=now()");
 
     #---------------------------------------
 
@@ -331,7 +331,7 @@ sub path_valid_prefix {
 
 sub path_valid {
     my ($path)=@_;
-    # illegal chars
+    # illegal chars % and *
     if($path=~m|[%*]|) { return 0; } 
     # not absolute
     if(!(rindex($path,'/')==0)) { return 0; }
@@ -359,6 +359,7 @@ sub file_stat {
         'owner'=>getpwuid($s[4]),'group'=>getgrgid($s[5])
     };
 }
+
 # link file to sql environment
 sub file_link {
     my ($path,$opt)=@_;

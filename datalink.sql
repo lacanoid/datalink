@@ -1507,7 +1507,7 @@ if(!$r{rc}) {
   if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
 }
 $r{file_path} = $filename;
-#$r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+# $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD);
 $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
@@ -1803,7 +1803,7 @@ BEGIN
   if not r.ok then
     raise exception e'DATALINK EXCEPTIION - Failed to copy resource\nURL: %',url
     using errcode = 'HW303',
-          detail = format('CURL error %s - %s',r.rc,r.error),
+          detail = format('CURL error %s%s',r.rc,' - '||r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
   end if;
   link := jsonb_set(link::jsonb,'{k}',to_jsonb('r'::text));
@@ -2274,8 +2274,9 @@ CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
   cpid integer,
   version text,
-  atime timestamptz,
+  ctime timestamptz,
   mtime timestamptz,
+  atime timestamptz,
   links bigint default 0,
   unlinks bigint default 0
 );
@@ -2371,7 +2372,7 @@ create table dl_admin_files (
 );
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_admin(file_path, op "char", options jsonb default null, 
+create or replace function dl_file_admin(file_path, op "char" default 't', options jsonb default null, 
   caller datalink.whoami default current_user) returns text
 language plpgsql 
 SECURITY DEFINER
@@ -2382,6 +2383,10 @@ declare
   sql text;
   ns regnamespace;
 begin 
+  if (datalink.stat($1)).size is not null THEN
+    raise exception 'DATALINK EXCEPTION - file exists' 
+    using detail = 'Existing file cannot be made adminable';
+  end if;
   my_txid := pg_current_xact_id();
   sql := format('insert into datalink.dl_admin_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
                 ' on conflict (path) do nothing',$2,$1,my_txid,$4,$3);
