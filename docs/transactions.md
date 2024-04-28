@@ -14,7 +14,7 @@ Postgres and datalinker
 
 [Datalinker](pg_datalinker.md) sees only transactions already commited in postgres. 
 Datalink extension will attempt to discover errors early and raise exceptions,
-before updates reache the datalinker.
+before updates reach the datalinker.
 
 Once the transaction is commited in postgres, the datalinker will attemp to 
 modify the files accordingly. This is usually very quick, but not instantaneous.
