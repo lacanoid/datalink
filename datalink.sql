@@ -2106,7 +2106,7 @@ comment on function instr(file_path,text, integer) is
 -- directories
 ---------------------------------------------------
 create table dl_directory (
-       dirname    text collate "C" unique check(dirname not in ('URL','FS')),
+       dirname    text collate "C" unique check(dirname not in ('URL','FS','IRI')),
        dirpath    file_path not null check(dirpath like '/%/'),
        dirowner   regrole,
        diracl     aclitem[],
