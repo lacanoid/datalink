@@ -65,11 +65,14 @@ Architecture
 The datalink system is made of these three main components:
 
 - a PostgreSQL extension `datalink` to be used from SQL, providing DATALINK within SQL environment. The extension by itself does not perform any potentionally destructive file system changes, although it can create new files if allowed by the file system permissions. 
-- [datalink file manager](dlfm.md) (DLFM) deamon, [`pg_datalinker`](pg_datalinker.md), which handles all file manipulations. 
+- [Datalink File Manager](dlfm.md) (DLFM) deamon, [`pg_datalinker`](pg_datalinker.md), which handles all file manipulations. 
 The extension can be used without a daemon, but this disables some of the functionality.
-- [datalink file filter](dlff.md) (DLFF), which applies READ ACCESS DB policy to file accesses. 
+- [Datalink File Filter](dlff.md) (DLFF), which applies READ ACCESS DB policy to file accesses. 
 
-Also:
+![Datalink diagram](Diagram1.png)
+
+See also
+--------
 - [Configuration](configuration.md)
 - [Security](security.md)
 - [Caveats](caveats.md)
