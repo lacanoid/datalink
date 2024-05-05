@@ -2,8 +2,8 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.24 by lacanoid@ljudmila.org
 
-our $version="0.24.0302";
-our $lockid=0x41444154494c4b4e; # DATALINK as ASCII
+our $version="0.24.0505";
+our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
 use DBI;
@@ -95,7 +95,8 @@ sub main() {
             from dl_linked_files lf join link_control_options lco using (lco)
             left join pg_class c on c.oid=lf.attrelid
            where state in ('LINK','UNLINK')
-           order by txid for update of lf
+           order by txid limit 1
+             for update of lf
         }),
         'job_set'=>$dbh->prepare(q{
           update dl_linked_files set state = $2, info  = $3, err   = $4
@@ -172,7 +173,7 @@ sub main() {
                     if($data->{state} eq 'LINK') {
                         if($info) {
                             log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
-			    $info->{del}=0;
+			                $info->{del}=0;
                             file_unlink($path,$data); $cu++;
                         } else {
                             log_msg("LINK:$ts:".$data->{lco},$path_backup);
@@ -418,7 +419,7 @@ sub file_unlink {
         file_delete($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
-	if(-f $path) { file_restore($path,$opt); }
+	    if(-f $path || -d $path) { file_restore($path,$opt); }
     }
 }
 # set file permissions for read_access db

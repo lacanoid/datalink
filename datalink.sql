@@ -387,17 +387,18 @@ CREATE TYPE file_link_state AS ENUM (
     'LINK','LINKED','ERROR','UNLINK'
 );
 create table dl_linked_files (
-  token dl_token not null unique,
-  txid xid8 not null default pg_current_xact_id(),
+  path file_path primary key,
   state file_link_state not null default 'LINK',
   cons "char",
+  size bigint,
+  mtime timestamptz,
+  txid xid8 not null default pg_current_xact_id(),
+  token dl_token not null unique,
   lco dl_lco not null references datalink.link_control_options,
   attrelid regclass not null,
   attnum smallint not null,
-  path file_path primary key,
+  online boolean not null default TRUE,
   address text[] unique,
-  size bigint,
-  mtime timestamptz,
   fstat jsonb,
   info jsonb,
   err jsonb
@@ -425,6 +426,17 @@ comment on view linked_files
      is 'Currently linked files';
 
 grant select on linked_files to public;
+
+---------------------------------------------------
+CREATE OR REPLACE FUNCTION online(boolean) returns boolean language plpgsql as $$
+begin
+  execute
+    'alter table datalink.dl_linked_files alter column online set default '||$1;
+  update datalink.dl_linked_files set online = $1
+   where online is distinct from $1;
+  return $1;
+end
+$$ strict;
 
 ---------------------------------------------------
 
@@ -1099,8 +1111,8 @@ LANGUAGE plpgsql
 declare
  lco datalink.link_control_options;
  r record;
- has_token integer;
- url text; cons "char";
+ has_token integer; my_token datalink.dl_token;
+ url text; my_path text; cons "char";
 begin 
  url := format('%s%s',$1::jsonb->>'a','#'||($1::jsonb->>'b'));
  url := url::datalink.url;
@@ -1151,18 +1163,31 @@ begin
   end if; -- file link control,  
 
   link := link::jsonb - 'o'; cons := link::jsonb ->> 'k';
-  link := dlpreviouscopy(link,has_token)::jsonb - 'k';
+  link := dlpreviouscopy(link,has_token)::jsonb - 'k'; -- extablish token
 
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
+      my_path := dlurlpathonly(link);
+
+      -- check for offline files and put them online
+      update datalink.dl_linked_files set online = true
+      where path = my_path and online = false
+      returning token into my_token;
+      if found then
+        link := jsonb_set(link::jsonb,'{b}',to_jsonb(my_token));
+        return link; -- no actual linking needed
+      end if;
+
+      -- check for delete permission
       if lco.on_unlink = 'DELETE' THEN
-        if not datalink.has_file_privilege(dlurlpathonly(link),'delete',false) THEN
+        if not datalink.has_file_privilege(my_path,'delete',false) THEN
           raise exception e'DATALINK EXCEPTION - DELETE permission denied on directory\nURL:  %',url 
                 using errcode = 'HW005', 
                       detail = 'delete permission is required on directory',
                       hint = 'add appropriate entry in table datalink.access';
         end if;
       end if;
-      perform datalink.dl_file_link(dlurlpathonly(link),(link::jsonb->>'b')::datalink.dl_token,cons,link_options,regclass,column_name);
+      my_token := (link::jsonb->>'b')::datalink.dl_token;
+      perform datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name);
   end if; -- integrity all
 
  end if; -- link options
@@ -2113,7 +2138,7 @@ create table dl_directory (
        dirlco     dl_lco,
        dirurl     uri unique,
        diroptions text[] collate "C",
-       dirlink    datalink(2) not null
+       dirlink    datalink(1) not null
 );
 
 create view directory as
@@ -2499,7 +2524,7 @@ comment on table sample_datalinks
 ---------------------------------------------------
 -- add stuff to pg_dump 
 ---------------------------------------------------
--- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
+SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
 -- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
 

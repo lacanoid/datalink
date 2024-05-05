@@ -131,11 +131,13 @@ Todo
 - ✔︎ show error count in `datalink.usage`
 - show os owner in `datalink.directory`
 - check read and write permissions in `curl_save()`
+- trigger on `dl_admin_files` to check that files don't exist
 
 Maybe
 =====
 - ✔︎ perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
+- support for data: URLs
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
 - ✔︎ create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
