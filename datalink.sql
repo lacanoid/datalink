@@ -661,8 +661,7 @@ begin
 
   elsif r.state = 'ERROR' then
    delete from datalink.dl_linked_files
-    where path  = file_path
-      and state = 'ERROR';
+    where path  = file_path and state = 'ERROR';
 
   elsif r.state = 'UNLINK' then
         raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
@@ -1298,7 +1297,7 @@ begin
                         errcode = 'HW004',
                          detail = format('New value doesn''t contain a matching write token for update of column %s.%I',
                                          tg_relid::regclass::text,r.column_name),
-                           hint = 'Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN or TOKEN';
+                           hint = 'Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN';
               end if; -- tokens not matching
             end if; -- token
             if link1::jsonb->>'a' is distinct from link2::jsonb->>'a' THEN

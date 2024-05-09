@@ -23,6 +23,7 @@ our $opt_R = 1;  # restore old files from backups
 our $opt_A = 1;  # process dl_admin_files (autodelete files from aborted transactions)
 our $opt_L = 1;  # use advisory locks (support for datalink.commit())
 our $opt_C = 0;  # only check configuration
+our $opt_I = 1;  # use internal functions (faster)
 our $opt_n = 20; # number of iterations in fast inner loop
 our $opt_l;      # logfile
 our $opt_r = 10; # when fatal error wait this long then restarts
@@ -242,7 +243,7 @@ sub process_admin {
                 if($stat->{owner} eq $config{owner}) {
                     log_msg('PURGE',"$op,$state,$path");
                     if($state eq 'aborted' || ($state eq 'committed' && $op eq 't')) {
-			            file_remove($path);
+			            file_delete($path);
 		            }
                 } else { 
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
@@ -416,7 +417,7 @@ sub file_unlink {
     }
 #    if($opt->{on_unlink} eq 'DELETE') {
     if($opt->{info} && $opt->{info}{del}) {
-        file_delete($path,$opt);
+        file_unlink_delete($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
 	    if(-f $path || -d $path) { file_restore($path,$opt); }
@@ -427,17 +428,12 @@ sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
     if(defined($config{owner})) {
-        if(defined($config{group})) {
-            sys("chown",$config{owner}.':'.$config{group},$path);
-        } else {
-            sys("chown",$config{owner},$path);
-        }
+        if(defined($config{group})) { sys("chown",$config{owner}.':'.$config{group},$path); } 
+        else { sys("chown",$config{owner},$path); }
     }
-    if($opt->{relowner}) {
+    if($opt_O && $opt->{relowner}) {
         my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
-        if($name && $opt_O) {
-            sys("chown",$name,$path);
-        }
+        sys("chown",$name,$path);
     }
     if(defined($config{db_mode})) {
         sys("chmod",$config{db_mode},$path);
@@ -458,31 +454,39 @@ sub file_restore {
     }
 }
 
-sub file_remove {
-    my ($path,$opt)=@_;
-    if(!$opt_D) {
-	log_msg('NO DELETE',"Refusing to delete '$path'. HINT: use -D datalinker option.");
-	return;
-    }
-    if($opt) { log_msg('DELETE',$path); }
-    my $s = file_stat($path);
-    if(!($s->{owner} eq $config{owner})) {
-	log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
-	return;
-    }
-    unlink($path);
-#    sys('rm',$path);
+sub file_chown {
+    my ($path,$own,$grp)=@_;
+}
+
+sub file_chmod {
+    my ($path,$mod)=@_;
 }
 
 sub file_delete {
     my ($path,$opt)=@_;
+    if(!$opt_D) {
+	    log_msg('NO DELETE',"Delete disabled: '$path'. HINT: use -D option");
+	    return;
+    }
+    if($opt) { log_msg('DELETE',$path); }
+    my $s = file_stat($path);
+    if(!($s->{owner} eq $config{owner})) {
+    	log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+	    return;
+    }
+    if($opt_I) { unlink($path); }
+    else { sys('rm',$path); }
+}
+
+sub file_unlink_delete {
+    my ($path,$opt)=@_;
     my $info = $opt->{info};
     if($info && $info->{del}) {
-	if(!($opt->{on_unlink} eq 'DELETE')) {
-	    log_err('NO DELETE',"Not ON UNLINK DELETE");
-	    return;
-	}
-	if(defined($info->{own})) { file_remove($path,$opt); }
+        if(!($opt->{on_unlink} eq 'DELETE')) {
+            log_err('NO DELETE',"Not ON UNLINK DELETE");
+            return;
+        }
+        if(defined($info->{own})) { file_delete($path,$opt); }
     }
 }
 # does file have a backup copy
@@ -511,17 +515,17 @@ sub file_backup_restore {
      if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
         if(-f $path && !$opt_R) {
-            log_err("NO RESTORE","Restore disabled: HINT: use option -R");
+            log_err("NO RESTORE","Restore disabled: HINT: use -R option");
             return;
         }
         if(-f $path_backup) {
             if($move) {
-            log_msg('REPLACE',$path_backup);
-            sys("mv","-f",$path_backup,$path);
+                log_msg('REPLACE',$path_backup);
+                sys("mv","-f",$path_backup,$path);
             }
             else {
-            log_msg('RESTORE',$path_backup);
-            sys("ln","-f",$path_backup,$path);
+                log_msg('RESTORE',$path_backup);
+                sys("ln","-f",$path_backup,$path);
             }
         } else {
             log_err("NO BACKUP","File not found:$path_backup");
@@ -577,13 +581,13 @@ sub sys {
         $syserr = "failed to execute: $!";
     }
     elsif ($? & 127) {
-        $syserr = sprintf "child died with signal %d, %s coredump",
-        ($? & 127),  ($? & 128) ? 'with' : 'without';
+        $syserr = sprintf "died sig %d%s",
+            ($? & 127),  ($? & 128) ? ', core' : '';
     }
     else {
         my $ex = $? >> 8;
         if($ex > 0) {
-            $syserr = sprintf "child exited with value %d", $ex;
+            $syserr = sprintf "exit %d", $ex;
         }
         $sysex = $ex;
     }

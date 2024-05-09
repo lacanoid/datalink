@@ -29,7 +29,6 @@ Wanted
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
-- build simple webserver into pg_datalinker
 - better documentation (manual)
 - better handling of already immutable files
 - apache mod_perl directory autoconfigurator
@@ -48,30 +47,27 @@ Wanted
 - ✔︎ url beautifier function for sanitizing broken urls
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
 - file writes for non superusers
-- make `read_text()` read updated but not commited files
+- make `read_text()` read updated but not yet commited files in the transaction which changed them
 - functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
+- per URL (with wildcards) access controls for `curl_get` and `curl_save`
 
 Advanced
 --------
-
 - better multiple servers support
 - integrate with postgres backup and replication
 
 Bugs and Issues
 ===============
-- ✔︎ Issues with encoding 'foo#bar' vs 'foo%23bar'. add tests.
-- further pg_restore checks ; what happens to stuff in pg_linked_files?
-- ✔︎ forbid setting of lco<>0 for non superusers 
 - `create table as` / `select into` bug (data is loaded before triggers are run)
 - domain on domain on datalink doesn't work
 - datalinker service spoofing (~www-data/.pg_service.conf vs dlcat)
 
 - update link=dlnewcopy(link) for on unlink delete looses file
 - datalinker: permissions are wrong on restored files
-- dl_linked_files status not updating to ERROR
 - multiple updates with write_text() in one transaction fail
 - apache handler vs unicode urls
+- critical states in whole setup (sometimes permissions don't get restored ok)
 
 Todo
 ====
@@ -126,7 +122,7 @@ Todo
 - ✔︎ dl_link_ref check URL syntax again
 - ✔︎ function `datalink.commit()` to sync up with the datalinker (wait for it to become idle)
 - ✔︎ `datalink.dl_status` table to hold shared datalinker status
-- make `DLPREVIOUSCOPY()` work all the way to the beggining of the file. This might require storing revision history
+- make `DLPREVIOUSCOPY()` work all the way to the beginning of the file. This might require storing revision history
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 - show os owner in `datalink.directory`
@@ -151,6 +147,7 @@ Maybe
 - perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
+- build simple webserver into pg_datalinker
 
 BFile API
 =========

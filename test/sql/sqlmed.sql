@@ -82,7 +82,7 @@ update sample_datalinks
 -- check for some exceptions from the SQL standard
 create table med (link datalink(2));
 
--- 15.2 Effect of inserting tables into base tables
+-- 15.2 Effect of inserting rows into base tables
 
 -- case 1.a.1 referenced file does not exist
 insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file')); -- err

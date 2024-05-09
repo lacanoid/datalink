@@ -116,6 +116,8 @@ will then cause datalinker to replace contents of a linked file with the downloa
 
 When the transaction concludes, temporary file is deleted.
 
+
+
 SQL Datalink scalar functions
 -----------------------------
 
