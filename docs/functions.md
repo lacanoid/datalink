@@ -85,7 +85,7 @@ If `has_token` > 0 then the previous token will also be stored in a datalink. Th
 of `WRITE ACCESS TOKEN` columns.
 
 Updating a `RECOVERY YES` datalink column with the new value of the datalink will also cause datalinker to 
-create a backup of file contents.
+create a new backup of file contents.
 
 #### dlpreviouscopy( datalink [ , has_token integer ] ) → datalink
 
@@ -96,8 +96,9 @@ previous version of file contents.
 
 If `has_token` > 0 then try to stablish token value for a datalink in the following order:
 1. previous token value stored in a datalink
-2. look for token in datalink filename
-3. generate a new token
+2. token value stored in a datalink
+3. look for token in datalink filename
+4. generate a new token
 
 ### copying file contents
 
@@ -234,7 +235,7 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
 
 #### dlurlscheme( datalink ) → text
 
-Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
+Use `dlurlscheme()` function to get uppercased URL scheme part of a datalink.
 
     mydb=> select dlurlscheme(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
      dlurlscheme 
@@ -244,7 +245,7 @@ Use `dlurlscheme()` function to get uppercased URL scheme part of datalink.
 
 #### dlurlserver( datalink ) → text
 
-Use `dlurlserver()` function to get URL server part of datalink.
+Use `dlurlserver()` function to get URL lowercased server part of a datalink.
 This does not include username and password if they are present in URL.
 
     mydb=> select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
@@ -302,6 +303,23 @@ Additional functions
 These are not specified by the SQL standard, but are provided for the user's convenience.
 Thay are all in the `datalink` schema.
 
+Validation
+----------
+
+These are intended to be used with constraints.
+
+#### is_valid(datalink) → boolean
+
+Indicates that a datalink URL is valid.
+
+#### is_local(datalink) → boolean
+
+Indicates that a datalink references a local file.
+
+#### is_http_success(datalink) → boolean
+
+Indicates that a HTTP request was successfully completed.
+
 URI manipulation
 ----------------
 
@@ -319,7 +337,6 @@ Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, 
 
 Set a part of URI to a value, returns new URI.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
-
 
 Web access
 ----------
@@ -359,6 +376,13 @@ Datalink extension needs to be installed on the foreign server as well for this 
 
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
+#### curl_save( local_file file_path, url text ) → record
+
+Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
+
+Only superuser can execute this function, execute permission for other users must be explicitly granted.
+
+
 Reading files
 -------------
 
@@ -372,7 +396,7 @@ This implements access with filename-embedded read tokens as per SQL standard.
 A user can alternatively have SELECT privilege on the directory to read the file.
 
 #### read_text( datalink [ , position [ , length ] ] ) → text
-Read datalink contents as text. 
+Read datalink contents as text. Datalink can be anywhere on the web.
 
 Returns text.
 
@@ -382,7 +406,7 @@ Read local file contents as lines of text.
 Returns set of lines with line numbers and file offset.
 
 #### read_lines( datalink [ , position ] ) → table (i,o,line)
-Read datalink contents as lines of text. Currently works only for local file datalinks.
+Read datalink contents as lines of text. Currently works only for local files.
 
 Returns set of lines with line numbers and file offset.
 

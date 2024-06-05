@@ -246,6 +246,18 @@ select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
  HTTP
 (1 row)
 
+select dlurlserver(dlvalue('HtTp://WwW.LjUDmILA.OrG/Foo/Bar/Baz#123'));
+   dlurlserver    
+------------------
+ www.ljudmila.org
+(1 row)
+
+select dlurlscheme(dlvalue('HtTp://WwW.LjUDmILA.OrG/Foo/Bar/Baz#123'));
+ dlurlscheme 
+-------------
+ HTTP
+(1 row)
+
 select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
     dlurlpath     
 ------------------

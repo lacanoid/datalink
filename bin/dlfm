@@ -76,7 +76,7 @@ if($operation eq 'log') { daemon_log(); exit; }
 if($operation eq 'ps') { daemon_see(); exit; }
 if($operation eq 'see') { daemon_see(); exit; }
 
-print STDERR qq{PostgreSQL datalink file manager control program
+print STDERR qq{PostgreSQL datalink file manager control program version $version
 Usage: $0 <command> [arguments...]
 Commands:
     show                 - show version and system configuration
@@ -84,8 +84,8 @@ Commands:
     unbind               - unbind file manager from a database
 
     list                 - list all registered file systems (directories)
-    add <directory>      - register a file system (directory)
-    del <directory>      - unregister a file system (directory)
+    add <path>           - register a file system (directory)
+    del <path>           - unregister a file system (directory)
 
     dirs                 - show directories
     usage                - show directory usage

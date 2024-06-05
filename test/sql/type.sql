@@ -56,6 +56,9 @@ select dlpreviouscopy('file:///tmp/file1#krneki',1);
 select dlurlserver(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dlurlscheme(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 
+select dlurlserver(dlvalue('HtTp://WwW.LjUDmILA.OrG/Foo/Bar/Baz#123'));
+select dlurlscheme(dlvalue('HtTp://WwW.LjUDmILA.OrG/Foo/Bar/Baz#123'));
+
 select dlurlpath(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 select dlurlpathonly(dlvalue('http://www.ljudmila.org/foo/bar/baz#123'));
 

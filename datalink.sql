@@ -1128,9 +1128,10 @@ begin
                     detail = 'INTEGRITY ALL can only be used with file URLs',
                     hint = 'make sure you are using a file: URL scheme';
     end if;
-    -- check if datalinker in needed and running
+    -- check if datalinker is needed and running
     if lco.integrity = 'ALL' and link_options>10 then
       if not datalink.has_datalinker() then
+--        raise exception 'DATALINK EXCEPTION - datalinker required' 
         raise warning 'DATALINK WARNING - datalinker required' 
               using errcode = '57050',
 --                    detail = 'datalinker process is not available',
@@ -1139,7 +1140,8 @@ begin
     end if;
 
     if lco.integrity = 'ALL' then has_token := 1; end if;
-    -- check if reference exists
+
+    -- check if referenced file exists
     r := datalink.curl_get(url,1);
     if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
       url := replace(url,'#','%23');
@@ -1378,9 +1380,10 @@ FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 ---------------------------------------------------
--- curl functions
+-- web functions
 ---------------------------------------------------
 
+-- get URL contents as text using GET or HEAD request
 CREATE FUNCTION curl_get(
   INOUT url text, head integer DEFAULT 0, 
   OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT size bigint, OUT elapsed float) 
@@ -1468,8 +1471,7 @@ revoke execute on function curl_get(text,integer) from public;
 comment on function curl_get(text,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
----------------------------------------------------
-
+-- save URL contents as text to a local file using GET or HEAD request
 CREATE FUNCTION curl_save(
   INOUT file_path file_path, INOUT url text, IN persistent int default 0,
   OUT ok boolean, OUT rc integer, OUT error text, OUT size bigint, OUT elapsed float) 
@@ -1544,9 +1546,86 @@ comment on function curl_save(file_path,text,int)
      is 'Save content of remote URL to a local file';
 
 ---------------------------------------------------
--- admin functions
+-- http response codes
 ---------------------------------------------------
 
+CREATE TABLE http_response_codes (
+    rc integer primary key,
+    label text,
+    ref text
+);
+grant select on http_response_codes to public;
+
+INSERT INTO http_response_codes VALUES 
+ (100, 'Continue', '[RFC2616]'),
+ (101, 'Switching Protocols', '[RFC2616]'),
+ (102, 'Processing', '[RFC2518]'),
+ (200, 'OK', '[RFC2616]'),
+ (201, 'Created', '[RFC2616]'),
+ (202, 'Accepted', '[RFC2616]'),
+ (203, 'Non-Authoritative Information', '[RFC2616]'),
+ (204, 'No Content', '[RFC2616]'),
+ (205, 'Reset Content', '[RFC2616]'),
+ (206, 'Partial Content', '[RFC2616]'),
+ (207, 'Multi-Status', '[RFC4918]'),
+ (208, 'Already Reported', '[RFC5842]'),
+ (226, 'IM Used', '[RFC3229]'),
+ (300, 'Multiple Choices', '[RFC2616]'),
+ (301, 'Moved Permanently', '[RFC2616]'),
+ (302, 'Found', '[RFC2616]'),
+ (303, 'See Other', '[RFC2616]'),
+ (304, 'Not Modified', '[RFC2616]'),
+ (305, 'Use Proxy', '[RFC2616]'),
+ (306, 'Reserved', '[RFC2616]'),
+ (307, 'Temporary Redirect', '[RFC2616]'),
+ (308, 'Permanent Redirect', '[RFC-reschke-http-status-308-07]'),
+ (400, 'Bad Request', '[RFC2616]'),
+ (401, 'Unauthorized', '[RFC2616]'),
+ (402, 'Payment Required', '[RFC2616]'),
+ (403, 'Forbidden', '[RFC2616]'),
+ (404, 'Not Found', '[RFC2616]'),
+ (405, 'Method Not Allowed', '[RFC2616]'),
+ (406, 'Not Acceptable', '[RFC2616]'),
+ (407, 'Proxy Authentication Required', '[RFC2616]'),
+ (408, 'Request Timeout', '[RFC2616]'),
+ (409, 'Conflict', '[RFC2616]'),
+ (410, 'Gone', '[RFC2616]'),
+ (411, 'Length Required', '[RFC2616]'),
+ (412, 'Precondition Failed', '[RFC2616]'),
+ (413, 'Request Entity Too Large', '[RFC2616]'),
+ (414, 'Request-URI Too Long', '[RFC2616]'),
+ (415, 'Unsupported Media Type', '[RFC2616]'),
+ (416, 'Requested Range Not Satisfiable', '[RFC2616]'),
+ (417, 'Expectation Failed', '[RFC2616]'),
+ (418, 'I''m a teapot', '[RFC7168]'),
+ (422, 'Unprocessable Entity', '[RFC4918]'),
+ (423, 'Locked', '[RFC4918]'),
+ (424, 'Failed Dependency', '[RFC4918]'),
+ (425, 'Unassigned', NULL),
+ (426, 'Upgrade Required', '[RFC2817]'),
+ (427, 'Unassigned', NULL),
+ (428, 'Precondition Required', '[RFC6585]'),
+ (429, 'Too Many Requests', '[RFC6585]'),
+ (430, 'Unassigned', NULL),
+ (431, 'Request Header Fields Too Large', '[RFC6585]'),
+ (500, 'Internal Server Error', '[RFC2616]'),
+ (501, 'Not Implemented', '[RFC2616]'),
+ (502, 'Bad Gateway', '[RFC2616]'),
+ (503, 'Service Unavailable', '[RFC2616]'),
+ (504, 'Gateway Timeout', '[RFC2616]'),
+ (505, 'HTTP Version Not Supported', '[RFC2616]'),
+ (506, 'Variant Also Negotiates (Experimental)', '[RFC2295]'),
+ (507, 'Insufficient Storage', '[RFC4918]'),
+ (508, 'Loop Detected', '[RFC5842]'),
+ (509, 'Unassigned', NULL),
+ (510, 'Not Extended', '[RFC2774]'),
+ (511, 'Network Authentication Required', '[RFC6585]');
+
+---------------------------------------------------
+-- datalink admin functions
+---------------------------------------------------
+
+-- modify link control options for a datalink table column
 CREATE FUNCTION modlco(
   my_regclass regclass,
   my_column_name name, 
@@ -2384,6 +2463,7 @@ $$;
 ---------------------------------------------------
 -- temporary files
 ---------------------------------------------------
+
 -- administered (copied, moved, deleted) files
 create table dl_admin_files (
   txid xid8 not null default pg_current_xact_id(),
@@ -2434,6 +2514,7 @@ $$;
 -- list versions
 ---------------------------------------------------
 
+-- list availanle file revisions
 create or replace function revisions(file_path) 
 returns table(rev bigint,ctime timestamptz,link datalink)
 strict LANGUAGE plpgsql as $$
@@ -2467,6 +2548,7 @@ $$;
 comment on function revisions(datalink)
 is 'All available previous revisions of a datalink';
 
+-- return a particular revision
 create or replace function revision(datalink, revision int default -1) returns datalink 
 language sql strict as $$
  select link from datalink.revisions($1) where rev = $2
