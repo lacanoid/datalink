@@ -30,6 +30,9 @@ ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  CHECK(value not like 
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_chars     CHECK(not value ~* '[%*]');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(length(value)=0 or value like '/%');
 ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  CHECK(not value like '%//%');
+/* ADD ADDITIONAL CONSTRAINTS FOR FILENAMES HERE */
+
+
 /*
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
@@ -428,7 +431,7 @@ comment on view linked_files
 grant select on linked_files to public;
 
 ---------------------------------------------------
-CREATE OR REPLACE FUNCTION online(boolean) returns boolean language plpgsql as $$
+CREATE OR REPLACE FUNCTION set_online(boolean) returns boolean language plpgsql as $$
 begin
   execute
     'alter table datalink.dl_linked_files alter column online set default '||$1;
@@ -437,6 +440,7 @@ begin
   return $1;
 end
 $$ strict;
+COMMENT ON FUNCTION set_online(boolean) IS 'Set datalink online status for dump/restore';
 
 ---------------------------------------------------
 
@@ -452,7 +456,7 @@ CREATE OR REPLACE FUNCTION stat(file_path file_path,
   LANGUAGE plperlu
    STRICT
    AS $function$
-#use Date::Format;
+## use Date::Format;
 
 my ($filename) = @_;
 unless(-e $filename) { return undef; }
@@ -465,7 +469,7 @@ return {
  'nlink'=>$s[3],
  'uid'=>$s[4],'gid'=>$s[5],
  'rdev'=>$s[6],'size'=>$s[7],
-# 'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
+## 'atime'=>time2str("%C",$s[8]),'mtime'=>time2str("%C",$s[9]),'ctime'=>time2str("%C",$s[10]),
  'atime'=>$s[8],'mtime'=>$s[9],'ctime'=>$s[10],
  'blksize'=>$s[11],'blocks'=>$s[12]
 };
@@ -1400,12 +1404,12 @@ use WWW::Curl::Easy;
 use Time::HiRes qw(gettimeofday tv_interval);
 use JSON;
 
-# Starts and times the actual request
+ ## Starts and times the actual request ##
 my $t0 = [gettimeofday];
 
-# Check if this is a file on a foreign server and pass on the request
+ ## Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
-  # then execute curl_get on that foreign server instead
+  ## then execute curl_get on that foreign server instead
   my $q=q{
     select pg_catalog.dlurlserver($1) as srvname,
     (select s.oid as srvoid from pg_catalog.pg_foreign_server s 
@@ -1433,7 +1437,7 @@ if($url=~m|^file://[^/]|i) {
   return $r;
 }
 
-# $head = ($head eq't')?1:0;
+## $head = ($head eq't')?1:0;
 
 my $curl = WWW::Curl::Easy->new;
 $r{url} = $url;  
@@ -1442,10 +1446,10 @@ $curl->setopt(CURLOPT_USERAGENT,
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,$head?1:0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
-#$curl->setopt(CURLOPT_RANGE, '100-200');
+## $curl->setopt(CURLOPT_RANGE, '100-200');
 if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 
-# A filehandle, reference to a scalar or reference to a typeglob can be used here.
+## A filehandle, reference to a scalar or reference to a typeglob can be used here.
 my $response_header;
 my $response_body;
 if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
@@ -1454,7 +1458,7 @@ else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
 my $retcode = $curl->perform;
 $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
-# Looking at the results...
+ ## Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{rc} = $retcode;
 if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
@@ -1489,7 +1493,7 @@ if(!$filename) {
     elog(ERROR,"DATALINK EXCEPTION - Filename is NULL\n");
 }
 
-# Check if this is a file on a foreign server and pass on the request
+ ## Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
     elog(ERROR,"DATALINK EXCEPTION - Foreign servers not supported in curl_save\nURL: $url");
 }
@@ -1519,13 +1523,13 @@ $curl->setopt(CURLOPT_HEADER,0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
 
 open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
-# A filehandle, reference to a scalar or reference to a typeglob can be used here.
+## A filehandle, reference to a scalar or reference to a typeglob can be used here.
 $curl->setopt(CURLOPT_WRITEDATA,$fh);
 
 my $retcode = $curl->perform;
 close $fh;
 
-# Looking at the results...
+## Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{rc} = $retcode;
 if(!$r{rc}) { 
@@ -1533,7 +1537,7 @@ if(!$r{rc}) {
   if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
 }
 $r{file_path} = $filename;
-# $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+## $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD);
 $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
@@ -2284,7 +2288,7 @@ returns directory as $$
 $$ strict language sql;
 
 ---------------------------------------------------
--- access permitions
+-- file access permitions
 ---------------------------------------------------
 
 CREATE OR REPLACE VIEW access
@@ -2354,7 +2358,7 @@ INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
 
 ---------------------------------------------------
--- inquire access permitions
+-- inquire file access permitions
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text, allowsuper boolean default true) RETURNS boolean as $$
@@ -2368,6 +2372,40 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
+
+---------------------------------------------------
+-- web access permisions
+---------------------------------------------------
+
+create table dl_access_web (
+  url text not null,
+  privilege_type text not null default 'SELECT',
+  grantee regrole not null default current_role::regrole,
+  grantor regrole not null default current_role::regrole
+);
+alter table dl_access_web add PRIMARY KEY (url,privilege_type,grantee);
+
+create view access_web as
+select url,
+       privilege_type,
+       grantee::text,
+       grantor::text
+  from datalink.dl_access_web;
+
+---------------------------------------------------
+-- inquire web access permisions
+---------------------------------------------------
+CREATE OR REPLACE FUNCTION has_web_privilege(role regrole, url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean as $$
+select (current_setting('is_superuser')::boolean and $4) or exists (
+  select url from datalink.access_web 
+   where privilege_type=upper($3)
+     and uri = (
+     and (grantee = 'PUBLIC' or grantee = $1::text)
+)
+$$ LANGUAGE sql;
+
+CREATE OR REPLACE FUNCTION has_web_privilege(url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean
+ LANGUAGE sql AS $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
 
 ---------------------------------------------------
 -- datalinker status

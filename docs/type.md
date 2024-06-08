@@ -110,11 +110,18 @@ Note that updating `datalink.columns` has changed the type modifier on the colum
 Option description and use cases
 --------------------------------
 
-### LCO=xx0 NO LINK CONTROL
+### LCO=0 NO LINK CONTROL
 
 Only store datalinks.
 
-Pro: Faster than other because there are no triggers to run
+Pro: Much faster than other settings because there are no triggers to run
+
+Con: URL syntax is not checked when assigning, but it is checked by `dlvalue()`.
+
+One can add check for valid URL by using constraints at the cost of slight performance penalty:
+
+    mydb=> alter table my_table add check (datalink.is_valid(link));
+
 
 ### LCO=xx1 INTEGRITY SELECTIVE
 
@@ -174,7 +181,7 @@ Note that this requires at least READ ACCESS DB option.
 
 Pro: Provides transactional write access for files
 
-Con: Potentionally destructive for files
+Con: Potentionally destructive to files
 
 ### LCO=x7x WRITE ACCESS ADMIN
 
@@ -186,14 +193,15 @@ Note that this requires at least READ ACCESS DB option.
 
 Pro: Provides transactional write access for files
 
-Con: Potentionally destructive for files
+Con: Potentionally destructive to files
 
 ### LCO=1xx,3xx RECOVERY YES
 
 Provides point-in-time recovery of file contents. See [recovery](recovery.md)
 
-Con: More space usage. It might be good to make use of *copy-on-write* feature of some filesystems, but I don't know
-which ones support it and how to turn it on. It should be always on by default, anyway.
+Con: More space usage. 
+
+Con: Slower
 
 ### LCO=2xx,3xx ON UNLINK DELETE
 
@@ -207,7 +215,7 @@ Pro: Provides better referential integrity (like ON DELETE CASCADE)
 
 Pro: Automatic cleanup of file no longer needed
 
-Con: Potentionally destructive for files
+Con: Potentionally destructive to files
 
 
 [Datalink manual](README.md)

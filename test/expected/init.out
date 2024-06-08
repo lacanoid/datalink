@@ -79,6 +79,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | revision(datalink,integer)                                                                   | sql      | Return a particular datalink revision
  datalink     | revisions(datalink)                                                                          | sql      | All available previous revisions of a datalink
  datalink     | revisions(file_path)                                                                         | plpgsql  | All available previous revisions of a file as datalinks
+ datalink     | set_online(boolean)                                                                          | plpgsql  | Set datalink online status for dump/restore
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
  datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
@@ -111,8 +112,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
- datalink     | online(boolean)                                                                              | plpgsql  | 
+ datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
+ datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(92 rows)
+(94 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
