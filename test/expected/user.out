@@ -1,6 +1,13 @@
 \pset null _null_
 SET client_min_messages = notice;
 SET search_path = public,datalink;
+-- test permissions on web functions
+select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes, root
+ has_web_privilege 
+-------------------
+ t
+(1 row)
+
 begin;
 create role datalink_test_user;
 grant all on schema public to datalink_test_user;
@@ -10,6 +17,21 @@ create table user_links (
   link datalink,
   link2 datalink
 );
+select datalink.has_web_privilege('http://www.ljudmila.org'); -- no
+ has_web_privilege 
+-------------------
+ f
+(1 row)
+
+reset role;
+insert into datalink.dl_access_web values ('http://www.ljudmila.org','SELECT','datalink_test_user'::regrole);
+set role datalink_test_user;
+select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes
+ has_web_privilege 
+-------------------
+ t
+(1 row)
+
 reset role;
 update datalink.columns
    set link_control='FILE', integrity='ALL',

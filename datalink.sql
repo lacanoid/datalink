@@ -2318,6 +2318,8 @@ declare
   acl aclitem;
   acls aclitem[];
 BEGIN
+ if tg_relid = 'datalink.access'::regclass then
+
   if tg_op in ('UPDATE','DELETE') 
     then dir := old.dirpath;
     else dir := new.dirpath; 
@@ -2350,6 +2352,12 @@ BEGIN
       where dirpath = dir; 
   if tg_op = 'DELETE' then return old; end if;
   return new;
+ end if; -- if datalink.access
+ if tg_relid = 'datalink.access_web'::regclass then
+  raise exception 'Not implemented';
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+ end if; -- if datalink.access
 END
 $$;
 
@@ -2391,15 +2399,20 @@ select url,
        grantee::text,
        grantor::text
   from datalink.dl_access_web;
+grant select on access_web to public;
+
+CREATE TRIGGER "access_web_touch"
+INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access_web FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_access();
 
 ---------------------------------------------------
 -- inquire web access permisions
 ---------------------------------------------------
 CREATE OR REPLACE FUNCTION has_web_privilege(role regrole, url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean as $$
 select (current_setting('is_superuser')::boolean and $4) or exists (
-  select url from datalink.access_web 
+  select url from datalink.access_web aw
    where privilege_type=upper($3)
-     and uri = (
+     and $2 like aw.url||'%'
      and (grantee = 'PUBLIC' or grantee = $1::text)
 )
 $$ LANGUAGE sql;

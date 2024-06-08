@@ -17,6 +17,24 @@ select dlurlserver(dlvalue('file://server1/etc/issue'));
  server1
 (1 row)
 
+select dlurlscheme(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+ dlurlscheme 
+-------------
+ FILE
+(1 row)
+
+select dlurlserver(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+ dlurlserver 
+-------------
+ server1
+(1 row)
+
+select dlurlpath(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+ dlurlpath  
+------------
+ /EtC/IsSuE
+(1 row)
+
 select dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS');
                                dlvalue                               
 ---------------------------------------------------------------------
@@ -104,7 +122,7 @@ update sample_datalinks
    set link = dlvalue(url)
  where link is null and url is not null;
 -- check for some exceptions from the SQL standard
-create table med (link datalink(2));
+create table med (link datalink(2)); -- INTEGRITY ALL
 NOTICE:  DATALINK DDL:TRIGGER on med
 -- 15.2 Effect of inserting rows into base tables
 -- case 1.a.1 referenced file does not exist
@@ -137,7 +155,6 @@ CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regcla
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
--- 
 -- 15.3 Effect of replacing rows in base tables
 update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt

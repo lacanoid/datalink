@@ -11,6 +11,10 @@ create table sample_urls (
 select dlurlserver(dlvalue('file:///etc/issue'));
 select dlurlserver(dlvalue('file://server1/etc/issue'));
 
+select dlurlscheme(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+select dlurlserver(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+select dlurlpath(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
+
 select dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS');
 select dlurlpath(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
 select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
@@ -80,7 +84,7 @@ update sample_datalinks
  where link is null and url is not null;
 
 -- check for some exceptions from the SQL standard
-create table med (link datalink(2));
+create table med (link datalink(2)); -- INTEGRITY ALL
 
 -- 15.2 Effect of inserting rows into base tables
 
@@ -94,8 +98,9 @@ insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -
 -- 
 -- case 1.b.2 external file already linked
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- err
--- 
+
 -- 15.3 Effect of replacing rows in base tables
+
 update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 --
 -- case 1.b.i.1 referenced file does not exist
