@@ -47,11 +47,14 @@ Wanted
 - ✔︎ url beautifier function for sanitizing broken urls
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
 - file writes for non superusers
+- web reads for non superusers
 - make `read_text()` read updated but not yet commited files in the transaction which changed them
 - functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
 - improve support for 'file:/dir/' URLs
+- proper substring instead of file position offsets in `substr()`
+- FUSE filesystem DLFF which supports READ ACCESS DB tokens
 
 Advanced
 --------
