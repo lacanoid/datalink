@@ -51,6 +51,7 @@ Wanted
 - functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
+- improve support for 'file:/dir/' URLs
 
 Advanced
 --------
