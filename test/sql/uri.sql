@@ -121,6 +121,8 @@ create table u (url text);
 insert into u (url)
 values
   ('file:///tmp/file1.txt'),
+  ('file:/tmp/file1.txt'),
+  ('file://localhost/tmp/file1.txt'),
   ('file://server2/tmp/file1.txt'),
   ('http://www.ljudmila.org/robots.txt'),
   ('http://www.ljudmila.org/robots2.txt')

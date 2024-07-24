@@ -81,7 +81,8 @@ create cast (datalink as jsonb) without function;
 
 create or replace function is_local(datalink) returns boolean
 language sql immutable strict as $$
- select ($1::jsonb->>'a')::text ilike 'file:///%'
+ -- select ($1::jsonb->>'a')::text ilike 'file:///%'
+ select ($1::jsonb->>'a')::text ~* '^file:(//|//localhost)?/[^/]';
 $$;
 comment on function is_local(datalink)
      is 'The address of this datalink references a local file';
@@ -2361,7 +2362,7 @@ BEGIN
            new.url,coalesce(new.privilege_type,'SELECT'),
            coalesce(coalesce(nullif(lower(new.grantee),'public'),'0'), new.grantee)::regrole,
            coalesce(coalesce(nullif(lower(new.grantor),'public'),'0'), new.grantor)::regrole,
-    );
+           );
   end if;  -- insert
   if tg_op = 'UPDATE' THEN
     update datalink.dl_access_web set (url,privilege_type,grantor,grantee)
@@ -2369,7 +2370,7 @@ BEGIN
            new.url,new.privilege_type,
            coalesce(coalesce(nullif(lower(new.grantee),'public'),'0'), new.grantee)::regrole,
            coalesce(coalesce(nullif(lower(new.grantor),'public'),'0'), new.grantor)::regrole,
-    )
+           )
      where url=old.url and privilege_type=old.privilege_type 
        and grantee=coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole;
   end if;  -- update
