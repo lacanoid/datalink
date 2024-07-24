@@ -588,6 +588,7 @@ begin
                mtime=my_mtime,
 	             cons=my_cons
          where path = file_path and state='UNLINK';
+         notify "datalink.linker_jobs";
         return true;
      else -- relink
         update datalink.dl_linked_files
@@ -600,6 +601,7 @@ begin
                mtime=my_mtime,
 	             cons=my_cons
          where path = file_path and state='UNLINK';
+         notify "datalink.linker_jobs";
         return true;
 
       --  raise exception 'DATALINK EXCEPTION - external file already linked' 
