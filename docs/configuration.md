@@ -1,3 +1,5 @@
+[Datalink manual](README.md)
+
 Configuration Parameters
 ========================
 
@@ -65,3 +67,5 @@ This should be configured in `/etc/postgresql-common/pg_service.conf` as a servi
 Database used for file authorization, containing linked files and insight tables.
 
 File filter uses `datalink.dl_authorize()` function to check for access privileges.
+
+[Datalink manual](README.md)
