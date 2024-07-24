@@ -10,6 +10,8 @@ It then attempts to modify linked files accordingly.
 
 It is not meant to be run directly, but rather managed with [`dlfm`](dlfm.md) command.
 
+It needs to run as UNIX superuser `root` because it needs to.
+
 Responsibilities
 ----------------
 * Protect files from renaming or deletion (write_access=blocked,admin or token)

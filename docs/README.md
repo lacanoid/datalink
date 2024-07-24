@@ -55,7 +55,7 @@ This extension provides a number of additional features:
 - [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)
 - [File reading and writing](functions.md#user-content-reading-files)
-- Enable file access for non superuser database roles
+- [Enable file access for non superuser database roles](security.md)
 - [Directory permissions system](configuration.md)
 - [Compatibility functions](functions.md#user-content-compatibility-functions)
 

@@ -158,7 +158,7 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
      file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When `anonymous` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
+When parameter `anonymous` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
 This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
 
 #### dlurlcompleteonly( datalink ) → text
@@ -206,7 +206,7 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When `anonymous` is nonzero, then generated read tokens will be unique and 
+When parameter  `anonymous` is nonzero, then generated read tokens will be unique and 
 appropriate records will be inserted into the `datalink.insight` table.
 This can be used to avoid revealing stored tokens and keep evidence of accesses. 
 Access can be revoked by deleting entries from `datalink.insight`.
@@ -380,6 +380,8 @@ Only superuser can execute this function, execute permission for other users mus
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
+When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
+
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 
@@ -414,17 +416,21 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-#### write_text( file_path , content text ) → text
-Write local file contents as text. File must not exist.
+#### write_text( file_path , content text [, persistent int] ) → text
+Write local file contents as text. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
 
+When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
+
 User must have CREATE privilege on the directory.
 
-#### write_text( datalink , content text ) → datalink
-Write datalink contents as text. New version of file is created.
+#### write_text( datalink , content text [, persistent int] ) → datalink
+Write datalink contents as text. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
 This is typically used in UPDATE statements.
+
+When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
 
 Returns new datalink, which can be used for update of a datalink column.
 
