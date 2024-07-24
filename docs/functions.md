@@ -323,7 +323,7 @@ Indicates that a HTTP request was successfully completed.
 URI manipulation
 ----------------
 
-#### uri_get( uri , part ) → text
+#### uri_get( uri text, part ) → text
 
 Get a part of URI, returns text.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
@@ -333,15 +333,15 @@ Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, 
 Get a part of a datalink's URI, returns text.
 Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
 
-#### uri_set( uri , part , value text ) → text
+#### uri_set( uri text, part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `userinfo`, `host`, `port`, `host_port`, `path`, `basename`, `query`, `fragment` or `token`.
 
 Web access
 ----------
 
-#### curl_get( url text, header_only integer ) → record
+#### curl_get( url text [ , header_only integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -353,7 +353,7 @@ Use CURL to fetch content from the World Wide Web via GET request.
     (1 row)
 
 
-If `header_only` > 0 then HEAD request is made instead of GET, returning only headers.
+If `header_only` is nonzero then HEAD request is made instead of GET, returning only headers.
 This is used to check for the existence of `INTEGRITY SELECTIVE` datalinks.
 
 For URLs of scheme `file` and a non null server, the server name is taken to be a name of `postgres_fdw` foreign server.
@@ -376,7 +376,7 @@ Datalink extension needs to be installed on the foreign server as well for this 
 
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
-#### curl_save( local_file file_path, url text ) → record
+#### curl_save( local_file file_path, url text [ , persistent int ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
@@ -416,7 +416,7 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-#### write_text( file_path , content text [, persistent int] ) → text
+#### write_text( file_path , content text [ , persistent int ] ) → text
 Write local file contents as text. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
@@ -425,7 +425,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
-#### write_text( datalink , content text [, persistent int] ) → datalink
+#### write_text( datalink , content text [ , persistent int ] ) → datalink
 Write datalink contents as text. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
 This is typically used in UPDATE statements.
