@@ -417,12 +417,14 @@ New file creation
 #### write_text( file_path , content text ) → text
 Write local file contents as text. File must not exist.
 
-Returns given file path.
+Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
 
 User must have CREATE privilege on the directory.
 
 #### write_text( datalink , content text ) → datalink
 Write datalink contents as text. New version of file is created.
+
+This is typically used in UPDATE statements.
 
 Returns new datalink, which can be used for update of a datalink column.
 
