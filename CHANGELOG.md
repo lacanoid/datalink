@@ -7,8 +7,10 @@ Version 0.24
 - forbid * in file names
 - new `iri()` function to convert IRIs (unicode) to URIs (escaped) 
 - `dlvalue()` now supports `IRI` link type, bug fixes
-- dump/restore improvements (function `datalink.online()`)
+- dump/restore improvements (function `datalink.set_online()`)
 - added `datalink.http_response_codes` reference table 
+- added tables `datalink.dl_access_web` and `datalink.access_web` table and view 
+- added preliminary `has_web_privilege()` functions
 
 Version 0.23
 ------------

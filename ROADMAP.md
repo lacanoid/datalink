@@ -102,6 +102,7 @@ Todo
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
+- datalinker: better behaviour when not configured
 - datalinker: better configurator
 - ✔︎ datalinker: don't die so easily
 - datalinker: signal handler for graceful exit
@@ -126,13 +127,14 @@ Todo
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 - show os owner in `datalink.directory`
-- check read and write permissions in `curl_save()`
+- check  permissions in `curl_save()`
 - trigger on `dl_admin_files` to check that files don't exist
 
 Maybe
 =====
 - ✔︎ perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
+- add DLVALUE(datalink)
 - support for data: URLs
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)

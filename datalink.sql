@@ -2362,22 +2362,22 @@ BEGIN
            coalesce(coalesce(nullif(lower(new.grantee),'public'),'0'), new.grantee)::regrole,
            coalesce(coalesce(nullif(lower(new.grantor),'public'),'0'), new.grantor)::regrole,
     );
-  end if; -- insert
+  end if;  -- insert
   if tg_op = 'UPDATE' THEN
     update datalink.dl_access_web set (url,privilege_type,grantor,grantee)
-    = (
-           new.url,coalesce(new.privilege_type,'SELECT'),
+         = (
+           new.url,new.privilege_type,
            coalesce(coalesce(nullif(lower(new.grantee),'public'),'0'), new.grantee)::regrole,
            coalesce(coalesce(nullif(lower(new.grantor),'public'),'0'), new.grantor)::regrole,
     )
-    where url=old.url and privilege_type=old.privilege_type 
-      and grantee=coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole;
-  end if; -- update
+     where url=old.url and privilege_type=old.privilege_type 
+       and grantee=coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole;
+  end if;  -- update
   if tg_op = 'DELETE' then 
     delete from datalink.dl_access_web
-    where url=old.url and privilege_type=old.privilege_type 
-      and grantee=coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole;
-   return old; 
+     where url=old.url and privilege_type=old.privilege_type 
+       and grantee=coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole;
+    return old; 
   end if; -- delete
   return new;
  end if; -- if datalink.access_web
