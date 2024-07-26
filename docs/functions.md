@@ -37,7 +37,7 @@ For link type `FS`, address is specified as absolute file path (beginning with /
     mydb=> select dlvalue('/var/www/datalink/my file.txt','FS');
                          dlvalue                   
     -------------------------------------------------
-     {"a": "file:///var/www/datalink/my%20file.txt"}
+     {"a": "file:/var/www/datalink/my%20file.txt"}
     (1 row)
 
 Please observe that URLs are escaped, while file paths are not.
@@ -53,7 +53,7 @@ If link type is NULL or ommitted, then it is auto-detected from `address`:
     mydb=> select dlvalue('/var/www/datalink/my file.txt');
                          dlvalue                   
     -------------------------------------------------
-     {"a": "file:///var/www/datalink/my%20file.txt"}
+     {"a": "file:/var/www/datalink/my%20file.txt"}
     (1 row)
 
 When link type is equal to some `dirname` in table `datalink.directory` 
@@ -62,7 +62,7 @@ then `address` is taken to be relative to that directory:
     mydb=> select dlvalue('test1.txt','www');
                             dlvalue                         
     ---------------------------------------------------------
-     {"a": "file:///var/www/datalink/test1.txt", "t": "www"}
+     {"a": "file:/var/www/datalink/test1.txt", "t": "www"}
     (1 row)
 
 #### dlvalue( address text [ , base datalink [ , comment text ] ] ) → datalink
@@ -107,7 +107,7 @@ If `has_token` > 0 then try to stablish token value for a datalink in the follow
 This function will replace content of `target` datalink (a local file)
 with the contents of `source` (can be on anywhere the web). 
 
-Returns a a datalink value, which can be used in an insert or update of a datalink column.
+Returns a a datalink value, which can be used in an INSERT or UPDATE of a datalink column.
 
 Web page is first downloaded directly into a temporary local file from within
 postgres function `datalink.curl_save()` with CURL GET request.
@@ -116,6 +116,15 @@ Updating and commiting a `WRITE ACCESS ADMIN` or `WRITE ACCESS TOKEN` datalink c
 will then cause datalinker to replace contents of a linked file with the downloaded file.
 
 When the transaction concludes, temporary file is deleted.
+
+    mydb=# insert into l values (dlreplacecontent('/var/www/datalink/robots.txt','http://www.google.com/robots.txt'));
+    NOTICE:  DATALINK LINK:/var/www/datalink/robots.txt
+    INSERT 0 1
+
+    mydb=# update l set link = dlreplacecontent(link,'http://www.google.com/robots.txt');
+    NOTICE:  DATALINK UNLINK:/var/www/datalink/robots.txt
+    NOTICE:  DATALINK LINK:/var/www/datalink/robots.txt
+    UPDATE 1
 
 
 
@@ -155,7 +164,7 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
     mydb=> select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
-     file:///var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+     file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
 When parameter `anonymous` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
@@ -181,7 +190,7 @@ The function also omits any `fragment` part of the URL (stuff after #)
     mydb=> select dlurlcompleteonly(link) from t;
              dlurlcompleteonly          
     ------------------------------------
-     file:///var/www/datalink/test1.txt
+     file:/var/www/datalink/test1.txt
     (1 row)
 
 #### dlurlpath( datalink [ , anonymous integer ] ) → text
@@ -356,23 +365,7 @@ Use CURL to fetch content from the World Wide Web via GET request.
 If `header_only` is nonzero then HEAD request is made instead of GET, returning only headers.
 This is used to check for the existence of `INTEGRITY SELECTIVE` datalinks.
 
-For URLs of scheme `file` and a non null server, the server name is taken to be a name of `postgres_fdw` foreign server.
-If one is found and the extension `dblink` is installed then the request is passed on to the foreign server.
-Datalink extension needs to be installed on the foreign server as well for this to work.
-
-    mydb=# create extension postgres_fdw;
-    CREATE EXTENSION
-    mydb=# create server mydb foreign data wrapper postgres_fdw;
-    CREATE SERVER
-    mydb=# create user mapping for current_role server mydb;
-    CREATE USER MAPPING
-    mydb=# select body from datalink.curl_get('file://mydb/etc/issue');
-             body        
-     --------------------
-      Ubuntu 23.10 \n \l
-
-    
-    (1 row)
+When file: URLs refer to files on other servers, [PostgreSQL foreign servers](foreign_server.md) are used.
 
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 

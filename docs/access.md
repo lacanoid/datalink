@@ -28,7 +28,7 @@ update transaction commits. If the transaction is aborted, the file will not be 
 When `write_access` is `ADMIN` then file is changed to 'immutable' state.
 Datalink column can always be updated.
 
-    mydb=# UPDATE my_table SET link=DLVALUE('file:///var/www/datalink/test2.txt');
+    mydb=# UPDATE my_table SET link=DLVALUE('file:/var/www/datalink/test2.txt');
 
 Read access
 -----------  
@@ -42,6 +42,8 @@ This makes file effectively owned and readable by the database server and also
 the web server (apache).
 
 One can read such files with the use of `datalink.read_text()` SQL function.
+
+Read access can be further filtered with the use of (Datalink File Filter)[dlff.md].
 
 Also provided is a mod-perl handler for apache web server, which authenticates
 access for filenames containing read access tokens. This lets you make links to

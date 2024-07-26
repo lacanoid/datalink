@@ -34,19 +34,19 @@ Weird characters in pathnames are properly URI encoded.
     mydb=# select dlvalue('/var/www/datalink/index.html');
                         dlvalue                     
     ------------------------------------------------
-     {"a": "file:///var/www/datalink/index.html"}
+     {"a": "file:/var/www/datalink/index.html"}
     (1 row)
 
     mydb=# select dlvalue('/var/www/datalink/index?.html','FS');
                         dlvalue                     
     ------------------------------------------------
-     {"a": "file:///var/www/datalink/index%3F.html"}
+     {"a": "file:/var/www/datalink/index%3F.html"}
     (1 row)
 
     mydb=# select dlvalue('file:///var/www/datalink/index.html');
                         dlvalue                     
     ------------------------------------------------
-     {"a": "file:///var/www/datalink/index.html"}
+     {"a": "file:/var/www/datalink/index.html"}
     (1 row)
 
 Full form of function `dlvalue()` has a few more optional arguments:

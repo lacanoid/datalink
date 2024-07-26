@@ -48,7 +48,7 @@ Datalinks as defined by SQL/MED should provide:
     - [Read access control through database](access.md)
     - [Write access control through database](access.md)
   - [Point-in-time recovery of file contents](recovery.md)
-- Access to files on different servers (for datalinks with `FILE` scheme)
+- [Access to files on different servers](foreign_server.md) (for datalinks with `FILE` scheme)
 
 This extension provides a number of additional features:
 - [URL manipulation](functions.md#user-content-uri-manipulation)
