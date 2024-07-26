@@ -26,7 +26,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
-URL:  file:///var/www/datalink/test3.txt
+URL:  file:/var/www/datalink/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE
@@ -243,7 +243,7 @@ insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
-URL:  file:///var/www/datalink/test4.txt
+URL:  file:/var/www/datalink/test4.txt
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 76 at RAISE
@@ -252,7 +252,7 @@ insert into my_table4 values (dlvalue('/etc/issue'));
 WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
-URL:  file:///etc/issue
+URL:  file:/etc/issue
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 76 at RAISE

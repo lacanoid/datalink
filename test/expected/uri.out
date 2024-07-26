@@ -3,33 +3,33 @@ SET client_min_messages = notice;
 SET search_path = public,datalink;
 -- test dirurl mapping
 select dlvalue('http://localhost/datalink/test1.txt');
-                   dlvalue                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test1.txt"}
+                  dlvalue                  
+-------------------------------------------
+ {"a": "file:/var/www/datalink/test1.txt"}
 (1 row)
 
 select dlvalue(datalink.uri_set((dlvalue('http://localhost/datalink/test1.txt')::jsonb->>'a')::uri,'src','index.rtf'),null,'hello');
-                          dlvalue                          
------------------------------------------------------------
- {"a": "file:///var/www/datalink/index.rtf", "c": "hello"}
+                         dlvalue                         
+---------------------------------------------------------
+ {"a": "file:/var/www/datalink/index.rtf", "c": "hello"}
 (1 row)
 
 select dlvalue('index.html',dlvalue('http://localhost/datalink/test1.txt'));
-                   dlvalue                    
-----------------------------------------------
- {"a": "file:///var/www/datalink/index.html"}
+                  dlvalue                   
+--------------------------------------------
+ {"a": "file:/var/www/datalink/index.html"}
 (1 row)
 
 select dlvalue('',dlvalue('http://localhost/datalink/test1.txt'));
-                   dlvalue                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test1.txt"}
+                  dlvalue                  
+-------------------------------------------
+ {"a": "file:/var/www/datalink/test1.txt"}
 (1 row)
 
 select dlvalue(null,dlvalue('http://localhost/datalink/test1.txt'));
-                   dlvalue                   
----------------------------------------------
- {"a": "file:///var/www/datalink/test1.txt"}
+                  dlvalue                  
+-------------------------------------------
+ {"a": "file:/var/www/datalink/test1.txt"}
 (1 row)
 
 alter table sample_urls alter url type datalink.url;
@@ -44,7 +44,9 @@ values
   ('mailto:lacanoid@ljudmila.org?subject=feedback'),
   ('https://video.kulturnik.si/?qwhat=galerije&q=piran'),
   ('file:///var/www/datalink/'),
-  ('file:///var/www/datalink')
+  ('file:///var/www/datalink'),
+  ('file:/var/www/datalink'),
+  ('file://localhost/var/www/datalink')
 ;
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
 select url,
@@ -74,8 +76,10 @@ select url,
  https://video.kulturnik.si/?qwhat=galerije&q=piran                      | https  | _null_    | video.kulturnik.si | /                                             | qwhat=galerije&q=piran | _null_                               | https://video.kulturnik.si/?qwhat=galerije&q=piran
  file:///var/www/datalink/                                               | file   | _null_    |                    | /var/www/datalink/                            | _null_                 | _null_                               | file:///var/www/datalink/
  file:///var/www/datalink                                                | file   | _null_    |                    | /var/www/datalink                             | _null_                 | _null_                               | file:///var/www/datalink
+ file:/var/www/datalink                                                  | file   | _null_    | _null_             | /var/www/datalink                             | _null_                 | _null_                               | file:/var/www/datalink
+ file://localhost/var/www/datalink                                       | file   | _null_    | localhost          | /var/www/datalink                             | _null_                 | _null_                               | file://localhost/var/www/datalink
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_    | _null_             | image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | _null_                 | _null_                               | data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=
-(16 rows)
+(18 rows)
 
 select url,
        uri_get(url,'scheme') as scheme,
@@ -101,8 +105,10 @@ select url,
  https://video.kulturnik.si/?qwhat=galerije&q=piran                      | https  | video.kulturnik.si | _null_                                  | https://video.kulturnik.si/foo.bar?qwhat=galerije&q=piran
  file:///var/www/datalink/                                               | file   |                    | _null_                                  | file:///var/www/datalink/foo.bar
  file:///var/www/datalink                                                | file   |                    | datalink                                | file:///var/www/foo.bar
+ file:/var/www/datalink                                                  | file   | _null_             | datalink                                | file:/var/www/foo.bar
+ file://localhost/var/www/datalink                                       | file   | localhost          | datalink                                | file://localhost/var/www/foo.bar
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_             | gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | data:image/foo.bar
-(16 rows)
+(18 rows)
 
 select url,dlpreviouscopy(url::text,0) from sample_urls;
                                    url                                   |                                       dlpreviouscopy                                       
@@ -110,7 +116,7 @@ select url,dlpreviouscopy(url::text,0) from sample_urls;
  http://www.mozilla.org                                                  | {"a": "http://www.mozilla.org", "k": "p"}
  http://www.ljudmila.org                                                 | {"a": "http://www.ljudmila.org", "k": "p"}
  https://www.github.org                                                  | {"a": "https://www.github.org", "k": "p"}
- file:///tmp/a                                                           | {"a": "file:///tmp/a", "k": "p"}
+ file:///tmp/a                                                           | {"a": "file:/tmp/a", "k": "p"}
  http://www.debian.org/                                                  | {"a": "http://www.debian.org/", "k": "p"}
  file://user@fs1.arch.net/file1.jpg                                      | {"a": "file://user@fs1.arch.net/file1.jpg", "k": "p"}
  file://user@file-server/a/b/c/../../fileX.jpg                           | {"a": "file://user@file-server/a/fileX.jpg", "k": "p"}
@@ -120,10 +126,12 @@ select url,dlpreviouscopy(url::text,0) from sample_urls;
  sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1    | {"a": "sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1", "k": "p"}
  mailto:lacanoid@ljudmila.org?subject=feedback                           | {"a": "mailto:lacanoid@ljudmila.org?subject=feedback", "k": "p"}
  https://video.kulturnik.si/?qwhat=galerije&q=piran                      | {"a": "https://video.kulturnik.si/?qwhat=galerije&q=piran", "k": "p"}
- file:///var/www/datalink/                                               | {"a": "file:///var/www/datalink/", "k": "p"}
- file:///var/www/datalink                                                | {"a": "file:///var/www/datalink", "k": "p"}
+ file:///var/www/datalink/                                               | {"a": "file:/var/www/datalink/", "k": "p"}
+ file:///var/www/datalink                                                | {"a": "file:/var/www/datalink", "k": "p"}
+ file:/var/www/datalink                                                  | {"a": "file:/var/www/datalink", "k": "p"}
+ file://localhost/var/www/datalink                                       | {"a": "file:/var/www/datalink", "k": "p"}
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"a": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=", "k": "p"}
-(16 rows)
+(18 rows)
 
 select 'foo/bar'::datalink.file_path;
 ERROR:  value for domain file_path violates check constraint "file_path_absolute"
@@ -175,8 +183,8 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+---------------------------------------------------
-link              | {"a": "file:///var/www/datalink/test4.txt#krneki"}
+-[ RECORD 1 ]-----+-------------------------------------------------
+link              | {"a": "file:/var/www/datalink/test4.txt#krneki"}
 dlurlcomplete     | http://localhost/datalink/test4.txt#krneki
 dlurlcompleteonly | http://localhost/datalink/test4.txt
 dlurlpath         | /var/www/datalink/test4.txt
@@ -207,8 +215,8 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+---------------------------------------------------------------------------------
-link              | {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+-[ RECORD 1 ]-----+-------------------------------------------------------------------------------
+link              | {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
 dlurlcomplete     | http://localhost/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 dlurlcompleteonly | http://localhost/datalink/test3.txt
 dlurlpath         | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
@@ -222,8 +230,8 @@ select link,
        dlurlcompleteonly(link),
        datalink.uri_get(link,'basename') as basename
   from d;
--[ RECORD 1 ]-----+---------------------------------------------------------------------------------------------------
-link              | {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
+-[ RECORD 1 ]-----+-------------------------------------------------------------------------------------------------
+link              | {"a": "file:/var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 dlurlcomplete     | http://localhost/datalink/test3.txt
 dlurlcompleteonly | http://localhost/datalink/test3.txt
 basename          | test3.txt
@@ -268,9 +276,9 @@ CONTEXT:  SQL function "is_valid" statement 1
 select link::uri,datalink.is_local(link) from t;
                 link                 | is_local 
 -------------------------------------+----------
- file:///tmp/file1.txt               | t
  file:/tmp/file1.txt                 | t
- file://localhost/tmp/file1.txt      | t
+ file:/tmp/file1.txt                 | t
+ file:/tmp/file1.txt                 | t
  file://server2/tmp/file1.txt        | f
  http://www.ljudmila.org/robots.txt  | f
  http://www.ljudmila.org/robots2.txt | f

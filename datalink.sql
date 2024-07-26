@@ -991,6 +991,7 @@ begin
  if my_uri is null or length(my_uri)<=0 then  -- only comment
    return case when comment is not null then jsonb_build_object('c',comment) end;
  end if;
+ my_uri := regexp_replace(my_uri,'^file://(localhost)?/','file:/','i'); -- remove localhost
  my_uri := my_uri::datalink.url; -- validate URL
  my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.url,'canonical'));
  if comment is not null then

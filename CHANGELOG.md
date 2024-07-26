@@ -11,6 +11,7 @@ Version 0.24
 - added `datalink.http_response_codes` reference table 
 - added tables `datalink.dl_access_web` and `datalink.access_web` table and view 
 - added preliminary `has_web_privilege()` functions
+- simplify file: URLs without host
 
 Version 0.23
 ------------

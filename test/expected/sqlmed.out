@@ -36,9 +36,9 @@ select dlurlpath(dlvalue('FiLe://SeRvEr1/EtC/IsSuE'));
 (1 row)
 
 select dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS');
-                               dlvalue                               
----------------------------------------------------------------------
- {"a": "file:///tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#%3F"}
+                              dlvalue                              
+-------------------------------------------------------------------
+ {"a": "file:/tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#%3F"}
 (1 row)
 
 select dlurlpath(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
@@ -48,9 +48,9 @@ select dlurlpath(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
 (1 row)
 
 select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
-                       dlurlcomplete                        
-------------------------------------------------------------
- file:///tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#%3F
+                      dlurlcomplete                       
+----------------------------------------------------------
+ file:/tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#%3F
 (1 row)
 
 insert into sample_urls (url)
@@ -85,13 +85,13 @@ values
   ('/var/www/datalink/testX.txt'),
   ('/var/www/datalink/CHANGELOG.md');
 select *,dlvalue(filename) from sample_files;
- id |                             filename                             |                                     dlvalue                                      
-----+------------------------------------------------------------------+----------------------------------------------------------------------------------
-  1 | /var/www/datalink/test1.txt                                      | {"a": "file:///var/www/datalink/test1.txt"}
-  2 | /var/www/datalink/test2.txt                                      | {"a": "file:///var/www/datalink/test2.txt"}
-  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
-  4 | /var/www/datalink/testX.txt                                      | {"a": "file:///var/www/datalink/testX.txt"}
-  5 | /var/www/datalink/CHANGELOG.md                                   | {"a": "file:///var/www/datalink/CHANGELOG.md"}
+ id |                             filename                             |                                    dlvalue                                     
+----+------------------------------------------------------------------+--------------------------------------------------------------------------------
+  1 | /var/www/datalink/test1.txt                                      | {"a": "file:/var/www/datalink/test1.txt"}
+  2 | /var/www/datalink/test2.txt                                      | {"a": "file:/var/www/datalink/test2.txt"}
+  3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
+  4 | /var/www/datalink/testX.txt                                      | {"a": "file:/var/www/datalink/testX.txt"}
+  5 | /var/www/datalink/CHANGELOG.md                                   | {"a": "file:/var/www/datalink/CHANGELOG.md"}
 (5 rows)
 
 ---------------------
@@ -128,7 +128,7 @@ NOTICE:  DATALINK DDL:TRIGGER on med
 -- case 1.a.1 referenced file does not exist
 insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file')); -- err
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
-URL:  file:///var/www/datalink/non_existant_file
+URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE
@@ -164,7 +164,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
-URL:  file:///var/www/datalink/non_existant_file
+URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE

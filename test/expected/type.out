@@ -15,7 +15,7 @@ select dlvalue('');
 
 select dlvalue('foo');
 ERROR:  value for domain datalink.url violates check constraint "url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 41 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 42 at assignment
 select dlvalue('http://www.ljudmila.org/');
               dlvalue              
 -----------------------------------
@@ -35,21 +35,21 @@ select dlvalue('HTTP://WWW.ljudmila.org/A/B/c','URL');
 (1 row)
 
 select dlvalue('/tmp','FS','Example file datalink');
-                      dlvalue                       
-----------------------------------------------------
- {"a": "file:///tmp", "c": "Example file datalink"}
+                     dlvalue                      
+--------------------------------------------------
+ {"a": "file:/tmp", "c": "Example file datalink"}
 (1 row)
 
 select dlvalue('file:///tmp','URL','Example file datalink #2');
-                        dlvalue                        
--------------------------------------------------------
- {"a": "file:///tmp", "c": "Example file datalink #2"}
+                       dlvalue                       
+-----------------------------------------------------
+ {"a": "file:/tmp", "c": "Example file datalink #2"}
 (1 row)
 
 select dlvalue('file:///tmp/a/b/c/d/../../x/y','URL','Example file datalink #3');
-                            dlvalue                            
----------------------------------------------------------------
- {"a": "file:///tmp/a/b/x/y", "c": "Example file datalink #3"}
+                           dlvalue                           
+-------------------------------------------------------------
+ {"a": "file:/tmp/a/b/x/y", "c": "Example file datalink #3"}
 (1 row)
 
 select dlvalue('favicon.ico',dlvalue('http://www.ljudmila.org/index.html'));
@@ -59,9 +59,9 @@ select dlvalue('favicon.ico',dlvalue('http://www.ljudmila.org/index.html'));
 (1 row)
 
 select dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/'),'Comment');
-                                             dlvalue                                              
---------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "c": "Comment"}
+                                            dlvalue                                             
+------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "c": "Comment"}
 (1 row)
 
 select dlurlpath(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced',dlvalue('/var/www/datalink/')));
@@ -101,75 +101,75 @@ select dlurlcompleteonly(dlvalue('http://www.ljudmila.org/','URL','Example datal
 (1 row)
 
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0);
-                                       dlpreviouscopy                                       
---------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "k": "p"}
+                                      dlpreviouscopy                                      
+------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1);
-                                           dlpreviouscopy                                           
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
+                                          dlpreviouscopy                                          
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0)::jsonb - 'b';
-                       ?column?                        
--------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
+                      ?column?                       
+-----------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1)::jsonb - 'b';
-                                              ?column?                                              
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                             ?column?                                             
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
-                       ?column?                        
--------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "p"}
+                      ?column?                       
+-----------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
-                                              ?column?                                              
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "p", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                             ?column?                                             
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "p", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
-                       ?column?                        
--------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "p"}
+                      ?column?                       
+-----------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlnewcopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1);
-                                           dlpreviouscopy                                           
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
+                                          dlpreviouscopy                                          
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),0)::jsonb - 'b';
-                       ?column?                        
--------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
+                      ?column?                       
+-----------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),0)::jsonb - 'b';
-                       ?column?                        
--------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n"}
+                      ?column?                       
+-----------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),0),1)::jsonb - 'b';
-                                              ?column?                                              
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                             ?column?                                             
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlnewcopy(dlpreviouscopy(dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),1),1)::jsonb - 'b';
-                                              ?column?                                              
-----------------------------------------------------------------------------------------------------
- {"a": "file:///var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
+                                             ?column?                                             
+--------------------------------------------------------------------------------------------------
+ {"a": "file:/var/www/datalink/test3.txt", "k": "n", "o": "11111111-2222-3333-4444-abecedabeced"}
 (1 row)
 
 select dlnewcopy(dlvalue('http://www.ljudmila.org/'),0)::jsonb - 'b';
@@ -197,37 +197,37 @@ select (dlpreviouscopy(dlvalue('http://www.ljudmila.org'),1))::jsonb->>'b' is no
 (1 row)
 
 select dlpreviouscopy(dlvalue('/tmp/file1','FS'),0);
-            dlpreviouscopy            
---------------------------------------
- {"a": "file:///tmp/file1", "k": "p"}
+           dlpreviouscopy           
+------------------------------------
+ {"a": "file:/tmp/file1", "k": "p"}
 (1 row)
 
 select key,case when key is distinct from 'b' then value end as value
   from jsonb_each(dlpreviouscopy(dlvalue('/tmp/file1','FS','Previous copy'),1)::jsonb);
- key |        value        
------+---------------------
- a   | "file:///tmp/file1"
+ key |       value       
+-----+-------------------
+ a   | "file:/tmp/file1"
  b   | _null_
  c   | "Previous copy"
  k   | "p"
 (4 rows)
 
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),0);
-                              dlpreviouscopy                               
----------------------------------------------------------------------------
- {"a": "file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
+                             dlpreviouscopy                              
+-------------------------------------------------------------------------
+ {"a": "file:/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy(dlvalue('/tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121','FS'),1);
-                                  dlpreviouscopy                                   
------------------------------------------------------------------------------------
- {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
+                                 dlpreviouscopy                                  
+---------------------------------------------------------------------------------
+ {"a": "file:/tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy('file:///tmp/file1#e5ed6a45-dc2f-42d2-a746-10c368677121',1);
-                                  dlpreviouscopy                                   
------------------------------------------------------------------------------------
- {"a": "file:///tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
+                                 dlpreviouscopy                                  
+---------------------------------------------------------------------------------
+ {"a": "file:/tmp/file1", "b": "e5ed6a45-dc2f-42d2-a746-10c368677121", "k": "p"}
 (1 row)
 
 select dlpreviouscopy('file:///tmp/file1#krneki',1);
@@ -295,9 +295,9 @@ select dllinktype(dlvalue('/etc/issue','FS'));
 (1 row)
 
 select dlvalue('/etc/züöl');
-               dlvalue               
--------------------------------------
- {"a": "file:///etc/z%C3%BC%C3%B6l"}
+              dlvalue              
+-----------------------------------
+ {"a": "file:/etc/z%C3%BC%C3%B6l"}
 (1 row)
 
 select dlurlpath(dlvalue('/etc/züöl'));
@@ -307,9 +307,9 @@ select dlurlpath(dlvalue('/etc/züöl'));
 (1 row)
 
 select dlvalue('/etc/foo[1](2)#3');
-                 dlvalue                  
-------------------------------------------
- {"a": "file:///etc/foo%5B1%5D%282%29#3"}
+                dlvalue                 
+----------------------------------------
+ {"a": "file:/etc/foo%5B1%5D%282%29#3"}
 (1 row)
 
 select dlurlpath(dlvalue('/etc/foo[1](2)#3'));
@@ -319,18 +319,18 @@ select dlurlpath(dlvalue('/etc/foo[1](2)#3'));
 (1 row)
 
 select dlvalue('/etc/issue');
-          dlvalue           
-----------------------------
- {"a": "file:///etc/issue"}
+         dlvalue          
+--------------------------
+ {"a": "file:/etc/issue"}
 (1 row)
 
 select dlvalue('/etc/issue','URL');
 ERROR:  value for domain datalink.url violates check constraint "url_check"
-CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 41 at assignment
+CONTEXT:  PL/pgSQL function dlvalue(text,datalink.dl_linktype,text) line 42 at assignment
 select dlvalue('/etc/issue','FS');
-          dlvalue           
-----------------------------
- {"a": "file:///etc/issue"}
+         dlvalue          
+--------------------------
+ {"a": "file:/etc/issue"}
 (1 row)
 
 select dlvalue('/etc/issue','FILE');

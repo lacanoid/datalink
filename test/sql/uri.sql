@@ -23,7 +23,9 @@ values
   ('mailto:lacanoid@ljudmila.org?subject=feedback'),
   ('https://video.kulturnik.si/?qwhat=galerije&q=piran'),
   ('file:///var/www/datalink/'),
-  ('file:///var/www/datalink')
+  ('file:///var/www/datalink'),
+  ('file:/var/www/datalink'),
+  ('file://localhost/var/www/datalink')
 ;
 
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');

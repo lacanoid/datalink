@@ -107,9 +107,9 @@ WARNING:  DATALINK WARNING - datalinker required
 HINT:  make sure pg_datalinker process is running to finalize your commits
 NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
 select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
-                    ?column?                    
-------------------------------------------------
- {"a": "file:///var/www/datalink/CHANGELOG.md"}
+                   ?column?                   
+----------------------------------------------
+ {"a": "file:/var/www/datalink/CHANGELOG.md"}
 (1 row)
 
 NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
@@ -159,27 +159,27 @@ update datalink.directory
        dirurl='http://localhost/datalink/'
  where dirpath='/var/www/datalink/';
 select dlvalue('hello.txt','www');
-                         dlvalue                         
----------------------------------------------------------
- {"a": "file:///var/www/datalink/hello.txt", "t": "www"}
+                        dlvalue                        
+-------------------------------------------------------
+ {"a": "file:/var/www/datalink/hello.txt", "t": "www"}
 (1 row)
 
 select dlvalue('','www');
-                    dlvalue                     
-------------------------------------------------
- {"a": "file:///var/www/datalink/", "t": "www"}
+                   dlvalue                    
+----------------------------------------------
+ {"a": "file:/var/www/datalink/", "t": "www"}
 (1 row)
 
 select dlvalue(NULL,'www');
-                    dlvalue                     
-------------------------------------------------
- {"a": "file:///var/www/datalink/", "t": "www"}
+                   dlvalue                    
+----------------------------------------------
+ {"a": "file:/var/www/datalink/", "t": "www"}
 (1 row)
 
 select dlvalue('http://localhost/datalink/CHANGELOG.md');
-                    dlvalue                     
-------------------------------------------------
- {"a": "file:///var/www/datalink/CHANGELOG.md"}
+                   dlvalue                    
+----------------------------------------------
+ {"a": "file:/var/www/datalink/CHANGELOG.md"}
 (1 row)
 
 select dlurlcomplete(dlvalue('http://localhost/datalink/CHANGELOG.md'));
