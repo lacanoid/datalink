@@ -69,7 +69,7 @@ Bugs and Issues
 
 - update link=dlnewcopy(link) for on unlink delete looses file
 - datalinker: permissions are wrong on restored files
-- multiple updates with write_text() in one transaction fail
+- multiple updates with write_text() in one transaction fails
 - apache handler vs unicode urls
 - critical states in whole setup (sometimes permissions don't get restored ok)
 

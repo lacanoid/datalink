@@ -383,16 +383,15 @@ sub file_link {
 #        file_read_access_db($path1,$opt);
 #    }
 
-    if(file_has_backup($path,$opt)) {
-	if(!$have || $opt->{recovery} eq 'YES' ||
-	   $opt->{write_access} eq 'ADMIN' ||
-	   $opt->{write_access} eq 'TOKEN') {
-	    file_backup_restore($path,$opt);
-	}
-	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
-    } else {
-	if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
-	if($opt->{recovery} eq 'YES') { file_backup($path,$opt); }
+    if(file_has_backup($path,$opt)) { # has backup
+        if(!$have || $opt->{recovery} eq 'YES' || 
+           $opt->{write_access} eq 'ADMIN' || $opt->{write_access} eq 'TOKEN') {
+            file_backup_restore($path,$opt);
+        }
+        if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
+    } else { # no backup
+        if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
+        if($opt->{recovery} eq 'YES') { file_backup($path,$opt); }
     } 
     
     my $r = { own => $s->{uid}.":".$s->{gid}, 

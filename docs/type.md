@@ -3,7 +3,7 @@
 Datalink type
 ==============
 
-You can create datalink values from text URLs by using [`dlvalue()`](functions.md#user-content-sql-datalink-constructors) function.
+One can create datalink values from text URLs by using [`dlvalue()`](functions.md#user-content-sql-datalink-constructors) function.
 
     mydb=> select dlvalue('http://www.github.io/');
                   dlvalue              
@@ -15,7 +15,7 @@ One can think of datalinks as 'bookmarks' to internet resources.
 
 Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque values.
 
-You will normally want to store datalinks in tables:
+One will normally want to store datalinks in tables:
 
     mydb=> create table t ( link datalink );
     CREATE TABLE
