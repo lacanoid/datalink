@@ -88,6 +88,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
  datalink     | uri_set(uri,text,text)                                                                       | plperlu  | Set (replace) parts of URI
+ datalink     | write(file_path,bytea,integer)                                                               | plperlu  | Write new local file contents as binary
  datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
  datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
  datalink     | datalink.substr(datalink,integer,integer)                                                    | sql      | 
@@ -117,6 +118,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(96 rows)
+(97 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

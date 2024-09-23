@@ -395,6 +395,15 @@ Read datalink contents as text. Datalink can be anywhere on the web.
 
 Returns text.
 
+#### read( file_path [ , position [ , length ] ] ) → bytea 
+Read local file contents as binary. 
+
+Returns bytea.
+
+If the file is linked with `READ ACCESS DB` access is first checked with `dl_authorize()`.
+This implements access with filename-embedded read tokens as per SQL standard.
+A user can alternatively have SELECT privilege on the directory to read the file.
+
 #### read_lines( file_path [ , position ] ) → table (i,o,line)
 Read local file contents as lines of text.
 
@@ -413,6 +422,10 @@ New file creation
 Write local file contents as text. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
+    
+    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
+    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    INSERT 0 1
 
 When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
 
@@ -423,10 +436,23 @@ Write datalink contents as text. New version of file is created and then old fil
 
 This is typically used in UPDATE statements.
 
+    mydb=# update l set link = datalink.write_text(link,'New content');
+    NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
+    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    UPDATE 1
+
 When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
 
 Returns new datalink, which can be used for update of a datalink column.
 
+#### write( file_path , content bytea [ , persistent int ] ) → text
+Write local file contents as binary. File must not exist. This is to prevent overwriting existing files.
+
+Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
+
+When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
+
+User must have CREATE privilege on the directory.
 
 Compatibility functions
 -----------------------

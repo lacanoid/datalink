@@ -2166,6 +2166,37 @@ $function$;
 COMMENT ON FUNCTION write_text(file_path,text,integer) IS 
   'Write new local file contents as text';
 
+CREATE OR REPLACE FUNCTION write(filename file_path, content bytea, persistent integer default 0)
+ RETURNS text
+ LANGUAGE plperlu
+AS $function$
+  use strict vars; 
+  my ($filename,$bufr,$persistent)=@_;
+  my $fh;
+  my $op = ($persistent>0)?'w':'t';
+
+  my $q = q{select datalink.has_file_privilege($1,$2,true) as ok, user};
+  my $p = spi_prepare($q,'datalink.file_path','text');
+  my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
+  unless($fs->{ok} eq 't') { 
+    die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
+        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+  }
+
+  if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
+
+  $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
+  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
+
+  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
+  binmode($fh)
+  print $fh encode_bytea($bufr);
+  close $fh;
+  return $filename;
+$function$;
+COMMENT ON FUNCTION write(file_path,bytea,integer) IS 
+  'Write new local file contents as binary';
+
 ---------------------------------------------------
 
 CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent integer default 0)
