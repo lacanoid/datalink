@@ -2189,8 +2189,8 @@ AS $function$
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
 
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
-  binmode($fh)
-  print $fh encode_bytea($bufr);
+  binmode($fh);
+  print $fh decode_bytea($bufr);
   close $fh;
   return $filename;
 $function$;
@@ -2217,6 +2217,25 @@ end
 $function$;
 COMMENT ON FUNCTION write_text(datalink,text,integer) IS 
   'Write datalink contents as text';
+
+CREATE OR REPLACE FUNCTION write(link datalink, content bytea, persistent integer default 0)
+ RETURNS datalink
+ LANGUAGE plpgsql
+AS $function$
+begin
+ if not datalink.is_local(link) THEN
+    raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+              using errcode = 'HW005',
+                    detail = 'write can only be used with local file URLs',
+                    hint = 'make sure you are using a file: URL scheme';
+ end if;
+ link := dlnewcopy(link);
+ perform datalink.write(dlurlpathwrite(link),content,persistent);
+ return link;
+end
+$function$;
+COMMENT ON FUNCTION write(datalink,bytea,integer) IS 
+  'Write datalink contents as binary';
 
 ---------------------------------------------------
 -- bfile compatibility functions

@@ -454,6 +454,15 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
+#### write( datalink , content bytea [ , persistent int ] ) → datalink
+Write datalink contents as binary. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
+
+This is typically used in UPDATE statements.
+
+When parameter `persistent` is nonzero, then created file will be permanent, otherwise it will be temporary and deleted and the end of the transaction.
+
+Returns new datalink, which can be used for update of a datalink column.
+
 Compatibility functions
 -----------------------
 
