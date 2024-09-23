@@ -29,7 +29,7 @@ Wanted
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
-- better documentation (manual)
+- ✔︎ better documentation (manual)
 - better handling of already immutable files
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
@@ -52,9 +52,9 @@ Wanted
 - functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
-- improve support for 'file:/dir/' URLs
 - proper substring instead of file position offsets in `substr()`
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
+- function to create new unused filename
 
 Advanced
 --------
@@ -154,6 +154,7 @@ Maybe
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - build simple webserver into pg_datalinker
+- rename pg_linked_files to pg_files_linked, pg_admin_files to pg_files_new
 
 BFile API
 =========

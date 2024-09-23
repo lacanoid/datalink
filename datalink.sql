@@ -477,6 +477,22 @@ return {
 $function$;
 COMMENT ON FUNCTION stat(file_path) IS 'Return info record from stat(2)';
 
+CREATE OR REPLACE FUNCTION stat(link datalink,
+   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
+   OUT uid integer, OUT gid integer,
+   OUT rdev integer, OUT size numeric, 
+   OUT atime numeric,
+   OUT mtime numeric, 
+   OUT ctime numeric,
+   OUT blksize integer, OUT blocks bigint)
+   RETURNS record
+  LANGUAGE sql
+   STRICT
+   AS $function$
+select * from datalink.stat(dlurlpathonly($1))
+$function$;
+COMMENT ON FUNCTION stat(datalink) IS 'Return info record from stat(2)';
+
 -- return most appropriate path to a file 
 -- return NULL if file does not exist
 create or replace function filepath(datalink) returns text as $$
@@ -2059,6 +2075,29 @@ $$;
 COMMENT ON FUNCTION read_text(file_path,bigint,bigint) IS 
   'Read local file contents as text';
 
+CREATE OR REPLACE FUNCTION read(filename file_path, pos bigint default 1, len bigint default null)
+ RETURNS bytea
+ LANGUAGE plperlu AS $$
+  use strict vars; 
+  my ($filename,$pos,$len)=@_;
+
+  my $q=q{select datalink.dl_authorize($1,0) as path};
+  my $p = spi_prepare($q,'datalink.file_path');
+  my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
+  if(defined($fs->{path})) { $filename=$fs->{path}; }
+
+  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
+  binmode $fh;
+  if($pos>1) { seek($fh,$pos-1,0); }
+  my $i=1; my $o=$pos; my $bufr;
+  if(defined($len)) { read $fh,$bufr,$len; } 
+  else { local $/; $bufr = <$fh>; }
+  close $fh;
+  return encode_bytea($bufr);
+$$;
+COMMENT ON FUNCTION read(file_path,bigint,bigint) IS 
+  'Read local file contents as binary';
+
 ---------------------------------------------------
 CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
  RETURNS TABLE(i integer, o bigint, line text)
@@ -2676,6 +2715,7 @@ grant select on usage to public;
 ---------------------------------------------------
 
 create table sample_datalinks ( link datalink(1) );
+alter table sample_datalinks add check (datalink.is_http_success(link));
 grant select on sample_datalinks to public;
 comment on table sample_datalinks
      is 'Sample datalinks with selective integrity';

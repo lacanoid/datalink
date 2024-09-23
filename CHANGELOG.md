@@ -4,6 +4,7 @@ Version 0.24
 - added preliminary `dlreplacecontent()` function to replace the content of a linked file.
 - `dl_directory` check constraint that dirpath is like '/%/'
 - new `is_local()`, `is_valid()` as `is_http_success()` immutable functions, for use in check constraints and such
+- add `read()` function to read binary files
 - forbid * in file names
 - new `iri()` function to convert IRIs (unicode) to URIs (escaped) 
 - `dlvalue()` now supports `IRI` link type, bug fixes

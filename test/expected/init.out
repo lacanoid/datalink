@@ -72,6 +72,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | link_control_options(datalink)                                                               | sql      | Get link_control_options for a linked datalink
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for a datalink column
+ datalink     | read(file_path,bigint,bigint)                                                                | plperlu  | Read local file contents as binary
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream local file referenced by a datalink as lines of text
  datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream local file as lines of text
  datalink     | read_text(datalink,bigint,bigint)                                                            | plpgsql  | Read datalink contents as text
@@ -80,6 +81,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | revisions(datalink)                                                                          | sql      | All available previous revisions of a datalink
  datalink     | revisions(file_path)                                                                         | plpgsql  | All available previous revisions of a file as datalinks
  datalink     | set_online(boolean)                                                                          | plpgsql  | Set datalink online status for dump/restore
+ datalink     | stat(datalink)                                                                               | sql      | Return info record from stat(2)
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
  datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
@@ -115,6 +117,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(94 rows)
+(96 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
