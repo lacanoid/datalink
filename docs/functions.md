@@ -350,7 +350,7 @@ Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `useri
 Web access
 ----------
 
-#### curl_get( url text [ , header_only integer ] ) → record
+#### curl_get( url text [ , header_only integer [ , binary integer ] ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -364,6 +364,8 @@ Use CURL to fetch content from the World Wide Web via GET request.
 
 If `header_only` is nonzero then HEAD request is made instead of GET, returning only headers.
 This is used to check for the existence of `INTEGRITY SELECTIVE` datalinks.
+
+When parameter `binary` is nonzero, then returned body will be bytea encoded. You will probably explicitly need to cast it bytea type.
 
 When file: URLs refer to files on other servers, [PostgreSQL foreign servers](foreign_server.md) are used.
 

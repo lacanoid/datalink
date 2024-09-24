@@ -488,9 +488,9 @@ CREATE OR REPLACE FUNCTION stat(link datalink,
    RETURNS record
   LANGUAGE sql
    STRICT
-   AS $function$
-select * from datalink.stat(dlurlpathonly($1))
-$function$;
+   AS $$
+    select * from datalink.stat(dlurlpathonly($1))
+$$;
 COMMENT ON FUNCTION stat(datalink) IS 'Return info record from stat(2)';
 
 -- return most appropriate path to a file 
