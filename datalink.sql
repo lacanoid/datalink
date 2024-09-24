@@ -499,14 +499,15 @@ create or replace function filepath(datalink) returns text as $$
 declare p text;
 begin
   if datalink.is_local($1) then
-    p := dlurlpathwrite($1);
+    p := datalink.filepathwrite($1);
     if (datalink.stat(p)).size is not null then return p; end if;
-    p := dlurlpathonly($1);
+    p := pg_catalog.dlurlpathonly($1);
     if (datalink.stat(p)).size is not null then return p; end if;
   end if;
   return null;
 end
 $$ language plpgsql strict;
+comment on function filepath(datalink) is 'Returns the read file path from DATALINK value';
 
 ---------------------------------------------------
 -- link a file to SQL
@@ -1867,7 +1868,7 @@ IS 'SQL/MED - Returns the file path from URL';
 
 ---------------------------------------------------
 
-CREATE FUNCTION pg_catalog.dlurlpathwrite(datalink)
+CREATE FUNCTION filepathwrite(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
@@ -1878,14 +1879,14 @@ CREATE FUNCTION pg_catalog.dlurlpathwrite(datalink)
           )
 $function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(datalink)
-     IS 'SQL/MED - Returns the write file path from DATALINK value';
+COMMENT ON FUNCTION filepathwrite(datalink)
+     IS 'Returns the write file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpathwrite(text) RETURNS text
+CREATE FUNCTION filepathwrite(text) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
-AS $_$ select dlurlpathwrite(dlvalue($1)) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(text) 
-IS 'SQL/MED - Returns the write file path from URL';
+AS $_$ select datalink.filepathwrite(dlvalue($1)) $_$;
+COMMENT ON FUNCTION filepathwrite(text) 
+IS 'Returns the write file path from URL';
 
 ---------------------------------------------------
 
@@ -1893,7 +1894,7 @@ CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $function$select datalink.uri_get($1::jsonb->>'a','path')$function$;
+   AS $$ select datalink.uri_get($1::jsonb->>'a','path') $$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
      IS 'SQL/MED - Returns the file path from DATALINK value';
@@ -1931,9 +1932,9 @@ DECLARE
   url text;
   r record;
 BEGIN
-  link := dlnewcopy(link);
-  path := dlurlpathwrite(link);
-  url := dlurlcompleteonly(new_content);
+  link := pg_catalog.dlnewcopy(link);
+  path := datalink.filepathwrite(link);
+  url  := pg_catalog.dlurlcompleteonly(new_content);
 
   r := datalink.curl_save(path,url);
   if not r.ok then
@@ -1970,7 +1971,7 @@ alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 
 create function dl_url(datalink) returns uri 
   language sql strict immutable 
-as $$select dlurlcomplete($1)::uri$$;
+as $$ select dlurlcomplete($1)::uri $$;
 
 create cast (datalink as uri) with function datalink.dl_url;
 
@@ -2239,7 +2240,7 @@ begin
                     hint = 'make sure you are using a file: URL scheme';
  end if;
  link := dlnewcopy(link);
- perform datalink.write_text(dlurlpathwrite(link),content,persistent);
+ perform datalink.write_text(datalink.filepathwrite(link),content,persistent);
  return link;
 end
 $function$;
@@ -2258,7 +2259,7 @@ begin
                     hint = 'make sure you are using a file: URL scheme';
  end if;
  link := dlnewcopy(link);
- perform datalink.write(dlurlpathwrite(link),content,persistent);
+ perform datalink.write(datalink.filepathwrite(link),content,persistent);
  return link;
 end
 $function$;

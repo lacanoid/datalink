@@ -55,6 +55,7 @@ Wanted
 - proper substring instead of file position offsets in `substr()`
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
 - function to create new unused filename
+- improve support for data: URLs
 
 Advanced
 --------
@@ -133,6 +134,7 @@ Todo
 - show os owner in `datalink.directory`
 - check  permissions in `curl_save()`
 - trigger on `dl_admin_files` to check that files don't exist
+- files with ON UNLINK DELETE don't get deleted if the have not been linked first
 
 Maybe
 =====

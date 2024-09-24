@@ -14,6 +14,8 @@ Version 0.24
 - added tables `datalink.dl_access_web` and `datalink.access_web` table and view 
 - added preliminary `has_web_privilege()` functions
 - simplify `file:` URLs to be without host if not needed
+- rename `dlurlpathwrite()` to `datalink.filepathwrite()` as it doesn't conform to the standard
+- rename `dl_file_admin()` to `dl_file_new()`
 
 Version 0.23
 ------------
@@ -29,7 +31,7 @@ Version 0.23
 - lco number assignment changes in `link_control_options` to be more logical
 - some boolean args changed to integer to be more consistent
 - new `commit()` procedure
-- new `dl_admin_files` table to keep track of *administered* files, this is currently used to keep track of files created with `write_file()`.
+- new `dl_admin_files` table to keep track of *administered* files, this is currently used to keep track of files created with `write_text()`.
 - new `dl_file_admin()` function
 - datalinker status improvements
 - datalinker now automatically deletes temporary files and files created in aborted transactions ($opt_A)

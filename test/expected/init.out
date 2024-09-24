@@ -40,8 +40,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlpath(text,integer)                                                                      | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathonly(datalink)                                                                      | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpathonly(text)                                                                          | sql      | SQL/MED - Returns the file path from URL
- pg_catalog   | dlurlpathwrite(datalink)                                                                     | sql      | SQL/MED - Returns the write file path from DATALINK value
- pg_catalog   | dlurlpathwrite(text)                                                                         | sql      | SQL/MED - Returns the write file path from URL
  pg_catalog   | dlurlscheme(datalink)                                                                        | sql      | SQL/MED - Returns the scheme from DATALINK value
  pg_catalog   | dlurlscheme(text)                                                                            | sql      | SQL/MED - Returns the scheme from URL
  pg_catalog   | dlurlserver(datalink)                                                                        | sql      | SQL/MED - Returns the file server from DATALINK value
@@ -59,6 +57,9 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | fileexists(file_path)                                                                        | sql      | BFILE - Returns whether file exists
  datalink     | filegetname(datalink)                                                                        | sql      | BFILE - Returns directory name and filename for a datalink
  datalink     | filegetname(file_path)                                                                       | sql      | BFILE - Returns directory name and filename for a file
+ datalink     | filepath(datalink)                                                                           | plpgsql  | Returns the read file path from DATALINK value
+ datalink     | filepathwrite(datalink)                                                                      | sql      | Returns the write file path from DATALINK value
+ datalink     | filepathwrite(text)                                                                          | sql      | Returns the write file path from URL
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
  datalink     | getlength(file_path)                                                                         | sql      | BFILE - Returns file size
  datalink     | has_datalinker()                                                                             | sql      | Is datalinker process currently running?
@@ -114,7 +115,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | dl_url_makeinsight(text,dl_token,integer)                                                    | plpgsql  | 
  datalink     | filegetdirectory(file_path)                                                                  | sql      | 
- datalink     | filepath(datalink)                                                                           | plpgsql  | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
