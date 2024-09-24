@@ -5,6 +5,7 @@ Version 0.24
 - `dl_directory` check constraint that dirpath is like '/%/'
 - new `is_local()`, `is_valid()` as `is_http_success()` immutable functions, for use in check constraints and such
 - add `read()` and `write()` functions to read and write binary files
+- add `has_updated(datalink)` to check for file changes
 - forbid * in file names
 - new `iri()` function to convert IRIs (unicode) to URIs (escaped) 
 - `dlvalue()` now supports `IRI` link type, bug fixes

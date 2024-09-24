@@ -52,3 +52,12 @@ select read(dlvalue('/var/www/datalink/utf8.txt'),4,10);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4,10);
+
+insert into my_table2 values (dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(link) from my_table2;
+\! touch /var/www/datalink/utf8.txt
+select datalink.has_updated(link) from my_table2;
+update my_table2 set link=dlnewcopy(link);
+select datalink.has_updated(link) from my_table2;
+truncate my_table2;
+

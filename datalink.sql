@@ -2622,6 +2622,28 @@ COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
 
 ---------------------------------------------------
+
+CREATE FUNCTION has_updated(datalink) 
+returns boolean language sql SECURITY DEFINER
+as $$
+  select to_timestamp((datalink.stat($1)).mtime::double precision) > mtime
+    from datalink.dl_linked_files f 
+   where f.token = ($1::jsonb->>'b')::datalink.dl_token
+$$;
+COMMENT ON FUNCTION has_updated(datalink) 
+     IS 'Check if linked file has been updated since it was linked';
+
+CREATE OR REPLACE FUNCTION dl_lco(datalink) 
+RETURNS dl_lco LANGUAGE sql 
+SECURITY DEFINER
+AS $function$
+select coalesce((select lco
+                   from datalink.dl_linked_files f where f.token = ($1::jsonb->>'b')::datalink.dl_token)
+               ,0)::datalink.dl_lco
+$function$;
+
+
+---------------------------------------------------
 -- insight (file lookup) table
 ---------------------------------------------------
 

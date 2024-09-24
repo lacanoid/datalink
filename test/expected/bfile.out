@@ -86,6 +86,94 @@ select read_text('/var/www/datalink/utf8.txt');
  
 (1 row)
 
+select read_text('/var/www/datalink/utf8.txt',11);
+                                               read_text                                               
+-------------------------------------------------------------------------------------------------------
+ je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                                              +
+ Some 32bit emojis: 🪙🩲                                                                              +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
+ The end.                                                                                             +
+                                                                                                      +
+                                                                                                      +
+                                                                                                      +
+ 
+(1 row)
+
+select read_text('/var/www/datalink/utf8.txt',11,10);
+ read_text  
+------------
+ je spletni
+(1 row)
+
+select read_text(dlvalue('/var/www/datalink/utf8.txt'));
+                                                    read_text                                                    
+-----------------------------------------------------------------------------------------------------------------
+ Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                                                        +
+ Some 32bit emojis: 🪙🩲                                                                                        +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                                                         +
+ The end.                                                                                                       +
+                                                                                                                +
+                                                                                                                +
+                                                                                                                +
+ 
+(1 row)
+
+select read_text(dlvalue('/var/www/datalink/utf8.txt'),11);
+                                               read_text                                               
+-------------------------------------------------------------------------------------------------------
+ je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                                              +
+ Some 32bit emojis: 🪙🩲                                                                              +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
+ The end.                                                                                             +
+                                                                                                      +
+                                                                                                      +
+                                                                                                      +
+ 
+(1 row)
+
+select read_text(dlvalue('/var/www/datalink/utf8.txt'),11,10);
+ read_text  
+------------
+ je spletni
+(1 row)
+
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+                                                    read_text                                                    
+-----------------------------------------------------------------------------------------------------------------
+ Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                                                        +
+ Some 32bit emojis: 🪙🩲                                                                                        +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                                                         +
+ The end.                                                                                                       +
+                                                                                                                +
+                                                                                                                +
+                                                                                                                +
+ 
+(1 row)
+
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11);
+                                               read_text                                               
+-------------------------------------------------------------------------------------------------------
+ je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                                              +
+ Some 32bit emojis: 🪙🩲                                                                              +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
+ The end.                                                                                             +
+                                                                                                      +
+                                                                                                      +
+                                                                                                      +
+ 
+(1 row)
+
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11,10);
+ read_text  
+------------
+ je spletni
+(1 row)
+
 select * from read_lines('/var/www/datalink/utf8.txt');
  i |  o  |                                                      line                                                       
 ---+-----+-----------------------------------------------------------------------------------------------------------------
@@ -153,3 +241,29 @@ select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/he
  \x7475726e696b206a6520
 (1 row)
 
+insert into my_table2 values (dlvalue('/var/www/datalink/utf8.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
+select datalink.has_updated(link) from my_table2;
+ has_updated 
+-------------
+ f
+(1 row)
+
+\! touch /var/www/datalink/utf8.txt
+select datalink.has_updated(link) from my_table2;
+ has_updated 
+-------------
+ t
+(1 row)
+
+update my_table2 set link=dlnewcopy(link);
+NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
+select datalink.has_updated(link) from my_table2;
+ has_updated 
+-------------
+ f
+(1 row)
+
+truncate my_table2;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt

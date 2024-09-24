@@ -62,6 +62,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
  datalink     | getlength(file_path)                                                                         | sql      | BFILE - Returns file size
  datalink     | has_datalinker()                                                                             | sql      | Is datalinker process currently running?
+ datalink     | has_updated(datalink)                                                                        | sql      | Check if linked file has been updated since it was linked
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
  datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file
@@ -120,6 +121,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(99 rows)
+(100 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
