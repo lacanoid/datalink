@@ -274,8 +274,8 @@ select dirpath,privilege_type,grantee from datalink.access;
  /var/www/datalink/ | REFERENCES     | PUBLIC
 (2 rows)
 
-select datalink.dl_url_insight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
-                         dl_url_insight                          
+select datalink.dl_url_makeinsight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
+                       dl_url_makeinsight                        
 -----------------------------------------------------------------
  http://server/dir/11111111-2222-3333-4444-abecedabeced;file.ext
 (1 row)

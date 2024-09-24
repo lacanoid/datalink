@@ -1767,7 +1767,7 @@ AS $_$
    select case 
           when $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
-          then datalink.dl_url_insight(pg_catalog.dlurlcompleteonly($1)
+          then datalink.dl_url_makeinsight(pg_catalog.dlurlcompleteonly($1)
                                    ,($1::jsonb->>'b')::datalink.dl_token,anonymous)
           else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
@@ -1849,7 +1849,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.uri_get(
-            datalink.dl_url_insight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
+            datalink.dl_url_makeinsight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
                         '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))))
@@ -2651,7 +2651,7 @@ alter table insight add foreign key (link_token) references
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
 
-CREATE FUNCTION dl_url_insight(url text, link_token dl_token, anonymous integer default 0) 
+CREATE FUNCTION dl_url_makeinsight(url text, link_token dl_token, anonymous integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
 AS $$
 declare
