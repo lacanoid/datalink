@@ -1532,8 +1532,8 @@ unless($fs->{ok} eq 't') {
 }
 if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
 
-$p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
-unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
+$p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
+unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
 my $curl = WWW::Curl::Easy->new;
 $r{url} = $url;  
@@ -2173,8 +2173,8 @@ AS $function$
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
 
-  $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
-  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
+  $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
+  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
   if(defined($bufr)) { utf8::encode($bufr); }
@@ -2204,8 +2204,8 @@ AS $function$
 
   if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
 
-  $p = spi_prepare(q{select datalink.dl_file_admin($1,$2)},'datalink.file_path','"char"');
-  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_admin() failed"; }
+  $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
+  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
   open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
   binmode($fh);
@@ -2662,7 +2662,7 @@ create table dl_admin_files (
 );
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_admin(file_path, op "char" default 't', options jsonb default null, 
+create or replace function dl_file_new(file_path, op "char" default 't', options jsonb default null, 
   caller datalink.whoami default current_user) returns text
 language plpgsql 
 SECURITY DEFINER
@@ -2675,7 +2675,7 @@ declare
 begin 
   if (datalink.stat($1)).size is not null THEN
     raise exception 'DATALINK EXCEPTION - file exists' 
-    using detail = 'Existing file cannot be made adminable';
+    using detail = 'Existing file cannot be made new';
   end if;
   my_txid := pg_current_xact_id();
   sql := format('insert into datalink.dl_admin_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
