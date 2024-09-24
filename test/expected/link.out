@@ -18,7 +18,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
@@ -29,7 +29,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
@@ -42,7 +42,7 @@ DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
@@ -89,7 +89,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 15 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
@@ -240,27 +240,27 @@ select * from datalink.columns order by table_name;
 (13 rows)
 
 insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:/var/www/datalink/test4.txt
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 76 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 84 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:/etc/issue
 DETAIL:  delete permission is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 76 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 84 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
 update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';

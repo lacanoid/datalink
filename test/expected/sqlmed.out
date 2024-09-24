@@ -131,7 +131,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
 -- case 1.b.1 invalid datalink construction
@@ -153,7 +153,7 @@ ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/test1.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 64 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 15.3 Effect of replacing rows in base tables
 update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
@@ -167,7 +167,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 47 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --
 -- case 1.b.ii.1 external file already linked
@@ -182,7 +182,7 @@ ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/test4.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 64 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 83 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --
 -- case 1.b.ii.2.A.I invalid write token
@@ -191,8 +191,8 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
@@ -219,13 +219,13 @@ DETAIL:  File address is different for for update of column med.link
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
 update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-WARNING:  DATALINK WARNING - datalinker required
-HINT:  make sure pg_datalinker process is running to finalize your commits
+WARNING:  DATALINK WARNING - datalinker not running
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 drop table med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt

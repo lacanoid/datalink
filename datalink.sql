@@ -1155,11 +1155,19 @@ begin
     -- check if datalinker is needed and running
     if lco.integrity = 'ALL' and link_options>10 then
       if not datalink.has_datalinker() then
---        raise exception 'DATALINK EXCEPTION - datalinker required' 
-        raise warning 'DATALINK WARNING - datalinker required' 
-              using errcode = '57050',
---                    detail = 'datalinker process is not available',
-                    hint = 'make sure pg_datalinker process is running to finalize your commits';
+--        raise exception 'DATALINK EXCEPTION - datalinker required'
+        if current_setting('datalink.linker_required',true) is not null
+        then 
+          raise exception 
+                'DATALINK WARNING - datalinker required' 
+          using errcode = '57050',
+                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfm start"?';
+        else
+          raise warning 
+                'DATALINK WARNING - datalinker not running' 
+          using errcode = '57050',
+                hint = 'Make sure pg_datalinker process is running to finalize your commits.';
+        end if;
       end if;
     end if;
 
