@@ -2054,7 +2054,8 @@ begin
   end if;
   return case
          when $2 > 1 or $3 is not null
-         then substr((datalink.curl_get(dlurlcomplete($1))).body,$2::integer,$3::integer)
+         then substr((datalink.curl_get(dlurlcomplete($1))).body,
+                     $2::integer,coalesce($3::integer,1000000))
          else (datalink.curl_get(dlurlcomplete($1))).body end;
 end
 $$;
@@ -2095,7 +2096,7 @@ begin
   return case
          when $2 > 1 or $3 is not null
          then substr((datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea,
-                      $2::integer,coalesce*$3::integer,1000000))::bytea
+                      $2::integer,coalesce($3::integer,1000000))::bytea
          else (datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea end;
 end
 $$;

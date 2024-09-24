@@ -32,5 +32,23 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 drop table bfiles;
 
 select read_text('/var/www/datalink/utf8.txt');
+select read_text('/var/www/datalink/utf8.txt',11);
+select read_text('/var/www/datalink/utf8.txt',11,10);
+select read_text(dlvalue('/var/www/datalink/utf8.txt'));
+select read_text(dlvalue('/var/www/datalink/utf8.txt'),11);
+select read_text(dlvalue('/var/www/datalink/utf8.txt'),11,10);
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11);
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11,10);
 
 select * from read_lines('/var/www/datalink/utf8.txt');
+
+select read('/var/www/datalink/utf8.txt');
+select read('/var/www/datalink/utf8.txt',4);
+select read('/var/www/datalink/utf8.txt',4,10);
+select read(dlvalue('/var/www/datalink/utf8.txt'));
+select read(dlvalue('/var/www/datalink/utf8.txt'),4);
+select read(dlvalue('/var/www/datalink/utf8.txt'),4,10);
+select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4);
+select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4,10);
