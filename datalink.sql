@@ -1409,12 +1409,12 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 -- get URL contents as text using GET or HEAD request
 CREATE FUNCTION curl_get(
-  INOUT url text, head integer DEFAULT 0, 
+  INOUT url text, head integer DEFAULT 0, binary integer default 0,
   OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT size bigint, OUT elapsed float) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
-my ($url,$head)=@_;
+my ($url,$head,$binmode)=@_;
 my %r;
 my $fs;
 
@@ -1484,15 +1484,16 @@ $r{rc} = $retcode;
 if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
 if($head) { $r{body} = $response_header; }
 else      { $r{body} = $response_body; }
-if(defined($r{body})) { utf8::decode($r{body}); }
+if(!$binmode) { if(defined($r{body})) { utf8::decode($r{body}); }} 
+else { $r{body} = encode_bytea($r{body}); }
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
 else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
 
 return \%r;
 $_$;
-revoke execute on function curl_get(text,integer) from public;
-comment on function curl_get(text,integer)
+revoke execute on function curl_get(text,integer,integer) from public;
+comment on function curl_get(text,integer,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
 -- save URL contents as text to a local file using GET or HEAD request
@@ -2074,6 +2075,24 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
 $$;
 COMMENT ON FUNCTION read_text(file_path,bigint,bigint) IS 
   'Read local file contents as text';
+
+---------------------------------------------------
+CREATE FUNCTION read(datalink, pos bigint default 1, len bigint default null)
+ RETURNS bytea LANGUAGE plpgsql
+AS $$
+begin
+  if datalink.is_local($1) then
+    return datalink.read(dlurlpath($1),$2,$3);
+  end if;
+  return case
+         when $2 > 1 or $3 is not null
+         then substr((datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea,
+                      $2::integer,coalesce*$3::integer,1000000))::bytea
+         else (datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea end;
+end
+$$;
+COMMENT ON FUNCTION read(datalink,bigint,bigint) IS 
+  'Read datalink contents as binary';
 
 CREATE OR REPLACE FUNCTION read(filename file_path, pos bigint default 1, len bigint default null)
  RETURNS bytea

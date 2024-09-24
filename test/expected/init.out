@@ -49,7 +49,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
- datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | curl_get(text,integer,integer)                                                               | plperlu  | Access URLs with CURL. CURL groks URLs.
  datalink     | curl_save(file_path,text,integer)                                                            | plperlu  | Save content of remote URL to a local file
  datalink     | dl_authorize(file_path,integer,regrole)                                                      | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a linked datalink
@@ -72,6 +72,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | link_control_options(datalink)                                                               | sql      | Get link_control_options for a linked datalink
  datalink     | link_control_options(dl_lco)                                                                 | sql      | Calculate link_control_options from dl_lco
  datalink     | modlco(regclass,name,dl_lco)                                                                 | plpgsql  | Modify link control options for a datalink column
+ datalink     | read(datalink,bigint,bigint)                                                                 | plpgsql  | Read datalink contents as binary
  datalink     | read(file_path,bigint,bigint)                                                                | plperlu  | Read local file contents as binary
  datalink     | read_lines(datalink,bigint)                                                                  | sql      | Stream local file referenced by a datalink as lines of text
  datalink     | read_lines(file_path,bigint)                                                                 | plperlu  | Stream local file as lines of text
@@ -119,6 +120,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(98 rows)
+(99 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
