@@ -69,7 +69,7 @@ The datalink system is made of these three main components:
 The extension can be used without a daemon, but this disables some of the functionality.
 - [Datalink File Filter](dlff.md) (DLFF), which applies READ ACCESS DB policy to file accesses. 
 
-![Datalink diagram](Diagram1.png)
+![Datalink diagram](diagram.webp)
 
 See also
 --------
