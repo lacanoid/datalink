@@ -2378,7 +2378,7 @@ begin
   if tg_relid = 'datalink.dl_directory'::regclass then
     new.dirpath := trim(trailing '/' from new.dirpath) || '/';
     if not datalink.has_valid_prefix(new.dirpath) then 
-        raise exception 'DATALINK EXCEPTION - referenced file not valid' 
+        raise warning 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for %s',new.dirpath),
                     hint = 'run "dlfm add" to add prefixes';
@@ -2625,11 +2625,24 @@ COMMENT ON FUNCTION has_datalinker()
 ---------------------------------------------------
 
 CREATE FUNCTION has_updated(datalink) 
-returns boolean language sql SECURITY DEFINER
+returns boolean language plpgsql SECURITY DEFINER
 as $$
-  select to_timestamp((datalink.stat($1)).mtime::double precision) > mtime
-    from datalink.dl_linked_files f 
-   where f.token = ($1::jsonb->>'b')::datalink.dl_token
+DECLARE
+ u boolean;
+begin
+  if datalink.is_local($1) THEN
+    select to_timestamp((datalink.stat($1)).mtime::double precision) > mtime
+      from datalink.dl_linked_files f 
+     where f.path = pg_catalog.dlurlpathonly($1)
+      into u;
+  else
+    raise warning 'DATALINK EXCEPTION - invalid datalink construction' 
+              using errcode = 'HW005',
+                    detail = 'has_updated() can only be used with local file URLs',
+                    hint = 'make sure you are using a file: URL scheme';
+  end if;
+  return u;
+end
 $$;
 COMMENT ON FUNCTION has_updated(datalink) 
      IS 'Check if linked file has been updated since it was linked';

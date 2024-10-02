@@ -63,7 +63,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | getlength(datalink)                                                                          | sql      | BFILE - Returns datalink file size
  datalink     | getlength(file_path)                                                                         | sql      | BFILE - Returns file size
  datalink     | has_datalinker()                                                                             | sql      | Is datalinker process currently running?
- datalink     | has_updated(datalink)                                                                        | sql      | Check if linked file has been updated since it was linked
+ datalink     | has_updated(datalink)                                                                        | plpgsql  | Check if linked file has been updated since it was linked
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
  datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
  datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file

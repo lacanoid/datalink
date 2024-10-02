@@ -57,6 +57,7 @@ insert into my_table2 values (dlvalue('/var/www/datalink/utf8.txt'));
 select datalink.has_updated(link) from my_table2;
 \! touch /var/www/datalink/utf8.txt
 select datalink.has_updated(link) from my_table2;
+select datalink.has_updated(link) from my_table2;
 update my_table2 set link=dlnewcopy(link);
 select datalink.has_updated(link) from my_table2;
 truncate my_table2;

@@ -256,6 +256,12 @@ select datalink.has_updated(link) from my_table2;
  t
 (1 row)
 
+select datalink.has_updated(link) from my_table2;
+ has_updated 
+-------------
+ t
+(1 row)
+
 update my_table2 set link=dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
