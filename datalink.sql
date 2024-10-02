@@ -2625,7 +2625,7 @@ COMMENT ON FUNCTION has_datalinker()
 ---------------------------------------------------
 
 CREATE FUNCTION has_updated(datalink) 
-returns boolean language plpgsql SECURITY DEFINER
+returns boolean language plpgsql SECURITY DEFINER STRICT
 as $$
 DECLARE
  u boolean;
@@ -2635,16 +2635,28 @@ begin
       from datalink.dl_linked_files f 
      where f.path = pg_catalog.dlurlpathonly($1)
       into u;
+      if not found THEN
+         raise warning 'DATALINK WARNING - external file not linked' 
+         using errcode = 'HW001',
+                detail = 'function has_updated() only works with linked files',
+                  hint = 'store a datalink referencing this file in a column with INTEGRITY ALL option';
+      end if;
   else
-    raise warning 'DATALINK EXCEPTION - invalid datalink construction' 
-              using errcode = 'HW005',
-                    detail = 'has_updated() can only be used with local file URLs',
-                    hint = 'make sure you are using a file: URL scheme';
+    raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+    using errcode = 'HW005',
+           detail = 'function has_updated() can only be used with local file URLs',
+             hint = 'make sure you are using a file: URL scheme';
   end if;
   return u;
 end
 $$;
 COMMENT ON FUNCTION has_updated(datalink) 
+     IS 'Check if linked file has been updated since it was linked';
+
+CREATE FUNCTION has_updated(file_path) 
+returns boolean language sql SECURITY DEFINER STRICT
+as $$ select datalink.has_updated(pg_catalog.dlvalue($1::text,'FS')) $$;
+COMMENT ON FUNCTION has_updated(file_path) 
      IS 'Check if linked file has been updated since it was linked';
 
 ---------------------------------------------------

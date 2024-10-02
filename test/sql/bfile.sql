@@ -58,7 +58,11 @@ select datalink.has_updated(link) from my_table2;
 \! touch /var/www/datalink/utf8.txt
 select datalink.has_updated(link) from my_table2;
 select datalink.has_updated(link) from my_table2;
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
 update my_table2 set link=dlnewcopy(link);
 select datalink.has_updated(link) from my_table2;
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
 truncate my_table2;
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
 
+select datalink.has_updated('/etc/issue');

@@ -262,6 +262,12 @@ select datalink.has_updated(link) from my_table2;
  t
 (1 row)
 
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+ has_updated 
+-------------
+ t
+(1 row)
+
 update my_table2 set link=dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
@@ -271,5 +277,29 @@ select datalink.has_updated(link) from my_table2;
  f
 (1 row)
 
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+ has_updated 
+-------------
+ f
+(1 row)
+
 truncate my_table2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
+select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+WARNING:  DATALINK WARNING - external file not linked
+DETAIL:  function has_updated() only works with linked files
+HINT:  store a datalink referencing this file in a column with INTEGRITY ALL option
+ has_updated 
+-------------
+ _null_
+(1 row)
+
+select datalink.has_updated('/etc/issue');
+WARNING:  DATALINK WARNING - external file not linked
+DETAIL:  function has_updated() only works with linked files
+HINT:  store a datalink referencing this file in a column with INTEGRITY ALL option
+ has_updated 
+-------------
+ _null_
+(1 row)
+
