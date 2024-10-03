@@ -14,10 +14,11 @@ The standard states: "The purpose of datalinks is to provide a mechanism to sync
 
 Currently, it implements the following:
 - SQL/MED DATALINK type, currently defined as a base type (a variant of jsonb)
-- SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY
+- SQL/MED DATALINK constructors DLVALUE, DLPREVIOUSCOPY and DLNEWCOPY 
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
+- DLREPLACECONTENT function
 - DLLINKTYPE function
 - DLCOMMENT function
 - Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (i.e. `datalink(52)`)
@@ -33,13 +34,12 @@ With datalinker:
 - LCO: WRITE ACCESS BLOCKED - make file immutable (chattr +i on extfs), forbid datalink column updates
 - LCO: WRITE ACCESS ADMIN - make file immutable, allow datalink column updates
 - LCO: WRITE ACCESS TOKEN - make file immutable, allow column updates only with matching write token
-- LCO: RECOVERY YES - backup and restore of linked file contents, point in time recovery (requires -R option to pg_datalinker)
+- LCO: RECOVERY YES - backup and restore of linked file contents, point in time recovery
 - LCO: ON UNLINK RESTORE - restore file permissions upon unlink
-- LCO: ON UNLINK DELETE - delete file when no longer referenced (requires -D option to pg_datalinker)
+- LCO: ON UNLINK DELETE - delete file when no longer referenced
 
 Missing features:
 - SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
-- SQL/MED function DLREPLACECONTENT
 
 Extra features not in SQL standard:
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
@@ -140,6 +140,7 @@ Constructors for values of type datalink:
 - `DLVALUE(url[,link_type][,comment]) → datalink` (for INSERT)
 - `DLNEWCOPY(datalink,tokenp) → datalink` (for UPDATE)
 - `DLPREVIOUSCOPY(datalink,tokenp) → datalink` (for UPDATE)
+- `DLREPLACECONTENT(datalink,datalink) → datalink` (for INSERT and UPDATE)
 
 Functions for extracting information from datalink type:
 
