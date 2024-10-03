@@ -78,15 +78,16 @@ create cast (datalink as jsonb) without function;
 -- create cast (jsonb as datalink) with inout;
 
 ---------------------------------------------------
+-- functions intended for constraints
 
+-- does datalink reference a local file?
 create or replace function is_local(datalink) returns boolean
 language sql immutable strict as $$
- -- select ($1::jsonb->>'a')::text ilike 'file:///%'
- select ($1::jsonb->>'a')::text ~* '^file:(//|//localhost)?/[^/]';
-$$;
+  select ($1::jsonb->>'a')::text ~* '^file:(//|//localhost)?/[^/]';$$;
 comment on function is_local(datalink)
      is 'The address of this datalink references a local file';
 
+-- does datalink contain a valid URI?
 create or replace function is_valid(datalink) returns boolean
 language sql immutable strict as $$
  select case when ($1::jsonb->>'a')::text ilike 'file://%'
@@ -97,6 +98,7 @@ $$;
 comment on function is_valid(datalink)
      is 'The address of this datalink is a valid URI';
 
+-- does datalink contain a succesful HTTP response code (200..299)?
 create or replace function is_http_success(datalink) returns boolean
 language sql immutable strict as $$
  select cast($1::jsonb->>'rc' as int) between 200 and 299 $$;
@@ -203,7 +205,7 @@ COMMENT ON FUNCTION dl_lco(datalink)
 IS 'Find dl_lco for a linked datalink';
 
 ---------------------------------------------------
-
+-- expand lco into individual options
 CREATE FUNCTION link_control_options(dl_lco) 
 RETURNS link_control_options
 LANGUAGE sql IMMUTABLE AS $_$
@@ -214,7 +216,7 @@ COMMENT ON FUNCTION link_control_options(dl_lco)
 IS 'Calculate link_control_options from dl_lco';
 
 ---------------------------------------------------
-
+-- get link_control_options for a linked datalink
 CREATE OR REPLACE FUNCTION link_control_options(datalink)
  RETURNS link_control_options
  LANGUAGE sql IMMUTABLE
@@ -1128,6 +1130,7 @@ IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file conte
 -- referential integrity triggers
 ---------------------------------------------------
 
+-- reference a datalink
 CREATE FUNCTION dl_datalink_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
 LANGUAGE plpgsql
@@ -1229,7 +1232,7 @@ begin
 end$_$;
 
 ---------------------------------------------------
-
+-- unreference a datalink
 CREATE FUNCTION dl_datalink_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
     LANGUAGE plpgsql
@@ -1252,6 +1255,7 @@ end$_$;
 
 ---------------------------------------------------
 
+-- datalink trigger function for tables
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
 LANGUAGE plpgsql 
 SECURITY DEFINER
@@ -1416,7 +1420,9 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 -- web functions
 ---------------------------------------------------
 
+---------------------------------------------------
 -- get URL contents as text using GET or HEAD request
+
 CREATE FUNCTION curl_get(
   INOUT url text, head integer DEFAULT 0, binary integer default 0,
   OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT size bigint, OUT elapsed float) 
@@ -1505,7 +1511,9 @@ revoke execute on function curl_get(text,integer,integer) from public;
 comment on function curl_get(text,integer,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
+---------------------------------------------------
 -- save URL contents as text to a local file using GET or HEAD request
+
 CREATE FUNCTION curl_save(
   INOUT file_path file_path, INOUT url text, IN persistent int default 0,
   OUT ok boolean, OUT rc integer, OUT error text, OUT size bigint, OUT elapsed float) 
@@ -1746,7 +1754,6 @@ end if; -- lco has changed
  return new_options;
 end;
 $_$;
-
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Modify link control options for a datalink column';
 
@@ -2631,8 +2638,9 @@ DECLARE
  u boolean;
 begin
   if datalink.is_local($1) THEN
-    select to_timestamp((datalink.stat($1)).mtime::double precision) > mtime
-      from datalink.dl_linked_files f 
+    select to_timestamp(s.mtime::double precision) > f.mtime
+        or s.size <> f.size
+      from datalink.dl_linked_files f, datalink.stat($1) s
      where f.path = pg_catalog.dlurlpathonly($1)
       into u;
       if not found THEN
@@ -2654,7 +2662,7 @@ COMMENT ON FUNCTION has_updated(datalink)
      IS 'Check if linked file has been updated since it was linked';
 
 CREATE FUNCTION has_updated(file_path) 
-returns boolean language sql SECURITY DEFINER STRICT
+returns boolean language sql STRICT
 as $$ select datalink.has_updated(pg_catalog.dlvalue($1::text,'FS')) $$;
 COMMENT ON FUNCTION has_updated(file_path) 
      IS 'Check if linked file has been updated since it was linked';
@@ -2742,6 +2750,7 @@ begin
   return $1;
 end
 $$;
+alter function dl_file_new(file_path,"char",jsonb,datalink.whoami) owner to postgres;
 
 ---------------------------------------------------
 -- list versions

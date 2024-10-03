@@ -37,7 +37,7 @@ Wanted
 - ✔︎ add `curl` save-to-file functions, use for DLREPLACECONTENT
 - ✔︎ add vacuum procedure for deleting temporary files (those not linked)
 - add vacuum procedure for managing `datalink.insight`
-- add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
+- ✔︎ add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
 - handle directories/bundles better
@@ -49,7 +49,7 @@ Wanted
 - file writes for non superusers
 - web reads for non superusers
 - make `read_text()` read updated but not yet commited files in the transaction which changed them
-- functions to read and write binary files
+- ✔︎ functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
 - proper substring instead of file position offsets in `substr()`
