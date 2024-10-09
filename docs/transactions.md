@@ -16,7 +16,7 @@ Postgres and datalinker
 Datalink extension will attempt to discover errors early and raise exceptions,
 before updates reach the datalinker.
 
-Once the transaction is commited in postgres, the datalinker will attemp to 
+Once the transaction is commited in postgres, the datalinker will attempt to 
 modify the files accordingly. This is usually very quick, but not instantaneous.
 
 Use procedure `datalink.commit()` to wait for datalinker to finish work.
