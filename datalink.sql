@@ -318,7 +318,7 @@ SELECT
 WHERE datalink.has_class_privilege(regclass);
 
 COMMENT ON VIEW columns
- IS 'Current link control options for datalink dl_columns. You can set them here.';
+ IS 'Link Control Options for datalink columns, updatable';
 
 grant select on columns to public;
 grant update on columns to public;
@@ -1425,7 +1425,9 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
 CREATE FUNCTION curl_get(
   INOUT url text, head integer DEFAULT 0, binary integer default 0,
-  OUT ok boolean, OUT rc integer, OUT body text, OUT error text, OUT size bigint, OUT elapsed float) 
+  OUT ok boolean, OUT rc integer, OUT body text, 
+  OUT size bigint, OUT content_type text, OUT filetime bigint,
+  OUT elapsed float,  OUT error text) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
@@ -1505,6 +1507,10 @@ if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
 else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
 
+$r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
+$r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
+$r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
+
 return \%r;
 $_$;
 revoke execute on function curl_get(text,integer,integer) from public;
@@ -1516,7 +1522,9 @@ comment on function curl_get(text,integer,integer)
 
 CREATE FUNCTION curl_save(
   INOUT file_path file_path, INOUT url text, IN persistent int default 0,
-  OUT ok boolean, OUT rc integer, OUT error text, OUT size bigint, OUT elapsed float) 
+  OUT ok boolean, OUT rc integer,  
+  OUT size bigint, OUT content_type text, OUT filetime bigint,
+  OUT elapsed float, OUT error text) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
@@ -1581,6 +1589,10 @@ $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
 if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
 if($r{ok} eq 'no') { unlink($filename); }
 
+$r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
+$r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
+$r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
+
 return \%r;
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
@@ -1613,6 +1625,7 @@ INSERT INTO http_response_codes VALUES
  (206, 'Partial Content', '[RFC2616]'),
  (207, 'Multi-Status', '[RFC4918]'),
  (208, 'Already Reported', '[RFC5842]'),
+ (218, 'This is fine', '(Apache HTTP Server)'),
  (226, 'IM Used', '[RFC3229]'),
  (300, 'Multiple Choices', '[RFC2616]'),
  (301, 'Moved Permanently', '[RFC2616]'),
