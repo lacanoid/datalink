@@ -278,7 +278,7 @@ $_$;
 ---------------------------------------------------
 -- views
 ---------------------------------------------------
-
+-- internal datalink columns view
 CREATE VIEW dl_columns AS
  SELECT c.relowner::regrole AS table_owner,
     s.nspname AS schema_name,
@@ -302,7 +302,7 @@ CREATE VIEW dl_columns AS
   ORDER BY s.nspname, c.relname, a.attnum;
 
 ---------------------------------------------------
-
+-- user datalink columns view
 CREATE VIEW columns AS
 SELECT
     cast(regclass as text) as table_name,

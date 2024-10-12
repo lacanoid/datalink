@@ -1,4 +1,4 @@
-comment = 'SQL/MED DATALINK type and functions'
+comment = 'SQL/MED DATALINK support'
 default_version = 0.24
 relocatable = false
 requires='plpgsql,plperlu,file_fdw,uri'
