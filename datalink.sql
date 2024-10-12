@@ -1597,11 +1597,13 @@ CREATE TABLE http_response_codes (
     ref text
 );
 grant select on http_response_codes to public;
+comment on table http_response_codes is 'Web HTTP response codes table';
 
 INSERT INTO http_response_codes VALUES 
  (100, 'Continue', '[RFC2616]'),
  (101, 'Switching Protocols', '[RFC2616]'),
  (102, 'Processing', '[RFC2518]'),
+ (103, 'Early Hints', '[RFC8297]'),
  (200, 'OK', '[RFC2616]'),
  (201, 'Created', '[RFC2616]'),
  (202, 'Accepted', '[RFC2616]'),
@@ -1640,16 +1642,15 @@ INSERT INTO http_response_codes VALUES
  (416, 'Requested Range Not Satisfiable', '[RFC2616]'),
  (417, 'Expectation Failed', '[RFC2616]'),
  (418, 'I''m a teapot', '[RFC7168]'),
+ (421, 'Misdirected Request', null),
  (422, 'Unprocessable Entity', '[RFC4918]'),
  (423, 'Locked', '[RFC4918]'),
  (424, 'Failed Dependency', '[RFC4918]'),
- (425, 'Unassigned', NULL),
  (426, 'Upgrade Required', '[RFC2817]'),
- (427, 'Unassigned', NULL),
  (428, 'Precondition Required', '[RFC6585]'),
  (429, 'Too Many Requests', '[RFC6585]'),
- (430, 'Unassigned', NULL),
  (431, 'Request Header Fields Too Large', '[RFC6585]'),
+ (451, 'Unavailable For Legal Reasons', '[RFC7725]'),
  (500, 'Internal Server Error', '[RFC2616]'),
  (501, 'Not Implemented', '[RFC2616]'),
  (502, 'Bad Gateway', '[RFC2616]'),
@@ -1659,7 +1660,6 @@ INSERT INTO http_response_codes VALUES
  (506, 'Variant Also Negotiates (Experimental)', '[RFC2295]'),
  (507, 'Insufficient Storage', '[RFC4918]'),
  (508, 'Loop Detected', '[RFC5842]'),
- (509, 'Unassigned', NULL),
  (510, 'Not Extended', '[RFC2774]'),
  (511, 'Network Authentication Required', '[RFC6585]');
 
@@ -2415,6 +2415,8 @@ returns directory as $$
    where $1 like dirpath||'%'
    order by length(dirpath) desc limit 1
 $$ strict language sql;
+comment on function filegetdirectory(file_path) 
+     is 'Get datalink.directory entry for a file';
 
 ---------------------------------------------------
 -- file access permitions
@@ -2638,6 +2640,7 @@ select pid,cpid,version,
        links, unlinks, errs
   from datalink.dl_status where datalink.has_datalinker();
 grant select on status to public;
+comment on view status is 'Datalinker status';
 
 ---------------------------------------------------
 
@@ -2716,7 +2719,7 @@ $$;
 ---------------------------------------------------
 
 -- administered (copied, moved, deleted) files
-create table dl_admin_files (
+create table dl_new_files (
   txid xid8 not null default pg_current_xact_id(),
   ctime timestamptz not null default now(),
   regrole regrole not null default current_role::regrole,
@@ -2743,7 +2746,7 @@ begin
     using detail = 'Existing file cannot be made new';
   end if;
   my_txid := pg_current_xact_id();
-  sql := format('insert into datalink.dl_admin_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
+  sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
                 ' on conflict (path) do nothing',$2,$1,my_txid,$4,$3);
   select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
   if not found THEN

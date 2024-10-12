@@ -35,10 +35,10 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
 select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
-       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,20);
- instr |        substr        
--------+----------------------
-   823 | Datalink extension f
+       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
+ instr |       substr        
+-------+---------------------
+    87 | © 2018 Žiga Kranjec
 (1 row)
 
 select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
@@ -48,23 +48,21 @@ select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fi
        939 |     0 | © 20   | /var/www/datalink/LICENSE.md                                     |          1 | (www,LICENSE.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
         26 |     0 | This   | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
-      7507 |     5 | Datal  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
+       939 |     0 | © 20   | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
 (4 rows)
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
-             read_text             
------------------------------------
- Datalink extension for PostgreSQL+
- =================================+
- 
+                  read_text                  
+---------------------------------------------
+ © 2018 Žiga Kranjec <lacanoid@ljudmila.org>+
+                                            +
+ Permission to use, co
 (1 row)
 
-select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),35,68);
-             read_text             
------------------------------------
- =================================+
-                                  +
- This attempts to implement some o
+select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),48,48);
+                    read_text                     
+--------------------------------------------------
+ Permission to use, copy, modify, and distribute 
 (1 row)
 
 drop table bfiles;

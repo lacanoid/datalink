@@ -55,6 +55,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
  datalink     | fileexists(datalink)                                                                         | sql      | BFILE - Returns whether datalink file exists
  datalink     | fileexists(file_path)                                                                        | sql      | BFILE - Returns whether file exists
+ datalink     | filegetdirectory(file_path)                                                                  | sql      | Get datalink.directory entry for a file
  datalink     | filegetname(datalink)                                                                        | sql      | BFILE - Returns directory name and filename for a datalink
  datalink     | filegetname(file_path)                                                                       | sql      | BFILE - Returns directory name and filename for a file
  datalink     | filepath(datalink)                                                                           | plpgsql  | Returns the read file path from DATALINK value
@@ -115,7 +116,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
  datalink     | dl_url_makeinsight(text,dl_token,integer)                                                    | plpgsql  | 
- datalink     | filegetdirectory(file_path)                                                                  | sql      | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 

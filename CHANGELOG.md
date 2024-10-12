@@ -16,6 +16,7 @@ Version 0.24
 - simplify `file:` URLs to be without host if not needed
 - rename `dlurlpathwrite()` to `datalink.filepathwrite()` as it doesn't conform to the standard
 - rename `dl_file_admin()` to `dl_file_new()`
+- rename `dl_admin_files` to `dl_new_files`
 
 Version 0.23
 ------------

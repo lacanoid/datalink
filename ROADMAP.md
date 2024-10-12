@@ -133,7 +133,7 @@ Todo
 - ✔︎ show error count in `datalink.usage`
 - show os owner in `datalink.directory`
 - check  permissions in `curl_save()`
-- trigger on `dl_admin_files` to check that files don't exist
+- trigger on `dl_new_files` to check that files don't exist
 - files with ON UNLINK DELETE don't get deleted if the have not been linked first
 
 Maybe

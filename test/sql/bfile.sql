@@ -21,13 +21,13 @@ insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
 select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
-       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,20);
+       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
 
 select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
-select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),35,68);
+select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),48,48);
 
 drop table bfiles;
 

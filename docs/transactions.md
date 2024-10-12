@@ -5,7 +5,6 @@ Transactional semantics
 
 Note that synchronizing things between transactional environment like SQL 
 and external non-transactional environment poses certrain chalenges. 
-
 Care must be taken when accessing external resources such as web sites from
 withing the transactional SQL environment, as they normally do not behave 
 transactionaly and do not provide rollback capabilities.

@@ -31,6 +31,7 @@ Files are addressed with [Uniform Resource Locators (URLs)](https://en.wikipedia
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
+It attemps to extend ACID database properties to external files.
 
 Datalinks provide an interesting and viable alternative to large objects.
 

@@ -29,7 +29,7 @@ our $opt_C = 0;  # only check configuration
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
-our $version="0.24.0302";
+our $version="0.24.1012";
 our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
@@ -556,7 +556,7 @@ sub show_version {
                        (select count(*) from datalink.directory) as dirs
                   from pg_extension where extname='datalink'});
         psql(qq{select pid,cpid,version,now()-ctime as start,now()-mtime modify,
-                       links, unlinks
+                       links, unlinks, errs
                   from datalink.dl_status where datalink.has_datalinker()
             });
     } else {
