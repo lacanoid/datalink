@@ -6,8 +6,16 @@ Transactional semantics
 Note that synchronizing things between transactional environment like SQL 
 and external non-transactional environment poses certrain chalenges. 
 
-It is esentially a two stage commit process, where changes are first recorded
-in a database and then applied by the [datalinker](dlfm.md) process.
+Care must be taken when accessing external resources such as web sites from
+withing the transactional SQL environment, as they normally do not behave 
+transactionaly and do not provide rollback capabilities.
+
+The datalink system itself is esentially a two stage commit process, where changes 
+are first recorded in a database and then applied by the [datalinker](dlfm.md) process.
+
+When files are beeing written transactinally, a new copy of the file is first written
+by postgres. The datalinker then replaces old files with new ones.
+
 
 Postgres and datalinker
 -----------------------

@@ -63,7 +63,7 @@ You will need to have
 Perl package installed, as it is used by the extension.
 On Debian, you will need to install `libwww-curl-perl` and also `libdbd-pg-perl` and `libconfig-tiny-perl` packages.
 
-    apt install libwww-curl-perl libdbd-pg-perl libconfig-tiny-perl
+    apt install libwww-curl-perl libdbd-pg-perl libconfig-tiny-perl liburiparser-dev
 
 Also required is [pguri](https://github.com/lacanoid/pguri) extension, which must
 be installed separately.
