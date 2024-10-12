@@ -40,7 +40,7 @@ Datalinks as defined by SQL/MED should provide:
 - [SQL scalar functions operating on DATALINK type](functions.md)
 - [Transactional semantics](transactions.md)
   - [Integrity](integrity.md)
-    - [URL syntax validation](type.md)
+    - [URI syntax validation](type.md)
     - [Checking if file exists](integrity.md)
     - [Protection of linked file against renaming or deletion](access.md)
     - [Automatic deletion of files no longer referenced from database](recovery.md)
@@ -51,7 +51,7 @@ Datalinks as defined by SQL/MED should provide:
 - [Access to files on different servers](foreign_server.md) (for datalinks with `FILE` scheme)
 
 This extension provides a number of additional features:
-- [URL manipulation](functions.md#user-content-uri-manipulation)
+- [URI manipulation](functions.md#user-content-uri-manipulation)
 - [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)
 - [File reading and writing](functions.md#user-content-reading-files)

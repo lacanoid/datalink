@@ -2584,7 +2584,8 @@ CREATE TABLE dl_status (
   mtime timestamptz,
   atime timestamptz,
   links bigint default 0,
-  unlinks bigint default 0
+  unlinks bigint default 0,
+  errs bigint default 0
 );
 insert into dl_status (version) values ('init');
 grant select on dl_status to public;
@@ -2628,6 +2629,15 @@ $function$
 ;
 COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
+
+---------------------------------------------------
+
+create view status as
+select pid,cpid,version,
+       now()-ctime as start,now()-mtime modify,
+       links, unlinks, errs
+  from datalink.dl_status where datalink.has_datalinker();
+grant select on status to public;
 
 ---------------------------------------------------
 
