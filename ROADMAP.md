@@ -46,7 +46,7 @@ Wanted
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - ✔︎ url beautifier function for sanitizing broken urls
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
-- file writes for non superusers
+- ✔︎ file writes for non superusers
 - web reads for non superusers
 - make `read_text()` read updated but not yet commited files in the transaction which changed them
 - ✔︎ functions to read and write binary files
@@ -157,6 +157,7 @@ Maybe
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - build simple webserver into pg_datalinker
 - rename pg_linked_files to pg_files_linked, pg_admin_files to pg_files_new
+- casts from datalink to file_path
 
 BFile API
 =========
