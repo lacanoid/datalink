@@ -77,167 +77,169 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/LICENSE.md
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
-select read_text('/var/www/datalink/utf8.txt');
-                                                    read_text                                                    
------------------------------------------------------------------------------------------------------------------
- Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                                        +
- Some 32bit emojis: 🪙🩲                                                                                        +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                                         +
- The end.                                                                                                       +
-                                                                                                                +
-                                                                                                                +
-                                                                                                                +
+-- test text file reads
+select read_text('/var/www/datalink/test2.txt');
+                                  read_text                                   
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
  
 (1 row)
 
-select read_text('/var/www/datalink/utf8.txt',11);
-                                               read_text                                               
--------------------------------------------------------------------------------------------------------
- je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                              +
- Some 32bit emojis: 🪙🩲                                                                              +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
- The end.                                                                                             +
-                                                                                                      +
-                                                                                                      +
-                                                                                                      +
+select read_text('/var/www/datalink/test2.txt',11);
+                             read_text                              
+--------------------------------------------------------------------
+ je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                           +
+ Some 32bit emojis: 🪙🩲                                           +
+ Some chinese: 𠀀𠀁𠀂𠀃                                            +
+ The end.                                                          +
+                                                                   +
+                                                                   +
+                                                                   +
  
 (1 row)
 
-select read_text('/var/www/datalink/utf8.txt',11,10);
+select read_text('/var/www/datalink/test2.txt',11,10);
  read_text  
 ------------
- je spletni
+ je portal,
 (1 row)
 
-select read_text(dlvalue('/var/www/datalink/utf8.txt'));
-                                                    read_text                                                    
------------------------------------------------------------------------------------------------------------------
- Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                                        +
- Some 32bit emojis: 🪙🩲                                                                                        +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                                         +
- The end.                                                                                                       +
-                                                                                                                +
-                                                                                                                +
-                                                                                                                +
+select read_text(dlvalue('/var/www/datalink/test2.txt'));
+                                  read_text                                   
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
  
 (1 row)
 
-select read_text(dlvalue('/var/www/datalink/utf8.txt'),11);
-                                               read_text                                               
--------------------------------------------------------------------------------------------------------
- je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                              +
- Some 32bit emojis: 🪙🩲                                                                              +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
- The end.                                                                                             +
-                                                                                                      +
-                                                                                                      +
-                                                                                                      +
+select read_text(dlvalue('/var/www/datalink/test2.txt'),11);
+                             read_text                              
+--------------------------------------------------------------------
+ je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                           +
+ Some 32bit emojis: 🪙🩲                                           +
+ Some chinese: 𠀀𠀁𠀂𠀃                                            +
+ The end.                                                          +
+                                                                   +
+                                                                   +
+                                                                   +
  
 (1 row)
 
-select read_text(dlvalue('/var/www/datalink/utf8.txt'),11,10);
+select read_text(dlvalue('/var/www/datalink/test2.txt'),11,10);
  read_text  
 ------------
- je spletni
+ je portal,
 (1 row)
 
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
-                                                    read_text                                                    
------------------------------------------------------------------------------------------------------------------
- Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                                        +
- Some 32bit emojis: 🪙🩲                                                                                        +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                                         +
- The end.                                                                                                       +
-                                                                                                                +
-                                                                                                                +
-                                                                                                                +
+                                  read_text                                   
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
  
 (1 row)
 
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11);
-                                               read_text                                               
--------------------------------------------------------------------------------------------------------
- je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.+
- Some 16bit emojis: ⛔⛳                                                                              +
- Some 32bit emojis: 🪙🩲                                                                              +
- Some chinese: 𠀀𠀁𠀂𠀃                                                                               +
- The end.                                                                                             +
-                                                                                                      +
-                                                                                                      +
-                                                                                                      +
+                             read_text                              
+--------------------------------------------------------------------
+ je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                           +
+ Some 32bit emojis: 🪙🩲                                           +
+ Some chinese: 𠀀𠀁𠀂𠀃                                            +
+ The end.                                                          +
+                                                                   +
+                                                                   +
+                                                                   +
  
 (1 row)
 
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11,10);
  read_text  
 ------------
- je spletni
+ je portal,
 (1 row)
 
-select * from read_lines('/var/www/datalink/utf8.txt');
- i |  o  |                                                      line                                                       
----+-----+-----------------------------------------------------------------------------------------------------------------
- 1 |   1 | Kulturnik je spletni portal, namenjen lažji in kvalitetnejši orientaciji po kulturi in umetnosti v slovenščini.
- 2 | 113 | Some 16bit emojis: ⛔⛳
- 3 | 135 | Some 32bit emojis: 🪙🩲
- 4 | 157 | Some chinese: 𠀀𠀁𠀂𠀃
- 5 | 176 | The end.
- 6 | 185 | 
- 7 | 186 | 
- 8 | 187 | 
+select * from read_lines('/var/www/datalink/test2.txt');
+ i |  o  |                                     line                                     
+---+-----+------------------------------------------------------------------------------
+ 1 |   1 | Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.
+ 2 |  78 | Some 16bit emojis: ⛔⛳
+ 3 | 100 | Some 32bit emojis: 🪙🩲
+ 4 | 122 | Some chinese: 𠀀𠀁𠀂𠀃
+ 5 | 141 | The end.
+ 6 | 150 | 
+ 7 | 151 | 
+ 8 | 152 | 
 (8 rows)
 
-select read('/var/www/datalink/utf8.txt');
-                                                                                                                                                                                                                     read                                                                                                                                                                                                                     
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x4b756c7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+-- test binary file reads
+select read('/var/www/datalink/test2.txt');
+                                                                                                                                                                                 read                                                                                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x4b756c7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
-select read('/var/www/datalink/utf8.txt',4);
-                                                                                                                                                                                                                  read                                                                                                                                                                                                                  
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+select read('/var/www/datalink/test2.txt',4);
+                                                                                                                                                                              read                                                                                                                                                                              
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
-select read('/var/www/datalink/utf8.txt',4,10);
+select read('/var/www/datalink/test2.txt',4,10);
           read          
 ------------------------
  \x7475726e696b206a6520
 (1 row)
 
-select read(dlvalue('/var/www/datalink/utf8.txt'));
-                                                                                                                                                                                                                     read                                                                                                                                                                                                                     
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x4b756c7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+select read(dlvalue('/var/www/datalink/test2.txt'));
+                                                                                                                                                                                 read                                                                                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x4b756c7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
-select read(dlvalue('/var/www/datalink/utf8.txt'),4);
-                                                                                                                                                                                                                  read                                                                                                                                                                                                                  
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+select read(dlvalue('/var/www/datalink/test2.txt'),4);
+                                                                                                                                                                              read                                                                                                                                                                              
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
-select read(dlvalue('/var/www/datalink/utf8.txt'),4,10);
+select read(dlvalue('/var/www/datalink/test2.txt'),4,10);
           read          
 ------------------------
  \x7475726e696b206a6520
 (1 row)
 
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
-                                                                                                                                                                                                                     read                                                                                                                                                                                                                     
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x4b756c7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+                                                                                                                                                                                 read                                                                                                                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x4b756c7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4);
-                                                                                                                                                                                                                  read                                                                                                                                                                                                                  
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- \x7475726e696b206a652073706c65746e6920706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206b76616c697465746e656ac5a169206f7269656e746163696a6920706f206b756c7475726920696e20756d65746e6f737469207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
+                                                                                                                                                                              read                                                                                                                                                                              
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ \x7475726e696b206a6520706f7274616c2c206e616d656e6a656e206c61c5be6a6920696e206f7269656e746163696a6920706f206b756c74757269207620736c6f76656ec5a1c48d696e692e0a536f6d6520313662697420656d6f6a69733a20e29b94e29bb30a536f6d6520333262697420656d6f6a69733a20f09faa99f09fa9b20a536f6d65206368696e6573653a20f0a08080f0a08081f0a08082f0a080830a54686520656e642e0a0a0a0a
 (1 row)
 
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4,10);
@@ -246,15 +248,16 @@ select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/he
  \x7475726e696b206a6520
 (1 row)
 
-insert into my_table2 values (dlvalue('/var/www/datalink/utf8.txt'));
-NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
+-- test checking for updated files
+insert into my_table2 values (dlvalue('/var/www/datalink/test2.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
  f
 (1 row)
 
-\! touch /var/www/datalink/utf8.txt
+\! touch /var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
@@ -267,30 +270,30 @@ select datalink.has_updated(link) from my_table2;
  t
 (1 row)
 
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
  has_updated 
 -------------
  t
 (1 row)
 
 update my_table2 set link=dlnewcopy(link);
-NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/utf8.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
  f
 (1 row)
 
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
  has_updated 
 -------------
  f
 (1 row)
 
 truncate my_table2;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/utf8.txt
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
 WARNING:  DATALINK WARNING - external file not linked
 DETAIL:  function has_updated() only works with linked files
 HINT:  store a datalink referencing this file in a column with INTEGRITY ALL option
@@ -308,13 +311,12 @@ HINT:  store a datalink referencing this file in a column with INTEGRITY ALL opt
  _null_
 (1 row)
 
----
 -- test link construction types
 create table files ( link datalink(2) );
 NOTICE:  DATALINK DDL:TRIGGER on files
 insert into files values (dlvalue('/var/www/datalink/test1.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
-update files set link = dlnewcopy(link);
+update files  set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into files values (dlvalue('/var/www/datalink/test2.txt'));

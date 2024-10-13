@@ -31,48 +31,53 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 
 drop table bfiles;
 
-select read_text('/var/www/datalink/utf8.txt');
-select read_text('/var/www/datalink/utf8.txt',11);
-select read_text('/var/www/datalink/utf8.txt',11,10);
-select read_text(dlvalue('/var/www/datalink/utf8.txt'));
-select read_text(dlvalue('/var/www/datalink/utf8.txt'),11);
-select read_text(dlvalue('/var/www/datalink/utf8.txt'),11,10);
+-- test text file reads
+
+select read_text('/var/www/datalink/test2.txt');
+select read_text('/var/www/datalink/test2.txt',11);
+select read_text('/var/www/datalink/test2.txt',11,10);
+select read_text(dlvalue('/var/www/datalink/test2.txt'));
+select read_text(dlvalue('/var/www/datalink/test2.txt'),11);
+select read_text(dlvalue('/var/www/datalink/test2.txt'),11,10);
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11);
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11,10);
 
-select * from read_lines('/var/www/datalink/utf8.txt');
+select * from read_lines('/var/www/datalink/test2.txt');
 
-select read('/var/www/datalink/utf8.txt');
-select read('/var/www/datalink/utf8.txt',4);
-select read('/var/www/datalink/utf8.txt',4,10);
-select read(dlvalue('/var/www/datalink/utf8.txt'));
-select read(dlvalue('/var/www/datalink/utf8.txt'),4);
-select read(dlvalue('/var/www/datalink/utf8.txt'),4,10);
+-- test binary file reads
+
+select read('/var/www/datalink/test2.txt');
+select read('/var/www/datalink/test2.txt',4);
+select read('/var/www/datalink/test2.txt',4,10);
+select read(dlvalue('/var/www/datalink/test2.txt'));
+select read(dlvalue('/var/www/datalink/test2.txt'),4);
+select read(dlvalue('/var/www/datalink/test2.txt'),4,10);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4,10);
 
-insert into my_table2 values (dlvalue('/var/www/datalink/utf8.txt'));
+-- test checking for updated files
+
+insert into my_table2 values (dlvalue('/var/www/datalink/test2.txt'));
 select datalink.has_updated(link) from my_table2;
-\! touch /var/www/datalink/utf8.txt
+\! touch /var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
 select datalink.has_updated(link) from my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
 update my_table2 set link=dlnewcopy(link);
 select datalink.has_updated(link) from my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
 truncate my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
 
 select datalink.has_updated('/etc/issue');
 
----
 -- test link construction types
 
 create table files ( link datalink(2) );
 insert into files values (dlvalue('/var/www/datalink/test1.txt'));
-update files set link = dlnewcopy(link);
+update files  set link = dlnewcopy(link);
 insert into files values (dlvalue('/var/www/datalink/test2.txt'));
 insert into files values (dlreplacecontent('/var/www/datalink/robots.txt','http://www.github.com/robots.txt'));
 insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
