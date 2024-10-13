@@ -66,3 +66,17 @@ truncate my_table2;
 select datalink.has_updated(dlvalue('/var/www/datalink/utf8.txt'));
 
 select datalink.has_updated('/etc/issue');
+
+---
+-- test link construction types
+
+create table files ( link datalink(2) );
+insert into files values (dlvalue('/var/www/datalink/test1.txt'));
+update files set link = dlnewcopy(link);
+insert into files values (dlvalue('/var/www/datalink/test2.txt'));
+insert into files values (dlreplacecontent('/var/www/datalink/robots.txt','http://www.github.com/robots.txt'));
+insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
+
+select cons,path from datalink.dl_linked_files order by path;
+
+drop table files;

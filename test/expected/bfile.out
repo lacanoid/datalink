@@ -4,17 +4,24 @@ SET search_path = public,datalink;
 select getlength(dlvalue('/var/www/datalink/test2.txt'));
  getlength 
 -----------
-        26
+       177
 (1 row)
 
 select substr(dlvalue('/var/www/datalink/test2.txt')),
        substr(dlvalue('/var/www/datalink/test2.txt'),12),
        substr(dlvalue('/var/www/datalink/test2.txt'),12,8)
        ;
-          substr           |     substr     |  substr  
----------------------------+----------------+----------
- This is for Friday, yeah.+|  Friday, yeah.+|  Friday,
-                           |                | 
+                                    substr                                    |                              substr                               |  substr  
+------------------------------------------------------------------------------+-------------------------------------------------------------------+----------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+| e portal, namenjen lažji in orientaciji po kulturi v slovenščini.+| e portal
+ Some 16bit emojis: ⛔⛳                                                     +| Some 16bit emojis: ⛔⛳                                          +| 
+ Some 32bit emojis: 🪙🩲                                                     +| Some 32bit emojis: 🪙🩲                                          +| 
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +| Some chinese: 𠀀𠀁𠀂𠀃                                           +| 
+ The end.                                                                    +| The end.                                                         +| 
+                                                                             +|                                                                  +| 
+                                                                             +|                                                                  +| 
+                                                                             +|                                                                  +| 
+                                                                              |                                                                   | 
 (1 row)
 
 select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
@@ -47,7 +54,7 @@ select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fi
 -----------+-------+--------+------------------------------------------------------------------+------------+-------------------------------------
        939 |     0 | © 20   | /var/www/datalink/LICENSE.md                                     |          1 | (www,LICENSE.md,/var/www/datalink/)
          6 |     0 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
-        26 |     0 | This   | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
+       177 |     0 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
        939 |     0 | © 20   | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
 (4 rows)
 
@@ -301,3 +308,32 @@ HINT:  store a datalink referencing this file in a column with INTEGRITY ALL opt
  _null_
 (1 row)
 
+---
+-- test link construction types
+create table files ( link datalink(2) );
+NOTICE:  DATALINK DDL:TRIGGER on files
+insert into files values (dlvalue('/var/www/datalink/test1.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+update files set link = dlnewcopy(link);
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+insert into files values (dlvalue('/var/www/datalink/test2.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+insert into files values (dlreplacecontent('/var/www/datalink/robots.txt','http://www.github.com/robots.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/robots.txt
+insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test5.txt
+select cons,path from datalink.dl_linked_files order by path;
+  cons  |             path             
+--------+------------------------------
+ r      | /var/www/datalink/robots.txt
+ n      | /var/www/datalink/test1.txt
+ _null_ | /var/www/datalink/test2.txt
+ w      | /var/www/datalink/test5.txt
+(4 rows)
+
+drop table files;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/robots.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test5.txt

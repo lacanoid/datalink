@@ -324,7 +324,7 @@ grant select on columns to public;
 grant update on columns to public;
 
 ---------------------------------------------------
-
+-- triggers we might need to run
 CREATE FUNCTION dl_trigger_advice(
     OUT owner name, OUT regclass regclass, 
     OUT valid boolean, OUT needed boolean,
@@ -432,8 +432,8 @@ comment on view linked_files
      is 'Currently linked files';
 
 grant select on linked_files to public;
-
 ---------------------------------------------------
+-- for backup and restore and upgrades
 CREATE OR REPLACE FUNCTION set_online(boolean) returns boolean language plpgsql as $$
 begin
   execute
@@ -2259,7 +2259,8 @@ begin
                     detail = 'write_text can only be used with local file URLs',
                     hint = 'make sure you are using a file: URL scheme';
  end if;
- link := dlnewcopy(link);
+ if link::jsonb->>'b' is not null then link := dlnewcopy(link); end if;
+ link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
  perform datalink.write_text(datalink.filepathwrite(link),content,persistent);
  return link;
 end
@@ -2278,7 +2279,8 @@ begin
                     detail = 'write can only be used with local file URLs',
                     hint = 'make sure you are using a file: URL scheme';
  end if;
- link := dlnewcopy(link);
+ if link::jsonb->>'b' is not null then link := dlnewcopy(link); end if;
+ link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
  perform datalink.write(datalink.filepathwrite(link),content,persistent);
  return link;
 end
