@@ -1174,10 +1174,10 @@ begin
     if lco.integrity = 'ALL' then has_token := 1; end if;
 
     -- check if referenced file exists
-    r := datalink.curl_get(url,1);
+    r := datalink.curl_get(url,0);
     if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
       url := replace(url,'#','%23');
-      r := datalink.curl_get(url,1);
+      r := datalink.curl_get(url,0);
     end if;
     if not r.ok and dlurlscheme(link) = 'FILE' then
       r.ok := not (datalink.stat(dlurlpathonly(link))).inode is null;
@@ -1420,16 +1420,21 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 -- get URL contents as text using GET or HEAD request
 
 CREATE FUNCTION curl_get(
-  INOUT url text, head integer DEFAULT 0, binary integer default 0,
+  INOUT url text, mode integer DEFAULT 1,
   OUT ok boolean, OUT rc integer, OUT body text, 
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float,  OUT error text) 
 RETURNS record
 LANGUAGE plperlu
 AS $_$
-my ($url,$head,$binmode)=@_;
+my ($url,$mode)=@_;
 my %r;
 my $fs;
+my $head; my $binmode;
+
+if($mode==0) { $head=1; $binmode=0; }
+if($mode==1) { $head=0; $binmode=0; }
+if($mode==2) { $head=0; $binmode=1; }
 
 use strict;
 use warnings;
@@ -1470,8 +1475,6 @@ if($url=~m|^file://[^/]|i) {
   return $r;
 }
 
-## $head = ($head eq't')?1:0;
-
 my $curl = WWW::Curl::Easy->new;
 $r{url} = $url;  
 $curl->setopt(CURLOPT_USERAGENT,
@@ -1509,8 +1512,8 @@ $r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
 
 return \%r;
 $_$;
-revoke execute on function curl_get(text,integer,integer) from public;
-comment on function curl_get(text,integer,integer)
+revoke execute on function curl_get(text,integer) from public;
+comment on function curl_get(text,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
 ---------------------------------------------------
@@ -2071,9 +2074,9 @@ begin
   end if;
   return case
          when $2 > 1 or $3 is not null
-         then substr((datalink.curl_get(dlurlcomplete($1))).body,
+         then substr((datalink.curl_get(dlurlcomplete($1),1)).body,
                      $2::integer,coalesce($3::integer,1000000))
-         else (datalink.curl_get(dlurlcomplete($1))).body end;
+         else (datalink.curl_get(dlurlcomplete($1),1)).body end;
 end
 $$;
 COMMENT ON FUNCTION read_text(datalink,bigint,bigint) IS 
@@ -2112,9 +2115,9 @@ begin
   end if;
   return case
          when $2 > 1 or $3 is not null
-         then substr((datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea,
+         then substr((datalink.curl_get(dlurlcomplete($1),2)).body::bytea,
                       $2::integer,coalesce($3::integer,1000000))::bytea
-         else (datalink.curl_get(dlurlcomplete($1),0,1)).body::bytea end;
+         else (datalink.curl_get(dlurlcomplete($1),2)).body::bytea end;
 end
 $$;
 COMMENT ON FUNCTION read(datalink,bigint,bigint) IS 
@@ -2292,7 +2295,7 @@ create or replace function fileexists(datalink) returns integer as $$
 select case 
        when datalink.is_local($1)
        then datalink.filepath($1) is not null
-       else (datalink.curl_get(dlurlcomplete($1),1)).rc between 200 and 299
+       else (datalink.curl_get(dlurlcomplete($1),0)).rc between 200 and 299
        end :: integer
 $$ language sql;
 comment on function fileexists(datalink) is 

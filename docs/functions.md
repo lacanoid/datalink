@@ -350,7 +350,7 @@ Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `useri
 Web access
 ----------
 
-#### curl_get( url text [ , header_only integer [ , binary integer ] ] ) → record
+#### curl_get( url text [ , mode integer  ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -362,14 +362,19 @@ Use CURL to fetch content from the World Wide Web via GET request.
     (1 row)
 
 
-If `header_only` is nonzero then HEAD request is made instead of GET, returning only headers.
+Parameter `mode` specifies what should be returned:
+
+* mode 0 - headers only. HEAD request is made instead of GET, returning only HTTP request headers.
 This is used to check for the existence of `INTEGRITY SELECTIVE` datalinks.
 
-When parameter `binary` is nonzero, then returned body will be bytea encoded. You will probably explicitly need to cast it bytea type.
+* mode 1 - unicode text. Returned body is assumed to contain unicode text. This is the default.
+
+* mode 2 - binary. Returned body will be bytea encoded. You will probably want to explicitly cast it bytea type.
 
 When file: URLs refer to files on other servers, [PostgreSQL foreign servers](foreign_server.md) are used.
 
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
+
 
 #### curl_save( local_file file_path, url text [ , persistent int ] ) → record
 

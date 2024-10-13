@@ -134,7 +134,7 @@ CONTEXT:  PL/Perl function "curl_get"
 create extension postgres_fdw;
 create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  user mapping not found for "root" at line 38.
+ERROR:  user mapping not found for "root" at line 43.
 CONTEXT:  PL/Perl function "curl_get"
 select * from datalink.curl_get('file://tiha/etc/issue');
 ERROR:  DATALINK EXCEPTION - Foreign server tiha does not exist.

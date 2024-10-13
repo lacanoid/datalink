@@ -47,7 +47,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
- datalink     | curl_get(text,integer,integer)                                                               | plperlu  | Access URLs with CURL. CURL groks URLs.
+ datalink     | curl_get(text,integer)                                                                       | plperlu  | Access URLs with CURL. CURL groks URLs.
  datalink     | curl_save(file_path,text,integer)                                                            | plperlu  | Save content of remote URL to a local file
  datalink     | dl_authorize(file_path,integer,regrole)                                                      | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a linked datalink

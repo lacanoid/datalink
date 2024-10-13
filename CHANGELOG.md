@@ -17,6 +17,7 @@ Version 0.24
 - rename `dlurlpathwrite()` to `datalink.filepathwrite()` as it doesn't conform to the standard
 - rename `dl_file_admin()` to `dl_file_new()`
 - rename `dl_admin_files` to `dl_new_files`
+- improve the way options are specified for `curl_get()`
 
 Version 0.23
 ------------
