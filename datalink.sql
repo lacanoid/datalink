@@ -138,7 +138,7 @@ CREATE TABLE link_control_options (
   recovery dl_recovery,
   on_unlink dl_on_unlink
 );
-comment on table link_control_options is 'Datalink Link Control Options as enums';
+comment on table link_control_options is 'Valid combinations of Datalink Link Control Options';
 grant select on link_control_options to public;
 
 ---------------------------------------------------
@@ -451,9 +451,7 @@ CREATE OR REPLACE FUNCTION stat(file_path file_path,
    OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
    OUT uid integer, OUT gid integer,
    OUT rdev integer, OUT size numeric, 
-   OUT atime numeric,
-   OUT mtime numeric, 
-   OUT ctime numeric,
+   OUT atime numeric, OUT mtime numeric, OUT ctime numeric,
    OUT blksize integer, OUT blocks bigint)
    RETURNS record
   LANGUAGE plperlu
@@ -483,9 +481,7 @@ CREATE OR REPLACE FUNCTION stat(link datalink,
    OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
    OUT uid integer, OUT gid integer,
    OUT rdev integer, OUT size numeric, 
-   OUT atime numeric,
-   OUT mtime numeric, 
-   OUT ctime numeric,
+   OUT atime numeric, OUT mtime numeric, OUT ctime numeric,
    OUT blksize integer, OUT blocks bigint)
    RETURNS record
   LANGUAGE sql
@@ -2379,7 +2375,7 @@ select coalesce(dirpath,prefix) as dirpath,
   left join dl_directory dir on (dir.dirpath like dp.prefix||'%')
 ;
 COMMENT ON VIEW directory 
-     IS 'Configured datalink file system directories';
+     IS 'Configured datalink file system directories, updatable';
 GRANT SELECT ON datalink.directory TO PUBLIC;
 
 CREATE FUNCTION dl_trigger_directory() RETURNS trigger
@@ -2453,7 +2449,7 @@ AS SELECT d.dirpath,
      JOIN LATERAL aclexplode(nullif(d.diracl,'{}')) e(grantor, grantee, privilege_type, is_grantable) ON true;
 
 COMMENT ON VIEW access 
-     IS 'Permissions for file system directories';
+     IS 'Permissions for file system directories, updatable';
 GRANT SELECT ON access TO PUBLIC;
 
 CREATE FUNCTION dl_trigger_access() RETURNS trigger
@@ -2712,6 +2708,7 @@ create table insight (
 alter table insight add foreign key (link_token) references 
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
+comment on table insight is 'Unique read tokens for READ ACCESS DB datalinks';
 
 CREATE FUNCTION dl_url_makeinsight(url text, link_token dl_token, anonymous integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
