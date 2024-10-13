@@ -180,13 +180,14 @@ sub main() {
                     if($data->{info}) { $info=$data->{info}=$json->decode($data->{info}); }
                     log_debug("DATA",$data);
                     my $ts=iso_timestamp();
+                    my $u=$data->{relowner};
                     if($data->{state} eq 'LINK') {
                         if($info) {
-                            log_msg("RE-LINK:$ts".$data->{lco},$path_backup);
+                            log_msg("RE-LINK:$ts:$u:".$data->{lco},$path_backup);
 			                $info->{del}=0;
                             file_unlink($path,$data); $cu++;
                         } else {
-                            log_msg("LINK:$ts:".$data->{lco},$path_backup);
+                            log_msg("LINK:$ts:$u:".$data->{lco},$path_backup);
                         }
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
