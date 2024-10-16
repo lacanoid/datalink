@@ -56,6 +56,8 @@ Wanted
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
 - function to create new unused filename
 - improve support for data: URLs
+- keep temporary files when they are linked to READ ACCESS FS columns
+- show warning when setting LCO when missing datalinker
 
 Advanced
 --------
@@ -108,7 +110,6 @@ Todo
 - datalinker: better path checking, have definitive functions
 - datalinker: optimise verbosity
 - datalinker: better behaviour when not configured
-- datalinker: better configurator
 - ✔︎ datalinker: don't die so easily
 - datalinker: signal handler for graceful exit
 - datalinker: update owner+group in dl_linked_files.info only if not default
