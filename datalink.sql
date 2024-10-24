@@ -324,7 +324,7 @@ grant select on columns to public;
 grant update on columns to public;
 
 ---------------------------------------------------
--- triggers we might need to run
+-- triggers we might need to setup
 CREATE FUNCTION dl_trigger_advice(
     OUT owner name, OUT regclass regclass, 
     OUT valid boolean, OUT needed boolean,
@@ -369,7 +369,19 @@ SELECT
     tgname AS identifier,
     links,
     mco,
-    COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
+    case when tgname is not null then
+      format(e'DROP TRIGGER IF EXISTS %I ON %s;', tgname, regclass::text) ||
+      format(e'DROP TRIGGER IF EXISTS %I ON %s;\n', tgname||'2', regclass::text)
+    else '' end ||
+    case when links>0 and mco > 0 then
+      format(e'CREATE TRIGGER %I BEFORE INSERT OR UPDATE OR DELETE ON %s' || 
+             e' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();\n', 
+             '~RI_DatalinkTrigger', regclass::text) ||
+      format(e'CREATE TRIGGER %I BEFORE TRUNCATE ON %s' || 
+             e' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();',
+             '~RI_DatalinkTrigger2', regclass::text) 
+    else '' end
+/*  COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
              || ' ON ' || regclass::text || '; ', '') ||
     COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname||'2') 
              || ' ON ' || regclass::text || E'; \n', '') ||
@@ -382,7 +394,8 @@ SELECT
                ||  regclass::text) 
                || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();', '') 
     else ''
-    end AS sql_advice
+    end */
+    AS sql_advice
    FROM dl_triggers
 $$;
 
@@ -1159,7 +1172,7 @@ begin
         if current_setting('datalink.linker_required',true) is not null
         then 
           raise exception 
-                'DATALINK WARNING - datalinker required' 
+                'DATALINK EXCEPTION - datalinker required' 
           using errcode = '57050',
                 hint = 'Make sure pg_datalinker process is running. Perhaps "dlfm start"?';
         else
@@ -1167,9 +1180,9 @@ begin
                 'DATALINK WARNING - datalinker not running' 
           using errcode = '57050',
                 hint = 'Make sure pg_datalinker process is running to finalize your commits.';
-        end if;
-      end if;
-    end if;
+        end if; -- datalinker required
+      end if; -- datalinker not running
+    end if; -- integrity ALL
 
     if lco.integrity = 'ALL' then has_token := 1; end if;
 
