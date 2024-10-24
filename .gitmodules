@@ -1,0 +1,3 @@
+[submodule "pguri"]
+	path = pguri
+	url = https://github.com/lacanoid/pguri.git
