@@ -66,7 +66,10 @@ On Debian, you will need to install `libwww-curl-perl` and also `libdbd-pg-perl`
     apt install libwww-curl-perl libdbd-pg-perl libconfig-tiny-perl liburiparser-dev
 
 Also required is [pguri](https://github.com/lacanoid/pguri) extension, which must
-be installed separately.
+be installed separately. It is configured as a github submodule, so you can get it by:
+
+    git submodule init
+    git submodule update
 
 To build and install this module:
 
