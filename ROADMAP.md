@@ -42,7 +42,7 @@ Wanted
 - handle symbolic links better (resolve?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
-- add 'dirname','extension','basename','filename' to uri_get/set
+- add `dirname`,`extension`,`basename`,`filename` to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - ✔︎ url beautifier function for sanitizing broken urls
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
@@ -58,6 +58,7 @@ Wanted
 - improve support for data: URLs
 - keep temporary files when they are linked to READ ACCESS FS columns
 - show warning when setting LCO when missing datalinker
+- `dlreplacecontent()` handle local files differently (and support read tokens!)
 
 Advanced
 --------

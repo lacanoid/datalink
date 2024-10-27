@@ -35,14 +35,13 @@ installextras:
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink
-	cp LICENSE.md /var/www/datalink/
-	cp CHANGELOG.md /var/www/datalink/CHANGELOG.md
+#	cp CHANGELOG.md /var/www/datalink/CHANGELOG.md
 	echo "Hello" > /var/www/datalink/test1.txt
 	cp docs/utf8.txt /var/www/datalink/test2.txt
 	cp -a LICENSE.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt
-	rm -f /var/www/datalink/test5.txt
+	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
 
 dump:
 	pg_dump -Fc contrib_regression > db.pg_dump

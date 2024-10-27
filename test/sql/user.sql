@@ -41,7 +41,7 @@ update datalink.columns
 set role datalink_test_user;
 
 insert into user_links (link)
-values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 1'));
 
 update user_links
    set link = dlnewcopy(link);
@@ -58,7 +58,7 @@ savepoint p1;
 select * from datalink.read_text('/etc/passwd',1,4); -- should fail
 rollback to p1;
 
-select * from datalink.read_text('/var/www/datalink/CHANGELOG.md',1,12);
+select * from datalink.read_text('/var/www/datalink/test1.txt',1,5);
 
 reset role;
 drop table user_links;

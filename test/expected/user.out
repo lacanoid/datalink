@@ -44,25 +44,25 @@ update datalink.columns
  where table_name='user_links' and column_name='link2';
 set role datalink_test_user;
 insert into user_links (link)
-values (dlvalue('/var/www/datalink/CHANGELOG.md','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 1'));
 WARNING:  DATALINK WARNING - datalinker not running
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update user_links
    set link = dlnewcopy(link);
-NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 WARNING:  DATALINK WARNING - datalinker not running
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select * 
   from datalink.linked_files;
-              path              | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |       owner        |  err   
---------------------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------------------+--------
- /var/www/datalink/CHANGELOG.md | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | datalink_test_user | _null_
+            path             | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |       owner        |  err   
+-----------------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------------------+--------
+ /var/www/datalink/test1.txt | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | datalink_test_user | _null_
 (1 row)
 
 update user_links set link = null;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/CHANGELOG.md
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 truncate user_links;
 savepoint p1;
 -- test permissions on file functions
@@ -71,10 +71,10 @@ ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory for role "dat
 FILE:  /etc/passwd
 CONTEXT:  PL/Perl function "read_text"
 rollback to p1;
-select * from datalink.read_text('/var/www/datalink/CHANGELOG.md',1,12);
-  read_text   
---------------
- Version 0.24
+select * from datalink.read_text('/var/www/datalink/test1.txt',1,5);
+ read_text 
+-----------
+ Hello
 (1 row)
 
 reset role;

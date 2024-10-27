@@ -381,20 +381,6 @@ SELECT
              e' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();',
              '~RI_DatalinkTrigger2', regclass::text) 
     else '' end
-/*  COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname) 
-             || ' ON ' || regclass::text || '; ', '') ||
-    COALESCE('DROP TRIGGER IF EXISTS ' || quote_ident(tgname||'2') 
-             || ' ON ' || regclass::text || E'; \n', '') ||
-    case when links>0 and mco > 0 then
-     COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger" BEFORE INSERT OR UPDATE OR DELETE ON '
-               ||  regclass::text) 
-               || E' FOR EACH ROW EXECUTE PROCEDURE datalink.dl_trigger_table();\n', '')
-         ||
-     COALESCE(('CREATE TRIGGER "~RI_DatalinkTrigger2" BEFORE TRUNCATE ON '
-               ||  regclass::text) 
-               || ' FOR EACH STATEMENT EXECUTE PROCEDURE datalink.dl_trigger_table();', '') 
-    else ''
-    end */
     AS sql_advice
    FROM dl_triggers
 $$;
@@ -1211,6 +1197,14 @@ begin
   link := link::jsonb - 'o'; cons := link::jsonb ->> 'k';
   link := dlpreviouscopy(link,has_token)::jsonb - 'k'; -- extablish token
 
+  -- convert temporary file to permanent if needed
+  if lco.link_control = 'FILE' then
+      update datalink.dl_new_files set op = 'w'
+       where path = datalink.filepathwrite(link) and op = 't'
+         and txid = pg_current_xact_id();
+  end if;
+
+  -- link file if needed
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
       my_path := dlurlpathonly(link);
 
@@ -1964,7 +1958,7 @@ DECLARE
   url text;
   r record;
 BEGIN
-  link := pg_catalog.dlnewcopy(link);
+  if link::jsonb->>'b' is not null then link := pg_catalog.dlnewcopy(link); end if;
   path := datalink.filepathwrite(link);
   url  := pg_catalog.dlurlcompleteonly(new_content);
 
@@ -2271,7 +2265,7 @@ begin
                     detail = 'write_text can only be used with local file URLs',
                     hint = 'make sure you are using a file: URL scheme';
  end if;
- if link::jsonb->>'b' is not null then link := dlnewcopy(link); end if;
+ if link::jsonb->>'b' is not null then link := pg_catalog.dlnewcopy(link); end if;
  link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
  perform datalink.write_text(datalink.filepathwrite(link),content,persistent);
  return link;

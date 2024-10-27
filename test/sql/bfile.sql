@@ -15,7 +15,6 @@ select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 
-insert into bfiles (bfile) values (dlvalue('LICENSE.md','www'));
 insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
@@ -79,7 +78,7 @@ create table files ( link datalink(2) );
 insert into files values (dlvalue('/var/www/datalink/test1.txt'));
 update files  set link = dlnewcopy(link);
 insert into files values (dlvalue('/var/www/datalink/test2.txt'));
-insert into files values (dlreplacecontent('/var/www/datalink/robots.txt','http://www.github.com/robots.txt'));
+insert into files values (dlreplacecontent('/var/www/datalink/test6.txt','http://www.github.com/robots.txt'));
 insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
 
 select cons,path from datalink.dl_linked_files order by path;

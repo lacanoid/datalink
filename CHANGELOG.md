@@ -11,13 +11,14 @@ Version 0.24
 - `dlvalue()` now supports `IRI` link type, bug fixes
 - dump/restore improvements (function `datalink.set_online()`)
 - added `datalink.http_response_codes` reference table 
-- added tables `datalink.dl_access_web` and `datalink.access_web` table and view 
-- added preliminary `has_web_privilege()` functions
 - simplify `file:` URLs to be without host if not needed
 - rename `dlurlpathwrite()` to `datalink.filepathwrite()` as it doesn't conform to the standard
 - rename `dl_file_admin()` to `dl_file_new()`
 - rename `dl_admin_files` to `dl_new_files`
 - improve the way options are specified for `curl_get()`
+- improved temporary files handling, don't delete them when linked
+- added tables `datalink.dl_access_web` and `datalink.access_web` table and view 
+- added preliminary `has_web_privilege()` functions
 
 Version 0.23
 ------------
