@@ -6,7 +6,7 @@ Errors
 Curl
 ----
 
-Functions `curl_get()` and `curl_save()` can return many errors in the `rc` field.
+Functions `datalink.curl_get()` and `datalink.curl_save()` can return many errors in the `rc` field.
 
 For Curl internal errors see [libcurl error codes](https://curl.se/libcurl/c/libcurl-errors.html).
 For HTTP Errors see [List of HTTP status codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
@@ -23,7 +23,7 @@ but not properly unlinked thereafter.
 ### DATALINK WARNING - datalinker not running
 
 You are trying to perform an operation which really needs [datalinker](dlfm.md)
-to complete completely.
+to completely complete.
 
 ### DATALINK WARNING - external file not linked
 
@@ -57,23 +57,42 @@ You are trying to link a file which does not exist.
 ### HW005 DATALINK EXCEPTION - invalid datalink construction
 
 You are trying to INSERT a datalink constructed with
-`dlpreviouscopy()` or `dlnewcopy()`. This is not allowed
-by the SQL standard.
+`dlpreviouscopy()` or `dlnewcopy()`. 
+This is not allowed by the SQL standard.
 
 ### HW006 DATALINK EXCEPTION - invalid write permission for update
 
 ### HW007 DATALINK EXCEPTION - referenced file not valid
 
+You are trying to change a datalink URL in a `dlnewcopy()` or `dlpreviouscopy()`.
+This is not allowed by the SQL standard.
+
+You are trying to link a file which is not in one of the allowed directories in `datalink.directory`.
+
+You are trying to link a file which is neither a file nor a directory.
+
+You are trying to link a file but file information (stat) could not be obtained.
+
+You are trying to modify `datalink.directory` but `dirname` does not begin with a valid prefix from `datalink.dl_prfx`.
+
 ### DATALINK EXCEPTION - datalinker required
 
 You are trying to perform an operation which really needs [datalinker](dlfm.md)
-to complete completely.
+to completely complete.
 
 ### DATALINK EXCEPTION - cannot open file for reading
 
 ### DATALINK EXCEPTION - cannot open file for writing
 
 ### DATALINK EXCEPTION - file exists
+
+You are using `datalink.write()` or `datalink.write_text()` 
+but the file you are trying to create already exists.
+
+### HW303 DATALINK EXCEPTION - failed to copy resource
+
+You are using `dlreplacecontent()` but the operation failed. 
+This can also occur if the source does not exist or cannot be read.
 
 ### DATALINK EXCEPTION - SELECT permission denied on directory for role
 
@@ -86,7 +105,7 @@ to complete completely.
 You are using `dlvalue(address, dirname)` function 
 but directory `dirname` does not exist. (HW105)
 
-You are are trying to change `datalink.access` 
+You are are trying to modify `datalink.access` 
 but `dirpath` does not contain a valid directory name. (HW103)
 
 ### DATALINK EXCEPTION - dl_file_new() failed

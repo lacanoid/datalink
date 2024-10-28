@@ -1332,7 +1332,7 @@ begin
                                        tg_relid::regclass::text,r.column_name),
                          hint = 'set write_access to ADMIN or TOKEN';
             end if; -- blocked
-          -- check for write_access = TOKEN and prevent updates if needed
+            -- check for write_access = TOKEN and prevent updates if needed
             if opt.write_access = 'TOKEN' and link1 is not null then
              if link2::jsonb->>'o' is null or link2::jsonb->>'o' is distinct from link1::jsonb->>'b' then
                 raise exception 'DATALINK EXCEPTION - invalid write token' using 
@@ -1964,7 +1964,7 @@ BEGIN
 
   r := datalink.curl_save(path,url);
   if not r.ok then
-    raise exception e'DATALINK EXCEPTIION - Failed to copy resource\nURL: %',url
+    raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
     using errcode = 'HW303',
           detail = format('CURL error %s%s',r.rc,' - '||r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
@@ -2210,7 +2210,7 @@ AS $function$
         qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
