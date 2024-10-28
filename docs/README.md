@@ -72,8 +72,8 @@ The extension can be used without a daemon, but this disables some of the functi
 
 ![Datalink diagram](diagram.webp)
 
-See also
---------
+Reference
+---------
 - [Configuration](configuration.md)
 - [Security](security.md)
 - [Caveats](caveats.md)

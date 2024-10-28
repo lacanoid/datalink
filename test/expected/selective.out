@@ -58,7 +58,7 @@ update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
 ERROR:  DATALINK EXCEPTION
-DETAIL:  Can't change link control options; 6 non-null values present in column "link"
+DETAIL:  Cannot change link control options; 6 non-null values present in column "link"
 HINT:  Perhaps you can "truncate sample_datalinks3"
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 48 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"

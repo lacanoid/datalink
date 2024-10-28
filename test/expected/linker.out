@@ -262,7 +262,7 @@ insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/d
 ERROR:  unrecognized privilege type: "KIKI"
 CONTEXT:  PL/pgSQL function dl_trigger_access() line 28 at assignment
 insert into datalink.access (dirpath,grantee,privilege_type) values ('/var/www/datalink_xxx/','PUBLIC','REFERENCES');
-ERROR:  DATALINK EXCEPTION - directory not found
+ERROR:  DATALINK EXCEPTION - directory does not exist
 PATH:  /var/www/datalink_xxx/
 DETAIL:  directory not found while modifying datalink.access
 HINT:  add appropriate entry in table datalink.directory

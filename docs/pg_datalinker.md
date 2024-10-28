@@ -3,14 +3,22 @@
 pg_datalinker
 =============
 
-Datalinker runs a loop checking entries in `datalink.dl_linked_files` table.
+*pg_datalinker* is a Datalink File Manager deamon, which normally runs
+in the background.
+
+It is not meant to be run directly, but rather managed with [`dlfm`](dlfm.md) command.
+
+Datalinker uses entries in `datalink.dl_linked_files` table.
 Here it sees the results of transactions already commited in postgres.
 
 It then attempts to modify linked files accordingly.
 
-It is not meant to be run directly, but rather managed with [`dlfm`](dlfm.md) command.
+It also deletes (purges) temporary and aborted files 
+created from postgres with `datalink.write()`, `datalink.write_text()` 
+and `dlreplacecontent()` and such functions.
 
-It needs to run as UNIX superuser `root` because it needs to.
+It needs to run as UNIX superuser `root` because it needs to 
+change file ownership and permissions and whatnot.
 
 Responsibilities
 ----------------
@@ -23,7 +31,9 @@ Responsibilities
 * Make backups of files (RECOVERY YES)
 
   *Base file* is designated by path, for example `/dir1/dir2/file.ext`.
+
   *Backup file* is base file with appended token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
+
   If backup file does not exist, it is created by creating a copy of base file.
 
 * Restore files from backups (RECOVERY YES)
@@ -39,7 +49,7 @@ Responsibilities
 
 * Restore file permissions (ON UNLINK RESTORE)
 
-  File owner, group and mode are restored values previously stored in `datalink.dl_linked_files` table.
+  File owner, group and mode are restored from values previously stored in `datalink.dl_linked_files` table.
 
 * Delete files no longer referenced (ON UNLINK DELETE)
 
@@ -55,6 +65,8 @@ Files in state `LINK` go into state `LINKED` when successfully linked otherwise 
 
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
 If `ON_UNLINK` is `DELETE` then the files are also deleted from filesystem.
+
+![Datalinker states](datalinker_states.svg)
 
 Options
 -------

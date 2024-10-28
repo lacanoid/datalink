@@ -265,7 +265,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
 update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';
 ERROR:  DATALINK EXCEPTION
-DETAIL:  Can't change link control options; 1 non-null values present in column "link"
+DETAIL:  Cannot change link control options; 1 non-null values present in column "link"
 HINT:  Perhaps you can "truncate my_table4"
 CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 48 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"

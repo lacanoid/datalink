@@ -991,10 +991,10 @@ begin
  if my_type not in ('URL','FS') then 
   select dirpath||coalesce(my_uri,'') from datalink.directory where dirname=my_type into my_uri;
   if not found then 
-        raise exception 'DATALINK EXCEPTION - nonexistent directory' 
-              using errcode = 'HW005',
+        raise exception 'DATALINK EXCEPTION - directory does not exist' 
+              using errcode = 'HW105',
                     detail = format('directory "%s" does not exist',linktype),
-                    hint = 'perhaps you need to add it to datalink.directory';
+                    hint = 'perhaps you need to add it to datalink.directory and/or set dirname';
   end if;
  end if;
  if my_type is distinct from 'URL' then -- like type is file or directory
@@ -1574,7 +1574,7 @@ $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
 
-open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
+open($fh,">",$filename) or die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
 ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
 $curl->setopt(CURLOPT_WRITEDATA,$fh);
 
@@ -1743,7 +1743,7 @@ begin
     if n > 0 then
         raise exception 'DATALINK EXCEPTION' 
               using errcode = 'HW000',
-              detail = format('Can''t change link control options; %s non-null values present in column "%s"',
+              detail = format('Cannot change link control options; %s non-null values present in column "%s"',
                         n,my_column_name),
                     hint = format('Perhaps you can "truncate %s"',my_regclass);
     end if; -- values present
@@ -2100,7 +2100,8 @@ CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, l
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
+  open my $fh, $filename or 
+   die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
   if(defined($len)) { read $fh,$bufr,$len; } 
@@ -2141,7 +2142,8 @@ CREATE OR REPLACE FUNCTION read(filename file_path, pos bigint default 1, len bi
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!\n";
+  open my $fh, $filename or 
+   die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   binmode $fh;
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
@@ -2165,7 +2167,8 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or die "DATALINK EXCEPTION - Can't open $filename: $!";
+  open my $fh, $filename or 
+   die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos;
   while(my $line = <$fh>) {
@@ -2212,7 +2215,8 @@ AS $function$
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
-  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
+  open($fh,">",$filename) or 
+   die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
   close $fh;
@@ -2238,12 +2242,13 @@ AS $function$
         qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
-  open($fh,">",$filename) or die "DATALINK EXCEPTION - Cannot open file for writing: $!\nFILE: $filename\n";
+  open($fh,">",$filename) or 
+   die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
   binmode($fh);
   print $fh decode_bytea($bufr);
   close $fh;
@@ -2479,8 +2484,8 @@ BEGIN
 
   select diracl from datalink.directory where dirpath = dir into acls;
   if not found THEN
-    raise exception e'DATALINK EXCEPTION - directory not found\nPATH:  %',dir 
-          using errcode = 'HW003', 
+    raise exception e'DATALINK EXCEPTION - directory does not exist\nPATH:  %',dir 
+          using errcode = 'HW103', 
                 detail = 'directory not found while modifying datalink.access',
                 hint = 'add appropriate entry in table datalink.directory';
   end if;

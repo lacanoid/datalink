@@ -18,27 +18,28 @@ Datalink database can be configured by using `dlfm bind` and `dlfm unbind` shell
 Database superuser `root` is needed to install `datalink` extension in the datalink database and run `pg_datalinker`.
 Database user `www-data` is needed for apache to connect to the datalink database.
 
-SQL extension
--------------
-
 ### prefixes
 A list of directories where linked files are allowed.
 Normally found in `/etc/postgresql-common/pg_datalinker.prefix`.
-These are managed by the system administrator (root).
+These are managed by the *system administrator* (root).
 
 Prefixes can be viewed by using `dlfm list` shell command.
 
 Prefixes can be managed by using `dlfm add` and `dlfm del` shell commands.
 
 ### directories
-Updatable view `datalink.directories` is a set directories, where datalinks are to be located. 
-They typically mirror (and are limited to) prefixes. They are managed by the database administrator.
-Several additional options can be set, such as directory short name, permissions and url mapping.
+Updatable view `datalink.directories` is a set directories, 
+where datalinks are to be located. 
+They typically mirror (and are limited to) prefixes. 
+They are managed by the *database administrator*.
+Several additional options can be set, 
+such as directory short name, permissions and url mapping.
 
 Directories can be viewed by using `dlfm dirs` shell command.
 
 ### directory access privileges
-Exploded permissions for directories are in updatable view `datalink.access`. 
+Exploded permissions for directories are available
+in updatable view `datalink.access`. 
 Database administrator can INSERT/UPDATE/DELETE individual privileges here.
 
 Currently supported directory privileges:
@@ -46,26 +47,9 @@ Currently supported directory privileges:
 - `CREATE` - create new files
 - `DELETE` - delete files
 
-file manager
-------------
+### datalinker options
 
-### datalink database
-This should be configured in `/etc/postgresql-common/pg_service.conf` as a service `pg_datalink`.
-
-### prefixes
-A list of directories where linked files are allowed.
-Normally found in `/etc/postgresql-common/pg_datalinker.prefix`.
-
-### options
-
-
-file filter
------------
-
-### datalink database
-This should be configured in `/etc/postgresql-common/pg_service.conf` as a service `pg_datalink`.
-Database used for file authorization, containing linked files and insight tables.
-
-File filter uses `datalink.dl_authorize()` function to check for access privileges.
+These specify details on how [datalinker](pg_datalinker.md) should work.
 
 [Datalink manual](README.md)
+
