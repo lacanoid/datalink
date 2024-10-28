@@ -1,0 +1,9 @@
+digraph G {
+  o [shape=circle label=""]
+  LINK -> ERROR;
+  LINK -> LINKED;
+  LINKED -> UNLINK;
+  UNLINK -> LINK [label="UPDATE"];
+  o -> LINK [label="INSERT"];
+  UNLINK -> o [label="DELETE"]
+}
