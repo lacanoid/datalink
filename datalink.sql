@@ -1163,7 +1163,7 @@ begin
                 hint = 'Make sure pg_datalinker process is running. Perhaps "dlfm start"?';
         else
           raise warning 
-                'DATALINK WARNING - datalinker not running' 
+                'DATALINK WARNING - datalinker recommended' 
           using errcode = '57050',
                 hint = 'Make sure pg_datalinker process is running to finalize your commits.';
         end if; -- datalinker required
@@ -1465,10 +1465,10 @@ if($url=~m|^file://[^/]|i) {
   my $p = spi_prepare($q,'TEXT');
   $fs = spi_exec_prepared($p,$url)->{rows}->[0];
   unless($fs->{extnamespace}) {
-    elog(ERROR,"DATALINK EXCEPTION - Extension dblink is required for files on foreign servers.\n");
+    elog(ERROR,"DATALINK EXCEPTION - dblink extension required for files on foreign servers\n");
   }
   unless($fs->{srvoid}) {
-    elog(ERROR,"DATALINK EXCEPTION - Foreign server ".quote_ident($fs->{srvname})." does not exist.\n");
+    elog(ERROR,"DATALINK EXCEPTION - foreign server ".quote_ident($fs->{srvname})." does not exist\n");
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
   $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';

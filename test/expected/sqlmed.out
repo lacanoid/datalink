@@ -191,7 +191,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
@@ -219,12 +219,12 @@ DETAIL:  File address is different for for update of column med.link
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
 update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 drop table med;

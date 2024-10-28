@@ -19,7 +19,7 @@ update datalink.columns
  where table_name='sample_datalinks6' and column_name='link2';
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 1'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update sample_datalinks6 set link2 = link;
@@ -59,7 +59,7 @@ set client_min_messages=notice;
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 2'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into sample_datalinks6 (link)
@@ -85,7 +85,7 @@ select dlurlpathonly(link) from sample_datalinks6;
 update sample_datalinks6
    set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update sample_datalinks6 set link2 = link, link = null;
@@ -93,7 +93,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 update sample_datalinks6 set link2 = null, link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 create table sample_datalinks7 as 
@@ -103,7 +103,7 @@ NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
 truncate sample_datalinks6;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
@@ -125,11 +125,11 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 -- test for foreign servers
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  DATALINK EXCEPTION - Extension dblink is required for files on foreign servers.
+ERROR:  DATALINK EXCEPTION - dblink extension required for files on foreign servers
 CONTEXT:  PL/Perl function "curl_get"
 create extension dblink;
 select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  DATALINK EXCEPTION - Foreign server zala does not exist.
+ERROR:  DATALINK EXCEPTION - foreign server zala does not exist
 CONTEXT:  PL/Perl function "curl_get"
 create extension postgres_fdw;
 create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
@@ -137,7 +137,7 @@ select * from datalink.curl_get('file://zala/etc/issue');
 ERROR:  user mapping not found for "root" at line 43.
 CONTEXT:  PL/Perl function "curl_get"
 select * from datalink.curl_get('file://tiha/etc/issue');
-ERROR:  DATALINK EXCEPTION - Foreign server tiha does not exist.
+ERROR:  DATALINK EXCEPTION - foreign server tiha does not exist
 CONTEXT:  PL/Perl function "curl_get"
 create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
@@ -281,7 +281,7 @@ select datalink.dl_url_makeinsight('http://server/dir/file.ext','11111111-2222-3
 (1 row)
 
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt#11111111-2222-3333-4444-abecedabeced'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;

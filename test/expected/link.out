@@ -240,7 +240,7 @@ select * from datalink.columns order by table_name;
 (13 rows)
 
 insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:/var/www/datalink/test4.txt
@@ -249,7 +249,7 @@ HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory
 URL:  file:/etc/issue
@@ -259,7 +259,7 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
-WARNING:  DATALINK WARNING - datalinker not running
+WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';

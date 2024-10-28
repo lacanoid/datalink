@@ -20,7 +20,7 @@ You are trying to link a file which although not linked now
 it seems to might have been linked previously 
 but not properly unlinked thereafter.
 
-### DATALINK WARNING - datalinker not running
+### DATALINK WARNING - datalinker recommended
 
 You are trying to perform an operation which really needs [datalinker](dlfm.md)
 to completely complete.
@@ -45,8 +45,7 @@ General exception for when others won't do.
 
 ### HW002 DATALINK EXCEPTION - external file already linked
 
-You are trying to link a file which has already been linked in
-another table.
+You are trying to link a file which has already been linked from another table.
 
 ### HW003 DATALINK EXCEPTION - referenced file does not exist
 
@@ -61,6 +60,8 @@ You are trying to INSERT a datalink constructed with
 This is not allowed by the SQL standard.
 
 ### HW006 DATALINK EXCEPTION - invalid write permission for update
+
+You are trying to update a datalink column with WRITE ACCESS BLOCKED option.
 
 ### HW007 DATALINK EXCEPTION - referenced file not valid
 
@@ -89,10 +90,10 @@ to completely complete.
 You are using `datalink.write()` or `datalink.write_text()` 
 but the file you are trying to create already exists.
 
-### HW303 DATALINK EXCEPTION - failed to copy resource
+### DATALINK EXCEPTION - failed to copy resource
 
 You are using `dlreplacecontent()` but the operation failed. 
-This can also occur if the source does not exist or cannot be read.
+This can also occur if the source does not exist or cannot be read. (HW303)
 
 ### DATALINK EXCEPTION - SELECT permission denied on directory for role
 
@@ -110,9 +111,9 @@ but `dirpath` does not contain a valid directory name. (HW103)
 
 ### DATALINK EXCEPTION - dl_file_new() failed
 
-### DATALINK EXCEPTION - Extension dblink is required for files on foreign servers
+### DATALINK EXCEPTION - dblink extension required for files on foreign servers
 
-### DATALINK EXCEPTION - Foreign server does not exist
+### DATALINK EXCEPTION - foreign server does not exist
 
 ### DATALINK EXCEPTION - Filename is NULL
 
