@@ -114,6 +114,7 @@ Todo
 - ✔︎ datalinker: don't die so easily
 - datalinker: signal handler for graceful exit
 - datalinker: update owner+group in dl_linked_files.info only if not default
+- datalinker: log flush
 - datalinker: log file protection from normal users
 - ✔︎ function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?

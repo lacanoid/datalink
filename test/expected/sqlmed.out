@@ -184,11 +184,11 @@ CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regcla
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 99 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
---
--- case 1.b.ii.2.A.I invalid write token
 delete from med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+--
+-- case 1.b.ii.2.A.I invalid write token
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -200,6 +200,11 @@ ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  New value doesn't contain a matching write token for update of column med.link
 HINT:  Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 74 at RAISE
+update med set link = dlnewcopy(link); -- ok
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+WARNING:  DATALINK WARNING - datalinker recommended
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';

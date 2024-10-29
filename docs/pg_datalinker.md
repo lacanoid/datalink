@@ -66,7 +66,7 @@ Files in state `LINK` go into state `LINKED` when successfully linked otherwise 
 Files in state `UNLINK` are unlinked and deleted from table `datalink.dl_linked_files`.
 If `ON_UNLINK` is `DELETE` then the files are also deleted from filesystem.
 
-![Datalinker states](datalinker_states.svg)
+![Datalinker states](datalinker_states.png)
 
 Options
 -------

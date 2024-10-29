@@ -109,12 +109,13 @@ update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- 
 -- case 1.b.ii.1 external file already linked
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 update med set link = dlvalue('file:///var/www/datalink/test4.txt'); -- err
+delete from med;
 --
 -- case 1.b.ii.2.A.I invalid write token
-delete from med;
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
+update med set link = dlnewcopy(link); -- ok
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';

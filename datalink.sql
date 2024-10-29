@@ -1542,12 +1542,12 @@ use WWW::Curl::Easy;
 use JSON;
 
 if(!$filename) {
-    elog(ERROR,"DATALINK EXCEPTION - Filename is NULL\n");
+    elog(ERROR,"DATALINK EXCEPTION - filename is NULL\n");
 }
 
  ## Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
-    elog(ERROR,"DATALINK EXCEPTION - Foreign servers not supported in curl_save\nURL: $url");
+    elog(ERROR,"DATALINK EXCEPTION - foreign servers not supported in curl_save\nURL: $url");
 }
 
 my %r;
@@ -1561,7 +1561,7 @@ unless($fs->{ok} eq 't') {
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
         qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
 }
-if(-e $filename) { die "DATALINK EXCEPTIION - File exists\nFILE: $filename\n"; }
+if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
 
 $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
 unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
