@@ -52,11 +52,14 @@ datalink--$(extension_version).sql: datalink.sql
 	cat $^ >$@
 
 dlcat: dlcat.c
-	$(CC) -Wall -Wextra -I`pg_config --includedir` dlcat.c -lpq -o dlcat
+	$(CC) -Wall -Wextra -I`$(PG_CONFIG) --includedir` dlcat.c -lpq -o dlcat
 	chown www-data:www-data dlcat
 	chmod 755 dlcat
 	chmod g+s dlcat
 	chmod u+s dlcat
+
+dlfusefs: dlfusefs.c
+	$(CC) -Wall -Wextra `$(PKG_CONFIG) --cflags --libs fuse` -I`$(PG_CONFIG) --includedir` dlfusefs.c -lpq -o dlfusefs
 
 testall.sh:
 	pg_lsclusters -h | perl -ne '@_=split("\\s+",$$_); print "make PGPORT=$$_[2] PG_CONFIG=/usr/lib/postgresql/$$_[0]/bin/pg_config clean install installcheck\n";' > testall.sh
