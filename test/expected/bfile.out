@@ -24,12 +24,6 @@ select substr(dlvalue('/var/www/datalink/test2.txt')),
                                                                               |                                                                   | 
 (1 row)
 
-select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
- instr 
--------
-     0
-(1 row)
-
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 NOTICE:  DATALINK DDL:TRIGGER on bfiles
@@ -39,20 +33,19 @@ insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
-select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
-       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
- instr |       substr        
--------+---------------------
-    87 | © 2018 Žiga Kranjec
+select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
+       substr        
+---------------------
+ © 2018 Žiga Kranjec
 (1 row)
 
-select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
- getlength | instr | substr |                             filepath                             | fileexists |            filegetname             
------------+-------+--------+------------------------------------------------------------------+------------+------------------------------------
-         6 |     0 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
-       177 |     0 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
-       939 |     0 | © 20   | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
+ getlength | substr |                             filepath                             | fileexists |            filegetname             
+-----------+--------+------------------------------------------------------------------+------------+------------------------------------
+         6 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
+       177 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
+       939 | © 20   | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
 (3 rows)
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
@@ -250,26 +243,26 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
- f
+           0
 (1 row)
 
 \! touch /var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
- t
+           1
 (1 row)
 
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
- t
+           1
 (1 row)
 
 select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
  has_updated 
 -------------
- t
+           1
 (1 row)
 
 update my_table2 set link=dlnewcopy(link);
@@ -278,13 +271,13 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 select datalink.has_updated(link) from my_table2;
  has_updated 
 -------------
- f
+           0
 (1 row)
 
 select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
  has_updated 
 -------------
- f
+           0
 (1 row)
 
 truncate my_table2;
@@ -295,7 +288,7 @@ DETAIL:  function has_updated() only works with linked files
 HINT:  store a datalink referencing this file in a column with INTEGRITY ALL option
  has_updated 
 -------------
- _null_
+      _null_
 (1 row)
 
 select datalink.has_updated('/etc/issue');
@@ -304,7 +297,7 @@ DETAIL:  function has_updated() only works with linked files
 HINT:  store a datalink referencing this file in a column with INTEGRITY ALL option
  has_updated 
 -------------
- _null_
+      _null_
 (1 row)
 
 -- test link construction types

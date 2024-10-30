@@ -2345,25 +2345,6 @@ comment on function getlength(file_path) is
 create or replace function pg_catalog.substr(datalink, pos integer default 1, len integer default 32767) returns text as 
 $$ select datalink.read_text($1,$2,$3) $$ language sql;
 
-
-create or replace function substr(datalink, pos integer default 1, len integer default 32767) returns text as 
-$$ select datalink.read_text($1,$2,$3) $$ language sql;
-comment on function substr(datalink, integer, integer) is 
-  'BFILE - Returns part of the datalink file starting at the specified offset and length';
-create or replace function substr(file_path, pos integer default 1, len integer default 32767) returns text as 
-$$ select datalink.read_text($1,$2,$3) $$ language sql;
-comment on function substr(file_path, integer, integer) is 
-  'BFILE - Returns part of the file starting at the specified offset and length';
-
-create or replace function instr(datalink, pattern text, pos integer default 1) returns integer as 
-$$ select position($2 in datalink.read_text($1,$3::bigint)) $$ language sql;
-comment on function instr(datalink,text, integer) is 
-  'BFILE - Returns the matching position of a pattern in a datalink file';
-create or replace function instr(file_path, pattern text, pos integer default 1) returns integer as 
-$$ select position($2 in datalink.read_text($1,$3::bigint)) $$ language sql;
-comment on function instr(file_path,text, integer) is 
-  'BFILE - Returns the matching position of a pattern in a file';
-
 ---------------------------------------------------
 -- directories
 ---------------------------------------------------
@@ -2671,7 +2652,7 @@ comment on view status is 'Datalinker status';
 ---------------------------------------------------
 
 CREATE FUNCTION has_updated(datalink) 
-returns boolean language plpgsql SECURITY DEFINER STRICT
+returns int language plpgsql SECURITY DEFINER STRICT
 as $$
 DECLARE
  u boolean;
@@ -2694,14 +2675,14 @@ begin
            detail = 'function has_updated() can only be used with local file URLs',
              hint = 'make sure you are using a file: URL scheme';
   end if;
-  return u;
+  return u::int;
 end
 $$;
 COMMENT ON FUNCTION has_updated(datalink) 
      IS 'Check if linked file has been updated since it was linked';
 
 CREATE FUNCTION has_updated(file_path) 
-returns boolean language sql STRICT
+returns int language sql STRICT
 as $$ select datalink.has_updated(pg_catalog.dlvalue($1::text,'FS')) $$;
 COMMENT ON FUNCTION has_updated(file_path) 
      IS 'Check if linked file has been updated since it was linked';

@@ -67,8 +67,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_updated(datalink)                                                                        | plpgsql  | Check if linked file has been updated since it was linked
  datalink     | has_updated(file_path)                                                                       | sql      | Check if linked file has been updated since it was linked
  datalink     | has_valid_prefix(file_path)                                                                  | sql      | Is file path prefixed with a valid prefix?
- datalink     | instr(datalink,text,integer)                                                                 | sql      | BFILE - Returns the matching position of a pattern in a datalink file
- datalink     | instr(file_path,text,integer)                                                                | sql      | BFILE - Returns the matching position of a pattern in a file
  datalink     | iri(text)                                                                                    | sql      | Convert IRI (unicode characters) to URI (escaped)
  datalink     | is_http_success(datalink)                                                                    | sql      | The HTTP return code of this datalink indicates success
  datalink     | is_local(datalink)                                                                           | sql      | The address of this datalink references a local file
@@ -88,7 +86,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | set_online(boolean)                                                                          | plpgsql  | Set datalink online status for dump/restore
  datalink     | stat(datalink)                                                                               | sql      | Return info record from stat(2)
  datalink     | stat(file_path)                                                                              | plperlu  | Return info record from stat(2)
- datalink     | substr(file_path,integer,integer)                                                            | sql      | BFILE - Returns part of the file starting at the specified offset and length
  datalink     | uri_get(datalink,text)                                                                       | sql      | Get (extract) parts of datalink URI
  datalink     | uri_get(text,text)                                                                           | sql      | Get (extract) parts of URI
  datalink     | uri_get(uri,text)                                                                            | sql      | Get (extract) parts of URI
@@ -97,7 +94,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | write(file_path,bytea,integer)                                                               | plperlu  | Write new local file contents as binary
  datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
  datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
- datalink     | datalink.substr(datalink,integer,integer)                                                    | sql      | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
@@ -122,6 +118,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(101 rows)
+(97 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

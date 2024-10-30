@@ -94,7 +94,7 @@ Return previous version of the datalink, if available.
 Updating a `RECOVERY YES` datalink column with the previous value of the datalink will cause datalinker to restore
 previous version of file contents.
 
-If `has_token` > 0 then try to stablish token value for a datalink in the following order:
+If `has_token` > 0 then the function will try to establish token value for a datalink in the following order:
 1. previous token value stored in a datalink
 2. token value stored in a datalink
 3. look for token in datalink filename
@@ -470,8 +470,8 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 Returns new datalink, which can be used for update of a datalink column.
 
-Compatibility functions
------------------------
+File information functions
+--------------------------
 
 #### fileexists( datalink ) → integer
 Check if file exists.
@@ -479,8 +479,11 @@ Check if file exists.
 #### getlength( datalink ) → bigint
 Return file size in bytes.
 
-#### instr( datalink , text ) → integer
-Search for a string in text file, returns offset where found.
+#### has_updated( datalink ) -> int
+Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL and WRITE ACCESS FS datalinks.
+
+Compatibility functions
+-----------------------
 
 #### substr( datalink [ , position [ , length ] ] ) → text
 Return substring of length from a file starting with offset.

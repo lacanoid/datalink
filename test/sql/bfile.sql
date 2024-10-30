@@ -10,8 +10,6 @@ select substr(dlvalue('/var/www/datalink/test2.txt')),
        substr(dlvalue('/var/www/datalink/test2.txt'),12,8)
        ;
 
-select instr(dlvalue('/var/www/datalink/test2.txt'),'Feb');
-
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 
@@ -19,10 +17,9 @@ insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
-select instr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),'ri'),
-       substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
+select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
 
-select getlength(bfile),instr(bfile,'link'),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);
