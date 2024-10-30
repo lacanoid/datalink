@@ -317,15 +317,15 @@ Validation
 
 These are intended to be used with constraints.
 
-#### is_valid(datalink) → boolean
+#### is_valid( datalink ) → boolean
 
 Indicates that a datalink URL is valid.
 
-#### is_local(datalink) → boolean
+#### is_local( datalink ) → boolean
 
 Indicates that a datalink references a local file.
 
-#### is_http_success(datalink) → boolean
+#### is_http_success( datalink ) → boolean
 
 Indicates that a HTTP request was successfully completed.
 
@@ -376,7 +376,7 @@ When file: URLs refer to files on other servers, [PostgreSQL foreign servers](fo
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 
-#### curl_save( local_file file_path, url text [ , persistent int ] ) → record
+#### curl_save( local_file file_path, url text [ , persistent integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
@@ -425,7 +425,7 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-#### write_text( file_path , content text [ , persistent int ] ) → text
+#### write_text( file_path , content text [ , persistent integer ] ) → text
 Write local file contents as text. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
@@ -438,7 +438,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
-#### write_text( datalink , content text [ , persistent int ] ) → datalink
+#### write_text( datalink , content text [ , persistent integer ] ) → datalink
 Write datalink contents as text. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
 This is typically used in UPDATE statements.
@@ -452,7 +452,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 Returns new datalink, which can be used for update of a datalink column.
 
-#### write( file_path , content bytea [ , persistent int ] ) → text
+#### write( file_path , content bytea [ , persistent integer ] ) → text
 Write local file contents as binary. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
@@ -461,7 +461,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
-#### write( datalink , content bytea [ , persistent int ] ) → datalink
+#### write( datalink , content bytea [ , persistent integer ] ) → datalink
 Write datalink contents as binary. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
 This is typically used in UPDATE statements.
@@ -479,8 +479,8 @@ Check if file exists.
 #### getlength( datalink ) → bigint
 Return file size in bytes.
 
-#### has_updated( datalink ) -> int
-Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL and WRITE ACCESS FS datalinks.
+#### has_updated( datalink ) -> integer
+Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL WRITE ACCESS FS datalinks.
 
 Compatibility functions
 -----------------------
