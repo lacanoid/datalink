@@ -479,7 +479,7 @@ Check if file exists.
 #### getlength( datalink ) → bigint
 Return file size in bytes.
 
-#### has_updated( datalink ) -> integer
+#### has_updated( datalink ) → integer
 Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL WRITE ACCESS FS datalinks.
 
 Compatibility functions

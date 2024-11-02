@@ -33,7 +33,7 @@ insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
-select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
+select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,19);
        substr        
 ---------------------
  © 2018 Žiga Kranjec
@@ -45,7 +45,7 @@ select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),file
 -----------+--------+------------------------------------------------------------------+------------+------------------------------------
          6 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
        177 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
-       939 | © 20   | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
+       939 | © 201  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
 (3 rows)
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);

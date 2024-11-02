@@ -17,7 +17,7 @@ insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
-select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,21);
+select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,19);
 
 select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
