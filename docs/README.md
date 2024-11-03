@@ -25,9 +25,7 @@ Some disciplines, which usually handle external files together with SQL data:
 - Administration, where files are used to keep PDF documents and such
 - Medical, where X-ray and other scans are kept in files
 
-DATALINK is special SQL type intended to store references to external files in the database.
-Only references to external files are stored in the database, not the content of the files themselves.
-Files are addressed with [Uniform Resource Locators (URLs)](https://en.wikipedia.org/wiki/URL).
+Datalinks are a part of [ISO/IEC 9075-9 standard](https://www.iso.org/standard/84804.html).
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
@@ -35,7 +33,11 @@ It attemps to extend ACID database properties to external files.
 
 Datalinks provide an interesting and viable alternative to large objects.
 
-Datalinks as defined by SQL/MED should provide:
+DATALINK is special SQL type intended to store references to external files in the database.
+Only references to external files are stored in the database, not the content of the files themselves.
+Files are addressed with [Uniform Resource Locators (URLs)](https://en.wikipedia.org/wiki/URL).
+
+Datalinks as defined by SQL/MED standard should provide:
 
 - [DATALINK SQL datatype](type.md)
 - [SQL scalar functions operating on DATALINK type](functions.md)
@@ -49,7 +51,7 @@ Datalinks as defined by SQL/MED should provide:
     - [Read access control through database](access.md)
     - [Write access control through database](access.md)
   - [Point-in-time recovery of file contents](recovery.md)
-- [Access to files on different servers](foreign_server.md) (for datalinks with `FILE` scheme)
+- [Access to files on different servers](foreign_server.md)
 
 This extension provides a number of additional features:
 - [URI manipulation](functions.md#user-content-uri-manipulation)

@@ -139,6 +139,7 @@ Todo
 - check  permissions in `curl_save()`
 - trigger on `dl_new_files` to check that files don't exist
 - files with ON UNLINK DELETE don't get deleted if the have not been linked first
+- `substr()` et al should throw a warning/error when file not found 
 
 Maybe
 =====
