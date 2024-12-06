@@ -12,9 +12,10 @@ behave transactionaly and do not provide rollback capabilities.
 The datalink system itself is essentially a two stage commit process, where changes 
 are first recorded in the database and then applied by the [datalinker](dlfm.md) process.
 
-When files are beeing written transactinally, a new copy of the file is first written
+When files are beeing written transactionally, a new copy of the file is first written
 by postgres. The datalinker then replaces old files with new ones. This is somewhat
-analogous to the way MVCC rows are created in postgres itself.
+analogous to the way MVCC rows are created in postgres itself. This applies to functions
+`datalink.write()`, `datalink.write_text()` and `dlreplacecontent()`.
 
 
 Postgres and datalinker
@@ -27,7 +28,7 @@ before updates reach the datalinker.
 Once the transaction is commited in postgres, the datalinker will attempt to 
 modify the files accordingly. This is usually very quick, but not instantaneous.
 
-Use procedure `datalink.commit()` to wait for datalinker to finish work.
+Use procedure `datalink.commit()` to wait for datalinker to finish work and become idle.
 
     mydb=> call datalink.commit()
     CALL
@@ -45,7 +46,7 @@ Temporary files are deleted when the transaction commits.
 
 If transaction which creates a file is aborted, the datalinker will delete the file.
 
-Writing files with `write_text(datalink, persistent integer)` function supports transactional 
+Writing files with `write_text(datalink, persistent integer)` function also supports transactional 
 updates of file contents.
 
 To transactionally update the file content, one must first store a corresponding
@@ -55,14 +56,14 @@ datalink in a column with `WRITE ACCESS ADMIN` or `WRITE ACCESS TOKEN`:
     NOTICE:  DATALINK DDL:TRIGGER on l
     CREATE TABLE
     
-    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
+    mydb=# insert into l values (datalink.write_text(dlvalue('hello.txt','www'),'New content'));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
 
 Alternatively, one can use `dlreplacecontent()` function to copy content from the web:
 
-    mydb=# insert into l values (dlreplacecontent('/var/www/datalink/hello.txt','http://www.google.com/robots.txt'));
-    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    mydb=# insert into l values (dlreplacecontent(dlvalue('robots.txt','www'),'http://www.google.com/robots.txt'));
+    NOTICE:  DATALINK LINK:/var/www/datalink/robots.txt
     INSERT 0 1
 
 
