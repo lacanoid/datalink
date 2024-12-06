@@ -22,7 +22,7 @@ change file ownership and permissions and whatnot.
 
 Responsibilities
 ----------------
-* Protect files from renaming or deletion (WRITE ACCESS BLOCKED OR TOKEN OR ADMIN)
+* Protect files from renaming or deletion (WRITE ACCESS BLOCKED or TOKEN or ADMIN)
   
   This is done by setting the *immutable* flag on the file with `chattr +i` command.
   This prevents file from being renamed or modified, even by root.
@@ -34,12 +34,24 @@ Responsibilities
 
   *Backup file* is base file with appended token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
 
-  If backup file does not exist, it is created by creating a copy of base file.
+  If backup file does not exist, it is created by creating a *copy* of base file.
 
 * Restore files from backups (RECOVERY YES)
 
-* Replace files with new versions (WRITE ACCESS TOKEN OR ADMIN)
+  *Base file* is designated by path, for example `/dir1/dir2/file.ext`.
 
+  *Backup file* is base file with appended previous token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
+
+  Base file is replaced by linking backup file as base file.
+  
+* Replace files with new versions (WRITE ACCESS TOKEN or ADMIN)
+
+  *Base file* is designated by path, for example `/dir1/dir2/file.ext`.
+
+  *New file* is base file with appended new token, such as `/dir1/dir2/file.ext#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
+
+  Base file is replaced by linking new file as base file. *New file* will be deleted unless RECOVERY YES is also specified.
+  
 * Make files owned by database (READ ACCESS DB)
 
   File owner is set to user `postgres`, making a file effectively owned by the postgres server process.
