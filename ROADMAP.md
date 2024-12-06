@@ -67,8 +67,8 @@ Advanced
 
 Bugs and Issues
 ===============
-- `create table as` / `select into` bug (data is loaded before triggers are run)
-- domain on domain on datalink doesn't work
+- `create table as` / `select into` bug (data is loaded before triggers are run), forbid for lco > 0
+- ✔︎ domain on domain on datalink doesn't work
 - datalinker service spoofing (~www-data/.pg_service.conf vs dlcat)
 
 - update link=dlnewcopy(link) for on unlink delete looses file

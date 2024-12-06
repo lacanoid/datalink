@@ -110,3 +110,4 @@ abort;
 
 select dlvalue('robots.txt',dlvalue('http://localhost/index.html',null,'foo'));
 select dlvalue('robots.txt',dlvalue('http://localhost/index.html',null,'foo'),'bar');
+

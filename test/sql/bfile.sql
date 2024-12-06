@@ -17,6 +17,16 @@ insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
+create domain bfile2 bfile;
+create table bfiles2 ( bfile bfile2 );
+
+insert into bfiles2 (bfile) values (dlvalue('test1.txt','www'));
+insert into bfiles2 (bfile) values (dlvalue('test4.txt','www'));
+
+select * from datalink.types;
+
+select regclass,column_name,lco,regtype from datalink.dl_columns where regtype <> 'datalink'::regtype order by 1,2;
+
 select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,19);
 
 select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
@@ -26,6 +36,7 @@ select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www')
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),48,48);
 
 drop table bfiles;
+truncate bfiles2;
 
 -- test text file reads
 

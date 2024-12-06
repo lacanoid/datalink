@@ -21,6 +21,7 @@ Version 0.24
 - added preliminary `has_web_privilege()` functions
 - remove function `instr()`
 - improve function `substr()` to return proper substrings
+- datalinks can now be domains on domains
 
 Version 0.23
 ------------

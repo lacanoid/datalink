@@ -78,6 +78,54 @@ create cast (datalink as jsonb) without function;
 -- create cast (jsonb as datalink) with inout;
 
 ---------------------------------------------------
+-- link control options
+---------------------------------------------------
+
+create type dl_link_control as enum ( 'NO','FILE' );
+create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
+create type dl_read_access as enum ( 'FS','DB' );
+create type dl_write_access as enum ( 'FS','BLOCKED', 'TOKEN', 'ADMIN' );
+create type dl_recovery as enum ( 'NO','YES' );
+create type dl_on_unlink as enum ( 'NONE','RESTORE','DELETE' );
+
+create cast (text as dl_link_control) with inout as implicit;
+create cast (text as dl_integrity) with inout as implicit;
+create cast (text as dl_read_access) with inout as implicit;
+create cast (text as dl_write_access) with inout as implicit;
+create cast (text as dl_recovery) with inout as implicit;
+create cast (text as dl_on_unlink) with inout as implicit;
+
+create domain dl_lco as integer;
+comment on type dl_lco is 'Datalink Link Control Options as integer';
+
+create domain whoami as name check ( value = current_user );
+comment on type whoami is 'Domain which can be set only to current user';
+
+---------------------------------------------------
+-- view of all datalink types
+
+create or replace view types as
+with recursive r (regtype, typtype, typmod, depth)
+as (
+  select oid::regtype,  t.typtype, 
+         case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco, 
+         0
+    from pg_catalog.pg_type as t 
+   where oid = 'pg_catalog.datalink'::regtype
+  union all
+  select oid::regtype,  t.typtype, 
+         coalesce(
+           case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco, 
+           r.typmod
+         ), 
+         depth+1
+    from pg_catalog.pg_type as t 
+    join r on t.typbasetype = r.regtype
+)
+select * from r;
+grant select on types to public;
+
+---------------------------------------------------
 -- functions intended for constraints
 
 -- does datalink reference a local file?
@@ -108,26 +156,6 @@ comment on function is_http_success(datalink)
 ---------------------------------------------------
 -- link control options
 ---------------------------------------------------
-
-create type dl_link_control as enum ( 'NO','FILE' );
-create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
-create type dl_read_access as enum ( 'FS','DB' );
-create type dl_write_access as enum ( 'FS','BLOCKED', 'TOKEN', 'ADMIN' );
-create type dl_recovery as enum ( 'NO','YES' );
-create type dl_on_unlink as enum ( 'NONE','RESTORE','DELETE' );
-
-create cast (text as dl_link_control) with inout as implicit;
-create cast (text as dl_integrity) with inout as implicit;
-create cast (text as dl_read_access) with inout as implicit;
-create cast (text as dl_write_access) with inout as implicit;
-create cast (text as dl_recovery) with inout as implicit;
-create cast (text as dl_on_unlink) with inout as implicit;
-
-create domain dl_lco as integer;
-comment on type dl_lco is 'Datalink Link Control Options as integer';
-
-create domain whoami as name check ( value = current_user );
-comment on type whoami is 'Domain which can be set only to current user';
 
 CREATE TABLE link_control_options (
   lco dl_lco primary key,
@@ -178,15 +206,14 @@ IS 'Calculate dl_lco from enumerated options';
 create or replace function dl_lco(regclass regclass,column_name name) returns dl_lco
 as $$
  select coalesce(
-          case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco,
+          dt.typmod,
           case when atttypmod > 0 then atttypmod-4 else 0 end :: datalink.dl_lco
         ) as lco
   from pg_attribute a
   join pg_type t on (t.oid=a.atttypid)
+  join datalink.types dt ON (dt.regtype = t.oid)
  where attrelid = $1 and attname = $2
-   and (t.oid = 'pg_catalog.datalink'::regtype or t.typbasetype = 'pg_catalog.datalink'::regtype)
-   and attnum > 0
-   and not attisdropped
+   and attnum > 0 and not attisdropped
 $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a table column';
@@ -295,10 +322,10 @@ CREATE VIEW dl_columns AS
    FROM pg_class c
    JOIN pg_namespace s ON (s.oid = c.relnamespace)
    JOIN pg_attribute a ON (c.oid = a.attrelid)
+   JOIN pg_type t ON (t.oid = a.atttypid)
+   JOIN datalink.types dt ON (dt.regtype = t.oid)
    LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
-   LEFT JOIN pg_type t ON (t.oid = a.atttypid)
-  WHERE (t.oid = 'pg_catalog.datalink'::regtype OR t.typbasetype = 'pg_catalog.datalink'::regtype)
-    AND (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
+  WHERE (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
 
 ---------------------------------------------------
@@ -370,7 +397,7 @@ SELECT
     links,
     mco,
     case when tgname is not null then
-      format(e'DROP TRIGGER IF EXISTS %I ON %s;', tgname, regclass::text) ||
+      format(e'DROP TRIGGER IF EXISTS %I ON %s; ', tgname, regclass::text) ||
       format(e'DROP TRIGGER IF EXISTS %I ON %s;\n', tgname||'2', regclass::text)
     else '' end ||
     case when links>0 and mco > 0 then

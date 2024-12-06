@@ -33,6 +33,40 @@ insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
+create domain bfile2 bfile;
+create table bfiles2 ( bfile bfile2 );
+NOTICE:  DATALINK DDL:TRIGGER on bfiles2
+insert into bfiles2 (bfile) values (dlvalue('test1.txt','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+ERROR:  DATALINK EXCEPTION - external file already linked
+DETAIL:  from bfiles.bfile as '/var/www/datalink/test1.txt'
+CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 64 at RAISE
+SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 99 at PERFORM
+PL/pgSQL function dl_trigger_table() line 94 at assignment
+insert into bfiles2 (bfile) values (dlvalue('test4.txt','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
+select * from datalink.types;
+ regtype  | typtype | typmod | depth 
+----------+---------+--------+-------
+ datalink | b       | _null_ |     0
+ file     | d       | _null_ |     1
+ rfile    | d       |      1 |     1
+ efile    | d       |      2 |     1
+ bfile    | d       |      2 |     1
+ bfile2   | d       |      2 |     2
+(6 rows)
+
+select regclass,column_name,lco,regtype from datalink.dl_columns where regtype <> 'datalink'::regtype order by 1,2;
+ regclass | column_name | lco | regtype 
+----------+-------------+-----+---------
+ efiles0  | file        |   0 | file
+ efiles1  | file        |   1 | rfile
+ efiles2  | file        |   2 | efile
+ bfiles   | bfile       |   2 | bfile
+ bfiles2  | bfile       |   2 | bfile2
+(5 rows)
+
 select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,19);
        substr        
 ---------------------
@@ -66,6 +100,8 @@ drop table bfiles;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
+truncate bfiles2;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/test4.txt
 -- test text file reads
 select read_text('/var/www/datalink/test2.txt');
                                   read_text                                   
