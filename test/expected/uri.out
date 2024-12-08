@@ -46,7 +46,8 @@ values
   ('file:///var/www/datalink/'),
   ('file:///var/www/datalink'),
   ('file:/var/www/datalink'),
-  ('file://localhost/var/www/datalink')
+  ('file://localhost/var/www/datalink'),
+  ('http://http//http://@http://http://?http://#http://')
 ;
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
 select url,
@@ -78,8 +79,9 @@ select url,
  file:///var/www/datalink                                                | file   | _null_    |                    | /var/www/datalink                             | _null_                 | _null_                               | file:///var/www/datalink
  file:/var/www/datalink                                                  | file   | _null_    | _null_             | /var/www/datalink                             | _null_                 | _null_                               | file:/var/www/datalink
  file://localhost/var/www/datalink                                       | file   | _null_    | localhost          | /var/www/datalink                             | _null_                 | _null_                               | file://localhost/var/www/datalink
+ http://http//http://@http://http://?http://#http://                     | http   | _null_    | http               | //http://@http://http://                      | http://                | http://                              | http://http//http://@http://http://?http://
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_    | _null_             | image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | _null_                 | _null_                               | data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=
-(18 rows)
+(19 rows)
 
 select url,
        uri_get(url,'scheme') as scheme,
@@ -107,8 +109,9 @@ select url,
  file:///var/www/datalink                                                | file   |                    | datalink                                | file:///var/www/foo.bar
  file:/var/www/datalink                                                  | file   | _null_             | datalink                                | file:/var/www/foo.bar
  file://localhost/var/www/datalink                                       | file   | localhost          | datalink                                | file://localhost/var/www/foo.bar
+ http://http//http://@http://http://?http://#http://                     | http   | http               | _null_                                  | http://http//http://@http://http://foo.bar?http://#http://
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | data   | _null_             | gif;base64,R0lGODlhyAAiALM...DfD0QAADs= | data:image/foo.bar
-(18 rows)
+(19 rows)
 
 select url,dlpreviouscopy(url::text,0) from sample_urls;
                                    url                                   |                                       dlpreviouscopy                                       
@@ -130,8 +133,9 @@ select url,dlpreviouscopy(url::text,0) from sample_urls;
  file:///var/www/datalink                                                | {"a": "file:/var/www/datalink", "k": "p"}
  file:/var/www/datalink                                                  | {"a": "file:/var/www/datalink", "k": "p"}
  file://localhost/var/www/datalink                                       | {"a": "file:/var/www/datalink", "k": "p"}
+ http://http//http://@http://http://?http://#http://                     | {"a": "http://http//http://@http://http://?http://#http://", "k": "p"}
  data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=                      | {"a": "data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=", "k": "p"}
-(18 rows)
+(19 rows)
 
 select 'foo/bar'::datalink.file_path;
 ERROR:  value for domain file_path violates check constraint "file_path_absolute"

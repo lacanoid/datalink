@@ -25,7 +25,8 @@ values
   ('file:///var/www/datalink/'),
   ('file:///var/www/datalink'),
   ('file:/var/www/datalink'),
-  ('file://localhost/var/www/datalink')
+  ('file://localhost/var/www/datalink'),
+  ('http://http//http://@http://http://?http://#http://')
 ;
 
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
