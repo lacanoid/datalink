@@ -25,7 +25,8 @@ Some disciplines, which usually handle external files together with SQL data:
 - Administration, where files are used to keep PDF documents and such
 - Medical, where X-ray and other scans are kept in files
 
-Datalinks are a part of [ISO/IEC 9075-9 standard](https://www.iso.org/standard/84804.html).
+Datalinks are a part of [SQL/MED (Management of External Data)](https://en.wikipedia.org/wiki/SQL/MED) 
+standard [ISO/IEC 9075-9 standard](https://www.iso.org/standard/84804.html).
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
