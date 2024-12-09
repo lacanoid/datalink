@@ -40,6 +40,7 @@ Wanted
 - ✔︎ add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
+- handle directories better (forbid alltogether?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
 - add `dirname`,`extension`,`basename`,`filename` to uri_get/set
