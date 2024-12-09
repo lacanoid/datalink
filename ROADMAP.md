@@ -58,7 +58,9 @@ Wanted
 - improve support for data: URLs
 - keep temporary files when they are linked to READ ACCESS FS columns
 - show warning when setting LCO when missing datalinker
-- `dlreplacecontent()` handle local files differently (and support read tokens!)
+- make `dlreplacecontent()` handle local files differently (and support read tokens!)
+- make `dlreplacecontent()` work with forereign servers
+- make `dlreplacecontent()` work well in all combinations of web and file (curl_put?)
 
 Advanced
 --------
