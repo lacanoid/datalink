@@ -36,5 +36,22 @@ PostgreSQL datalink file manager control program
         ps                   - show the file manager processes running on the system
         log                  - monitor file manager log
 
+Show version and system configuration
+    
+    # dlfm show
+               server_version           | datname  | user | port | cluster_name 
+    ------------------------------------+----------+------+------+--------------
+     15.10 (Ubuntu 15.10-1.pgdg24.04+1) | postgres | root | 5432 | 15/main
+    (1 row)
+
+     extname  | extowner | extversion | columns | files | dirs 
+    ----------+----------+------------+---------+-------+------
+     datalink | root     | 0.24       |       3 |     0 |    7
+    (1 row)
+
+     pid  | cpid |  version  |         start         |         modify          | links | unlinks | errs 
+    ------+------+-----------+-----------------------+-------------------------+-------+---------+------
+     3215 | 3213 | 0.24.1012 | 1 day 08:55:11.893332 | 40 days 19:50:36.246282 |     3 |       4 |    0
+    (1 row)
 
 [Datalink manual](README.md)

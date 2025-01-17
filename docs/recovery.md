@@ -6,7 +6,7 @@ Recovery
 When `recovery` is `NO` then point-in-time recovery is not provided,
 This option does not require a datalinker.
 
-when `recovery` is `YES` then point-in-time recovery is provided by the datalinker.
+when `recovery` is `YES` then point-in-time recovery is provided by [the datalinker](pg_datalinker.md).
 
 Backup and recovery uses token value as a backup identifier:
 

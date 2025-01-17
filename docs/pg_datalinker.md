@@ -54,7 +54,7 @@ Responsibilities
   
 * Make files owned by database (READ ACCESS DB)
 
-  File owner is set to user `postgres`, making a file effectively owned by the postgres server process.
+  File owner is set to the user `postgres`, making a file effectively owned by the postgres server process.
   File group is set to `www-data`, making file readable to apache web server.
   File mode is set to 0440, making file unreadable by normal users.
   Previous protection is stored in `datalink.dl_linked_files` table.
@@ -68,7 +68,7 @@ Responsibilities
 * Purge files created from postgres
 
   This deletes files created by `datalink.write()` and such if the transaction was aborted or
-  if the transaction was commited and file is temporary.
+  if the transaction was commited and file is temporary. File must also be owned by the user `postgres`.
 
 Datalinker connects to postgres service "datalinker", so make sure it is configured
 in file `/etc/postgresql-common/pg_service.conf`.
