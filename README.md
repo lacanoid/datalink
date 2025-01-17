@@ -18,7 +18,7 @@ Currently, it implements the following:
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
-- DLREPLACECONTENT function
+- DLREPLACECONTENT function, can be used to copy and download files
 - DLLINKTYPE function
 - DLCOMMENT function
 - Setting of [*link control options*](https://wiki.postgresql.org/wiki/DATALINK#Datalink_attributes_per_SQL_spec) (LCOs) with `UPDATE DATALINK.COLUMNS` or by using type modifier (i.e. `datalink(52)`)
