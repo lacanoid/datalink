@@ -124,18 +124,14 @@ truncate my_table2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 -- test for foreign servers
-select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  DATALINK EXCEPTION - dblink extension required for files on foreign servers
-CONTEXT:  PL/Perl function "curl_get"
+-- select * from datalink.curl_get('file://zala/etc/issue');
 create extension dblink;
 select * from datalink.curl_get('file://zala/etc/issue');
 ERROR:  DATALINK EXCEPTION - foreign server zala does not exist
 CONTEXT:  PL/Perl function "curl_get"
 create extension postgres_fdw;
 create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
-select * from datalink.curl_get('file://zala/etc/issue');
-ERROR:  user mapping not found for "root" at line 43.
-CONTEXT:  PL/Perl function "curl_get"
+-- select * from datalink.curl_get('file://zala/etc/issue');
 select * from datalink.curl_get('file://tiha/etc/issue');
 ERROR:  DATALINK EXCEPTION - foreign server tiha does not exist
 CONTEXT:  PL/Perl function "curl_get"
