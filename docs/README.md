@@ -91,4 +91,4 @@ Reference
 - [Security](security.md)
 - [Caveats](caveats.md)
 - [Errors](errors.md)
-- [Extendidng datalink](extensions.md)
+- [Extending datalink](extensions.md)
