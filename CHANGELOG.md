@@ -1,3 +1,13 @@
++ = planned/to-do
+
+Version 0.25
+------------
++ new files trigger
++ delete in transaction
++ replace/delete file bug
++ transactional reads
++ web permissions
+
 Version 0.24
 ------------
 - added preliminary `curl_save()` function to download web content to a local file.

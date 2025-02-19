@@ -2,7 +2,7 @@
    "name": "datalink",
    "abstract": "SQL/MED DATALINK type and functions",
    "description": "An implementation SQL/MED datalinks",
-   "version": "0.24.0",
+   "version": "0.25.0",
    "maintainer": [
       "Ziga Kranjec <ziga@ljudmila.org>"
    ],
@@ -27,7 +27,7 @@
      "datalink": {
        "file": "datalink.sql",
        "docfile": "README.md",
-       "version": "0.24.0",
+       "version": "0.25.0",
        "abstract": "SQL/MED DATALINK type and functions"
      }
    },
