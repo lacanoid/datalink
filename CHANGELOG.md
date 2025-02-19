@@ -1,12 +1,13 @@
-+ = planned/to-do
+! = planned/to-do
 
 Version 0.25
 ------------
-+ new files trigger
-+ delete in transaction
-+ replace/delete file bug
-+ transactional reads
-+ web permissions
+! new files trigger
+! delete in transaction
+! replace/delete file bug
+! transactional reads
+! web permissions
+! FUSE filesystem
 
 Version 0.24
 ------------
