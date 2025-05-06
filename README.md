@@ -166,3 +166,5 @@ See also
 - [darold/datalink](https://github.com/darold/datalink) - another implementation of datalink for Postgres by Gilles Darold, 
   check out especially [his presentation](https://github.com/darold/datalink/blob/master/SQL-MED-DATALINK-PgConfAsia2019.pdf).
 - [IBM Redbook™ about Datalinks](https://www.redbooks.ibm.com/abstracts/sg246280.html)
+- [PostgreSQL patch for URL datatype](https://commitfest.postgresql.org/patch/5432/)
+  
