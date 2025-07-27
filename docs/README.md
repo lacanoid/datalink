@@ -21,7 +21,7 @@ Some disciplines, which usually handle external files together with SQL data:
 - World Wide Web publishing, where parts of the website are often served as files
 - Creative industries, where production assests are kept in multimedia files
 - CAD/CAM, where models and schematics are kept in files
-- Content delivery, where streaming assests are kept in files
+- Content delivery, where streaming assets are kept in files
 - Administration, where files are used to keep PDF documents and such
 - Medical, where X-ray and other scans are kept in files
 
@@ -40,7 +40,7 @@ standard [ISO/IEC 9075-9](https://www.iso.org/standard/84804.html).
 
 The standard states: "The purpose of datalinks is to provide a mechanism to synchronize the 
 integrity control, recovery, and access control of the files and the SQL-data associated with them. "
-It attemps to extend ACID database properties to external files.
+Effectively, it attemps to extend ACID database properties to external files.
 
 Datalinks provide an interesting and viable alternative to large objects.
 
