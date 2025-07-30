@@ -10,6 +10,7 @@
 #include <fuse.h>
 #include <libpq-fe.h>
 
+char *conninfo = "service=pg_datalink";
 static PGconn *conn;
 
 static char *authorize(const char *path) {
@@ -36,8 +37,7 @@ static char *authorize(const char *path) {
     return authorized_path;
 }
 
-static int pg_getattr(const char *path, struct stat *stbuf,
-                      struct fuse_file_info *fi) {
+static int pg_getattr(const char *path, struct stat *stbuf) {
     memset(stbuf, 0, sizeof(struct stat));
 
     char *real_path = authorize(path);
@@ -84,12 +84,6 @@ static const struct fuse_operations pg_oper = {
 };
 
 int main(int argc, char *argv[]) {
-    const char *conninfo = getenv("PGFUSE_CONNINFO");
-    if (!conninfo) {
-        fprintf(stderr, "Set PGFUSE_CONNINFO env variable for DB connection.\n");
-        return 1;
-    }
-
     conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK) {
         fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
