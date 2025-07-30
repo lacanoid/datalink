@@ -58,8 +58,8 @@ dlcat: dlcat.c
 	chmod g+s dlcat
 	chmod u+s dlcat
 
-dlfusefs: dlfusefs.c
-	$(CC) -Wall -Wextra `$(PKG_CONFIG) --cflags --libs fuse` -I`$(PG_CONFIG) --includedir` dlfusefs.c -lpq -o dlfusefs
+dlfuse: dlfuse.c
+	$(CC) -Wall -Wextra -I`$(PG_CONFIG) --includedir` -D_FILE_OFFSET_BITS=64 dlfuse.c -lpq -o dlfuse
 
 testall.sh:
 	pg_lsclusters -h | perl -ne '@_=split("\\s+",$$_); print "make PGPORT=$$_[2] PG_CONFIG=/usr/lib/postgresql/$$_[0]/bin/pg_config clean install installcheck\n";' > testall.sh
