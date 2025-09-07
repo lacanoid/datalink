@@ -67,8 +67,9 @@ truncate user_links;
 savepoint p1;
 -- test permissions on file functions
 select * from datalink.read_text('/etc/passwd',1,4); -- should fail
-ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory for role "datalink_test_user".
+ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory 
 FILE:  /etc/passwd
+ROLE:  datalink_test_user
 CONTEXT:  PL/Perl function "read_text"
 rollback to p1;
 select * from datalink.read_text('/var/www/datalink/test1.txt',1,5);

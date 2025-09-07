@@ -1601,7 +1601,7 @@ my $p = spi_prepare($q,'datalink.file_path','text');
 my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
 unless($fs->{ok} eq 't') { 
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
-        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+        qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
 }
 if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
 
@@ -2103,7 +2103,9 @@ begin
  if for_web>0 then return mypath;
  else 
   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
-  raise exception e'DATALINK EXCEPTION - SELECT permission denied on directory for role "%".\nFILE:  %\n',myrole,mypath 
+  raise exception
+          'DATALINK EXCEPTION - SELECT permission denied on directory %',
+	  format(e'\nFILE:  %s\nROLE:  %I\n',mypath,myrole) 
   using errcode = 'HW007',
         detail  = format('no SELECT permission for directory'),
         hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
@@ -2249,7 +2251,7 @@ AS $function$
   my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
   unless($fs->{ok} eq 't') { 
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
-        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+        qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
   if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
@@ -2281,7 +2283,7 @@ AS $function$
   my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
   unless($fs->{ok} eq 't') { 
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
-        qq{ for role "$fs->{user}".\nFILE: $filename\n}; 
+        qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
   if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
