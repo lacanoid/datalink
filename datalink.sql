@@ -1,3 +1,4 @@
+---------------------------------------------------
 --
 --  datalink
 --  version 0.25 lacanoid@ljudmila.org
@@ -537,7 +538,7 @@ comment on function filepath(datalink) is 'Returns the read file path from DATAL
 -- link a file to SQL
 create function dl_file_link(file_path file_path,
                              my_token dl_token,
-			                       my_cons "char",
+                             my_cons "char",
                              my_lco dl_lco,
                              my_regclass regclass,my_attname name)
 returns boolean
@@ -550,11 +551,14 @@ declare
  my_attnum smallint;
  my_mtime timestamptz;
  my_size bigint;
+ my_owner regrole;
+ lco datalink.link_control_options;
 begin
 -- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
  raise notice 'DATALINK LINK:%',file_path;
 
--- if (datalink.link_control_options(my_lco)).write_access >= 'BLOCKED' then
+ lco := datalink.link_control_options(my_lco);
+-- if (lco.write_access >= 'BLOCKED' then
    if not datalink.has_valid_prefix(file_path) THEN
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
@@ -567,16 +571,30 @@ begin
  if fstat is null then
    fstat := row_to_json(datalink.stat(file_path))::jsonb;
  end if;
+ -- check for stat() failure
  if fstat is null then
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
                   detail = format('stat failed for "%s"',file_path);
  end if;
+ -- check for allowed file types
  if fstat->>'typ' not in ('-','d') then 
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
                   detail = format('file "%s" is neither file nor directory, but "%s"',file_path,fstat->>'typ');
  end if;
+ -- check for DELETE privilege
+ if lco.on_unlink = 'DELETE' then
+   select relowner into my_owner from pg_class where oid = my_regclass;
+   if not datalink.has_file_privilege(my_owner,file_path,'delete',false)
+   then raise exception
+                'DATALINK EXCEPTION - DELETE permission denied on directory %',
+                format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
+                using errcode = 'HW005', 
+                      detail = 'delete permission for table owner is required on directory',
+                      hint = 'add appropriate entry in table datalink.access';
+   end if; -- has not privilege
+ end if; -- on unlink delete
 
  my_address := array[fstat->>'dev',fstat->>'inode'];
  my_size := fstat->>'size';
@@ -585,6 +603,7 @@ begin
  select attnum
    from pg_attribute where attname=my_attname and attrelid=my_regclass
    into my_attnum;
+   
  select * into r
    from datalink.dl_linked_files
    join pg_attribute a using (attrelid,attnum)
@@ -627,7 +646,7 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-	             cons=my_cons
+                     cons=my_cons
          where path = file_path and state='UNLINK';
          notify "datalink.linker_jobs";
         return true;
@@ -640,7 +659,7 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-	             cons=my_cons
+                     cons=my_cons
          where path = file_path and state='UNLINK';
          notify "datalink.linker_jobs";
         return true;
@@ -668,6 +687,7 @@ returns boolean as
 $$
 declare
  r record;
+ my_owner regrole;
 begin
  raise notice 'DATALINK UNLINK:%',file_path;
 
@@ -695,13 +715,16 @@ begin
 
   elsif r.state = 'LINKED' then
    if r.on_unlink = 'DELETE' then
-    if not datalink.has_file_privilege(file_path,'delete',false) then
-     raise exception e'DATALINK EXCEPTION - DELETE permission denied on directory\nPATH:  %',file_path 
-           using errcode = 'HW005', 
-                 detail = 'delete permission is required on directory',
-                 hint = 'add appropriate entry in table datalink.access';
-    end if;
-   end if;
+    select relowner into my_owner from pg_class where oid = r.attrelid;
+    if not datalink.has_file_privilege(my_owner,file_path,'delete',false)
+    then raise exception
+                'DATALINK EXCEPTION - DELETE permission denied on directory %',
+                format(e'\nPATH:  %s\nROLE:  %I',file_path,r.my_owner) 
+                using errcode = 'HW005', 
+                      detail = 'delete permission for table owner is required on directory',
+                      hint = 'add appropriate entry in table datalink.access';
+    end if; -- has not privilege
+   end if; -- on unlink delete
 
    update datalink.dl_linked_files
       set state = 'UNLINK'
@@ -1245,14 +1268,6 @@ begin
       end if;
 
       -- check for delete permission
-      if lco.on_unlink = 'DELETE' THEN
-        if not datalink.has_file_privilege(my_path,'delete',false) THEN
-          raise exception e'DATALINK EXCEPTION - DELETE permission denied on directory\nURL:  %',url 
-                using errcode = 'HW005', 
-                      detail = 'delete permission is required on directory',
-                      hint = 'add appropriate entry in table datalink.access';
-        end if;
-      end if;
       my_token := (link::jsonb->>'b')::datalink.dl_token;
       perform datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name);
   end if; -- integrity all
