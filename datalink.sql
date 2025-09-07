@@ -716,13 +716,14 @@ begin
   elsif r.state = 'LINKED' then
    if r.on_unlink = 'DELETE' then
     select relowner into my_owner from pg_class where oid = r.attrelid;
-    if not datalink.has_file_privilege(my_owner,file_path,'delete',false)
+    if my_owner is not null
+       and not datalink.has_file_privilege(my_owner,file_path,'delete',false)
     then raise exception
                 'DATALINK EXCEPTION - DELETE permission denied on directory %',
-                format(e'\nPATH:  %s\nROLE:  %I',file_path,r.my_owner) 
-                using errcode = 'HW005', 
-                      detail = 'delete permission for table owner is required on directory',
-                      hint = 'add appropriate entry in table datalink.access';
+                format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
+         using errcode = 'HW005', 
+               detail = 'delete permission for table owner is required on directory',
+               hint = 'add appropriate entry in table datalink.access';
     end if; -- has not privilege
    end if; -- on unlink delete
 
