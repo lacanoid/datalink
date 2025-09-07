@@ -1603,7 +1603,7 @@ unless($fs->{ok} eq 't') {
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
 }
-if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
+if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
 
 $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
 unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
@@ -2254,7 +2254,7 @@ AS $function$
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
@@ -2286,7 +2286,7 @@ AS $function$
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE: $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
@@ -2446,6 +2446,7 @@ begin
       values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
     end if;
   end if;  -- if datalink.directory
+
   if tg_relid = 'datalink.dl_directory'::regclass then
     new.dirpath := trim(trailing '/' from new.dirpath) || '/';
     if not datalink.has_valid_prefix(new.dirpath) then 
@@ -2459,8 +2460,17 @@ begin
      (tg_op = 'UPDATE' and dlurlpathonly(old.dirlink) is distinct from new.dirpath) then
     new.dirlink := dlvalue(new.dirpath,'FS');
   end if; -- must update datalink
-
  end if;  -- if datalink.dl_directory
+
+ if tg_relid = 'datalink.dl_new_files'::regclass then
+  if (datalink.stat(new.path)).size is not null THEN
+    raise exception
+            'DATALINK EXCEPTION - file exists %',
+	    format(e'\nFILE:  %s',new.path)
+    using detail = 'Existing file cannot be made new';
+  end if; -- if file exists
+ end if; -- if datalink.dl_new_files
+
  return new;
 end
 $$;
@@ -2793,6 +2803,9 @@ create table dl_new_files (
   op "char" not null,
   options jsonb
 );
+CREATE TRIGGER "dl_new_files_touch"
+BEFORE INSERT OR UPDATE ON datalink.dl_new_files FOR EACH ROW
+EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 -- mark file as temporary to be deleted if the transaction aborts
 create or replace function dl_file_new(file_path, op "char" default 't', options jsonb default null, 
@@ -2807,7 +2820,9 @@ declare
   ns regnamespace;
 begin 
   if (datalink.stat($1)).size is not null THEN
-    raise exception 'DATALINK EXCEPTION - file exists' 
+    raise exception
+            'DATALINK EXCEPTION - file exists %',
+	    format(e'\nFILE:  %s',$1)
     using detail = 'Existing file cannot be made new';
   end if;
   my_txid := pg_current_xact_id();
