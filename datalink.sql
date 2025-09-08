@@ -2380,7 +2380,12 @@ comment on function filegetname(file_path) is
   'BFILE - Returns directory name and filename for a file';
 
 create or replace function getlength(datalink) returns bigint as 
-$$ select (datalink.stat(datalink.filepath($1))).size::bigint $$ language sql;
+$$ select case 
+          when datalink.is_local($1)
+          then (datalink.stat(datalink.filepath($1))).size::bigint 
+          else (select size from datalink.curl_get(dlurlcomplete($1),0))
+          end
+$$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
 create or replace function getlength(file_path) returns bigint as 
@@ -2782,6 +2787,18 @@ alter table insight add foreign key (link_token) references
   datalink.dl_linked_files(token) on update cascade on delete cascade;
 create index insight_link_token_idx on insight (link_token);
 comment on table insight is 'Unique read tokens for READ ACCESS DB datalinks';
+
+create table insight_access_log (
+  link_token dl_token not null,
+  read_token dl_token not null,
+  atime timestamptz not null default now(),
+  role regrole not null default user::regrole,
+  pid int,
+  inet inet,
+  app text,
+  data jsonb
+);
+comment on table insight_access_log is 'Insight access log for dl_authorize()';
 
 CREATE FUNCTION dl_url_makeinsight(url text, link_token dl_token, anonymous integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
