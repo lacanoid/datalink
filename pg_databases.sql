@@ -41,7 +41,7 @@ CREATE OR REPLACE VIEW pg_clusters AS
     pg_clusters.pgdata,
     pg_clusters.logfile
    FROM pg_clusters() pg_clusters(version, cluster, port, running, recovery, buffers, pgdata, logfile);
-
+COMMENT ON VIEW pg_clusters IS 'All postgres clusters on this host';
 GRANT SELECT ON pg_clusters TO PUBLIC;
 
 CREATE OR REPLACE VIEW pg_databases AS
@@ -68,7 +68,9 @@ select current_setting(''cluster_name'') as cluster,
        *,
        pg_database_size(name)::bigint as size
   from dat order by 1,2
-'::text) dbs(cluster text, port integer, name text, owner text, connections integer, size bigint);
+'::text) dbs(cluster text, port integer, name text, owner text, connections integer, size bigint)
+WHERE running;
+COMMENT ON VIEW pg_databases IS 'All connectable postgres databases on all clusters';
 
 GRANT SELECT ON pg_databases TO PUBLIC;
 

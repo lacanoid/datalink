@@ -109,6 +109,7 @@ Todo
 - check that src and dest in curl_save are not one and the same
 - check src read permissions in curl_save
 - handle // urls and paths better
+- write() & co should consider valid prefixes
 - datalinker: use config file
 - datalinker: revert files only when recovery=YES
 - datalinker: better path checking, have definitive functions
