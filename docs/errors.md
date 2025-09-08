@@ -95,11 +95,11 @@ but the file you are trying to create already exists.
 You are using `dlreplacecontent()` but the operation failed. 
 This can also occur if the source does not exist or cannot be read. (HW303)
 
-### DATALINK EXCEPTION - SELECT permission denied on directory for role
+### DATALINK EXCEPTION - SELECT permission denied on directory 
 
 ### DATALINK EXCEPTION - CREATE permission denied on directory
 
-### DATALINK EXCEPTION - DELETE permission denied on directory
+### DATALINK EXCEPTION - DELETE permission denied on directory (HW005)
 
 ### DATALINK EXCEPTION - directory does not exist
 

@@ -2,6 +2,7 @@
 
 Version 0.25
 ------------
+- improved handling of `ON UNLINK DELETE` permissions
 - ! new files trigger
 - ! delete in transaction
 - ! replace/delete file bug
