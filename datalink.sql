@@ -555,7 +555,7 @@ declare
  lco datalink.link_control_options;
 begin
 -- raise notice 'DATALINK LINK:%:%',format('%s.%I',regclass::text,attname),file_path;
- raise notice 'DATALINK LINK:%',file_path;
+-- raise notice 'DATALINK LINK:%',file_path;
 
  lco := datalink.link_control_options(my_lco);
 -- if (lco.write_access >= 'BLOCKED' then
@@ -610,10 +610,9 @@ begin
   where path = file_path or address = my_address
     for update;
  if not found then
-   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
-   values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons);
-   notify "datalink.linker_jobs"; 
-   return true;
+  insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
+  values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons);
+  notify "datalink.linker_jobs"; 
  else -- found in dl_linked_files
   -- this is needed to eliminate problems during pg_restore
   if r.token = my_token and r.path = file_path and r.lco = my_lco and
@@ -627,7 +626,7 @@ begin
     raise exception 'DATALINK EXCEPTION - external file already linked' 
       using errcode = 'HW002', 
       detail = format('from %s.%I as ''%s''',r.attrelid::text,r.attname,r.path);
-
+    return false;
   -- scheduled for unlinking by datalinker but not processed yet
   elsif r.state in ('UNLINK') then
      if r.lco is distinct from my_lco
@@ -635,6 +634,7 @@ begin
         raise exception 'DATALINK EXCEPTION - external file already linked' 
           using errcode = 'HW002', 
           detail = format('Cannot change link control options in update');
+        return false;
      end if;
      
      if r.token is not distinct from my_token
@@ -646,10 +646,9 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-                     cons=my_cons
+               cons=my_cons
          where path = file_path and state='UNLINK';
-         notify "datalink.linker_jobs";
-        return true;
+        notify "datalink.linker_jobs";
      else -- relink
         update datalink.dl_linked_files
            set state='LINK',
@@ -659,10 +658,9 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-                     cons=my_cons
+               cons=my_cons
          where path = file_path and state='UNLINK';
-         notify "datalink.linker_jobs";
-        return true;
+        notify "datalink.linker_jobs";
 
       --  raise exception 'DATALINK EXCEPTION - external file already linked' 
       --  using errcode = 'HW002', 
@@ -674,8 +672,11 @@ begin
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000', 
                   detail = format('unknown link state %s',r.state);
+      return false;
   end if;
  end if; -- if found
+ raise notice 'DATALINK LINK:%',file_path;
+ return true;
 end
 $$;
 revoke execute on function dl_file_link from public;

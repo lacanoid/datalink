@@ -2,11 +2,12 @@
 
 Version 0.25
 ------------
-- improved handling of `ON UNLINK DELETE` permissions
+- improved handling of `ON UNLINK DELETE` permissions wrt/ table owner
+- DATALINK LINK notice shown only after file has been succesfully linked
 - ! new files trigger
 - ! delete in transaction
 - ! replace/delete file bug
-- ! transactional reads
+- ! transactional file reads
 - ! web permissions
 - ! FUSE filesystem
 

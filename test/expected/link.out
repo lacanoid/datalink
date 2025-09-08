@@ -12,7 +12,6 @@ update datalink.columns
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
-NOTICE:  DATALINK LINK:/etc/passwd
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
@@ -36,7 +35,6 @@ values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabece
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
-NOTICE:  DATALINK LINK:/etc/hosts
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "dlfm add" to add prefixes
@@ -83,7 +81,6 @@ update datalink.columns
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks5
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
-NOTICE:  DATALINK LINK:/etc/passwd
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
@@ -242,7 +239,6 @@ select * from datalink.columns order by table_name;
 insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory 
 PATH:  /var/www/datalink/test4.txt
 ROLE:  root
@@ -255,7 +251,6 @@ PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/etc/issue
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/issue"
 HINT:  run "dlfm add" to add prefixes
