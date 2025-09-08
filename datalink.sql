@@ -2453,9 +2453,9 @@ begin
     new.dirpath := trim(trailing '/' from new.dirpath) || '/';
     if not datalink.has_valid_prefix(new.dirpath) then 
         raise warning 'DATALINK EXCEPTION - referenced file not valid' 
-              using errcode = 'HW007',
-                    detail = format('unknown path prefix for %s',new.dirpath),
-                    hint = 'run "dlfm add" to add prefixes';
+        using errcode = 'HW007',
+               detail = format('unknown path prefix for %s',new.dirpath),
+                 hint = 'run "dlfm add" to add prefixes';
     end if;
 
   if tg_op = 'INSERT' or 
@@ -2466,11 +2466,19 @@ begin
 
  if tg_relid = 'datalink.dl_new_files'::regclass then
   if (datalink.stat(new.path)).size is not null THEN
-    raise exception
-            'DATALINK EXCEPTION - file exists %',
-	    format(e'\nFILE:  %s',new.path)
-    using detail = 'Existing file cannot be made new';
+    raise exception 'DATALINK EXCEPTION - file exists %',
+	                  format(e'\nFILE:  %s',new.path)
+    using  detail = 'Existing file cannot be made new';
   end if; -- if file exists
+
+  if not datalink.has_datalinker() 
+     and current_setting('datalink.linker_required',true) is not null
+  then
+    raise exception 'DATALINK ERROR - datalinker required' 
+    using errcode = '57050',
+           detail = 'datalinker is needed to purge files created from aborted transactions',
+             hint = 'make sure pg_datalinker process is running, try "dlfm start".';
+  end if;
  end if; -- if datalink.dl_new_files
 
  return new;
@@ -2535,9 +2543,9 @@ BEGIN
   select diracl from datalink.directory where dirpath = dir into acls;
   if not found THEN
     raise exception e'DATALINK EXCEPTION - directory does not exist\nPATH:  %',dir 
-          using errcode = 'HW103', 
-                detail = 'directory not found while modifying datalink.access',
-                hint = 'add appropriate entry in table datalink.directory';
+    using errcode = 'HW103', 
+           detail = 'directory not found while modifying datalink.access',
+             hint = 'add appropriate entry in table datalink.directory';
   end if;
   if tg_op in ('UPDATE','DELETE') THEN
     acl := makeaclitem(coalesce(coalesce(nullif(lower(old.grantee),'public'),'0'), old.grantee)::regrole,
@@ -2674,8 +2682,8 @@ begin
 
   if not datalink.has_datalinker() then
         raise exception 'DATALINK ERROR - datalinker required' 
-              using errcode = '57050',
-              hint = 'make sure pg_datalinker process is running to finalize your commits';
+        using errcode = '57050',
+                 hint = 'make sure pg_datalinker process is running to finalize your commits';
   end if;
 
   notify "datalink.linker_jobs"; 
@@ -2806,7 +2814,7 @@ create table dl_new_files (
   options jsonb
 );
 CREATE TRIGGER "dl_new_files_touch"
-BEFORE INSERT OR UPDATE ON datalink.dl_new_files FOR EACH ROW
+BEFORE INSERT ON datalink.dl_new_files FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 -- mark file as temporary to be deleted if the transaction aborts

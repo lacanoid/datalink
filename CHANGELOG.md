@@ -4,7 +4,7 @@ Version 0.25
 ------------
 - improved handling of `ON UNLINK DELETE` permissions wrt/ table owner
 - DATALINK LINK notice shown only after file has been succesfully linked
-- ! new files trigger
+- new files trigger, file must not already exist when inserting into dl_new_files
 - ! delete in transaction
 - ! replace/delete file bug
 - ! transactional file reads
