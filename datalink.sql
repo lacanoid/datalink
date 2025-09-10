@@ -1799,10 +1799,11 @@ begin
           atttypmod=case when new_lco > 0 then new_lco+4 else -1 end
     where attrelid=my_regclass and attname=my_column_name;
 
-   -- update linked files
+   -- update linked files where needed
    update datalink.dl_linked_files
       set lco = new_lco
-    where attrelid = my_regclass and attnum = co.attnum;
+    where attrelid = my_regclass and attnum = co.attnum
+      and lco is distinct from new_lco;
 
    -- update triggers
    for obj in select * from datalink.dl_trigger_advice()
