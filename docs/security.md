@@ -13,7 +13,7 @@ Normal users can read existing files if they have `SELECT` privilege on director
 
 Normal users can create new files if they have `CREATE` privilege on directory.
 
-All users require `DELETE` privilege on appropriate directory to be able to delete files with `ON UNLINK DELETE` option.
+All users, even superusers require `DELETE` privilege on appropriate directory to be able to delete files with `ON UNLINK DELETE` option.
 
 Directory privileges
 --------------------
@@ -24,7 +24,7 @@ Database administrator can INSERT/UPDATE/DELETE individual privileges here.
 Currently supported directory privileges:
 - `SELECT` - read files
 - `CREATE` - create new files
-- `DELETE` - delete files
+- `DELETE` - delete files, this permission is required for *owner* of the table containing the ON UNLINK DELETE datalink column.
 - `REFERENCES` - reference files (not implemented yet)
 
 Granting a `DELETE` privilege to current user:

@@ -2093,12 +2093,18 @@ begin
    into f;
  if f.read_access = 'DB' then
   if f.token::text = t then return mypath; end if;
+  insert into datalink.insight_access_log 
+         (read_token, link_token, atime, "role", pid, inet, app, data)
+  values (t::datalink.dl_token, f.token, now(), myrole, pg_backend_pid(), 
+          inet_client_addr(), current_setting('application_name'), null::jsonb);
+/* to be removed
   update datalink.insight
      set atimes=atimes||array[now()], 
          grantees=grantees||array[myrole],
          pids=pids||array[pg_backend_pid()]
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
+*/
   if found then return mypath; end if;
   if for_web>0 then return null; end if;
  end if;
@@ -2779,9 +2785,6 @@ create table insight (
   read_token dl_token default datalink.dl_newtoken() primary key,
   ctime timestamptz not null default now(),
   grantor regrole not null default user::regrole,
-  atimes timestamptz[],
-  grantees regrole[],
-  pids int[],
   data jsonb
 );
 alter table insight add foreign key (link_token) references 

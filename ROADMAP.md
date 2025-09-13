@@ -12,8 +12,8 @@ Wanted
 - ✔︎ datalink.write_text() function to create new files
 - some sort of permissions as to what and who gets to do where. probably postgres acls.
   - ✔︎ SELECT - read file contents
-  - REFERENCES - link to files from database (WRITE ACCESS BLOCKED)
-  - ✔︎ DELETE - delete files (ON UNLINK DELETE)
+  - REFERENCES - link to files from database (for WRITE ACCESS BLOCKED)
+  - ✔︎ DELETE - delete files (for ON UNLINK DELETE)
   - ✔︎ CREATE - create new files
 - ✔︎ some sort of file to url mapping. dlurl* functions could use these.
 - ✔︎ make `dlurlcomplete()` and `dlurlpath()` include read access tokens when read_access = 'DB'
@@ -25,7 +25,7 @@ Wanted
 - `dlfm` interactive setup
 - `dlfm` usage
 - make it possible to change LCO with datalink values present
-- add copy file and move file operations
+- ✔︎ add copy file and move file operations
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
@@ -57,11 +57,12 @@ Wanted
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
 - function to create new unused filename
 - improve support for data: URLs
-- keep temporary files when they are linked to READ ACCESS FS columns
+- ✔︎ keep temporary files when they are linked to READ ACCESS FS columns
 - show warning when setting LCO when missing datalinker
 - make `dlreplacecontent()` handle local files differently (and support read tokens!)
 - make `dlreplacecontent()` work with forereign servers
 - make `dlreplacecontent()` work well in all combinations of web and file (curl_put?)
+- add md5sum for files
 
 Advanced
 --------
