@@ -78,12 +78,25 @@ sub main() {
         open STDOUT, ">>", $opt_l or die "$0: open: $!";
         open STDERR, ">&STDOUT"   or die "$0: dup: $!";
     }
-
-    $dbh = DBI->connect($config{dsn});
-    if(!$dbh) { log_fatal("Database not available"); }
+    my $ready;
 
     #---------------------------------------
-    my $ready;
+    # open database
+    while(!($ready>0)) {
+        log_debug('CONNECT');
+        $dbh = DBI->connect($config{dsn});
+        if($dbh) { $ready=1; } 
+        else {
+            if($ready==0) {
+                log_err("Database not available\nHINT:run dlfm bind");
+            }
+            sleep $opt_r;
+            $ready=-1;
+        }
+    }
+    #---------------------------------------
+    # check if datalink extension is installed
+    $ready = 0;
     while(!($ready>0)) {
         log_debug('GET READY');
         $dbmeta = $dbh->selectrow_hashref(qq{
@@ -431,8 +444,8 @@ sub file_unlink {
     if($opt->{write_access} ne 'FS') {
         file_unblock($path,$opt);
     }
-#    if($opt->{on_unlink} eq 'DELETE') {
-    if($opt->{info} && $opt->{info}{del}) {
+    if($opt->{on_unlink} eq 'DELETE') {
+#    if($opt->{info} && $opt->{info}{del}) {
         file_unlink_delete($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
@@ -480,15 +493,18 @@ sub file_chmod {
 
 sub file_delete {
     my ($path,$opt)=@_;
+    log_debug('FILE DELETE',$opt);
     if(!$opt_D) {
 	    log_msg('NO DELETE',"Delete disabled: '$path'. HINT:use -D option");
 	    return;
     }
     if($opt) { log_msg('DELETE',$path); }
-    my $s = file_stat($path);
-    if(!($s->{owner} eq $config{owner})) {
-    	log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
-	    return;
+    else {
+        my $s = file_stat($path);
+        if(!($s->{owner} eq $config{owner})) {
+        	log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+    	    return;
+        }
     }
     if($opt_I) { unlink($path); }
     else { sys('rm',$path); }
@@ -497,12 +513,13 @@ sub file_delete {
 sub file_unlink_delete {
     my ($path,$opt)=@_;
     my $info = $opt->{info};
-    if($info && $info->{del}) {
+    if(($info && $info->{del}) || !$info) {
         if(!($opt->{on_unlink} eq 'DELETE')) {
             log_err('NO DELETE',"Not ON UNLINK DELETE");
             return;
         }
-        if(defined($info->{own})) { file_delete($path,$opt); }
+#        if(defined($info->{own})) { file_delete($path,$opt); }
+        file_delete($path,$opt);
     }
 }
 # does file have a backup copy

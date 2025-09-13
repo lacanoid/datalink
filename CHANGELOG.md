@@ -8,7 +8,7 @@ Version 0.25
 - `datalink.getlength(datalink)` now works for web links
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
 - eliminated some unnecessary repetition in datalinker log
-- ! delete in transaction
+- insert and then delete of ON UNLINK DELETE links inside one transaction now properly deletes files
 - ! replace/delete file bug
 - ! transactional file reads
 - ! web permissions

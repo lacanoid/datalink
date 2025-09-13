@@ -702,32 +702,40 @@ begin
         using errcode = 'HW001', 
               detail = file_path;
  else
+  -- check for file delete privilege
+  if r.state in ('LINK','LINKED') and r.on_unlink = 'DELETE' then
+      select relowner into my_owner from pg_class where oid = r.attrelid;
+      if my_owner is not null
+         and not datalink.has_file_privilege(my_owner,file_path,'delete',false)
+      then raise exception
+                  'DATALINK EXCEPTION - DELETE permission denied on directory %',
+                  format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
+           using errcode = 'HW005', 
+                 detail = 'delete permission for table owner is required on directory',
+                 hint = 'add appropriate entry in table datalink.access';
+      end if; -- has not privilege
+  end if; -- on unlink delete
+
   if r.state = 'LINK' then
+   -- previously linked
    update datalink.dl_linked_files
       set state = 'UNLINK',
           token = cast(info->>'b' as datalink.dl_token),
           lco   = cast(info->>'lco' as datalink.dl_lco)
     where path  = file_path and info is not null
       and state = 'LINK';
-
+   -- not yet linked, schedule to delete
+   update datalink.dl_linked_files
+      set state = 'UNLINK'
+    where path  = file_path and info is null
+          and r.on_unlink = 'DELETE'
+      and state = 'LINK';
+   -- not yet linked, delete
    delete from datalink.dl_linked_files
     where path  = file_path and info is null
       and state = 'LINK';
 
   elsif r.state = 'LINKED' then
-   if r.on_unlink = 'DELETE' then
-    select relowner into my_owner from pg_class where oid = r.attrelid;
-    if my_owner is not null
-       and not datalink.has_file_privilege(my_owner,file_path,'delete',false)
-    then raise exception
-                'DATALINK EXCEPTION - DELETE permission denied on directory %',
-                format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
-         using errcode = 'HW005', 
-               detail = 'delete permission for table owner is required on directory',
-               hint = 'add appropriate entry in table datalink.access';
-    end if; -- has not privilege
-   end if; -- on unlink delete
-
    update datalink.dl_linked_files
       set state = 'UNLINK'
     where path  = file_path and state = 'LINKED';
