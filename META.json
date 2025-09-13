@@ -18,7 +18,7 @@
             "PostgreSQL": "13.0.0"
          },
          "recommends": {
-            "PostgreSQL": "15.0.0",
+            "PostgreSQL": "17.0.0",
             "dblink": 0
          }
       }

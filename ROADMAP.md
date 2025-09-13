@@ -30,7 +30,7 @@ Wanted
 - ✔︎ make domains on datalinks work
 - make datalinks work with arrays
 - ✔︎ better documentation (manual)
-- better handling of already immutable files
+- better handling of already immutable/linked files
 - apache mod_perl directory autoconfigurator
 - `curl_get(url,params json)` function which supplies query string from json
 - add `curl_post` and `curl_put` functions

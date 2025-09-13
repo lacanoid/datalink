@@ -51,5 +51,12 @@ Currently supported directory privileges:
 
 These specify details on how [datalinker](pg_datalinker.md) should work.
 
+### database parameters (GUCs)
+- `datalink.linker_required` - raise error instead of warning if operation requires datalinker
+- `datalink.files_required` - raise error instead of returning null on file reads of nonexistent files (not implemetnetd yet)
+- `datalink.web_required` - raise error for INTEGRITY SELECTIVE links web page doesn't exist (eg 404) (not implemetnetd yet)
+
 [Datalink manual](README.md)
+
+
 

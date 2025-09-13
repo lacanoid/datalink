@@ -7,6 +7,7 @@ Version 0.25
 - new files trigger, file must not already exist when inserting into dl_new_files
 - `datalink.getlength(datalink)` now works for web links
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
+- eliminated some unnecessary repetition in datalinker log
 - ! delete in transaction
 - ! replace/delete file bug
 - ! transactional file reads
