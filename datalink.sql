@@ -1,26 +1,26 @@
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 --
 --  datalink
 --  version 0.25 lacanoid@ljudmila.org
 --
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 SET client_min_messages = warning;
 
 COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 GRANT USAGE ON SCHEMA datalink TO PUBLIC;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- url type
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 ALTER extension uri SET schema pg_catalog;
 -- CREATE DOMAIN url AS text;
 CREATE DOMAIN url AS uri;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- datalink type
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE DOMAIN dl_linktype AS text;
 CREATE DOMAIN dl_token AS uuid;
@@ -89,9 +89,9 @@ create cast (datalink as jsonb) without function;
  rc - HTTP response code
 */
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- link control options
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create type dl_link_control as enum ( 'NO','FILE' );
 create type dl_integrity as enum ( 'NONE','SELECTIVE','ALL' );
@@ -113,7 +113,7 @@ comment on type dl_lco is 'Datalink Link Control Options as integer';
 create domain whoami as name check ( value = current_user );
 comment on type whoami is 'Domain which can be set only to current user';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- view of all datalink types
 
 create or replace view types as
@@ -137,7 +137,7 @@ as (
 select * from r;
 grant select on types to public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- functions intended for constraints
 
 -- does datalink reference a local file?
@@ -165,9 +165,9 @@ language sql immutable strict as $$
 comment on function is_http_success(datalink)
      is 'The HTTP return code of this datalink indicates success';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- link control options
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE TABLE link_control_options (
   lco dl_lco primary key,
@@ -181,9 +181,9 @@ CREATE TABLE link_control_options (
 comment on table link_control_options is 'Valid combinations of Datalink Link Control Options';
 grant select on link_control_options to public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- helper functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION dl_lco(
   link_control dl_link_control DEFAULT 'NO'::dl_link_control, 
@@ -213,7 +213,7 @@ COMMENT ON FUNCTION dl_lco(
   dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink)
 IS 'Calculate dl_lco from enumerated options';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- find dl_lco for a column
 create or replace function dl_lco(regclass regclass,column_name name) returns dl_lco
 as $$
@@ -230,7 +230,7 @@ $$ language sql;
 COMMENT ON FUNCTION dl_lco(regclass, name) 
 IS 'Find dl_lco for a table column';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- find dl_lco for a datalink
 CREATE OR REPLACE FUNCTION dl_lco(datalink) 
 RETURNS dl_lco LANGUAGE sql 
@@ -243,7 +243,7 @@ $function$;
 COMMENT ON FUNCTION dl_lco(datalink) 
 IS 'Find dl_lco for a linked datalink';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- expand lco into individual options
 CREATE FUNCTION link_control_options(dl_lco) 
 RETURNS link_control_options
@@ -254,7 +254,7 @@ $_$;
 COMMENT ON FUNCTION link_control_options(dl_lco)
 IS 'Calculate link_control_options from dl_lco';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- get link_control_options for a linked datalink
 CREATE OR REPLACE FUNCTION link_control_options(datalink)
  RETURNS link_control_options
@@ -269,9 +269,9 @@ $function$
 COMMENT ON FUNCTION link_control_options(datalink)
 IS 'Get link_control_options for a linked datalink';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- init options table
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- initialize valid link control options
 insert into link_control_options 
@@ -314,9 +314,9 @@ select case
        end
 $_$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- views
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- internal datalink columns view
 CREATE VIEW dl_columns AS
  SELECT c.relowner::regrole AS table_owner,
@@ -340,7 +340,7 @@ CREATE VIEW dl_columns AS
   WHERE (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- user datalink columns view
 CREATE VIEW columns AS
 SELECT
@@ -362,7 +362,7 @@ COMMENT ON VIEW columns
 grant select on columns to public;
 grant update on columns to public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- triggers we might need to setup
 CREATE FUNCTION dl_trigger_advice(
     OUT owner name, OUT regclass regclass, 
@@ -424,9 +424,9 @@ SELECT
    FROM dl_triggers
 $$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- linked files
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE TYPE file_link_state AS ENUM (
     'LINK','LINKED','ERROR','UNLINK'
 );
@@ -470,7 +470,7 @@ comment on view linked_files
      is 'Currently linked files';
 
 grant select on linked_files to public;
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- for backup and restore and upgrades
 CREATE OR REPLACE FUNCTION set_online(boolean) returns boolean language plpgsql as $$
 begin
@@ -483,7 +483,7 @@ end
 $$ strict;
 COMMENT ON FUNCTION set_online(boolean) IS 'Set datalink online status for dump/restore';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION stat(file_path file_path,
    OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
@@ -545,7 +545,7 @@ end
 $$ language plpgsql strict;
 comment on function filepath(datalink) is 'Returns the read file path from DATALINK value';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- link a file to SQL
 create function dl_file_link(file_path file_path,
                              my_token dl_token,
@@ -692,7 +692,7 @@ end
 $$;
 revoke execute on function dl_file_link from public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- unlink a file from SQL
 create function dl_file_unlink(file_path file_path)
 returns boolean as
@@ -773,9 +773,9 @@ end
 $$ language plpgsql strict;
 revoke execute on function dl_file_unlink from public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- uri functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 /*
 CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text
@@ -847,7 +847,7 @@ CREATE OR REPLACE FUNCTION uri_get(url text, part text)
 $$;
 
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
   RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
@@ -874,7 +874,7 @@ CREATE OR REPLACE FUNCTION uri_get(link datalink, part text)
 
 COMMENT ON FUNCTION uri_get(datalink,text) IS 'Get (extract) parts of datalink URI';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
  RETURNS text
@@ -910,16 +910,16 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
 
 COMMENT ON FUNCTION uri_set(uri,text,text) IS 'Set (replace) parts of URI';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE OR REPLACE FUNCTION iri(iri text) RETURNS text language sql strict as $$
  SELECT datalink.uri_set('/','src',$1) $$;
 COMMENT ON FUNCTION iri(text)
      IS 'Convert IRI (unicode characters) to URI (escaped)';
 
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- event triggers
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION dl_trigger_event() 
 RETURNS event_trigger LANGUAGE plpgsql 
@@ -1009,7 +1009,7 @@ end
 $$;
 alter function dl_trigger_event() owner to postgres;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create event trigger datalink_event_trigger_end on ddl_command_end
 when tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO','ALTER TABLE') 
@@ -1018,9 +1018,9 @@ execute procedure dl_trigger_event();
 create event trigger datalink_event_trigger_drop
 on sql_drop execute procedure dl_trigger_event();
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- token generator
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid
     LANGUAGE c PARALLEL SAFE STRICT
@@ -1029,9 +1029,9 @@ CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid
 CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
     AS $$select cast(datalink.uuid_generate_v4() as datalink.dl_token);$$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- SQL/MED datalink functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
 RETURNS datalink
@@ -1101,9 +1101,9 @@ COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text)
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
 
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- SQL/MED update functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer default 1) RETURNS datalink
     LANGUAGE plpgsql
@@ -1157,7 +1157,7 @@ CREATE FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer default 1)
 COMMENT ON FUNCTION pg_catalog.dlpreviouscopy(url text, has_token integer) 
 IS 'SQL/MED - Returns a DATALINK value indicating that the previous version of the file should be restored';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer default 1) RETURNS datalink
     LANGUAGE plpgsql STRICT
@@ -1192,9 +1192,9 @@ CREATE FUNCTION pg_catalog.dlnewcopy(url text, has_token integer default 1) RETU
 COMMENT ON FUNCTION pg_catalog.dlnewcopy(url text, has_token integer) 
 IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file content has changed';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- referential integrity triggers
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- reference a datalink
 CREATE FUNCTION dl_datalink_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
@@ -1297,7 +1297,7 @@ begin
  return link;
 end$_$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- unreference a datalink
 CREATE FUNCTION dl_datalink_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink
@@ -1319,7 +1319,7 @@ begin
  return $1;
 end$_$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- datalink trigger function for tables
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
@@ -1432,7 +1432,7 @@ begin
 end
 $_X$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION dl_trigger_columns() RETURNS trigger
     LANGUAGE plpgsql
@@ -1482,11 +1482,11 @@ INSTEAD OF UPDATE ON datalink.dl_columns
 FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_columns();
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- web functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- get URL contents as text using GET or HEAD request
 
 CREATE FUNCTION curl_get(
@@ -1586,7 +1586,7 @@ revoke execute on function curl_get(text,integer) from public;
 comment on function curl_get(text,integer)
      is 'Access URLs with CURL. CURL groks URLs.';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- save URL contents as text to a local file using GET or HEAD request
 
 CREATE FUNCTION curl_save(
@@ -1668,9 +1668,9 @@ revoke execute on function curl_save(file_path,text,int) from public;
 comment on function curl_save(file_path,text,int)
      is 'Save content of remote URL to a local file';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- http response codes
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE TABLE http_response_codes (
     rc integer primary key,
@@ -1745,9 +1745,9 @@ INSERT INTO http_response_codes VALUES
  (510, 'Not Extended', '[RFC2774]'),
  (511, 'Network Authentication Required', '[RFC6585]');
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- datalink admin functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- modify link control options for a datalink table column
 CREATE FUNCTION modlco(
@@ -1840,9 +1840,9 @@ $_$;
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Modify link control options for a datalink column';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- SQL/MED functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlcomment(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
@@ -1850,7 +1850,7 @@ AS $$ select $1::jsonb->>'c' $$;
 COMMENT ON FUNCTION pg_catalog.dlcomment(datalink) 
 IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, anonymous integer default 0) RETURNS text
     LANGUAGE sql STRICT stable
@@ -1871,7 +1871,7 @@ AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, integer) 
 IS 'SQL/MED - Returns normalized URL value';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
     LANGUAGE sql STRICT IMMUTABLE
@@ -1896,7 +1896,7 @@ AS $_$ select dlurlcompleteonly(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(text) 
 IS 'SQL/MED - Returns normalized URL value';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text
@@ -1912,7 +1912,7 @@ AS $_$ select dlurlserver(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(text) 
 IS 'SQL/MED - Returns the file server from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
 RETURNS text
@@ -1929,7 +1929,7 @@ AS $_$ select dlurlscheme(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(text) 
 IS 'SQL/MED - Returns the scheme from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
  RETURNS text
@@ -1956,7 +1956,7 @@ AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
 IS 'SQL/MED - Returns the file path from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION filepathwrite(datalink)
  RETURNS text
@@ -1978,7 +1978,7 @@ AS $_$ select datalink.filepathwrite(dlvalue($1)) $_$;
 COMMENT ON FUNCTION filepathwrite(text) 
 IS 'Returns the write file path from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlpathonly(datalink)
  RETURNS text
@@ -1995,7 +1995,7 @@ AS $_$ select dlurlpathonly(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(text) 
 IS 'SQL/MED - Returns the file path from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
@@ -2012,7 +2012,7 @@ AS $_$ select dllinktype(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dllinktype(text) 
 IS 'SQL/MED - Returns the link type (URL or FS) from URL';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create or replace function pg_catalog.dlreplacecontent(link datalink, new_content datalink) returns datalink
 language plpgsql strict as $$
@@ -2057,7 +2057,7 @@ language sql as $$ select pg_catalog.dlreplacecontent(dlvalue($1),dlvalue($2)) $
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(text, text) 
 IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 -- alter domain url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
@@ -2067,7 +2067,7 @@ as $$ select dlurlcomplete($1)::uri $$;
 
 create cast (datalink as uri) with function datalink.dl_url;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE SERVER IF NOT EXISTS datalink_file_server FOREIGN DATA WRAPPER file_fdw;
 
@@ -2089,7 +2089,7 @@ $function$
 COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 create or replace function dl_authorize(
   file_path, for_web integer default 1, myrole regrole default user::regrole) 
 returns file_path
@@ -2145,7 +2145,7 @@ end$$;
 comment on function dl_authorize(file_path, integer, regrole)
      is 'Authorize access to READ ACCESS DB file via embedded read token';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
  RETURNS text LANGUAGE plpgsql
 AS $$
@@ -2187,7 +2187,7 @@ $$;
 COMMENT ON FUNCTION read_text(file_path,bigint,bigint) IS 
   'Read local file contents as text';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE FUNCTION read(datalink, pos bigint default 1, len bigint default null)
  RETURNS bytea LANGUAGE plpgsql
 AS $$
@@ -2229,7 +2229,7 @@ $$;
 COMMENT ON FUNCTION read(file_path,bigint,bigint) IS 
   'Read local file contents as binary';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
  RETURNS TABLE(i integer, o bigint, line text)
  LANGUAGE plperlu STRICT AS $$
@@ -2265,7 +2265,7 @@ $$;
 COMMENT ON FUNCTION read_lines(datalink, bigint)
      IS 'Stream local file referenced by a datalink as lines of text';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION write_text(filename file_path, content text, persistent integer default 0)
  RETURNS text
@@ -2331,7 +2331,7 @@ $function$;
 COMMENT ON FUNCTION write(file_path,bytea,integer) IS 
   'Write new local file contents as binary';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent integer default 0)
  RETURNS datalink
@@ -2373,9 +2373,9 @@ $function$;
 COMMENT ON FUNCTION write(datalink,bytea,integer) IS 
   'Write datalink contents as binary';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- bfile compatibility functions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create or replace function fileexists(datalink) returns integer as $$
 select case 
@@ -2437,9 +2437,9 @@ begin
 end
 $$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- directories
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 create table dl_directory (
        dirname    text collate "C" unique check(dirname not in ('URL','FS','IRI')),
        dirpath    file_path not null check(dirpath like '/%/'),
@@ -2535,9 +2535,9 @@ $$ strict language sql;
 comment on function filegetdirectory(file_path) 
      is 'Get datalink.directory entry for a file';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- file access permitions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE VIEW access
 AS SELECT d.dirpath,
@@ -2636,9 +2636,9 @@ CREATE TRIGGER "access_touch"
 INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- inquire file access permitions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text, allowsuper boolean default true) RETURNS boolean as $$
 select (current_setting('is_superuser')::boolean and $4) or exists (
@@ -2652,9 +2652,9 @@ $$ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
  LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- web access permisions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create table dl_access_web (
   url text not null,
@@ -2676,9 +2676,9 @@ CREATE TRIGGER "access_web_touch"
 INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access_web FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- inquire web access permisions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE OR REPLACE FUNCTION has_web_privilege(role regrole, url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean as $$
 select (current_setting('is_superuser')::boolean and $4) or exists (
   select url from datalink.access_web aw
@@ -2691,9 +2691,9 @@ $$ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION has_web_privilege(url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean
  LANGUAGE sql AS $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- datalinker status
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
@@ -2709,7 +2709,7 @@ CREATE TABLE dl_status (
 insert into dl_status (version) values ('init');
 grant select on dl_status to public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 CREATE PROCEDURE commit() language plpgsql as $$
 begin
 
@@ -2730,7 +2730,7 @@ $$;
 COMMENT ON PROCEDURE commit() 
      IS 'Wait for datalinker to apply changes';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION has_datalinker()
  RETURNS boolean
@@ -2749,7 +2749,7 @@ $function$
 COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create view status as
 select pid,cpid,version,
@@ -2759,7 +2759,7 @@ select pid,cpid,version,
 grant select on status to public;
 comment on view status is 'Datalinker status';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION has_updated(datalink) 
 returns int language plpgsql SECURITY DEFINER STRICT
@@ -2797,9 +2797,9 @@ as $$ select datalink.has_updated(pg_catalog.dlvalue($1::text,'FS')) $$;
 COMMENT ON FUNCTION has_updated(file_path) 
      IS 'Check if linked file has been updated since it was linked';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- insight (file lookup) table
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create table insight (
   link_token dl_token not null,
@@ -2841,9 +2841,9 @@ begin
 end
 $$;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- temporary files
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- administered (copied, moved, deleted) files
 create table dl_new_files (
@@ -2897,9 +2897,9 @@ end
 $$;
 alter function dl_file_new(file_path,"char",jsonb,datalink.whoami) owner to postgres;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- list versions
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 -- list availanle file revisions
 create or replace function revisions(file_path) 
@@ -2944,9 +2944,9 @@ comment on function revision(datalink,int)
 is 'Return a particular datalink revision';
 
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- volume usage statistics
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create or replace view usage as
 WITH a AS (
@@ -2980,9 +2980,9 @@ COMMENT ON VIEW usage
      IS 'Disk directory usage statistics';
 grant select on usage to public;
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- play tables
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 
 create table sample_datalinks ( link datalink(1) );
 alter table sample_datalinks add check (datalink.is_http_success(link));
@@ -2990,14 +2990,14 @@ grant select on sample_datalinks to public;
 comment on table sample_datalinks
      is 'Sample datalinks with selective integrity';
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 -- add stuff to pg_dump 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 SELECT pg_catalog.pg_extension_config_dump('datalink.dl_linked_files', '');
 SELECT pg_catalog.pg_extension_config_dump('datalink.sample_datalinks', '');
 -- SELECT pg_catalog.pg_extension_config_dump('datalink.dl_directory', '');
 
----------------------------------------------------
+--------------------------------------------------------------- ---------------
 do $$ 
 declare file text = '/etc/postgresql-common/dl_directory';
 begin 
