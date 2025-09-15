@@ -78,6 +78,17 @@ create cast (datalink as jsonb) without function;
 -- create cast (datalink as jsonb) with inout as implicit;
 -- create cast (jsonb as datalink) with inout;
 
+/* datalink json keys:
+ a  - address, actual url
+ b  - token
+ c  - comment
+ k  - konstruction method
+ o  - previous token value
+ t  - linktype, if custom
+ ct - content type
+ rc - HTTP response code
+*/
+
 ---------------------------------------------------
 -- link control options
 ---------------------------------------------------
@@ -2022,7 +2033,9 @@ BEGIN
           detail = format('CURL error %s%s',r.rc,' - '||r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
   end if;
-  link := jsonb_set(link::jsonb,'{k}',to_jsonb('r'::text));
+  link := jsonb_set(link::jsonb,'{k}' ,to_jsonb('r'::text));
+  link := jsonb_set(link::jsonb,'{ct}',to_jsonb(r.content_type));
+  link := jsonb_set(link::jsonb,'{src}',to_jsonb(url));
   return link;
 end
 $$;
