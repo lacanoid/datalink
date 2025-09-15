@@ -27,10 +27,14 @@ CREATE DOMAIN dl_token AS uuid;
 
 CREATE DOMAIN file_path AS text;
 COMMENT ON DOMAIN file_path IS 'Absolute file system path';
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  CHECK(value not like all('{../%,%/../%,%/..}'));
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_chars     CHECK(not value ~* '[%*]');
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  CHECK(length(value)=0 or value like '/%');
-ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  CHECK(not value like '%//%');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noparent  
+       CHECK(value not like all('{../%,%/../%,%/..}'));
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_chars     
+       CHECK(not value ~* '[%*]');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_absolute  
+       CHECK(length(value)=0 or value like '/%');
+ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver  
+       CHECK(not value like '%//%');
 /* ADD ADDITIONAL CONSTRAINTS FOR FILENAMES HERE */
 
 
@@ -79,14 +83,15 @@ create cast (datalink as jsonb) without function;
 -- create cast (jsonb as datalink) with inout;
 
 /* datalink json keys:
- a  - address, actual url
- b  - token
- c  - comment
- k  - konstruction method
- o  - previous token value
- t  - linktype, if custom
- ct - content type
- rc - HTTP response code
+ a   - address, actual url
+ b   - token
+ c   - comment
+ k   - konstruction method
+ o   - previous token value
+ t   - linktype, if custom
+ ct  - content type
+ rc  - HTTP response code
+ src - original URL
 */
 
 --------------------------------------------------------------- ---------------
@@ -237,7 +242,8 @@ RETURNS dl_lco LANGUAGE sql
 SECURITY DEFINER
 AS $function$
 select coalesce((select lco
-                   from datalink.dl_linked_files f where f.token = ($1::jsonb->>'b')::datalink.dl_token)
+                   from datalink.dl_linked_files f 
+                  where f.token = ($1::jsonb->>'b')::datalink.dl_token)
                ,0)::datalink.dl_lco
 $function$;
 COMMENT ON FUNCTION dl_lco(datalink) 
@@ -2972,7 +2978,8 @@ WITH a AS (
     sum(1) FILTER (WHERE length(a.filename) > 0) AS count,
     sum(case when a.state='LINKED' then 1 end) FILTER (WHERE length(a.filename) > 0) AS linked,
     sum(case when a.err is not null then 1 end) FILTER (WHERE length(a.filename) > 0) AS error,
-    sum(case when a.state = ANY ('{LINK,UNLINK}'::file_link_state[]) then 1 end) FILTER (WHERE length(a.filename) > 0) AS waiting
+    sum(case when a.state = ANY ('{LINK,UNLINK}'::file_link_state[]) then 1 end) 
+        FILTER (WHERE length(a.filename) > 0) AS waiting
    FROM a
   GROUP BY GROUPING SETS ((a.dirpath), ())
   ORDER BY a.dirpath;
