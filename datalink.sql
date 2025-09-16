@@ -633,6 +633,7 @@ begin
   where path = file_path or address = my_address
     for update;
  if not found then
+  -- not found in dl_linked_files
   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
   values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons);
   notify "datalink.linker_jobs"; 
@@ -669,7 +670,8 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-               cons=my_cons
+               cons=my_cons,
+               txid=default
          where path = file_path and state='UNLINK';
         notify "datalink.linker_jobs";
      else -- relink
@@ -681,7 +683,8 @@ begin
                address=my_address,
                size=my_size,
                mtime=my_mtime,
-               cons=my_cons
+               cons=my_cons,
+               txid=default
          where path = file_path and state='UNLINK';
         notify "datalink.linker_jobs";
 
@@ -744,12 +747,14 @@ begin
    update datalink.dl_linked_files
       set state = 'UNLINK',
           token = cast(info->>'b' as datalink.dl_token),
-          lco   = cast(info->>'lco' as datalink.dl_lco)
+          lco   = cast(info->>'lco' as datalink.dl_lco),
+          txid  = default
     where path  = file_path and info is not null
       and state = 'LINK';
    -- not yet linked, schedule to delete
    update datalink.dl_linked_files
-      set state = 'UNLINK'
+      set state = 'UNLINK',
+          txid  = default
     where path  = file_path and info is null
           and r.on_unlink = 'DELETE'
       and state = 'LINK';
@@ -760,7 +765,8 @@ begin
 
   elsif r.state = 'LINKED' then
    update datalink.dl_linked_files
-      set state = 'UNLINK'
+      set state = 'UNLINK',
+          txid  = default
     where path  = file_path and state = 'LINKED';
 
   elsif r.state = 'ERROR' then
@@ -2119,7 +2125,8 @@ begin
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  -- check access
- select token,read_access
+ select token,read_access,
+        pg_xact_status(txid) as xact_status
    from datalink.dl_linked_files
    join datalink.link_control_options lco using(lco)
   where path=mypath
@@ -2138,6 +2145,9 @@ begin
    where read_token=t::datalink.dl_token 
      and link_token=f.token;
 */
+ perform true from datalink.insight
+   where read_token=t::datalink.dl_token
+     and link_token=f.token; 
   if found then return mypath; end if;
   if for_web>0 then return null; end if;
  end if;
@@ -2826,7 +2836,7 @@ create index insight_link_token_idx on insight (link_token);
 comment on table insight is 'Unique read tokens for READ ACCESS DB datalinks';
 
 create table insight_access_log (
-  link_token dl_token not null,
+  link_token dl_token,
   read_token dl_token not null,
   atime timestamptz not null default now(),
   role regrole not null default user::regrole,
