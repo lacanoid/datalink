@@ -2125,13 +2125,18 @@ begin
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  -- check access
- select token,read_access,
+ select token,read_access,write_access,
         pg_xact_status(txid) as xact_status
    from datalink.dl_linked_files
    join datalink.link_control_options lco using(lco)
   where path=mypath
    into f;
  if f.read_access = 'DB' then
+  if f.write_access > 'BLOCKED' then
+    if f.xact_status = 'in progress' then
+      -- mypath := format('%s#%s',mypath,f.token);
+    end if; -- in transaction
+  end if;  -- writeable file
   if f.token::text = t then return mypath; end if;
   insert into datalink.insight_access_log 
          (read_token, link_token, atime, "role", pid, inet, app, data)
@@ -2150,7 +2155,7 @@ begin
      and link_token=f.token; 
   if found then return mypath; end if;
   if for_web>0 then return null; end if;
- end if;
+ end if; -- read access db
  mypath := $1;
  if for_web>0 then return mypath;
  else 
