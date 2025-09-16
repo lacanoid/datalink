@@ -63,6 +63,9 @@ Wanted
 - make `dlreplacecontent()` work with forereign servers
 - make `dlreplacecontent()` work well in all combinations of web and file (curl_put?)
 - add md5sum for files
+- add capability to purge old backups
+- add capability to list directories
+- add standalone node.js file server with dlff (alternative to apache)
 
 Advanced
 --------
@@ -109,6 +112,7 @@ Todo
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
 - check that src and dest in curl_save are not one and the same
 - check src read permissions in curl_save
+- check `pg_read_server_files` and `pg_write_server` files roles
 - handle // urls and paths better
 - write() & co should consider valid prefixes
 - datalinker: use config file
@@ -140,11 +144,12 @@ Todo
 - make `DLPREVIOUSCOPY()` work all the way to the beginning of the file. This might require storing revision history
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
-- show os owner in `datalink.directory`
+- show OS dir owner in `datalink.directory`
 - check  permissions in `curl_save()`
-- trigger on `dl_new_files` to check that files don't exist
+- ✔︎ trigger on `dl_new_files` to check that files don't exist
 - files with ON UNLINK DELETE don't get deleted if the have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
+- streaming write functions
 
 Maybe
 =====

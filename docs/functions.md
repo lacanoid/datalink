@@ -254,7 +254,7 @@ Use `dlurlscheme()` function to get uppercased URL scheme part of a datalink.
 
 #### dlurlserver( datalink ) → text
 
-Use `dlurlserver()` function to get URL lowercased server part of a datalink.
+Use `dlurlserver()` function to get lowercased URL server part of a datalink.
 This does not include username and password if they are present in URL.
 
     mydb=> select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));

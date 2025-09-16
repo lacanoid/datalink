@@ -453,6 +453,12 @@ create table dl_linked_files (
   info jsonb,
   err jsonb
 );
+/* cons(truction) values:
+   null - dlvalue() function
+   w    - write() functions
+   r    - dlreplacecontent() function
+   n    - dlnewcopy() function
+*/
 -- index for datalinker
 create index dl_linked_files_txid on dl_linked_files (txid) 
  where state = ANY ('{LINK,UNLINK}'::file_link_state[]);
