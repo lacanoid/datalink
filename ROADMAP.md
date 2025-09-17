@@ -66,6 +66,7 @@ Wanted
 - add capability to purge old backups
 - add capability to list directories
 - add standalone node.js file server with dlff (alternative to apache)
+- incremental write functions so one can write big files without having to buffer everything
 - command line tool to backup linked files to/from another host
 - nfs server
 
@@ -149,9 +150,8 @@ Todo
 - show OS dir owner in `datalink.directory`
 - check  permissions in `curl_save()`
 - ✔︎ trigger on `dl_new_files` to check that files don't exist
-- files with ON UNLINK DELETE don't get deleted if the have not been linked first
+- ✔︎ files with ON UNLINK DELETE don't get deleted if the have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
-- streaming write functions
 
 Maybe
 =====
