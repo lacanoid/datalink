@@ -10,8 +10,8 @@ Version 0.25
 - eliminated some unnecessary repetition in datalinker log
 - insert and then delete of ON UNLINK DELETE links inside one transaction now properly deletes files
 - store content_type and and source url in datalinks returnd by `DLREPLACECONTENT()`
+- transactional file reads, no you can write and read back new file inside transaction
 - ! replace/delete file bug
-- ! transactional file reads
 - ! web permissions
 - ! FUSE filesystem
 

@@ -2125,48 +2125,45 @@ begin
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  -- check access
- select token,read_access,write_access,
+ select token,state,read_access,write_access,
         pg_xact_status(txid) as xact_status
    from datalink.dl_linked_files
    join datalink.link_control_options lco using(lco)
   where path=mypath
    into f;
  if f.read_access = 'DB' then
-  if f.write_access > 'BLOCKED' then
-    if f.xact_status = 'in progress' then
-      -- mypath := format('%s#%s',mypath,f.token);
-    end if; -- in transaction
-  end if;  -- writeable file
-  if f.token::text = t then return mypath; end if;
-  insert into datalink.insight_access_log 
-         (read_token, link_token, atime, "role", pid, inet, app, data)
-  values (t::datalink.dl_token, f.token, now(), myrole, pg_backend_pid(), 
-          inet_client_addr(), current_setting('application_name'), null::jsonb);
-/* to be removed
-  update datalink.insight
-     set atimes=atimes||array[now()], 
-         grantees=grantees||array[myrole],
-         pids=pids||array[pg_backend_pid()]
-   where read_token=t::datalink.dl_token 
-     and link_token=f.token;
-*/
- perform true from datalink.insight
-   where read_token=t::datalink.dl_token
-     and link_token=f.token; 
-  if found then return mypath; end if;
+  if f.write_access > 'BLOCKED' and
+     (f.state = 'LINK' or f.xact_status = 'in progress')
+  then
+     mypath := format('%s#%s',mypath,f.token);
+  end if; -- writeable file in transaction 
+  if f.token::text = t then
+    return mypath;
+  end if; 
+  perform true from datalink.insight
+    where read_token=t::datalink.dl_token
+      and link_token=f.token; 
+  if found then 
+    insert into datalink.insight_access_log 
+           (read_token, link_token, atime, "role", pid, inet, app, data)
+    values (t::datalink.dl_token, f.token, now(), myrole, pg_backend_pid(), 
+           inet_client_addr(), current_setting('application_name'), null::jsonb);
+    return mypath;
+  end if;
   if for_web>0 then return null; end if;
- end if; -- read access db
+ end if; -- read access db (token found)
  mypath := $1;
- if for_web>0 then return mypath;
+ if for_web>0 then
+   return mypath;
  else 
-  if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
-  raise exception
+   if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
+   raise exception
           'DATALINK EXCEPTION - SELECT permission denied on directory %',
 	  format(e'\nFILE:  %s\nROLE:  %I\n',mypath,myrole) 
-  using errcode = 'HW007',
-        detail  = format('no SELECT permission for directory'),
-        hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
- end if;
+   using errcode = 'HW007',
+         detail  = format('no SELECT permission for directory'),
+         hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
+ end if; -- for web
  return null;
 end$$;
 comment on function dl_authorize(file_path, integer, regrole)

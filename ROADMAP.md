@@ -40,7 +40,7 @@ Wanted
 - ✔︎ add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
-- handle directories better (forbid alltogether?)
+- handle directories as datalinks better (forbid is some cases?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
 - add `dirname`,`extension`,`basename`,`filename` to uri_get/set
@@ -49,7 +49,7 @@ Wanted
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
 - ✔︎ file writes for non superusers
 - web reads for non superusers
-- make `read_text()` read updated but not yet commited files in the transaction which changed them
+- ✔︎ make `read_text()` read updated but not yet commited files in the transaction which changed them
 - ✔︎ functions to read and write binary files
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
@@ -131,7 +131,6 @@ Todo
 - ✔︎ function to wait for datalinker to finish
 - better link state handling: unlink → linked, error → ?
 - better file handling wrt. immutable state
-- token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - fix DLPREVIOUSCOPY wrt to old token vs has_token vs read_access
 - dlvalue better error handling
 - make all this work well for non-superusers as well
@@ -150,15 +149,17 @@ Todo
 - show OS dir owner in `datalink.directory`
 - check  permissions in `curl_save()`
 - ✔︎ trigger on `dl_new_files` to check that files don't exist
-- ✔︎ files with ON UNLINK DELETE don't get deleted if the have not been linked first
+- ✔︎ files with ON UNLINK DELETE don't get deleted if they have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
 
 Maybe
 =====
+- token decoding in dlvalue (now in dlpreviouscopy and dlnewcopy)
 - ✔︎ perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
 - add DLVALUE(datalink)
 - support for data: URLs
+- content_type function
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
 - ✔︎ create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
