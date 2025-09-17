@@ -66,6 +66,8 @@ Wanted
 - add capability to purge old backups
 - add capability to list directories
 - add standalone node.js file server with dlff (alternative to apache)
+- command line tool to backup linked files to/from another host
+- nfs server
 
 Advanced
 --------
