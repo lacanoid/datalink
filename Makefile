@@ -5,7 +5,7 @@ extension_version = 0.25
 
 EXTENSION = datalink
 DATA_built = datalink--$(extension_version).sql
-PROGRAM = dlcat
+PROGRAM = dlcat pg_dlfuse
 INCLUDES = -I/usr/include/postgresql
 PG_LIBS = -L$(shell $(PG_CONFIG) --pkglibdir)
 BINDIR = $(shell $(PG_CONFIG) --bindir)
@@ -28,6 +28,7 @@ installextras:
 	if [ ! -f /usr/sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_datalinker ; fi
 	if [ ! -f /usr/sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/dlfm ; fi
 	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi
+	if [ ! -f /usr/sbin/pg_dlfuse ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_dlfuse ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
 	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
@@ -58,8 +59,8 @@ dlcat: dlcat.c
 	chmod g+s dlcat
 	chmod u+s dlcat
 
-dlfuse: dlfuse.c
-	$(CC) -Wall -Wextra -I`$(PG_CONFIG) --includedir` -D_FILE_OFFSET_BITS=64 dlfuse.c -lpq -lfuse -o dlfuse
+pg_dlfuse: pg_dlfuse.c
+	$(CC) -Wall -Wextra -I`$(PG_CONFIG) --includedir` -D_FILE_OFFSET_BITS=64 pg_dlfuse.c -lpq -lfuse -o pg_dlfuse
 
 testall.sh:
 	pg_lsclusters -h | perl -ne '@_=split("\\s+",$$_); print "make PGPORT=$$_[2] PG_CONFIG=/usr/lib/postgresql/$$_[0]/bin/pg_config clean install installcheck\n";' > testall.sh

@@ -1,0 +1,12 @@
+[Unit]
+Description=PostgreSQL SQL/MED Datalink file system
+After=postgresql.service
+
+[Service]
+User=root
+WorkingDirectory=/var/lib/postgresql
+ExecStart=pg_dlfuse /dlfs
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
