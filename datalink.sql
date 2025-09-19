@@ -734,8 +734,8 @@ begin
       if my_owner is not null
          and not datalink.has_file_privilege(my_owner,file_path,'delete',false)
       then raise exception
-                  'DATALINK EXCEPTION - DELETE permission denied on directory %',
-                  format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
+                 'DATALINK EXCEPTION - DELETE permission denied on directory %',
+                 format(e'\nPATH:  %s\nROLE:  %I',file_path,my_owner) 
            using errcode = 'HW005', 
                  detail = 'delete permission for table owner is required on directory',
                  hint = 'add appropriate entry in table datalink.access';
@@ -746,7 +746,7 @@ begin
    -- previously linked
    update datalink.dl_linked_files
       set state = 'UNLINK',
-          token = cast(info->>'b' as datalink.dl_token),
+          token = cast(info->>'token' as datalink.dl_token),
           lco   = cast(info->>'lco' as datalink.dl_lco),
           txid  = default
     where path  = file_path and info is not null
@@ -1286,8 +1286,9 @@ begin
   link := link::jsonb - 'o'; cons := link::jsonb ->> 'k';
   link := dlpreviouscopy(link,has_token)::jsonb - 'k'; -- extablish token
 
-  -- convert temporary file to permanent if needed
-  if lco.link_control = 'FILE' then
+  -- convert temporary file to permanent if not blocking
+  if lco.link_control = 'FILE' and lco.write_access = 'FS'
+  then
       update datalink.dl_new_files set op = 'w'
        where path = datalink.filepathwrite(link) and op = 't'
          and txid = pg_current_xact_id();

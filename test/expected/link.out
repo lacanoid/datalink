@@ -17,7 +17,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
@@ -40,7 +40,7 @@ DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
@@ -86,7 +86,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
@@ -246,7 +246,7 @@ DETAIL:  delete permission for table owner is required on directory
 HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 45 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -256,7 +256,7 @@ DETAIL:  unknown path prefix for "/etc/issue"
 HINT:  run "dlfm add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 91 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
