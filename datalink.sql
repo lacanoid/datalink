@@ -2436,8 +2436,11 @@ create or replace function getlength(datalink) returns bigint as
 $$ select case 
           when datalink.is_local($1)
           then (datalink.stat(datalink.filepath($1))).size::bigint 
-          else (select size from datalink.curl_get(dlurlcomplete($1),0))
-          end
+          else ( with a as
+	  (select rc,size from datalink.curl_get(dlurlcomplete($1),0))
+               select case 
+	              when rc between 200 and 299 then size
+	              end from a ) end
 $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
