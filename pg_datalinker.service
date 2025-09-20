@@ -1,5 +1,5 @@
 [Unit]
-Description=PostgreSQL SQL/MED Datalinker
+Description=PostgreSQL SQL/MED Datalink file manager
 After=postgresql.service
 
 [Service]

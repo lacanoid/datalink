@@ -71,9 +71,9 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
-            dlurlpath1            
-----------------------------------
- /var/www/datalink/xxxx;test2.txt
+              dlurlpath1               
+---------------------------------------
+ /dlfs/var/www/datalink/xxxx;test2.txt
 (1 row)
 
 select dlurlpathonly(link) from sample_datalinks6;
@@ -281,9 +281,9 @@ WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
-                              dlurlcomplete                               |                            dlurlpath                             
---------------------------------------------------------------------------+------------------------------------------------------------------
- http://localhost/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt | /var/www/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt
+                              dlurlcomplete                               |                               dlurlpath                               
+--------------------------------------------------------------------------+-----------------------------------------------------------------------
+ http://localhost/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt | /dlfs/var/www/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt
 (1 row)
 
 truncate sample_datalinks6;

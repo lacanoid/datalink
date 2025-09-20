@@ -10,7 +10,7 @@
 #include <fuse.h>
 #include <libpq-fe.h>
 
-char *conninfo = "service=pg_datalink";
+char *conninfo = "service=pg_datalink application_name=pg_dlfuse";
 static PGconn *conn;
 
 static char *authorize(const char *path) {

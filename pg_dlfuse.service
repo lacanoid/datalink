@@ -5,7 +5,7 @@ After=postgresql.service
 [Service]
 User=root
 WorkingDirectory=/var/lib/postgresql
-ExecStart=pg_dlfuse /dlfs
+ExecStart=pg_dlfuse -f -o allow_other /dlfs
 Restart=always
 
 [Install]

@@ -537,7 +537,7 @@ CREATE OR REPLACE FUNCTION stat(link datalink,
   LANGUAGE sql
    STRICT
    AS $$
-    select * from datalink.stat(dlurlpathonly($1))
+    select * from datalink.stat(pg_catalog.dlurlpathonly($1))
 $$;
 COMMENT ON FUNCTION stat(datalink) IS 'Return info record from stat(2)';
 
@@ -1268,7 +1268,7 @@ begin
       r := datalink.curl_get(url,0);
     end if;
     if not r.ok and dlurlscheme(link) = 'FILE' then
-      r.ok := not (datalink.stat(dlurlpathonly(link))).inode is null;
+      r.ok := not (datalink.stat(pg_catalog.dlurlpathonly(link))).inode is null;
     end if;
 
     if not r.ok then
@@ -1296,7 +1296,7 @@ begin
 
   -- link file if needed
   if lco.integrity = 'ALL' and dlurlscheme($1)='FILE' then
-      my_path := dlurlpathonly(link);
+      my_path := pg_catalog.dlurlpathonly(link);
 
       -- check for offline files and put them online
       update datalink.dl_linked_files set online = true
@@ -1331,7 +1331,7 @@ begin
   lco = datalink.link_control_options(link_options);
 
   if lco.integrity = 'ALL' then
-    perform datalink.dl_file_unlink(dlurlpathonly($1));
+    perform datalink.dl_file_unlink(pg_catalog.dlurlpathonly($1));
   end if; -- integrity all
  end if; -- link options
  
@@ -1958,7 +1958,7 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
    select case 
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
-          then datalink.uri_get(
+          then '/dlfs'||datalink.uri_get(
             datalink.dl_url_makeinsight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
@@ -2125,7 +2125,8 @@ begin
  m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36});)?(.*)$','i');
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
- -- check access
+ mypath := regexp_replace(mypath,'^/dlfs/','/');
+-- check access
  select token,state,read_access,write_access,
         pg_xact_status(txid) as xact_status
    from datalink.dl_linked_files

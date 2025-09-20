@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <libpq-fe.h>
 
-char *conninfo = "service=pg_datalink";
+char *conninfo = "service=pg_datalink application_name=dlcat";
 
 char resolved_path[PATH_MAX];
 int wstatus;
