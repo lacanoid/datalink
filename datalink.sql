@@ -2,6 +2,7 @@
 --
 --  datalink
 --  version 0.25 lacanoid@ljudmila.org
+--  23. september 2025
 --
 --------------------------------------------------------------- ---------------
 
@@ -1428,8 +1429,8 @@ begin
             if link1::jsonb->>'a' is distinct from link2::jsonb->>'a' THEN
               raise exception 'DATALINK EXCEPTION - referenced file not valid' using
                       errcode = 'HW007',
-                         detail = format('File address is different for update of column %s.%I',
-                                         tg_relid::regclass::text,r.column_name);
+                       detail = format('File address is different for update of column %s.%I',
+                                        tg_relid::regclass::text,r.column_name);
             end if;
           end if; -- construction 'k'
           if opt.write_access in ('ADMIN','TOKEN') then
