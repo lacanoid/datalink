@@ -464,14 +464,15 @@ create index dl_linked_files_txid on dl_linked_files (txid)
  where state = ANY ('{LINK,UNLINK}'::file_link_state[]);
 
 create view linked_files as
-select path,state,
+select path,
+       c.relowner::regrole as owner,
+       state,
        lco.read_access as read_access,
        lco.write_access as write_access,
        lco.recovery,
        lco.on_unlink,
        a.attrelid::regclass as regclass,
        a.attname,
-       c.relowner::regrole as owner,
        jsonb_pretty(lf.err)::json as err
   from datalink.dl_linked_files  lf
   join datalink.link_control_options lco on lco.lco=coalesce(lf.lco,0)
@@ -2122,7 +2123,7 @@ declare
   m text[];
 begin
  -- check for read token
- m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36});)?(.*)$','i');
+ m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  mypath := regexp_replace(mypath,'^/dlfs/','/');
@@ -2161,7 +2162,7 @@ begin
    if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
    raise exception
           'DATALINK EXCEPTION - SELECT permission denied on directory %',
-	  format(e'\nFILE:  %s\nROLE:  %I\n',mypath,myrole) 
+	  format(e'\nFILE:  %s\nROLE:  %s\n',mypath,myrole) 
    using errcode = 'HW007',
          detail  = format('no SELECT permission for directory'),
          hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
@@ -2861,7 +2862,7 @@ declare
   m text[];
 begin
  -- check for read token
- m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36});)?(.*)$','i');
+ m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
  if anonymous>0 then
   insert into datalink.insight (link_token) values (link_token) 
   returning read_token into link_token;

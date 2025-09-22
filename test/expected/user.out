@@ -56,9 +56,9 @@ HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 select * 
   from datalink.linked_files;
-            path             | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |       owner        |  err   
------------------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------------------+--------
- /var/www/datalink/test1.txt | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | datalink_test_user | _null_
+            path             |       owner        | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |  err   
+-----------------------------+--------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------
+ /var/www/datalink/test1.txt | datalink_test_user | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | _null_
 (1 row)
 
 update user_links set link = null;

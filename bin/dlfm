@@ -62,6 +62,7 @@ if($operation eq 'del') { config_del(@ARGV[0]); exit; }
 
 if($operation eq 'usage') { show_usage(); exit; }
 if($operation eq 'dirs') { show_dirs(); exit; }
+if($operation eq 'files') { show_files(); exit; }
 if($operation eq 'show') { show_version(); exit; }
 if($operation eq 'save') { save_dirs(); exit; }
 
@@ -87,9 +88,10 @@ Commands:
     add <path>           - register a file system (directory)
     del <path>           - unregister a file system (directory)
 
-    dirs                 - show directories
+    dirs                 - show managed directories
+    files                - show linked files
     usage                - show directory usage
-    save                 - save db dir settings to /etc
+    save                 - save directory settings from database to /etc
 
     start                - starts the file manager
     stop                 - stop the file manager
@@ -530,7 +532,12 @@ sub show_usage {
 
 sub show_dirs {
     $opt_e = 0;
-    psql("select * from datalink.directory");
+    psql("select dirpath,dirname,dirurl,diroptions from datalink.directory");
+}
+
+sub show_files {
+    $opt_e = 0;
+    psql("select * from datalink.linked_files");
 }
 
 sub save_dirs {
