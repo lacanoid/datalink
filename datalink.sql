@@ -1554,7 +1554,7 @@ if($url=~m|^file://[^/]|i) {
     elog(ERROR,"DATALINK EXCEPTION - foreign server ".quote_ident($fs->{srvname})." does not exist\n");
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
-  $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($head).')';
+  $q='select ok,rc,body,error from datalink.curl_get('.quote_nullable($u).','.quote_nullable($mode).')';
   $p = spi_prepare('select ok,rc,body,error from '.quote_ident($fs->{extnamespace}).
                    '.dblink($1,$2) as dl(ok bool, rc int, body text, error text)',
                    'TEXT','TEXT');
@@ -1572,19 +1572,21 @@ $curl->setopt(CURLOPT_USERAGENT,
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,$head?1:0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+$curl->setopt(CURLOPT_VERBOSE, 0);
 ## $curl->setopt(CURLOPT_RANGE, '100-200');
 if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 
 ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
 my $response_header;
 my $response_body;
-if($head) { $curl->setopt(CURLOPT_WRITEHEADER,\$response_header); }
-else      { $curl->setopt(CURLOPT_WRITEDATA,\$response_body); }
+$curl->setopt(CURLOPT_WRITEHEADER, \$response_header);
+if($head) { $curl->setopt(CURLOPT_NOBODY, 1); }
+else      { $curl->setopt(CURLOPT_WRITEDATA, \$response_body); }
 
 my $retcode = $curl->perform;
 $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
- ## Looking at the results...
+## Looking at the results...
 $r{ok} = ($retcode==0)?'yes':'no';
 $r{rc} = $retcode;
 if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
@@ -1656,10 +1658,11 @@ $curl->setopt(CURLOPT_USERAGENT,
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+$curl->setopt(CURLOPT_VERBOSE, 0);
 
 open($fh,">",$filename) or die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
 ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
-$curl->setopt(CURLOPT_WRITEDATA,$fh);
+$curl->setopt(CURLOPT_WRITEDATA,\$fh);
 
 my $retcode = $curl->perform;
 close $fh;

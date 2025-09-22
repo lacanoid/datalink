@@ -12,6 +12,7 @@ Version 0.25
 - store content_type and and source url in datalinks returnd by `DLREPLACECONTENT()`
 - transactional file reads, no you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
+- ! curl_get() stdout/stderr header only bogosity
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem
