@@ -292,9 +292,9 @@ drop table t;
 drop table u;
 -- test some data: urls
 select body,size,content_type from datalink.curl_get('data:,Hello%2C%20World%21');
-     body      | size | content_type 
----------------+------+--------------
- Hello, World! |   13 | text/plain
+     body      | size |        content_type         
+---------------+------+-----------------------------
+ Hello, World! |   13 | text/plain;charset=US-ASCII
 (1 row)
 
 select body,size,content_type from datalink.curl_get('data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==');

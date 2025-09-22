@@ -1545,7 +1545,7 @@ if($url=~m|^data:|i) {
   $r->{rc}=200;
   $r->{body}=substr($url,5);
   if($r->{body}=~s|^([^,]*),||) {
-    $r->{content_type}=$1 || 'text/plain';
+    $r->{content_type}=$1 || 'text/plain;charset=US-ASCII';
   } else {
     $r->{content_type}='text/plain';
   }
