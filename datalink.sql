@@ -1536,6 +1536,24 @@ use JSON;
  ## Starts and times the actual request ##
 my $t0 = [gettimeofday];
 
+ ## Check for data: url 
+if($url=~m|^data:|i) {
+#  elog(ERROR,"DATALINK EXCEPTION - data: urls not supported in curl_get\nURL: $url");
+  my $r={};
+  $r->{url}=$url;
+  $r->{ok}=1;
+  $r->{rc}=200;
+  $r->{body}=substr($url,5);
+  if($r->{body}=~s|^([^,]*),||) {
+    $r->{content_type}=$1 || 'text/plain';
+  } else {
+    $r->{content_type}='text/plain';
+  }
+  $r->{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+  $r->{size}=length($r->{body});
+  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
+  return $r;
+}
  ## Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
   ## then execute curl_get on that foreign server instead

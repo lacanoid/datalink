@@ -290,3 +290,28 @@ select link::uri,datalink.is_local(link) from t;
 
 drop table t;
 drop table u;
+-- test some data: urls
+select body,size,content_type from datalink.curl_get('data:,Hello%2C%20World%21');
+     body      | size | content_type 
+---------------+------+--------------
+ Hello, World! |   13 | text/plain
+(1 row)
+
+select body,size,content_type from datalink.curl_get('data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==');
+         body         | size |   content_type    
+----------------------+------+-------------------
+ SGVsbG8sIFdvcmxkIQ== |   20 | text/plain;base64
+(1 row)
+
+select body,size,content_type from datalink.curl_get('data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E');
+          body          | size | content_type 
+------------------------+------+--------------
+ <h1>Hello, World!</h1> |   22 | text/html
+(1 row)
+
+select body,size,content_type from datalink.curl_get('data:text/html,%3Cscript%3Ealert%28%27hi%27%29%3B%3C%2Fscript%3E');
+             body              | size | content_type 
+-------------------------------+------+--------------
+ <script>alert('hi');</script> |   29 | text/html
+(1 row)
+

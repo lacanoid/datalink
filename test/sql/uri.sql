@@ -138,4 +138,9 @@ select link::uri,datalink.is_local(link) from t;
 drop table t;
 drop table u;
 
+-- test some data: urls
 
+select body,size,content_type from datalink.curl_get('data:,Hello%2C%20World%21');
+select body,size,content_type from datalink.curl_get('data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==');
+select body,size,content_type from datalink.curl_get('data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E');
+select body,size,content_type from datalink.curl_get('data:text/html,%3Cscript%3Ealert%28%27hi%27%29%3B%3C%2Fscript%3E');
