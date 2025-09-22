@@ -1428,7 +1428,7 @@ begin
             if link1::jsonb->>'a' is distinct from link2::jsonb->>'a' THEN
               raise exception 'DATALINK EXCEPTION - referenced file not valid' using
                       errcode = 'HW007',
-                         detail = format('File address is different for for update of column %s.%I',
+                         detail = format('File address is different for update of column %s.%I',
                                          tg_relid::regclass::text,r.column_name);
             end if;
           end if; -- construction 'k'
