@@ -14,6 +14,7 @@ Version 0.25
 - replacing file contents multiple times inside transaction works now
 - some support for `data:` URLs in `curl_get()`
 - datalinker improved error logging
+- datalinker faster internal chmod
 - ! curl_get() stdout/stderr header only bogosity
 - ! replace/delete file bug
 - ! web permissions

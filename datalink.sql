@@ -588,8 +588,7 @@ begin
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for "%s"',file_path),
-                    hint = 'run "dlfm add" to add prefixes'
-                    ;
+                    hint = 'run "dlfm add" to add prefixes';
    end if;
 -- end if;
  fstat := row_to_json(datalink.stat(file_path||'#'||my_token))::jsonb;
@@ -1538,7 +1537,7 @@ my $t0 = [gettimeofday];
 
  ## Check for data: url 
 if($url=~m|^data:|i) {
-#  elog(ERROR,"DATALINK EXCEPTION - data: urls not supported in curl_get\nURL: $url");
+ ## elog(ERROR,"DATALINK EXCEPTION - data: URLs not supported in curl_get\nURL: $url");
   my $r={};
   $r->{url}=$url;
   $r->{ok}=1;
@@ -1559,10 +1558,10 @@ if($url=~m|^file://[^/]|i) {
   ## then execute curl_get on that foreign server instead
   my $q=q{
     select pg_catalog.dlurlserver($1) as srvname,
-    (select s.oid as srvoid from pg_catalog.pg_foreign_server s 
-       join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
-      where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
-    (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
+      (select s.oid as srvoid from pg_catalog.pg_foreign_server s 
+         join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
+        where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
+      (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
   };
   my $p = spi_prepare($q,'TEXT');
   $fs = spi_exec_prepared($p,$url)->{rows}->[0];
@@ -1599,6 +1598,7 @@ if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
 my $response_header;
 my $response_body;
 $curl->setopt(CURLOPT_WRITEHEADER, \$response_header);
+$curl->setopt(CURLOPT_WRITEDATA, \$response_body);
 if($head) { $curl->setopt(CURLOPT_NOBODY, 1); }
 else      { $curl->setopt(CURLOPT_WRITEDATA, \$response_body); }
 

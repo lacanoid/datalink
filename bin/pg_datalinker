@@ -464,9 +464,7 @@ sub file_read_access_db {
         my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
         sys("chown",$name,$path);
     }
-    if(defined($config{db_mode})) {
-        sys("chmod",$config{db_mode},$path);
-    }
+    if(defined($config{db_mode})) { file_chmod($path,$config{db_mode}); }
 }
 
 sub file_restore {
@@ -477,9 +475,7 @@ sub file_restore {
         if(defined($info->{own})) {
             sys("chown",$info->{own},$path);
         }
-        if(defined($info->{mod})) {
-            sys("chmod",$info->{mod},$path);
-        }
+        if(defined($info->{mod})) { file_chmod($path,$info->{mod}); }
     }
 }
 
@@ -489,6 +485,11 @@ sub file_chown {
 
 sub file_chmod {
     my ($path,$mod)=@_;
+    if($opt_I) { 
+        log_msg('CHMOD',$mod);
+        chmod(oct($mod),$path); return; 
+    }
+    sys("chmod",$mod,$path);
 }
 
 sub file_delete {

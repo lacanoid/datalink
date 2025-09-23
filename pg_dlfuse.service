@@ -1,5 +1,5 @@
 [Unit]
-Description=PostgreSQL SQL/MED Datalink file system
+Description=PostgreSQL SQL/MED Datalink File Filter for FUSE
 After=postgresql.service
 
 [Service]
