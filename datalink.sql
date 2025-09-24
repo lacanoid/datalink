@@ -2157,8 +2157,9 @@ begin
   where path=mypath
    into f;
  if f.read_access = 'DB' then
-  if f.write_access > 'BLOCKED' and
-     (f.state = 'LINK' or f.xact_status = 'in progress')
+  if f.write_access > 'BLOCKED' 
+     and (f.state = 'LINK' or f.xact_status = 'in progress')
+     and (datalink.stat(format('%s#%s',mypath,f.token))).size is not null
   then
      mypath := format('%s#%s',mypath,f.token);
   end if; -- writeable file in transaction 

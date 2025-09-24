@@ -33,7 +33,7 @@ installextras:
 	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
 	systemctl daemon-reload
-	
+
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink
@@ -44,8 +44,9 @@ testfiles:
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt
 	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
+	rm -f /var/www/datalink/installcheck_*
 
-dump:
+dump-test:
 	pg_dump -Fc contrib_regression > db.pg_dump
 	dropdb contrib_regression
 	pg_restore -v -C -d postgres db.pg_dump

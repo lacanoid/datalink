@@ -92,3 +92,20 @@ insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This i
 select cons,path from datalink.dl_linked_files order by path;
 
 drop table files;
+
+-- test transactional writes and reads
+
+create table l1 (link datalink(2));
+begin;
+insert into l1 values (datalink.write_text(dlvalue('installcheck_xact1.txt','www'),'This is a write test file'));
+select substr(link) from l1;
+update l1 set link = datalink.write_text(link,'This is a write test file 2');
+select substr(link) from l1;
+abort;
+begin;
+insert into l1 values (dlvalue(datalink.write_text('/var/www/datalink/installcheck_xact2.txt','This is a write test file')));
+select substr(link) from l1;
+update l1 set link = datalink.write_text(link,'This is a write test file 2');
+select substr(link) from l1;
+abort;
+drop table l1;
