@@ -88,6 +88,8 @@ select * from datalink.curl_get('file://tiha/etc/issue');
 create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
+drop user mapping for current_user server zala;
+drop server zala;
 
 -- test directories
 update datalink.directory

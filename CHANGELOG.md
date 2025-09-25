@@ -17,7 +17,7 @@ Version 0.25
 - datalinker improved error logging
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
-- added preliminary `curl_io()` unified function
+- added preliminary `curl_perform()` unified function
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem

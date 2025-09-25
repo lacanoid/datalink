@@ -10,7 +10,7 @@ INCLUDES = -I/usr/include/postgresql
 PG_LIBS = -L$(shell $(PG_CONFIG) --pkglibdir)
 BINDIR = $(shell $(PG_CONFIG) --bindir)
 
-REGRESS = init type sqlmed selective link linker uri user bfile
+REGRESS = init type sqlmed selective link linker uri curl user bfile
 REGRESS_OPTS = --inputdir=test
 
 SCRIPTS = bin/pg_datalinker bin/dlfs
@@ -37,6 +37,8 @@ installextras:
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink
+	mkdir -p /var/www/datalink/installcheck/
+	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink/installcheck/
 #	cp CHANGELOG.md /var/www/datalink/CHANGELOG.md
 	echo "Hello" > /var/www/datalink/test1.txt
 	cp docs/utf8.txt /var/www/datalink/test2.txt
@@ -44,9 +46,7 @@ testfiles:
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt
 	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
-	mkdir -p /var/www/datalink/installcheck/
 	rm -f /var/www/datalink/installcheck/*
-	rm -f /var/www/datalink/installcheck_*
 
 dump-test:
 	pg_dump -Fc contrib_regression > db.pg_dump

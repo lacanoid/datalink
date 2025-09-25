@@ -1506,7 +1506,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 -- web functions
 --------------------------------------------------------------- ---------------
 
-CREATE OR REPLACE FUNCTION curl_io(
+CREATE OR REPLACE FUNCTION curl_perform(
   INOUT file_path file_path, 
   INOUT url text, options text[] DEFAULT '{}',
   OUT ok boolean, OUT rc integer, OUT body text, 
@@ -1515,17 +1515,117 @@ CREATE OR REPLACE FUNCTION curl_io(
 RETURNS record
 LANGUAGE plperlu
 AS $_$
-my ($filename,$url,$persistent)=@_;
+my ($filename,$url,$options)=@_;
 my %r;
 my $fs;
-my $head; my $binmode;
+my ($head,$binmode)=(0,0);
 
-elog(ERROR,"options=$options");
+use strict;
+use warnings;
+use WWW::Curl::Easy;
+use Time::HiRes qw(gettimeofday tv_interval);
+use JSON;
+
+if($options=~m|head|i) { $head=1; }
+if($options=~m|bin|i) { $binmode=1; }
+
+ ## Starts and times the actual request ##
+my $t0 = [gettimeofday];
+
+## handle data: URLs 
+if($url=~m|^data:|i) {
+## elog(ERROR,"DATALINK EXCEPTION - data: URLs not supported in curl_perform\nURL: $url");
+  my $r={};
+  $r->{url}=$url;
+  $r->{ok}=1;
+  $r->{rc}=200;
+  $r->{body}=substr($url,5);
+  if($r->{body}=~s|^([^,]*),||) {
+    $r->{content_type}=$1 || 'text/plain;charset=US-ASCII';
+  } else {
+    $r->{content_type}='text/plain';
+  }
+  $r->{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+  $r->{size}=length($r->{body});
+  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
+  return $r;
+}
+## handle file: URLs on foreign servers
+elsif($url=~m|^file://[^/]|i) {
+  ## then execute curl_get on that foreign server instead
+  my $q=q{
+    select pg_catalog.dlurlserver($1) as srvname,
+      (select s.oid as srvoid from pg_catalog.pg_foreign_server s 
+         join pg_catalog.pg_foreign_data_wrapper pfdw on (s.srvfdw=pfdw.oid)
+        where srvname = pg_catalog.dlurlserver($1) and pfdw.fdwname = 'postgres_fdw'),
+      (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
+  };
+  my $p = spi_prepare($q,'TEXT');
+  $fs = spi_exec_prepared($p,$url)->{rows}->[0];
+  unless($fs->{extnamespace}) {
+    elog(ERROR,"DATALINK EXCEPTION - dblink extension required for files on foreign servers\n");
+  }
+  unless($fs->{srvoid}) {
+    elog(ERROR,"DATALINK EXCEPTION - foreign server ".quote_ident($fs->{srvname})." does not exist\n");
+  }
+  my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
+  $q='select ok,rc,body,error from datalink.curl_perform(null,'.
+      quote_nullable($u).','.quote_nullable($options).')';
+  $p = spi_prepare('select ok,rc,body,error from '.quote_ident($fs->{extnamespace}).
+                   '.dblink($1,$2) as dl(ok bool, rc int, body text, error text)',
+                   'TEXT','TEXT');
+  my $v = spi_exec_prepared($p,$fs->{srvname},$q);
+  my $r = $v->{rows}->[0];
+  $r->{url}=$url;
+  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
+  return $r;
+}
+
+my $curl = WWW::Curl::Easy->new;
+$r{url} = $url;  
+$curl->setopt(CURLOPT_USERAGENT,
+              "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+$curl->setopt(CURLOPT_URL, $url);
+$curl->setopt(CURLOPT_HEADER,$head?1:0);
+$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+$curl->setopt(CURLOPT_VERBOSE, 0);
+## $curl->setopt(CURLOPT_RANGE, '100-200');
+if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
+
+## A filehandle, reference to a scalar or reference to a typeglob can be used here.
+my $response_header;
+my $response_body;
+$curl->setopt(CURLOPT_WRITEHEADER, \$response_header);
+$curl->setopt(CURLOPT_WRITEDATA, \$response_body);
+if($head) { $curl->setopt(CURLOPT_NOBODY, 1); }
+else      { $curl->setopt(CURLOPT_WRITEDATA, \$response_body); }
+
+my $retcode = $curl->perform;
+$r{elapsed} = tv_interval ( $t0, [gettimeofday] );
+
+## Looking at the results...
+$r{ok} = ($retcode==0)?'yes':'no';
+$r{rc} = $retcode;
+if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
+if($head) { $r{body} = $response_header; }
+else      { $r{body} = $response_body; }
+elog(WARNING,"options=$head,$binmode");
+
+
+if(!$binmode) { if(defined($r{body})) { utf8::decode($r{body}); }} 
+else { $r{body} = encode_bytea($r{body}); }
+if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
+else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
+
+$r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
+$r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
+$r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
 
 return \%r;
 $_$;
-revoke execute on function curl_io(file_path,text,text[]) from public;
-comment on function curl_io(file_path,text,text[])
+revoke execute on function curl_perform(file_path,text,text[]) from public;
+comment on function curl_perform(file_path,text,text[])
         is 'Access WWW with CURL. CURL groks URLs.';
 
 

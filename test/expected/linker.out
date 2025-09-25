@@ -148,6 +148,8 @@ select url,ok,rc,error from datalink.curl_get('file://zala/etc/issueXXXXX');
  file://zala/etc/issueXXXXX | f  | 37 | Couldn't read a file:// file
 (1 row)
 
+drop user mapping for current_user server zala;
+drop server zala;
 -- test directories
 update datalink.directory
    set dirname='www', 
