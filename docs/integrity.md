@@ -120,7 +120,7 @@ With full referential integrity each link can be stored (linked) only once, ensu
 Once a datalink to a file is stored somewhere, the file is said to be *linked* and cannot be linked again elsewhere until unlinked first.
 
 For security reasons files are restricted to a set of directories or *prefixes*. 
-These are configured externally to postgres, using the `dlfm add` and `dlfm del` commands.
+These are configured externally to postgres, using the `dlfs add` and `dlfs del` commands.
 When installed, prefix `/var/www/datalink/` is created.
 
     mydb=# insert into my_table values (dlvalue('http://www.ljudmila.org'));

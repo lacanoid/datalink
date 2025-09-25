@@ -22,7 +22,7 @@ but not properly unlinked thereafter.
 
 ### DATALINK WARNING - datalinker recommended
 
-You are trying to perform an operation which really needs [datalinker](dlfm.md)
+You are trying to perform an operation which really needs [datalinker](dlfs.md)
 to completely complete.
 
 ### DATALINK WARNING - external file not linked
@@ -78,7 +78,7 @@ You are trying to modify `datalink.directory` but `dirname` does not begin with 
 
 ### DATALINK EXCEPTION - datalinker required
 
-You are trying to perform an operation which really needs [datalinker](dlfm.md)
+You are trying to perform an operation which really needs [datalinker](dlfs.md)
 to completely complete.
 
 ### DATALINK EXCEPTION - cannot open file for reading

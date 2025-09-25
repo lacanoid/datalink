@@ -1,16 +1,8 @@
 #!/usr/bin/perl
-# pg_datalinker - SQL/MED datalinker daemon
-#
-### BEGIN INIT INFO
-# Provides:          pg_datalinker
-# Required-Start:    postgresql $remote_fs $syslog $time
-# Required-Stop:     postgresql $remote_fs $syslog $time
-# Default-Start:     2 3 4 5
-# Default-Stop:
-# Short-Description: SQL/MED datalinker daemon
-# Description:       pg_datalinker is a daemon and a tool
-#                    to manage SQL/MED datalinks for Postgresql
-### END INIT INFO
+# dlfs - SQL/MED Datalink control program
+# version 0.25 by lacanoid@ljudmila.org
+ 
+our $version="0.24.1012";
 
 use strict;
 use DBI;
@@ -29,7 +21,6 @@ our $opt_C = 0;  # only check configuration
 our $opt_l;      # logfile
 our $opt_e = 1;  # echo commands
 
-our $version="0.24.1012";
 our $systemctl=`which systemctl`; chomp($systemctl);
 
 getopt('l');
@@ -178,7 +169,7 @@ use Data::Dumper;
 
 sub config_bind() {
 #   check if already binded
-    if($has_bind) { die "Datalinker already bound to database '$dbname' port '$port'.\nHINT: Use 'dlfm unbind' first\n"; }
+    if($has_bind) { die "Datalinker already bound to database '$dbname' port '$port'.\nHINT: Use 'dlfs unbind' first\n"; }
 #   get parameters
     if(defined($ARGV[0])) { $dbname=$ARGV[0]; shift @ARGV; }
     if(defined($ARGV[0])) { $port=$ARGV[0]; shift @ARGV; }
@@ -567,7 +558,7 @@ sub show_version {
                   from datalink.dl_status where datalink.has_datalinker()
             });
     } else {
-        die("Datalinker not bound to a database.\nHINT: Use 'dlfm bind'\n")
+        die("Datalinker not bound to a database.\nHINT: Use 'dlfs bind'\n")
     }
 }
 

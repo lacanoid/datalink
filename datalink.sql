@@ -588,7 +588,7 @@ begin
         raise exception 'DATALINK EXCEPTION - referenced file not valid' 
               using errcode = 'HW007',
                     detail = format('unknown path prefix for "%s"',file_path),
-                    hint = 'run "dlfm add" to add prefixes';
+                    hint = 'run "dlfs add" to add prefixes';
    end if;
 -- end if;
  fstat := row_to_json(datalink.stat(file_path||'#'||my_token))::jsonb;
@@ -778,7 +778,7 @@ begin
         raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
               using errcode = 'HW000', 
                     detail = format('file is ''%s'' waiting for unlink by the datalinker process',r.path),
-                      hint = 'start datalinker with "dlfm start"';
+                      hint = 'start datalinker with "dlfs start"';
 
   else
       raise exception 'DATALINK EXCEPTION' 
@@ -1250,7 +1250,7 @@ begin
           raise exception 
                 'DATALINK EXCEPTION - datalinker required' 
           using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfm start"?';
+                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
         else
           raise warning 
                 'DATALINK WARNING - datalinker recommended' 
@@ -1506,10 +1506,33 @@ EXECUTE PROCEDURE datalink.dl_trigger_columns();
 -- web functions
 --------------------------------------------------------------- ---------------
 
+CREATE OR REPLACE FUNCTION curl_io(
+  INOUT file_path file_path, 
+  INOUT url text, options text[] DEFAULT '{}',
+  OUT ok boolean, OUT rc integer, OUT body text, 
+  OUT size bigint, OUT content_type text, OUT filetime bigint,
+  OUT elapsed float,  OUT error text, OUT header text) 
+RETURNS record
+LANGUAGE plperlu
+AS $_$
+my ($filename,$url,$persistent)=@_;
+my %r;
+my $fs;
+my $head; my $binmode;
+
+elog(ERROR,"options=$options");
+
+return \%r;
+$_$;
+revoke execute on function curl_io(file_path,text,text[]) from public;
+comment on function curl_io(file_path,text,text[])
+        is 'Access WWW with CURL. CURL groks URLs.';
+
+
 --------------------------------------------------------------- ---------------
 -- get URL contents as text using GET or HEAD request
 
-CREATE FUNCTION curl_get(
+CREATE OR REPLACE FUNCTION curl_get(
   INOUT url text, mode integer DEFAULT 1,
   OUT ok boolean, OUT rc integer, OUT body text, 
   OUT size bigint, OUT content_type text, OUT filetime bigint,
@@ -1625,7 +1648,7 @@ return \%r;
 $_$;
 revoke execute on function curl_get(text,integer) from public;
 comment on function curl_get(text,integer)
-     is 'Access URLs with CURL. CURL groks URLs.';
+     is 'Get content of remote URL with CURL. CURL groks URLs.';
 
 --------------------------------------------------------------- ---------------
 -- save URL contents as text to a local file using GET or HEAD request
@@ -1707,7 +1730,7 @@ return \%r;
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
 comment on function curl_save(file_path,text,int)
-     is 'Save content of remote URL to a local file';
+     is 'Save content of remote URL to a local file with CURL.';
 
 --------------------------------------------------------------- ---------------
 -- http response codes
@@ -2540,7 +2563,7 @@ begin
         raise warning 'DATALINK EXCEPTION - referenced file not valid' 
         using errcode = 'HW007',
                detail = format('unknown path prefix for %s',new.dirpath),
-                 hint = 'run "dlfm add" to add prefixes';
+                 hint = 'run "dlfs add" to add prefixes';
     end if;
 
   if tg_op = 'INSERT' or 
@@ -2562,7 +2585,7 @@ begin
     raise exception 'DATALINK ERROR - datalinker required' 
     using errcode = '57050',
            detail = 'datalinker is needed to purge files created from aborted transactions',
-             hint = 'make sure pg_datalinker process is running, try "dlfm start".';
+             hint = 'make sure pg_datalinker process is running, try "dlfs start".';
   end if;
  end if; -- if datalink.dl_new_files
 
@@ -2856,8 +2879,8 @@ COMMENT ON FUNCTION has_updated(file_path)
 create table insight (
   link_token dl_token not null,
   read_token dl_token default datalink.dl_newtoken() primary key,
-  ctime timestamptz not null default now(),
   grantor regrole not null default user::regrole,
+  expires timestamptz default now() + interval '5 minutes',
   data jsonb
 );
 alter table insight add foreign key (link_token) references 

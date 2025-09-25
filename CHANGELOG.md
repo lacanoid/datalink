@@ -13,9 +13,11 @@ Version 0.25
 - transactional file reads, no you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
 - some support for `data:` URLs in `curl_get()`
+- no more excessive printing to stderr in `curl_get()`
 - datalinker improved error logging
 - datalinker faster internal chmod
-- ! curl_get() stdout/stderr header only bogosity
+- `dlfm` command renamed to `dlfs`
+- added preliminary `curl_io()` unified function
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem
@@ -49,9 +51,9 @@ Version 0.23
 ------------
 - more documentation
 - new `write_text()` functions
-- datalinker now better split into `dlfm` (admin tool) and `pg_datalinker` (daemon)
+- datalinker now better split into `dlfs` (admin tool) and `pg_datalinker` (daemon)
 - improved systemd support
-- `dlfm` supports `bind` and `unbind` operations
+- `dlfs` supports `bind` and `unbind` operations
 - added preliminary `dlcat` shell command (in C, DLFF for DLURLPATH)
 - changing link control options works for non superusers
 - changing link control options works in many cases when values are present

@@ -10,7 +10,7 @@ within the transactional environment of SQL, as such resources normally do not
 behave transactionaly and do not provide rollback capabilities.
 
 The datalink system itself is essentially a two stage commit process, where changes 
-are first recorded in the database and then applied by the [datalinker](dlfm.md) process.
+are first recorded in the database and then applied by the [datalinker](dlfs.md) process.
 
 When files are beeing written transactionally, a new copy of the file is first written
 by postgres. The datalinker then replaces old files with new ones. This is somewhat

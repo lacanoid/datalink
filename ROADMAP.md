@@ -20,10 +20,10 @@ Wanted
 - ✔︎ make read access tokens work with table datalink.insight ( ctime, read_token, link_token, state, role, pid, data  )
 - ✔︎ SUID/SGID shell command `dlcat` to read contents from filenames with embedded read tokens, returned by `dlurlpath()`
 - ✔︎ apache module to make it work with embedded read tokens, returned by `dlurlcomplete()`
-- ✔︎ make `dlfm` command line tool for datalinker admin
-- `dlfm` suspend/unsuspend operations for better dump/restore (suspend=stop datalinker and restore all original file permissions)
-- `dlfm` interactive setup
-- `dlfm` usage
+- ✔︎ make `dlfs` command line tool for datalinker admin
+- `dlfs` suspend/unsuspend operations for better dump/restore (suspend=stop datalinker and restore all original file permissions)
+- `dlfs` interactive setup
+- `dlfs` usage
 - make it possible to change LCO with datalink values present
 - ✔︎ add copy file and move file operations
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
@@ -69,6 +69,7 @@ Wanted
 - incremental write functions so one can write big files without having to buffer everything
 - command line tool to backup linked files to/from another host
 - nfs server
+- implement automatic expiration in pg_datalinker for for insight
 
 Advanced
 --------
@@ -89,7 +90,7 @@ Bugs and Issues
 
 Todo
 ====
-- ✔︎ CLI tool for datalinker admin (dlfm)
+- ✔︎ CLI tool for datalinker admin (dlfs)
 - ✔︎ much better error handling in datalinker
 - ✔︎ dlvalue(null) → null, dlvalue('') → null
 - ✔︎ file path sanity checking (handle or forbid ..)

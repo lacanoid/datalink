@@ -12,7 +12,7 @@ Datalink database to be used, containing the datalink extension.
 This should be configured in `/etc/postgresql-common/pg_service.conf` as a service `pg_datalink` with
 specified `port` and `dbname` parameters. As ident authentitation is used, appropriate database users should be created.
 
-Datalink database can be configured by using `dlfm bind` and `dlfm unbind` shell commands.
+Datalink database can be configured by using `dlfs bind` and `dlfs unbind` shell commands.
 
 ### datalink database users
 Database superuser `root` is needed to install `datalink` extension in the datalink database and run `pg_datalinker`.
@@ -23,9 +23,9 @@ A list of directories where linked files are allowed.
 Normally found in `/etc/postgresql-common/pg_datalinker.prefix`.
 These are managed by the *system administrator* (root).
 
-Prefixes can be viewed by using `dlfm list` shell command.
+Prefixes can be viewed by using `dlfs list` shell command.
 
-Prefixes can be managed by using `dlfm add` and `dlfm del` shell commands.
+Prefixes can be managed by using `dlfs add` and `dlfs del` shell commands.
 
 ### directories
 Updatable view `datalink.directories` is a set directories, 
@@ -35,7 +35,7 @@ They are managed by the *database administrator*.
 Several additional options can be set, 
 such as directory short name, permissions and url mapping.
 
-Directories can be viewed by using `dlfm dirs` shell command.
+Directories can be viewed by using `dlfs dirs` shell command.
 
 ### directory access privileges
 Exploded permissions for directories are available

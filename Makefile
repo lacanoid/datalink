@@ -13,7 +13,7 @@ BINDIR = $(shell $(PG_CONFIG) --bindir)
 REGRESS = init type sqlmed selective link linker uri user bfile
 REGRESS_OPTS = --inputdir=test
 
-SCRIPTS = bin/pg_datalinker bin/dlfm
+SCRIPTS = bin/pg_datalinker bin/dlfs
 
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
@@ -26,7 +26,7 @@ installcheck: testfiles
 
 installextras:
 	if [ ! -f /usr/sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_datalinker ; fi
-	if [ ! -f /usr/sbin/dlfm ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/dlfm ; fi
+	if [ ! -f /usr/sbin/dlfs ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/dlfs ; fi
 	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi
 	if [ ! -f /usr/sbin/pg_dlfuse ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_dlfuse ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
@@ -44,6 +44,8 @@ testfiles:
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt
 	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
+	mkdir -p /var/www/datalink/installcheck/
+	rm -f /var/www/datalink/installcheck/*
 	rm -f /var/www/datalink/installcheck_*
 
 dump-test:

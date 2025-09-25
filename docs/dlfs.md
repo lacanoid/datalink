@@ -3,20 +3,20 @@
 Datalink File Manager
 =====================
 
-Datalink File Manager (DLFM) component. Also known as *the datalinker*.
+Datalink File Manager (dlfs) component. Also known as *the datalinker*.
 A process, external to PostgreSQL, which manages file permissions, backup, restore, replacement and deletion of files.
 
 It consists of two parts:
-- `dlfm` command for system administrators to configure and monitor the file manager
+- `dlfs` command for system administrators to configure and monitor the file manager
 - [`pg_datalinker`](pg_datalinker.md) daemon, which is an actual file manager program which runs in the background
 
 
-dlfm
+dlfs
 -----
 
 PostgreSQL datalink file manager control program
 
-    # dlfm 
+    # dlfs 
 
         show                 - show version and system configuration
         bind [dbname] [port] - bind file manager to a database
@@ -38,7 +38,7 @@ PostgreSQL datalink file manager control program
 
 Show version and system configuration
     
-    # dlfm show
+    # dlfs show
                server_version           | datname  | user | port | cluster_name 
     ------------------------------------+----------+------+------+--------------
      15.10 (Ubuntu 15.10-1.pgdg24.04+1) | postgres | root | 5432 | 15/main

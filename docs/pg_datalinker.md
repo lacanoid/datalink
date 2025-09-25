@@ -6,7 +6,7 @@ pg_datalinker
 *pg_datalinker* is a Datalink File Manager deamon, which normally runs
 in the background.
 
-It is not meant to be run directly, but rather managed with [`dlfm`](dlfm.md) command.
+It is not meant to be run directly, but rather managed with [`dlfs`](dlfs.md) command.
 
 Datalinker uses entries in `datalink.dl_linked_files` table.
 Here it sees the results of transactions already commited in postgres.
