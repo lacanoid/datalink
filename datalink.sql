@@ -1677,11 +1677,10 @@ $curl->setopt(CURLOPT_USERAGENT,
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
-$curl->setopt(CURLOPT_VERBOSE, 0);
 
 open($fh,">",$filename) or die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
 ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
-$curl->setopt(CURLOPT_WRITEDATA,\$fh);
+$curl->setopt(CURLOPT_WRITEDATA,$fh);
 
 my $retcode = $curl->perform;
 close $fh;

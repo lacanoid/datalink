@@ -363,12 +363,74 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test6.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test5.txt
+-- test curl
+select body from datalink.curl_get('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt');
+                                     body                                     
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
+ 
+(1 row)
+
+select content_type,size from datalink.curl_save(
+  '/var/www/datalink/installcheck_curl_save.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt',1);
+       content_type        | size 
+---------------------------+------
+ text/plain; charset=utf-8 |  177
+(1 row)
+
+select content_type,size from datalink.curl_save(
+  '/var/www/datalink/installcheck_curl_save.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt',1); -- error
+ERROR:  DATALINK EXCEPTIION - file exists
+FILE:  /var/www/datalink/installcheck_curl_save.txt
+CONTEXT:  PL/Perl function "curl_save"
+select * from datalink.read_text('/var/www/datalink/installcheck_curl_save.txt');
+                                  read_text                                   
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
+ 
+(1 row)
+
 -- test transactional writes and reads
 create table l1 (link datalink(2));
 NOTICE:  DATALINK DDL:TRIGGER on l1
 begin;
-insert into l1 values (datalink.write_text(dlvalue('installcheck_xact1.txt','www'),'This is a write test file'));
-NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.txt
+insert into l1 values (datalink.write_text(dlvalue('installcheck_xact1.1.txt','www'),'This is a write test file'));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.1.txt
+select substr(link) from l1;
+          substr           
+---------------------------
+ This is a write test file
+(1 row)
+
+update l1 set link = datalink.write_text(link,'This is a write test file 1');
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck_xact1.1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.1.txt
+select substr(link) from l1;
+           substr            
+-----------------------------
+ This is a write test file 1
+(1 row)
+
+abort;
+begin;
+insert into l1 values (dlvalue(datalink.write_text('/var/www/datalink/installcheck_xact1.2.txt','This is a write test file')));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.2.txt
 select substr(link) from l1;
           substr           
 ---------------------------
@@ -376,8 +438,8 @@ select substr(link) from l1;
 (1 row)
 
 update l1 set link = datalink.write_text(link,'This is a write test file 2');
-NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck_xact1.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck_xact1.2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.2.txt
 select substr(link) from l1;
            substr            
 -----------------------------
@@ -386,21 +448,45 @@ select substr(link) from l1;
 
 abort;
 begin;
-insert into l1 values (dlvalue(datalink.write_text('/var/www/datalink/installcheck_xact2.txt','This is a write test file')));
-NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact2.txt
-select substr(link) from l1;
-          substr           
----------------------------
- This is a write test file
+select substr(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+                                    substr                                    
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
+ 
 (1 row)
 
-update l1 set link = datalink.write_text(link,'This is a write test file 2');
-NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck_xact2.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact2.txt
+insert into l1 values (dlreplacecontent(
+  '/var/www/datalink/installcheck_xact1.3.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.3.txt
+select substr(link) from l1;
+                                    substr                                    
+------------------------------------------------------------------------------
+ Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+
+ Some 16bit emojis: ⛔⛳                                                     +
+ Some 32bit emojis: 🪙🩲                                                     +
+ Some chinese: 𠀀𠀁𠀂𠀃                                                      +
+ The end.                                                                    +
+                                                                             +
+                                                                             +
+                                                                             +
+ 
+(1 row)
+
+update l1 set link = datalink.write_text(link,'This is a write test file 3');
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck_xact1.3.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck_xact1.3.txt
 select substr(link) from l1;
            substr            
 -----------------------------
- This is a write test file 2
+ This is a write test file 3
 (1 row)
 
 abort;

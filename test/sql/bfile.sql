@@ -93,19 +93,38 @@ select cons,path from datalink.dl_linked_files order by path;
 
 drop table files;
 
+-- test curl
+select body from datalink.curl_get('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt');
+select content_type,size from datalink.curl_save(
+  '/var/www/datalink/installcheck_curl_save.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt',1);
+select content_type,size from datalink.curl_save(
+  '/var/www/datalink/installcheck_curl_save.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt',1); -- error
+select * from datalink.read_text('/var/www/datalink/installcheck_curl_save.txt');
+
 -- test transactional writes and reads
 
 create table l1 (link datalink(2));
 begin;
-insert into l1 values (datalink.write_text(dlvalue('installcheck_xact1.txt','www'),'This is a write test file'));
+insert into l1 values (datalink.write_text(dlvalue('installcheck_xact1.1.txt','www'),'This is a write test file'));
+select substr(link) from l1;
+update l1 set link = datalink.write_text(link,'This is a write test file 1');
+select substr(link) from l1;
+abort;
+begin;
+insert into l1 values (dlvalue(datalink.write_text('/var/www/datalink/installcheck_xact1.2.txt','This is a write test file')));
 select substr(link) from l1;
 update l1 set link = datalink.write_text(link,'This is a write test file 2');
 select substr(link) from l1;
 abort;
 begin;
-insert into l1 values (dlvalue(datalink.write_text('/var/www/datalink/installcheck_xact2.txt','This is a write test file')));
+select substr(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
+insert into l1 values (dlreplacecontent(
+  '/var/www/datalink/installcheck_xact1.3.txt',
+  'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
 select substr(link) from l1;
-update l1 set link = datalink.write_text(link,'This is a write test file 2');
+update l1 set link = datalink.write_text(link,'This is a write test file 3');
 select substr(link) from l1;
 abort;
 drop table l1;
