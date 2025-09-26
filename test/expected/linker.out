@@ -128,13 +128,15 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
 create extension dblink;
 select * from datalink.curl_get('file://zala/etc/issue');
 ERROR:  DATALINK EXCEPTION - foreign server zala does not exist
-CONTEXT:  PL/Perl function "curl_get"
+CONTEXT:  PL/Perl function "curl_perform"
+SQL function "curl_get" statement 1
 create extension postgres_fdw;
 create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
 -- select * from datalink.curl_get('file://zala/etc/issue');
 select * from datalink.curl_get('file://tiha/etc/issue');
 ERROR:  DATALINK EXCEPTION - foreign server tiha does not exist
-CONTEXT:  PL/Perl function "curl_get"
+CONTEXT:  PL/Perl function "curl_perform"
+SQL function "curl_get" statement 1
 create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
           url          | ok | rc | error  
