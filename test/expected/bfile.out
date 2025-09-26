@@ -1,10 +1,11 @@
 \pset null _null_
 SET client_min_messages = notice;
 SET search_path = public,datalink;
-select getlength(dlvalue('/var/www/datalink/test2.txt'));
- getlength 
------------
-       177
+select length(dlvalue('/var/www/datalink/test2.txt')),
+       getlength(dlvalue('/var/www/datalink/test2.txt'));
+ length | getlength 
+--------+-----------
+    177 |       177
 (1 row)
 
 select substr(dlvalue('/var/www/datalink/test2.txt')),
@@ -72,13 +73,13 @@ select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,
  © 2018 Žiga Kranjec
 (1 row)
 
-select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select length(bfile),getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
- getlength | substr |                             filepath                             | fileexists |            filegetname             
------------+--------+------------------------------------------------------------------+------------+------------------------------------
-         6 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
-       177 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
-       939 | © 201  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
+ length | getlength | substr |                             filepath                             | fileexists |            filegetname             
+--------+-----------+--------+------------------------------------------------------------------+------------+------------------------------------
+      6 |         6 | Hello  | /var/www/datalink/test1.txt                                      |          1 | (www,test1.txt,/var/www/datalink/)
+    177 |       177 | Kultu  | /var/www/datalink/test2.txt                                      |          1 | (www,test2.txt,/var/www/datalink/)
+    939 |       939 | © 201  | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced |          1 | (www,test3.txt,/var/www/datalink/)
 (3 rows)
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);

@@ -37,16 +37,16 @@ installextras:
 testfiles:
 	if [ ! -d /var/www/datalink ] ; then mkdir /var/www/datalink ; fi
 	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink
-	mkdir -p /var/www/datalink/installcheck/
-	chgrp postgres /var/www/datalink ; chmod g+w /var/www/datalink/installcheck/
-#	cp CHANGELOG.md /var/www/datalink/CHANGELOG.md
+	mkdir -p /var/www/datalink/installcheck
+	chgrp postgres /var/www/datalink/installcheck
+	chmod g+w /var/www/datalink/installcheck
+	rm -f /var/www/datalink/installcheck/*
+	cp docs/utf8.txt /var/www/datalink/installcheck
 	echo "Hello" > /var/www/datalink/test1.txt
-	cp docs/utf8.txt /var/www/datalink/test2.txt
 	cp -a LICENSE.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt
 	date +%F > /var/www/datalink/test4.txt
 	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
-	rm -f /var/www/datalink/installcheck/*
 
 dump-test:
 	pg_dump -Fc contrib_regression > db.pg_dump

@@ -8,6 +8,11 @@ create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_re
 create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');
 select url,ok,rc,error from datalink.curl_perform(null,'file://zala/etc/issue');
+select body,ok,size,content_type,error from datalink.curl_perform(null,'file://zala/var/www/datalink/installcheck/utf8.txt');
 drop user mapping for current_user server zala;
 drop server zala;
+
+select body,ok,size,content_type,error from datalink.curl_perform(null,'file:/var/www/datalink/installcheck/utf8.txt');
+
+select body,ok,size,content_type,error from datalink.curl_perform(null,'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt');
 

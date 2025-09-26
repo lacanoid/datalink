@@ -3,7 +3,8 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 
-select getlength(dlvalue('/var/www/datalink/test2.txt'));
+select length(dlvalue('/var/www/datalink/test2.txt')),
+       getlength(dlvalue('/var/www/datalink/test2.txt'));
 
 select substr(dlvalue('/var/www/datalink/test2.txt')),
        substr(dlvalue('/var/www/datalink/test2.txt'),12),
@@ -29,7 +30,7 @@ select regclass,column_name,lco,regtype from datalink.dl_columns where regtype <
 
 select substr(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,19);
 
-select getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
+select length(bfile),getlength(bfile),substr(bfile,1,5),filepath(bfile),fileexists(bfile),filegetname(bfile)
   from bfiles;
 
 select read_text(dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'),1,68);

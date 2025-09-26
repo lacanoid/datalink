@@ -482,10 +482,15 @@ Return file size in bytes.
 #### has_updated( datalink ) → integer
 Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL WRITE ACCESS FS datalinks.
 
-Compatibility functions
------------------------
+(In)compatibility functions
+---------------------------
+
+These are in `pg_catalog` schema, so generally you don't need to specify a schema.
 
 #### substr( datalink [ , position [ , length ] ] ) → text
 Return substring of length from a file starting with offset.
+
+#### length( datalink ) → bigint
+Return file size in bytes. Same as `datalink.getlength()`, but less typing.
 
 [Datalink manual](README.md)

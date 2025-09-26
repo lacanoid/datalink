@@ -1516,28 +1516,41 @@ RETURNS record
 LANGUAGE plperlu
 AS $_$
 my ($filename,$url,$options)=@_;
-my %r;
-my $fs;
-my ($head,$binmode)=(0,0);
-
+# -------- load libraries --------
 use strict;
 use warnings;
 use WWW::Curl::Easy;
 use Time::HiRes qw(gettimeofday tv_interval);
 use JSON;
-
+# -------- examine options --------
+my ($head,$binmode,$persistent)=(0,0,0);
 if($options=~m|head|i) { $head=1; }
 if($options=~m|bin|i) { $binmode=1; }
-
- ## Starts and times the actual request ##
+if($options=~m|persistent|i) { $persistent=1; }
+# -------- start time  --------
 my $t0 = [gettimeofday];
-
-## handle data: URLs 
+my (%r,$r); # results
+my $fh;     # file handle
+# -------- check for file write privilege --------
+if(defined($filename)) {
+  my $q = q{select user, datalink.has_file_privilege($1,$2,true) as ok};
+  my $p = spi_prepare($q,'datalink.file_path','text');
+  my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
+  unless($fs->{ok} eq 't') { 
+    elog(ERROR,
+     qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
+     qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"); 
+  }
+  if(-e $filename) { 
+    elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); 
+  }
+}
+# -------- handle data: URLs --------
 if($url=~m|^data:|i) {
   ## elog(ERROR,"DATALINK EXCEPTION - data: URLs not supported in curl_perform\nURL: $url");
-  my $r={};
+  $r=\%r;
   $r->{url}=$url;
-  $r->{ok}=1;
+  $r->{ok}='yes';
   $r->{rc}=200;
   $r->{body}=substr($url,5);
   if($r->{body}=~s|^([^,]*),||) {
@@ -1547,10 +1560,8 @@ if($url=~m|^data:|i) {
   }
   $r->{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
   $r->{size}=length($r->{body});
-  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
-  return $r;
 }
-## handle file: URLs on foreign servers
+# -------- handle file: URLs on foreign servers --------
 elsif($url=~m|^file://[^/]|i) {
   ## execute curl_perform on that foreign server instead
   my $q=q{
@@ -1561,7 +1572,7 @@ elsif($url=~m|^file://[^/]|i) {
       (select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink')
   };
   my $p = spi_prepare($q,'TEXT');
-  $fs = spi_exec_prepared($p,$url)->{rows}->[0];
+  my $fs = spi_exec_prepared($p,$url)->{rows}->[0];
   unless($fs->{extnamespace}) {
     elog(ERROR,"DATALINK EXCEPTION - dblink extension required for files on foreign servers\n");
   }
@@ -1569,58 +1580,76 @@ elsif($url=~m|^file://[^/]|i) {
     elog(ERROR,"DATALINK EXCEPTION - foreign server ".quote_ident($fs->{srvname})." does not exist\n");
   }
   my $u = $url; $u=~s|^(file://)([^/]+)/|$1/|i; # clear server
-  $q='select ok,rc,body,error from datalink.curl_perform(null,'.
+  $q='select ok,rc,body,size,content_type,error from datalink.curl_perform(null,'.
       quote_nullable($u).','.quote_nullable($options).')';
-  $p = spi_prepare('select ok,rc,body,error from '.quote_ident($fs->{extnamespace}).
-                   '.dblink($1,$2) as dl(ok bool, rc int, body text, error text)',
+  $p = spi_prepare('select ok,rc,body,size,content_type,error from '.quote_ident($fs->{extnamespace}).
+                   '.dblink($1,$2) as dl(ok bool, rc int, body text, size bigint, content_type text, error text)',
                    'TEXT','TEXT');
   my $v = spi_exec_prepared($p,$fs->{srvname},$q);
-  my $r = $v->{rows}->[0];
+  $r = $v->{rows}->[0];
+  if(!$r) { $r=\%r; $r->{ok}='no'; }
   $r->{url}=$url;
-  $r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
-  return $r;
 }
+# -------- open output file --------
+if(defined($filename)) {
+  my $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
+  my $op = ($persistent>0)?'w':'t';
+  unless(spi_exec_prepared($p,$filename,$op)) { 
+    elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed"); }
+  open($fh,">",$filename) or 
+    elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
+}
+# -------- pass request to curl --------
+unless(defined($r)) { 
+  $r=\%r;
+  my $curl = WWW::Curl::Easy->new;
+  $r{url} = $url;  
+  $curl->setopt(CURLOPT_USERAGENT,
+                "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+  $curl->setopt(CURLOPT_URL, $url);
+  $curl->setopt(CURLOPT_HEADER,$head?1:0);
+  $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+  $curl->setopt(CURLOPT_VERBOSE, 0);
+  ## $curl->setopt(CURLOPT_RANGE, '100-200');
 
-my $curl = WWW::Curl::Easy->new;
-$r{url} = $url;  
-$curl->setopt(CURLOPT_USERAGENT,
-              "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
-$curl->setopt(CURLOPT_URL, $url);
-$curl->setopt(CURLOPT_HEADER,$head?1:0);
-$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
-$curl->setopt(CURLOPT_VERBOSE, 0);
-## $curl->setopt(CURLOPT_RANGE, '100-200');
-if($head) { $curl->setopt(CURLOPT_TIMEOUT, 5); }
+  ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
+  my $response_header;
+  my $response_body;
+  $curl->setopt(CURLOPT_WRITEHEADER, \$response_header);
+  $curl->setopt(CURLOPT_WRITEDATA, \$response_body);
+  if($head) { $curl->setopt(CURLOPT_NOBODY, 1); 
+              $curl->setopt(CURLOPT_TIMEOUT, 5);}
+  if(defined($filename) && $fh) { $curl->setopt(CURLOPT_WRITEDATA,$fh); }
+  my $retcode = $curl->perform;
+  if(defined($filename) && $fh) { close $fh; }
+  $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
-## A filehandle, reference to a scalar or reference to a typeglob can be used here.
-my $response_header;
-my $response_body;
-$curl->setopt(CURLOPT_WRITEHEADER, \$response_header);
-$curl->setopt(CURLOPT_WRITEDATA, \$response_body);
-if($head) { $curl->setopt(CURLOPT_NOBODY, 1); }
-else      { $curl->setopt(CURLOPT_WRITEDATA, \$response_body); }
+  ## Looking at the results...
+  $r{ok} = ($retcode==0)?'yes':'no';
+  $r{rc} = $retcode;
+  if(!$r{rc}) { 
+    $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); 
+    if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
+  }
+  if($head) { $r{body} = $response_header; }
+  else      { $r{body} = $response_body; }
 
-my $retcode = $curl->perform;
-$r{elapsed} = tv_interval ( $t0, [gettimeofday] );
+  if(!$binmode) { if(defined($r{body})) { utf8::decode($r{body}); }} 
+  else { $r{body} = encode_bytea($r{body}); }
+  if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+  if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
+  else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
 
-## Looking at the results...
-$r{ok} = ($retcode==0)?'yes':'no';
-$r{rc} = $retcode;
-if(!$r{rc}) { $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); }
-if($head) { $r{body} = $response_header; }
-else      { $r{body} = $response_body; }
-
-if(!$binmode) { if(defined($r{body})) { utf8::decode($r{body}); }} 
-else { $r{body} = encode_bytea($r{body}); }
-if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
-if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
-else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
-
-$r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
-$r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
-$r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
-
-return \%r;
+  $r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
+  $r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
+  $r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
+}
+if(defined($filename)) {
+  if($r{ok} eq 'no' && -e $filename) { unlink($filename); }
+  $r{file_path} = $filename;
+} 
+$r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
+return $r;
 $_$;
 revoke execute on function curl_perform(file_path,text,text[]) from public;
 comment on function curl_perform(file_path,text,text[])
@@ -1629,6 +1658,7 @@ comment on function curl_perform(file_path,text,text[])
 
 --------------------------------------------------------------- ---------------
 -- get URL contents as text using GET or HEAD request
+--------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION curl_get(
   INOUT url text, mode integer DEFAULT 1,
@@ -1636,20 +1666,22 @@ CREATE OR REPLACE FUNCTION curl_get(
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float,  OUT error text) 
 RETURNS record
-LANGUAGE sql
+LANGUAGE sql STRICT
 AS $_$
 select url, ok, rc, body, size, content_type, filetime, elapsed, error
   from datalink.curl_perform(null,url,case mode 
                              when 0 then '{head}'
                              when 1 then '{}'
-                             when 2 then '{bin}' end :: text[]);
+                             when 2 then '{bin}' 
+                             else '{}' end :: text[]);
 $_$;
 revoke execute on function curl_get(text,integer) from public;
 comment on function curl_get(text,integer)
      is 'Get content of remote URL with CURL. CURL groks URLs.';
 
 --------------------------------------------------------------- ---------------
--- save URL contents as text to a local file using GET or HEAD request
+-- save URL contents as text to a local file
+--------------------------------------------------------------- ---------------
 
 CREATE FUNCTION curl_save(
   INOUT file_path file_path, INOUT url text, IN persistent int default 0,
@@ -1657,7 +1689,7 @@ CREATE FUNCTION curl_save(
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float, OUT error text) 
 RETURNS record
-LANGUAGE plperlu
+LANGUAGE plperlu STRICT
 AS $_$
 my ($filename,$url,$persistent)=@_;
 
@@ -1665,10 +1697,6 @@ use strict;
 use warnings;
 use WWW::Curl::Easy;
 use JSON;
-
-if(!$filename) {
-    elog(ERROR,"DATALINK EXCEPTION - filename is NULL\n");
-}
 
  ## Check if this is a file on a foreign server and pass on the request
 if($url=~m|^file://[^/]|i) {
@@ -1686,20 +1714,23 @@ unless($fs->{ok} eq 't') {
     die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
 }
-if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
+if(-e $filename) { 
+  elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); }
 
-$p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
-unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
+$p = spi_prepare(
+  q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
+unless(spi_exec_prepared($p,$filename,$op)) {
+  elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed"); }
 
 my $curl = WWW::Curl::Easy->new;
 $r{url} = $url;  
 $curl->setopt(CURLOPT_USERAGENT,
-              "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+  "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
 $curl->setopt(CURLOPT_URL, $url);
 $curl->setopt(CURLOPT_HEADER,0);
 $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
 
-open($fh,">",$filename) or die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
+open($fh,">",$filename) or elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
 ## A filehandle, reference to a scalar or reference to a typeglob can be used here.
 $curl->setopt(CURLOPT_WRITEDATA,$fh);
 
@@ -2493,6 +2524,9 @@ create or replace function getlength(file_path) returns bigint as
 $$ select datalink.getlength(dlvalue($1,'FS')) $$ language sql;
 comment on function getlength(file_path) is 
   'BFILE - Returns file size';
+
+create or replace function pg_catalog.length(datalink) 
+ RETURNS bigint LANGUAGE sql AS $$ select datalink.getlength($1) $$;
 
 create or replace function pg_catalog.substr(datalink, pos integer default null, len integer default null) 
  RETURNS text LANGUAGE plpgsql

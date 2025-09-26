@@ -115,10 +115,6 @@ but `dirpath` does not contain a valid directory name. (HW103)
 
 ### DATALINK EXCEPTION - foreign server does not exist
 
-### DATALINK EXCEPTION - filename is NULL
-
-You are using `datalink.curl_save()` but target filename is null.
-
 ### DATALINK EXCEPTION - foreign servers not supported in curl_save
 
 ### DATALINK EXCEPTION - waiting for datalinker

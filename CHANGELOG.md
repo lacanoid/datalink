@@ -7,8 +7,7 @@ Version 0.25
 - new files trigger, file must not already exist when inserting into dl_new_files
 - `datalink.getlength(datalink)` now works for web links
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
-- eliminated some unnecessary repetition in datalinker log
-- insert and then delete of ON UNLINK DELETE links inside one transaction now properly deletes files
+- insert and then delete of ON UNLINK DELETE datalinks inside one transaction now actually deletes files
 - store content_type and and source url in datalinks returnd by `DLREPLACECONTENT()`
 - transactional file reads, no you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
@@ -18,6 +17,7 @@ Version 0.25
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added preliminary `curl_perform()` unified function
+- added `pg_catalog.length(datalink)` function
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem
