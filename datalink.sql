@@ -38,7 +38,6 @@ ALTER  DOMAIN file_path ADD CONSTRAINT file_path_noserver
        CHECK(not value like '%//%');
 /* ADD ADDITIONAL CONSTRAINTS FOR FILENAMES HERE */
 
-
 /*
 CREATE DOMAIN pg_catalog.datalink AS jsonb;
 COMMENT ON DOMAIN pg_catalog.datalink IS 'SQL/MED DATALINK like type for storing URLs';
@@ -935,7 +934,6 @@ CREATE OR REPLACE FUNCTION iri(iri text) RETURNS text language sql strict as $$
 COMMENT ON FUNCTION iri(text)
      IS 'Convert IRI (unicode characters) to URI (escaped)';
 
-
 --------------------------------------------------------------- ---------------
 -- event triggers
 --------------------------------------------------------------- ---------------
@@ -1023,7 +1021,6 @@ begin
   end loop;
 
 end if;
-
 end
 $$;
 alter function dl_trigger_event() owner to postgres;
@@ -1118,7 +1115,6 @@ RETURNS datalink
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
-
 
 --------------------------------------------------------------- ---------------
 -- SQL/MED update functions
@@ -1340,7 +1336,6 @@ begin
 end$_$;
 
 --------------------------------------------------------------- ---------------
-
 -- datalink trigger function for tables
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
 LANGUAGE plpgsql 
@@ -2761,7 +2756,10 @@ EXECUTE PROCEDURE datalink.dl_trigger_access();
 --------------------------------------------------------------- ---------------
 -- inquire web access permisions
 --------------------------------------------------------------- ---------------
-CREATE OR REPLACE FUNCTION has_web_privilege(role regrole, url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean as $$
+CREATE OR REPLACE FUNCTION has_web_privilege(
+  role regrole, url text, privilege text default 'SELECT', 
+  allowsuper boolean default true) 
+RETURNS boolean AS $$
 select (current_setting('is_superuser')::boolean and $4) or exists (
   select url from datalink.access_web aw
    where privilege_type=upper($3)
