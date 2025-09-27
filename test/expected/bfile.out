@@ -392,7 +392,8 @@ select content_type,size from datalink.curl_save(
   'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt',1); -- error
 ERROR:  DATALINK EXCEPTIION - file exists
 FILE:  /var/www/datalink/installcheck/curl_save.txt
-CONTEXT:  PL/Perl function "curl_save"
+CONTEXT:  PL/Perl function "curl_perform"
+SQL function "curl_save" statement 1
 select * from datalink.read_text('/var/www/datalink/installcheck/curl_save.txt');
                                   read_text                                   
 ------------------------------------------------------------------------------

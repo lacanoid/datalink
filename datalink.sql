@@ -1667,15 +1667,16 @@ unless(defined($r)) {
     $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); 
     if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'f'; }
   }
-  if($head) { $r{body} = $response_header; }
-  else      { $r{body} = $response_body; }
-
-  if(!$binmode) { if(defined($r{body})) { utf8::decode($r{body}); }} 
-  else { $r{body} = encode_bytea($r{body}); }
-  if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+  if(!defined($filename)) {
+    if($head) { $r{body} = $response_header; }
+    else      { $r{body} = $response_body; }
+    if($binmode) { $r{body} = encode_bytea($r{body}); }
+    else { if(defined($r{body})) { utf8::decode($r{body}); } } 
+  }
   if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
   else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
   $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
+  if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
   $r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
   $r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
   $r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
@@ -1724,73 +1725,12 @@ CREATE FUNCTION curl_save(
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float, OUT error text) 
 RETURNS record
-LANGUAGE plperlu STRICT
+LANGUAGE sql STRICT
 AS $_$
-my ($filename,$url,$persistent)=@_;
-
-use strict;
-use warnings;
-use WWW::Curl::Easy;
-use JSON;
-
- ## Check if this is a file on a foreign server and pass on the request
-if($url=~m|^file://[^/]|i) {
-    elog(ERROR,"DATALINK EXCEPTION - foreign servers not supported in curl_save\nURL: $url");
-}
-
-my %r;
-my $fh;
-my $op = ($persistent>0)?'w':'t';
-
-my $q = q{select user, datalink.has_file_privilege($1,$2,true) as ok};
-my $p = spi_prepare($q,'datalink.file_path','text');
-my $fs = spi_exec_prepared($p,$filename,'create')->{rows}->[0];
-unless($fs->{ok} eq 't') { 
-    die qq{DATALINK EXCEPTION - CREATE permission denied on directory}.
-        qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
-}
-if(-e $filename) { 
-  elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); }
-
-$p = spi_prepare(
-  q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
-unless(spi_exec_prepared($p,$filename,$op)) {
-  elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed"); }
-
-my $curl = WWW::Curl::Easy->new;
-$r{url} = $url;  
-$curl->setopt(CURLOPT_USERAGENT,
-  "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
-$curl->setopt(CURLOPT_URL, $url);
-$curl->setopt(CURLOPT_HEADER,0);
-$curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
-
-open($fh,">",$filename) or elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
-## A filehandle, reference to a scalar or reference to a typeglob can be used here.
-$curl->setopt(CURLOPT_WRITEDATA,$fh);
-
-my $retcode = $curl->perform;
-close $fh;
-
-## Looking at the results...
-$r{ok} = ($retcode==0)?'yes':'no';
-$r{rc} = $retcode;
-if(!$r{rc}) { 
-  $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE);
-  if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
-}
-$r{file_path} = $filename;
-## $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-$r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD);
-$r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
-if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
-if($r{ok} eq 'no') { unlink($filename); }
-
-$r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
-$r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
-$r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
-
-return \%r;
+select file_path, url, ok, rc, size, content_type, filetime, elapsed, error
+  from datalink.curl_perform(file_path,url,case persistent
+                             when 1 then '{persistent}'
+                             else '{}' end :: text[]);
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
 comment on function curl_save(file_path,text,int)
