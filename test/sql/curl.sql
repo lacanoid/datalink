@@ -20,6 +20,12 @@ select body,size,content_type from datalink.curl_perform(null,'data:text/plain;b
 select body,size,content_type from datalink.curl_perform(null,'data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E');
 select body,size,content_type from datalink.curl_perform(null,'data:text/html,%3Cscript%3Ealert%28%27hi%27%29%3B%3C%2Fscript%3E');
 
+-- test some data: urls
+select body,size,content_type from datalink.curl_get('data:,Hello%2C%20World%21');
+select body,size,content_type from datalink.curl_get('data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==');
+select body,size,content_type from datalink.curl_get('data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E');
+select body,size,content_type from datalink.curl_get('data:text/html,%3Cscript%3Ealert%28%27hi%27%29%3B%3C%2Fscript%3E');
+
 create server zala foreign data wrapper postgres_fdw options (dbname 'contrib_regression');
 create user mapping for current_user server zala;
 select url,ok,rc,error from datalink.curl_get('file://zala/etc/issue');

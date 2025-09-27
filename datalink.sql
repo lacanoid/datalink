@@ -1517,10 +1517,8 @@ LANGUAGE plperlu
 AS $_$
 my ($filename,$url,$options)=@_;
 # -------- load libraries --------
-use strict;
-use warnings;
+use strict; use warnings;
 use WWW::Curl::Easy;
-use Time::HiRes qw(gettimeofday tv_interval);
 use JSON;
 # -------- examine options --------
 my ($head,$binmode,$persistent)=(0,0,0);
@@ -1528,7 +1526,6 @@ if($options=~m|head|i) { $head=1; }
 if($options=~m|bin|i) { $binmode=1; }
 if($options=~m|persistent|i) { $persistent=1; }
 # -------- start time  --------
-my $t0 = [gettimeofday];
 my (%r,$r); # results
 my $fh;     # file handle
 # -------- check for file write privilege --------
@@ -1545,21 +1542,47 @@ if(defined($filename)) {
     elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); 
   }
 }
+# -------- helper functions --------
+sub my_decode_base64 {
+    my ($s) = @_;
+    # Build lookup table once
+    our @tbl;
+    if (!@tbl) {
+        @tbl = ( -1 ) x 256; my $i = 0;
+        $tbl[ord($_)] = $i++ for 'A'..'Z','a'..'z','0'..'9','+','/';
+    }
+    $s =~ tr/A-Za-z0-9+\/=//cd;  # strip non-base64
+    my $out = ''; my $len = length($s);
+    for (my $i = 0; $i < $len; $i += 4) {
+        my $b = 0; my $p = 0;
+        for my $j (0..3) {
+            my $c = substr($s, $i+$j, 1);
+            if ($c eq '=') { $b <<= 6; $p++ }
+            else           { $b = ($b << 6) + $tbl[ord $c] }
+        }
+        $out .= substr(pack("N",$b), 1, 3 - $p);
+    }
+    return $out;
+}
 # -------- handle data: URLs --------
 if($url=~m|^data:|i) {
   ## elog(ERROR,"DATALINK EXCEPTION - data: URLs not supported in curl_perform\nURL: $url");
   $r=\%r;
-  $r->{url}=$url;
-  $r->{ok}='yes';
-  $r->{rc}=200;
-  $r->{body}=substr($url,5);
-  if($r->{body}=~s|^([^,]*),||) {
-    $r->{content_type}=$1 || 'text/plain;charset=US-ASCII';
+  $r{url}=$url;
+  $r{ok}='t';
+  $r{rc}=200;
+  $r{body}=substr($url,5);
+  if($r{body}=~s|^([^,]*),||) {
+    $r{content_type}=$1 || 'text/plain;charset=US-ASCII';
   } else {
-    $r->{content_type}='text/plain';
+    $r{content_type}='text/plain';
   }
-  $r->{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
-  $r->{size}=length($r->{body});
+  if($r{content_type}=~s|;base64$||) {
+    $r{body} = my_decode_base64($r{body});
+  }
+  $r{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  
+  $r{size}=length($r{body});
+  if($binmode) {  $r{body} = encode_bytea($r{body}); }   
 }
 # -------- handle file: URLs on foreign servers --------
 elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
@@ -1587,7 +1610,7 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
                    'TEXT','TEXT');
   my $v = spi_exec_prepared($p,$fs->{srvname},$q);
   $r = $v->{rows}->[0];
-  if(!$r) { $r=\%r; $r->{ok}='no'; }
+  if(!$r) { $r=\%r; $r->{ok}='f'; }
   $r->{url}=$url;
 }
 # -------- open output file --------
@@ -1598,6 +1621,17 @@ if(defined($filename)) {
     elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed");
   open($fh,">",$filename) or 
     elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
+  if(defined($r) && $fh) { # we already have the result
+    if($binmode) { 
+      binmode($fh);
+      if(defined($r->{body})) { $r->{body}=decode_bytea($r->{body}); }
+    } else {
+      if(defined($r->{body})) { utf8::encode($r->{body}); }
+    }
+    print $fh $r->{body};
+    close $fh;
+    $r->{body}=undef;
+  }
 }
 # -------- pass request to curl --------
 unless(defined($r)) { 
@@ -1625,14 +1659,13 @@ unless(defined($r)) {
   }
   my $retcode = $curl->perform;
   if(defined($filename) && $fh) { close $fh; }
-  $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
 
   ## Looking at the results...
-  $r{ok} = ($retcode==0)?'yes':'no';
+  $r{ok} = ($retcode==0)?'t':'f';
   $r{rc} = $retcode;
   if(!$r{rc}) { 
     $r{rc} = $curl->getinfo(CURLINFO_HTTP_CODE); 
-    if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'no'; }
+    if(!($r{rc} ==  0 || ( $r{rc} >= 200 && $r{rc} <= 299 ))) { $r{ok} = 'f'; }
   }
   if($head) { $r{body} = $response_header; }
   else      { $r{body} = $response_body; }
@@ -1642,16 +1675,15 @@ unless(defined($r)) {
   if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
   if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
   else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
-
+  $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
   $r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
   $r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
   $r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
 }
 if(defined($filename)) {
-  if($r{ok} eq 'no' && -e $filename) { unlink($filename); }
+  if($r{ok} eq 'f' && -e $filename) { unlink($filename); }
   $r{file_path} = $filename;
 } 
-$r->{elapsed} = tv_interval ( $t0, [gettimeofday] );
 return $r;
 $_$;
 revoke execute on function curl_perform(file_path,text,text[]) from public;
