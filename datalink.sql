@@ -2759,17 +2759,19 @@ EXECUTE PROCEDURE datalink.dl_trigger_access();
 CREATE OR REPLACE FUNCTION has_web_privilege(
   role regrole, url text, privilege text default 'SELECT', 
   allowsuper boolean default true) 
-RETURNS boolean AS $$
-select (current_setting('is_superuser')::boolean and $4) or exists (
+RETURNS boolean AS LANGUAGE sql $$
+  select (current_setting('is_superuser')::boolean and $4) or exists (
   select url from datalink.access_web aw
    where privilege_type=upper($3)
      and $2 like aw.url||'%'
      and (grantee = 'PUBLIC' or grantee = $1::text)
-)
-$$ LANGUAGE sql;
+  )
+$$;
 
-CREATE OR REPLACE FUNCTION has_web_privilege(url text, privilege text default 'SELECT', allowsuper boolean default true) RETURNS boolean
- LANGUAGE sql AS $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
+CREATE OR REPLACE FUNCTION has_web_privilege(
+  url text, privilege text default 'SELECT', allowsuper boolean default true) 
+RETURNS boolean LANGUAGE sql AS 
+$$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
 
 --------------------------------------------------------------- ---------------
 -- datalinker status
