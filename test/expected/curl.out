@@ -79,46 +79,37 @@ select url,ok,rc,error from datalink.curl_perform(null,'file://zala/etc/issue');
 (1 row)
 
 select body,ok,size,content_type,error from datalink.curl_perform(null,'file://zala/var/www/datalink/installcheck/utf8.txt');
-                                     body                                     | ok | size | content_type | error 
-------------------------------------------------------------------------------+----+------+--------------+-------
- Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+| t  |  177 |              | 
- Some 16bit emojis: ⛔⛳                                                     +|    |      |              | 
- Some 32bit emojis: 🪙🩲                                                     +|    |      |              | 
- Some chinese: 𠀀𠀁𠀂𠀃                                                      +|    |      |              | 
- The end.                                                                    +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                              |    |      |              | 
+             body              | ok | size | content_type | error 
+-------------------------------+----+------+--------------+-------
+ Math: ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ ⊆ ℂ ⊆ ℍ  +| t  |  206 |              | 
+ Some 16bit emojis: ⛔⛳      +|    |      |              | 
+ Some 32bit emojis: 😄😆😎🪙🩲+|    |      |              | 
+ Some chinese: 𠀀𠀁𠀂𠀃       +|    |      |              | 
+ 〘_͡͡_͝͝_▹▸s͟σ͟͡ɴ͝ɪ͟c◂◃_͝͝_͡͡_〙          +|    |      |              | 
+                               |    |      |              | 
 (1 row)
 
 drop user mapping for current_user server zala;
 drop server zala;
 select body,ok,size,content_type,error from datalink.curl_perform(null,'file:/var/www/datalink/installcheck/utf8.txt');
-                                     body                                     | ok | size | content_type | error 
-------------------------------------------------------------------------------+----+------+--------------+-------
- Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+| t  |  177 |              | 
- Some 16bit emojis: ⛔⛳                                                     +|    |      |              | 
- Some 32bit emojis: 🪙🩲                                                     +|    |      |              | 
- Some chinese: 𠀀𠀁𠀂𠀃                                                      +|    |      |              | 
- The end.                                                                    +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                             +|    |      |              | 
-                                                                              |    |      |              | 
+             body              | ok | size | content_type | error 
+-------------------------------+----+------+--------------+-------
+ Math: ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ ⊆ ℂ ⊆ ℍ  +| t  |  206 |              | 
+ Some 16bit emojis: ⛔⛳      +|    |      |              | 
+ Some 32bit emojis: 😄😆😎🪙🩲+|    |      |              | 
+ Some chinese: 𠀀𠀁𠀂𠀃       +|    |      |              | 
+ 〘_͡͡_͝͝_▹▸s͟σ͟͡ɴ͝ɪ͟c◂◃_͝͝_͡͡_〙          +|    |      |              | 
+                               |    |      |              | 
 (1 row)
 
 select body,ok,size,content_type,error from datalink.curl_perform(null,'https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt');
-                                     body                                     | ok | size |       content_type        | error 
-------------------------------------------------------------------------------+----+------+---------------------------+-------
- Kulturnik je portal, namenjen lažji in orientaciji po kulturi v slovenščini.+| t  |  177 | text/plain; charset=utf-8 | 
- Some 16bit emojis: ⛔⛳                                                     +|    |      |                           | 
- Some 32bit emojis: 🪙🩲                                                     +|    |      |                           | 
- Some chinese: 𠀀𠀁𠀂𠀃                                                      +|    |      |                           | 
- The end.                                                                    +|    |      |                           | 
-                                                                             +|    |      |                           | 
-                                                                             +|    |      |                           | 
-                                                                             +|    |      |                           | 
-                                                                              |    |      |                           | 
+             body              | ok | size |       content_type        | error 
+-------------------------------+----+------+---------------------------+-------
+ Math: ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ ⊆ ℂ ⊆ ℍ  +| t  |  206 | text/plain; charset=utf-8 | 
+ Some 16bit emojis: ⛔⛳      +|    |      |                           | 
+ Some 32bit emojis: 😄😆😎🪙🩲+|    |      |                           | 
+ Some chinese: 𠀀𠀁𠀂𠀃       +|    |      |                           | 
+ 〘_͡͡_͝͝_▹▸s͟σ͟͡ɴ͝ɪ͟c◂◃_͝͝_͡͡_〙          +|    |      |                           | 
+                               |    |      |                           | 
 (1 row)
 
