@@ -1562,7 +1562,7 @@ if($url=~m|^data:|i) {
   $r->{size}=length($r->{body});
 }
 # -------- handle file: URLs on foreign servers --------
-elsif($url=~m|^file://[^/]|i) {
+elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
   ## execute curl_perform on that foreign server instead
   my $q=q{
     select pg_catalog.dlurlserver($1) as srvname,
@@ -1594,8 +1594,8 @@ elsif($url=~m|^file://[^/]|i) {
 if(defined($filename)) {
   my $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   my $op = ($persistent>0)?'w':'t';
-  unless(spi_exec_prepared($p,$filename,$op)) { 
-    elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed"); }
+  spi_exec_prepared($p,$filename,$op) or
+    elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed");
   open($fh,">",$filename) or 
     elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
 }
@@ -1619,7 +1619,10 @@ unless(defined($r)) {
   $curl->setopt(CURLOPT_WRITEDATA, \$response_body);
   if($head) { $curl->setopt(CURLOPT_NOBODY, 1); 
               $curl->setopt(CURLOPT_TIMEOUT, 5);}
-  if(defined($filename) && $fh) { $curl->setopt(CURLOPT_WRITEDATA,$fh); }
+  if(defined($filename) && $fh) { 
+    if($head)  { $curl->setopt(CURLOPT_WRITEHEADER,$fh); }
+    else  { $curl->setopt(CURLOPT_WRITEDATA,$fh); }
+  }
   my $retcode = $curl->perform;
   if(defined($filename) && $fh) { close $fh; }
   $r{elapsed} = tv_interval ( $t0, [gettimeofday] );
