@@ -32,6 +32,7 @@ installextras:
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
 	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system
+	/usr/bin/install -m 644 pg_dlfuse.service /etc/systemd/system
 	systemctl daemon-reload
 
 testfiles:
