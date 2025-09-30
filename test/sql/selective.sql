@@ -45,7 +45,6 @@ update datalink.columns
 
 delete from sample_datalinks3 where dllinktype(link)='FS';
 
-
 -- test domains
 create domain file datalink;
 create domain rfile datalink(1);

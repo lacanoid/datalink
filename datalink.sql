@@ -1577,7 +1577,11 @@ if($url=~m|^data:|i) {
   }
   $r{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  
   $r{size}=length($r{body});
-  if($binmode) {  $r{body} = encode_bytea($r{body}); }   
+  if($head) { $r{body}="Content-Type: ".$r{content_type}.
+                       "\nContent-Length: ".$r{size}."\n\n"; }
+  else {
+    if($binmode) {  $r{body} = encode_bytea($r{body}); }   
+  }
 }
 # -------- handle file: URLs on foreign servers --------
 elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
