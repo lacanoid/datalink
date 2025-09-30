@@ -27,6 +27,9 @@ getopt('l');
 
 our $SERVICE = 'pg_datalink';
 our $NAME    = 'pg_datalinker';
+our $DLFM    = 'pg_datalinker';
+our $DLFF    = 'pg_dlfuse';
+our @DAEMONS = ($DLFM, $DLFF);
 our $DAEMON  = "/usr/sbin/pg_datalinker";
 
 #---------------------------------------
@@ -63,7 +66,7 @@ if($operation eq 'unbind') { config_unbind(); exit; }
 if($operation eq 'start') { daemon_start(); exit; }
 if($operation eq 'restart') { daemon_stop(); daemon_start(); exit; }
 if($operation eq 'stop') { daemon_stop(); exit; }
-if($operation eq 'status') { daemon_status(); exit; }
+if($operation eq 'status') { daemons_status(); exit; }
 if($operation eq 'log') { daemon_log(); exit; }
 if($operation eq 'ps') { daemon_see(); exit; }
 if($operation eq 'see') { daemon_see(); exit; }
@@ -442,6 +445,15 @@ sub iso_timestamp {
 ########################################
 # daemon stuff
 
+sub daemons_status {
+    foreach my $d (@DAEMONS) {
+        $NAME=$d;
+        daemon_setup();
+        daemon_status();
+    }
+}
+
+our $DAEMON_EXEC;
 our $DAEMON_LOG;
 our $DAEMON_PID;
 our $DAEMON_RUNNING=0;
@@ -451,8 +463,9 @@ sub daemon_setup {
 #    $NAME=$config{appname};
 #    $DAEMON = "/usr/sbin/pg_datalinker";
 #    chomp($DAEMON);
-    $DAEMON_LOG="/var/log/postgresql/$NAME.log";
-    $DAEMON_PID="/var/run/postgresql/$NAME.pid";
+    $DAEMON_EXEC = "/usr/sbin/".$NAME;
+    $DAEMON_LOG  = "/var/log/postgresql/$NAME.log";
+    $DAEMON_PID  = "/var/run/postgresql/$NAME.pid";
 }
 
 sub daemon_start {
@@ -466,7 +479,7 @@ sub daemon_start {
             "--name",$NAME,
             "--pidfile",$DAEMON_PID,"--make-pidfile",
             "--background","--no-close",
-            "--exec","$DAEMON","--", 
+            "--exec","$DAEMON_EXEC","--", 
             "-l",$DAEMON_LOG,"run");
     }
 }
