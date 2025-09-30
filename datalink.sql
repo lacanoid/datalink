@@ -1578,7 +1578,7 @@ if($url=~m|^data:|i) {
   $r{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  
   $r{size}=length($r{body});
   if($head) { $r{body}="Content-Type: ".$r{content_type}.
-                       "\rContent-Length: ".$r{size}."\r\r"; }
+                       "\r\nContent-Length: ".$r{size}."\r\n"; }
   else {
     if($binmode) {  $r{body} = encode_bytea($r{body}); }   
   }
