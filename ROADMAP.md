@@ -57,11 +57,11 @@ Wanted
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
 - FUSE filesystem DLFF which supports WRITE ACCESS tokens
 - function to create new unused filename
-- improve support for data: URLs
+- ✔︎ improve support for data: URLs
 - ✔︎ keep temporary files when they are linked to READ ACCESS FS columns
 - show warning when setting LCO when missing datalinker
 - make `dlreplacecontent()` handle local files differently (and support read tokens!)
-- make `dlreplacecontent()` work with forereign servers
+- ✔︎ make `dlreplacecontent()` work with forereign servers
 - make `dlreplacecontent()` work well in all combinations of web and file (curl_put?)
 - add md5sum for files
 - add capability to purge old backups
