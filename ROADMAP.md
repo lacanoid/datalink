@@ -55,6 +55,7 @@ Wanted
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
 - proper substring instead of file position offsets in `substr()`
 - FUSE filesystem DLFF which supports READ ACCESS DB tokens
+- FUSE filesystem DLFF which supports WRITE ACCESS tokens
 - function to create new unused filename
 - improve support for data: URLs
 - ✔︎ keep temporary files when they are linked to READ ACCESS FS columns
@@ -69,7 +70,8 @@ Wanted
 - incremental write functions so one can write big files without having to buffer everything
 - command line tool to backup linked files to/from another host
 - nfs server
-- implement automatic expiration in pg_datalinker for for insight
+- implement automatic expiration in pg_datalinker for for insight, etc...
+- forbid creating temporary files if no datalinker
 
 Advanced
 --------
@@ -152,6 +154,7 @@ Todo
 - ✔︎ trigger on `dl_new_files` to check that files don't exist
 - ✔︎ files with ON UNLINK DELETE don't get deleted if they have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
+- handle datalinks in temporary tables (now they don't get unlinked when table is dropped)
 
 Maybe
 =====
@@ -177,6 +180,7 @@ Maybe
 - build simple webserver into pg_datalinker
 - rename pg_linked_files to pg_files_linked, pg_admin_files to pg_files_new
 - casts from datalink to file_path
+
 
 BFile API
 =========

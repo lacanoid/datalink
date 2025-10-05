@@ -8,16 +8,16 @@ Version 0.25
 - `datalink.getlength(datalink)` now works for web links
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
 - insert and then delete of ON UNLINK DELETE datalinks inside one transaction now actually deletes files
-- store content_type and and source url in datalinks returnd by `DLREPLACECONTENT()`
+- store content type and and source url in datalinks returnd by `DLREPLACECONTENT()`
 - transactional file reads, no you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
-- some support for `data:` URLs in `curl_get()`
 - no more excessive printing to stderr in `curl_get()`
+- added preliminary `curl_perform()` unified function, `curl_get()` and `curl_save()` are now just wrappers.
+- some support for `data:` URLs in `curl_perform()`
 - datalinker improved error logging
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
-- added preliminary `curl_perform()` unified function
-- added `pg_catalog.length(datalink)` function
+- added `pg_catalog.length(datalink)` function to return length of file
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem

@@ -1729,7 +1729,7 @@ AS $_$
 select file_path, url, ok, rc, size, content_type, filetime, elapsed, error
   from datalink.curl_perform(file_path,url,case persistent
                              when 1 then '{persistent}'
-                             else '{}' end :: text[]);
+                             else '{}' end :: text[] || '{bin}');
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
 comment on function curl_save(file_path,text,int)
@@ -2498,6 +2498,11 @@ create or replace function getlength(file_path) returns bigint as
 $$ select datalink.getlength(dlvalue($1,'FS')) $$ language sql;
 comment on function getlength(file_path) is 
   'BFILE - Returns file size';
+
+create or replace function content_type(datalink)
+  returns text language sql immutable strict as $$
+  select $1::jsonb->>'ct';
+$$;
 
 create or replace function pg_catalog.length(datalink) 
  RETURNS bigint LANGUAGE sql AS $$ select datalink.getlength($1) $$;
