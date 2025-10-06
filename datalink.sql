@@ -2400,6 +2400,8 @@ begin
  end if;
  if link::jsonb->>'b' is not null then link := pg_catalog.dlnewcopy(link); end if;
  link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
+ link := jsonb_set(link::jsonb,'{ct}',to_jsonb('text/plain'::text));
+ link := link::jsonb - '{src}';
  perform datalink.write_text(datalink.filepathwrite(link),content,persistent);
  return link;
 end
@@ -2420,6 +2422,8 @@ begin
  end if;
  if link::jsonb->>'b' is not null then link := dlnewcopy(link); end if;
  link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
+ link := jsonb_set(link::jsonb,'{ct}',to_jsonb('application/octet-stream'::text));
+ link := link::jsonb - '{src}';
  perform datalink.write(datalink.filepathwrite(link),content,persistent);
  return link;
 end
@@ -2480,7 +2484,8 @@ comment on function getlength(file_path) is
 
 create or replace function content_type(datalink)
   returns text language sql immutable strict as $$
-  select $1::jsonb->>'ct';
+  select coalesce($1::jsonb->>'ct',
+                  (select content_type from datalink.curl_get(dlurlcomplete($1),0)));
 $$;
 
 create or replace function pg_catalog.length(datalink) 
