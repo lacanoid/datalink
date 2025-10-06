@@ -1514,6 +1514,7 @@ my ($filename,$url,$options)=@_;
 # -------- load libraries --------
 use strict; use warnings;
 use WWW::Curl::Easy;
+use MIME::Base64 qw(decode_base64);
 use JSON;
 # -------- examine options --------
 my ($head,$binmode,$persistent)=(0,0,0);
@@ -1537,28 +1538,6 @@ if(defined($filename)) {
     elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); 
   }
 }
-# -------- helper functions --------
-sub my_decode_base64 {
-    my ($s) = @_;
-    # Build lookup table once
-    our @tbl;
-    if (!@tbl) {
-        @tbl = ( -1 ) x 256; my $i = 0;
-        $tbl[ord($_)] = $i++ for 'A'..'Z','a'..'z','0'..'9','+','/';
-    }
-    $s =~ tr/A-Za-z0-9+\/=//cd;  # strip non-base64
-    my $out = ''; my $len = length($s);
-    for (my $i = 0; $i < $len; $i += 4) {
-        my $b = 0; my $p = 0;
-        for my $j (0..3) {
-            my $c = substr($s, $i+$j, 1);
-            if ($c eq '=') { $b <<= 6; $p++ }
-            else           { $b = ($b << 6) + $tbl[ord $c] }
-        }
-        $out .= substr(pack("N",$b), 1, 3 - $p);
-    }
-    return $out;
-}
 # -------- handle data: URLs --------
 if($url=~m|^data:|i) {
   ## elog(ERROR,"DATALINK EXCEPTION - data: URLs not supported in curl_perform\nURL: $url");
@@ -1573,7 +1552,7 @@ if($url=~m|^data:|i) {
     $r{content_type}='text/plain';
   }
   if($r{content_type}=~s|;base64$||) {
-    $r{body} = my_decode_base64($r{body});
+    $r{body} = decode_base64($r{body});
   }
   $r{body} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;  
   $r{size}=length($r{body});
