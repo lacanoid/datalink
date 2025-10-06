@@ -1111,7 +1111,8 @@ IS 'SQL/MED - Construct a DATALINK value';
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
-    AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1),null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
+    AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1),
+                        null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
 IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
@@ -1120,9 +1121,9 @@ IS 'SQL/MED - Construct a DATALINK value relative to another DATALINK value';
 -- SQL/MED update functions
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlpreviouscopy(link datalink, has_token integer default 1) RETURNS datalink
-    LANGUAGE plpgsql
-    AS $_$
+CREATE FUNCTION pg_catalog.dlpreviouscopy(
+  link datalink, has_token integer default 1) 
+ RETURNS datalink LANGUAGE plpgsql AS $_$
 declare
  token  datalink.dl_token;
  l1     datalink;
@@ -1174,9 +1175,8 @@ IS 'SQL/MED - Returns a DATALINK value indicating that the previous version of t
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer default 1) RETURNS datalink
-    LANGUAGE plpgsql STRICT
-    AS $_$
+CREATE FUNCTION pg_catalog.dlnewcopy(link datalink, has_token integer default 1) 
+RETURNS datalink LANGUAGE plpgsql STRICT AS $_$
 declare
  token datalink.dl_token;
  t1 text;
@@ -1213,9 +1213,7 @@ IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file conte
 
 -- reference a datalink
 CREATE FUNCTION dl_datalink_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
-RETURNS datalink
-LANGUAGE plpgsql
-    AS $_$
+RETURNS datalink LANGUAGE plpgsql AS $_$
 declare
  lco datalink.link_control_options;
  r record;
@@ -1316,9 +1314,7 @@ end$_$;
 --------------------------------------------------------------- ---------------
 -- unreference a datalink
 CREATE FUNCTION dl_datalink_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
-RETURNS datalink
-    LANGUAGE plpgsql
-    AS $_$
+RETURNS datalink LANGUAGE plpgsql AS $_$
 declare
  lco datalink.link_control_options;
 begin
@@ -1338,9 +1334,7 @@ end$_$;
 --------------------------------------------------------------- ---------------
 -- datalink trigger function for tables
 CREATE FUNCTION dl_trigger_table() RETURNS trigger
-LANGUAGE plpgsql 
-SECURITY DEFINER
-AS $_X$
+LANGUAGE plpgsql SECURITY DEFINER AS $_X$
 declare
   r record;
   ro jsonb;
@@ -1507,9 +1501,7 @@ CREATE OR REPLACE FUNCTION curl_perform(
   OUT ok boolean, OUT rc integer, OUT body text, 
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float,  OUT error text) 
-RETURNS record
-LANGUAGE plperlu
-AS $_$
+RETURNS record LANGUAGE plperlu AS $_$
 my ($filename,$url,$options)=@_;
 # -------- load libraries --------
 use strict; use warnings;
@@ -1679,9 +1671,7 @@ CREATE OR REPLACE FUNCTION curl_get(
   OUT ok boolean, OUT rc integer, OUT body text, 
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float,  OUT error text) 
-RETURNS record
-LANGUAGE sql STRICT
-AS $_$
+RETURNS record LANGUAGE sql STRICT AS $_$
 select url, ok, rc, body, size, content_type, filetime, elapsed, error
   from datalink.curl_perform(null,url,case mode 
                              when 0 then '{head}'
@@ -1702,9 +1692,7 @@ CREATE FUNCTION curl_save(
   OUT ok boolean, OUT rc integer,  
   OUT size bigint, OUT content_type text, OUT filetime bigint,
   OUT elapsed float, OUT error text) 
-RETURNS record
-LANGUAGE sql STRICT
-AS $_$
+RETURNS record LANGUAGE sql STRICT AS $_$
 select file_path, url, ok, rc, size, content_type, filetime, elapsed, error
   from datalink.curl_perform(file_path,url,case persistent
                              when 1 then '{persistent}'
@@ -1800,10 +1788,7 @@ CREATE FUNCTION modlco(
   my_regclass regclass,
   my_column_name name, 
   new_lco dl_lco)
-RETURNS link_control_options
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $_$
+RETURNS link_control_options LANGUAGE plpgsql SECURITY DEFINER AS $_$
 declare
  co record;
  obj record;
@@ -1898,8 +1883,8 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, anonymous integer default 0) RETURNS text
-    LANGUAGE sql STRICT stable
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, anonymous integer default 0) 
+RETURNS text LANGUAGE sql STRICT stable
 AS $_$ 
    select case 
           when $1::jsonb->>'b' is not null 
@@ -1945,9 +1930,7 @@ IS 'SQL/MED - Returns normalized URL value';
 --------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlserver(datalink)
- RETURNS text
-  LANGUAGE sql
-   IMMUTABLE STRICT
+ RETURNS text LANGUAGE sql IMMUTABLE STRICT
    AS $function$select nullif(datalink.uri_get($1::jsonb->>'a','host'),'')$function$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
@@ -1961,9 +1944,7 @@ IS 'SQL/MED - Returns the file server from URL';
 --------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlscheme(datalink)
-RETURNS text
-  LANGUAGE sql
-   IMMUTABLE STRICT
+RETURNS text LANGUAGE sql IMMUTABLE STRICT
    AS $function$select upper(datalink.uri_get($1::jsonb->>'a','scheme'))$function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
@@ -1986,18 +1967,20 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then '/dlfs'||datalink.uri_get(
-            datalink.dl_url_makeinsight($1::jsonb->>'a',($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
+            datalink.dl_url_makeinsight($1::jsonb->>'a',
+                     ($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
-                        '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))))
+                         '#'||coalesce($1::jsonb->>'b',
+                         datalink.uri_get($1::jsonb->>'a','token'))))
           end
 $function$;
 
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, integer)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpath(text, anonymous integer default 0) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+CREATE FUNCTION pg_catalog.dlurlpath(text, anonymous integer default 0)
+ RETURNS text LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
 IS 'SQL/MED - Returns the file path from URL';
@@ -2011,7 +1994,8 @@ CREATE FUNCTION filepathwrite(datalink)
    AS $function$
    select format('%s%s',
                   datalink.uri_get($1::jsonb->>'a','path'),
-                  '#'||coalesce($1::jsonb->>'b',datalink.uri_get($1::jsonb->>'a','token'))
+                  '#'||coalesce($1::jsonb->>'b',
+                                datalink.uri_get($1::jsonb->>'a','token'))
           )
 $function$;
 
@@ -2047,7 +2031,8 @@ CREATE FUNCTION pg_catalog.dllinktype(datalink)
  RETURNS text
   LANGUAGE sql
    IMMUTABLE STRICT
-   AS $$ select coalesce($1::jsonb->>'t',case when datalink.is_local($1) then 'FS' else 'URL' end )$$;
+   AS $$ select coalesce($1::jsonb->>'t',case when datalink.is_local($1) 
+                                              then 'FS' else 'URL' end ) $$;
 
 COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
@@ -2138,9 +2123,7 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
 --------------------------------------------------------------- ---------------
 create or replace function dl_authorize(
   file_path, for_web integer default 1, myrole regrole default user::regrole) 
-returns file_path
-language plpgsql 
-SECURITY DEFINER
+returns file_path language plpgsql SECURITY DEFINER
 as $$
 declare
   mypath text;
@@ -2937,9 +2920,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_directory();
 -- mark file as temporary to be deleted if the transaction aborts
 create or replace function dl_file_new(file_path, op "char" default 't', options jsonb default null, 
   caller datalink.whoami default current_user) returns text
-language plpgsql 
-SECURITY DEFINER
-as $$
+language plpgsql SECURITY DEFINER as $$
 declare 
   my_txid xid8;
   dsn text;
@@ -3017,7 +2998,6 @@ language sql strict as $$
 $$;
 comment on function revision(datalink,int)
 is 'Return a particular datalink revision';
-
 
 --------------------------------------------------------------- ---------------
 -- volume usage statistics
