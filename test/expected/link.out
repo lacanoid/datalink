@@ -154,6 +154,7 @@ select * from columns;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  dl_directory              | dirlink     | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ dl_new_files              | oldlink     | NO           | NONE      | FS          | FS           | NO       | NONE
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  efiles0                   | file        | NO           | NONE      | FS          | FS           | NO       | NONE
  efiles1                   | file        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
@@ -163,7 +164,7 @@ select * from columns;
  sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link2       | FILE         | ALL       | FS          | FS           | NO       | NONE
-(10 rows)
+(11 rows)
 
 alter table sample_datalinks4 rename link2 to link3;
 select * from columns where table_name='sample_datalinks4';
@@ -223,6 +224,7 @@ select * from datalink.columns order by table_name;
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
  datalink.sample_datalinks | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  dl_directory              | dirlink     | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
+ dl_new_files              | oldlink     | NO           | NONE      | FS          | FS           | NO       | NONE
  efiles0                   | file        | NO           | NONE      | FS          | FS           | NO       | NONE
  efiles1                   | file        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  efiles2                   | file        | FILE         | ALL       | FS          | FS           | NO       | NONE
@@ -234,7 +236,7 @@ select * from datalink.columns order by table_name;
  sample_datalinks2         | link        | FILE         | SELECTIVE | FS          | FS           | NO       | NONE
  sample_datalinks3         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
-(13 rows)
+(14 rows)
 
 insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended

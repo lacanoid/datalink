@@ -104,7 +104,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
  datalink     | dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name)                                 | plpgsql  | 
- datalink     | dl_file_new(file_path,"char",jsonb,whoami)                                                   | plpgsql  | 
+ datalink     | dl_file_new(file_path,"char",datalink,jsonb,whoami)                                          | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_trigger_access()                                                                          | plpgsql  | 

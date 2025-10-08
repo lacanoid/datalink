@@ -2011,6 +2011,7 @@ BEGIN
   end if;  
   path := datalink.filepathwrite(pg_catalog.dlnewcopy(link));
   url  := pg_catalog.dlurlcompleteonly(link);
+  perform datalink.dl_file_new(path,'e',link);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
     raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
@@ -2972,16 +2973,18 @@ create table dl_new_files (
   ctime timestamptz not null default now(),
   regrole regrole not null default current_role::regrole,
   path file_path primary key,
-  token dl_token unique,
   op "char" not null,
-  options jsonb
+  oldlink datalink,
+  options jsonb,
+  token dl_token unique
 );
 CREATE TRIGGER "dl_new_files_touch"
 BEFORE INSERT ON datalink.dl_new_files FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 -- mark file as temporary to be deleted if the transaction aborts
-create or replace function dl_file_new(file_path, op "char" default 't', options jsonb default null, 
+create or replace function dl_file_new(file_path, op "char" default 't', 
+  oldlink datalink default null, options jsonb default null, 
   caller datalink.whoami default current_user) returns text
 language plpgsql SECURITY DEFINER as $$
 declare 
@@ -2996,25 +2999,27 @@ begin
 	    format(e'\nFILE:  %s',$1)
     using detail = 'Existing file cannot be made new';
   end if;
-  my_txid := pg_current_xact_id();
-  sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,options) values (%L,%L,%L,%L,%L) '||
-                ' on conflict (path) do nothing',$2,$1,my_txid,$4,$3);
-  select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
-  if not found THEN
-    raise warning 'DATALINK WARNING - dblink extension recommended' 
-    using detail = 'Extension dblink is needed for automatic delete of files from aborted transactions',
-          hint   = 'Install dblink extension';
-    execute sql;
-  else 
-    dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
-  --  perform dblink_exec(dsn,sql,true);
-    execute format('select %I.dblink_exec(%L,%L,true)',ns,dsn,sql);
-    notify "datalink.linker_jobs"; 
-  end if;
+  IF NOT EXISTS (select 1 from datalink.dl_new_files where path = $1) THEN
+    my_txid := pg_current_xact_id();
+    sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,oldlink,options) values (%L,%L,%L,%L,%L,%L) '||
+                  ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,options);
+    select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
+    if not found THEN
+      raise warning 'DATALINK WARNING - dblink extension recommended' 
+      using detail = 'Extension dblink is needed for automatic delete of files from aborted transactions',
+            hint   = 'Install dblink extension';
+      execute sql;
+    else 
+      dsn := format('dbname=%s port=%s',current_database(),current_setting('port'));
+    --  perform dblink_exec(dsn,sql,true);
+      execute format('select %I.dblink_exec(%L,%L,true)',ns,dsn,sql);
+      notify "datalink.linker_jobs"; 
+    end if;
+  END IF; -- not exists
   return $1;
 end
 $$;
-alter function dl_file_new(file_path,"char",jsonb,datalink.whoami) owner to postgres;
+alter function dl_file_new(file_path,"char",datalink,jsonb,datalink.whoami) owner to postgres;
 
 --------------------------------------------------------------- ---------------
 -- list versions
