@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.25 by lacanoid@ljudmila.org
 
-our $version="0.25.0913";
+our $version="0.25.1007";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -159,7 +159,8 @@ sub main() {
         'purge_get'=>$dbh->prepare(q{
           select pg_xact_status(txid) as state, op, path 
             from dl_new_files af
-           where pg_xact_status(txid) is distinct from 'in progress'
+           where op in ('t','w') 
+             and pg_xact_status(txid) is distinct from 'in progress'
            order by txid for update of af
         }),
         'purge_delete'=>$dbh->prepare(q{ delete from dl_new_files where path = $1 })

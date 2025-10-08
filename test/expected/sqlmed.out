@@ -232,3 +232,32 @@ HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
 drop table med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+-- test DLURLPATHWRITE
+create table l (link datalink(72));
+NOTICE:  DATALINK DDL:TRIGGER on l
+insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+WARNING:  DATALINK WARNING - datalinker recommended
+HINT:  Make sure pg_datalinker process is running to finalize your commits.
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
+select substr(link) from l;
+            substr             
+-------------------------------
+ Math: ℕ ⊆ ℤ ⊆ ℚ ⊆ ℝ ⊆ ℂ ⊆ ℍ  +
+ Some 16bit emojis: ⛔⛳      +
+ Some 32bit emojis: 😄😆😎🪙🩲+
+ Some chinese: 𠀀𠀁𠀂𠀃       +
+ 〘_͡͡_͝͝_▹▸s͟σ͟͡ɴ͝ɪ͟c◂◃_͝͝_͡͡_〙          +
+ 
+(1 row)
+
+select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlurlpathwrite1 from l;
+WARNING:  DATALINK WARNING - dblink extension recommended
+DETAIL:  Extension dblink is needed for automatic delete of files from aborted transactions
+HINT:  Install dblink extension
+                  dlurlpathwrite1                  
+---------------------------------------------------
+ /dlfs/var/www/datalink/installcheck/xxxx;utf8.txt
+(1 row)
+
+drop table l;
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt

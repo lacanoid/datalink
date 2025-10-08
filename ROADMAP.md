@@ -83,7 +83,7 @@ Bugs and Issues
 - `create table as` / `select into` bug (data is loaded before triggers are run), forbid for lco > 0
 - ✔︎ domain on domain on datalink doesn't work
 - datalinker service spoofing (~www-data/.pg_service.conf vs dlcat)
-
+- / is incorrectly escaped in subdirectories 
 - update link=dlnewcopy(link) for on unlink delete looses file
 - datalinker: permissions are wrong on restored files
 - ✔︎ multiple updates with write_text() in one transaction fails

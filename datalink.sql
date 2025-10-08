@@ -1509,10 +1509,12 @@ use WWW::Curl::Easy;
 use MIME::Base64 qw(decode_base64);
 use JSON;
 # -------- examine options --------
-my ($head,$binmode,$persistent)=(0,0,0);
+my ($head,$binmode)=(0,0);
+my $op='t';
 if($options=~m|head|i) { $head=1; }
 if($options=~m|bin|i) { $binmode=1; }
-if($options=~m|persistent|i) { $persistent=1; }
+if($options=~m|persistent|i) { $op='w'; }
+if($options=~m|extern|i) { $op='e'; }
 # -------- start time  --------
 my (%r,$r); # results
 my $fh;     # file handle
@@ -1586,7 +1588,6 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
 # -------- open output file --------
 if(defined($filename)) {
   my $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
-  my $op = ($persistent>0)?'w':'t';
   spi_exec_prepared($p,$filename,$op) or
     elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed");
   open($fh,">",$filename) or 
@@ -1696,6 +1697,7 @@ RETURNS record LANGUAGE sql STRICT AS $_$
 select file_path, url, ok, rc, size, content_type, filetime, elapsed, error
   from datalink.curl_perform(file_path,url,case persistent
                              when 1 then '{persistent}'
+                             when 2 then '{extern}'
                              else '{}' end :: text[] || '{bin}');
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
@@ -1959,10 +1961,7 @@ IS 'SQL/MED - Returns the scheme from URL';
 --------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
- RETURNS text
-  LANGUAGE sql
-   STRICT
-   AS $function$
+ RETURNS text LANGUAGE sql STRICT AS $function$
    select case 
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
@@ -1984,6 +1983,51 @@ CREATE FUNCTION pg_catalog.dlurlpath(text, anonymous integer default 0)
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
 IS 'SQL/MED - Returns the file path from URL';
+
+--------------------------------------------------------------- ---------------
+
+CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink)
+ RETURNS text LANGUAGE plpgsql STRICT AS $function$
+DECLARE
+  path datalink.file_path;
+  url text;
+  r record;
+BEGIN
+  if not datalink.is_local(link) then
+    raise exception 'DATALINK EXCEPTION - invalid datalink' 
+              using errcode = 'HW305',
+                    detail = 'DLURLPATHWRITE can only be used with local file URLs',
+                    hint = 'make sure you are using a file: URL scheme';
+  end if;
+  if not (datalink.link_control_options($1)).write_access > 'BLOCKED' then
+    raise exception 'DATALINK EXCEPTION - invalid datalink' 
+              using errcode = 'HW306',
+                    detail = 'DLURLPATHWRITE can only be used with files linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option',
+                    hint = 'make sure you are using correct link control options';
+
+  end if;
+  if link::jsonb->>'b' is null then 
+    raise exception 'DATALINK EXCEPTION - invalid datalink' 
+              using errcode = 'HW307',
+                    detail = 'no token in datalink';
+  end if;  
+  path := datalink.filepathwrite(pg_catalog.dlnewcopy(link));
+  url  := pg_catalog.dlurlcompleteonly(link);
+  r := datalink.curl_save(path,url,2);
+  if not r.ok then
+    raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
+    using errcode = 'HW303',
+          detail = format('CURL error %s%s',r.rc,' - '||r.error);
+  end if;
+  path := '/dlfs'||datalink.uri_get(           
+          datalink.dl_url_makeinsight(link::jsonb->>'a',
+          (link::jsonb->>'b')::datalink.dl_token,0),'path');
+  return path;
+END
+$function$;
+
+COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(datalink)
+     IS 'SQL/MED - Returns the writeable file path from DATALINK value';
 
 --------------------------------------------------------------- ---------------
 
@@ -2383,8 +2427,8 @@ begin
  end if;
  if link::jsonb->>'b' is not null then link := pg_catalog.dlnewcopy(link); end if;
  link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
- link := jsonb_set(link::jsonb,'{ct}',to_jsonb('text/plain'::text));
- link := link::jsonb - '{src}';
+ -- link := jsonb_set(link::jsonb,'{ct}',to_jsonb('text/plain'::text));
+ link := link::jsonb - '{src,ct}';
  perform datalink.write_text(datalink.filepathwrite(link),content,persistent);
  return link;
 end
@@ -2405,8 +2449,8 @@ begin
  end if;
  if link::jsonb->>'b' is not null then link := dlnewcopy(link); end if;
  link := jsonb_set(link::jsonb,'{k}',to_jsonb('w'::text));
- link := jsonb_set(link::jsonb,'{ct}',to_jsonb('application/octet-stream'::text));
- link := link::jsonb - '{src}';
+ -- link := jsonb_set(link::jsonb,'{ct}',to_jsonb('application/octet-stream'::text));
+ link := link::jsonb - '{src,ct}';
  perform datalink.write(datalink.filepathwrite(link),content,persistent);
  return link;
 end
@@ -2474,9 +2518,9 @@ $$;
 create or replace function pg_catalog.length(datalink) 
  RETURNS bigint LANGUAGE sql AS $$ select datalink.getlength($1) $$;
 
-create or replace function pg_catalog.substr(datalink, pos integer default null, len integer default null) 
- RETURNS text LANGUAGE plpgsql
-AS $$
+create or replace function pg_catalog.substr(
+  datalink, pos integer default null, len integer default null) 
+ RETURNS text LANGUAGE plpgsql AS $$
 begin
   pos := coalesce(pos,1);
   if len is not null then 
@@ -2494,7 +2538,8 @@ $$;
 -- directories
 --------------------------------------------------------------- ---------------
 create table dl_directory (
-       dirname    text collate "C" unique check(dirname not in ('URL','FS','IRI')),
+       dirname    text collate "C" unique 
+                  check(dirname not in ('URL','FS','IRI')),
        dirpath    file_path not null check(dirpath like '/%/'),
        dirowner   regrole,
        diracl     aclitem[],
@@ -2527,11 +2572,15 @@ begin
   if tg_relid = 'datalink.directory'::regclass then
     update datalink.dl_directory
        set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
-          (new.dirname,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions)
+          (new.dirname,new.dirowner,new.diracl,
+           new.dirlco,new.dirurl,new.diroptions)
      where dirpath = new.dirpath;
     if not found then
-      insert into datalink.dl_directory (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
-      values (new.dirname,new.dirpath,new.dirowner,new.diracl,new.dirlco,new.dirurl,new.diroptions);
+      insert into datalink.dl_directory 
+        (dirname,dirpath,dirowner,diracl,dirlco,dirurl,diroptions)
+      values 
+        (new.dirname,new.dirpath,new.dirowner,new.diracl,
+         new.dirlco,new.dirurl,new.diroptions);
     end if;
   end if;  -- if datalink.directory
 
@@ -2605,7 +2654,8 @@ AS SELECT d.dirpath,
         END AS grantor,
     e.is_grantable
    FROM datalink.directory d
-     JOIN LATERAL aclexplode(nullif(d.diracl,'{}')) e(grantor, grantee, privilege_type, is_grantable) ON true;
+     JOIN LATERAL aclexplode(nullif(d.diracl,'{}')) 
+                  e(grantor, grantee, privilege_type, is_grantable) ON true;
 
 COMMENT ON VIEW access 
      IS 'Permissions for file system directories, updatable';
@@ -2693,7 +2743,9 @@ EXECUTE PROCEDURE datalink.dl_trigger_access();
 -- inquire file access permitions
 --------------------------------------------------------------- ---------------
 
-CREATE OR REPLACE FUNCTION has_file_privilege(role regrole,file_path datalink.file_path,privilege text, allowsuper boolean default true) RETURNS boolean as $$
+CREATE OR REPLACE FUNCTION has_file_privilege(
+  role regrole,file_path datalink.file_path,privilege text, 
+  allowsuper boolean default true) RETURNS boolean as $$
 select (current_setting('is_superuser')::boolean and $4) or exists (
   select dirpath from datalink.access 
    where privilege_type=upper($3)
@@ -2702,8 +2754,11 @@ select (current_setting('is_superuser')::boolean and $4) or exists (
 )
 $$ LANGUAGE sql;
 
-CREATE OR REPLACE FUNCTION has_file_privilege(file_path datalink.file_path, privilege text, allowsuper boolean default true) RETURNS boolean
- LANGUAGE sql AS $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
+CREATE OR REPLACE FUNCTION has_file_privilege(
+  file_path datalink.file_path, privilege text, 
+  allowsuper boolean default true) RETURNS boolean
+ LANGUAGE sql AS 
+ $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
 --------------------------------------------------------------- ---------------
 -- web access permisions

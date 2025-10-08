@@ -13,11 +13,13 @@ Version 0.25
 - replacing file contents multiple times inside transaction works now
 - no more excessive printing to stderr in `curl_get()`
 - added preliminary `curl_perform()` unified function, `curl_get()` and `curl_save()` are now just wrappers.
-- some support for `data:` URLs in `curl_perform()`
+- support for `data:` URLs in `curl_perform()`
 - datalinker improved error logging
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added `pg_catalog.length(datalink)` function to return length of file
+- added `datalink.content_type(datalink)` function to return MIME type if available
+- added preliminary `DLURLPATHWRITE()` function from SQL standard
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem
@@ -75,7 +77,7 @@ Version 0.22
 - improved support for file path to url mapping
 - improved support for `READ ACCESS DB`
 - functions `dlurlpath` and `dlurlcomplete` now include read access tokens when appropriate
-- function `read_text` and `read_lines` now support read access tokens
+- functions `read_text` and `read_lines` now support read access tokens
 - new function `dl_authorize(file_path)` to authorize a file path
 - added simple apache2 mod_perl module to authorize access (DLFF for DLURLCOMPLETE)
 - new function `dl_lco(datalink)` to get LCO for a (linked) datalink

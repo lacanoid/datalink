@@ -40,6 +40,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlpath(text,integer)                                                                      | sql      | SQL/MED - Returns the file path from URL
  pg_catalog   | dlurlpathonly(datalink)                                                                      | sql      | SQL/MED - Returns the file path from DATALINK value
  pg_catalog   | dlurlpathonly(text)                                                                          | sql      | SQL/MED - Returns the file path from URL
+ pg_catalog   | dlurlpathwrite(datalink)                                                                     | plpgsql  | SQL/MED - Returns the writeable file path from DATALINK value
  pg_catalog   | dlurlscheme(datalink)                                                                        | sql      | SQL/MED - Returns the scheme from DATALINK value
  pg_catalog   | dlurlscheme(text)                                                                            | sql      | SQL/MED - Returns the scheme from URL
  pg_catalog   | dlurlserver(datalink)                                                                        | sql      | SQL/MED - Returns the file server from DATALINK value
@@ -120,6 +121,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(99 rows)
+(100 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

@@ -128,3 +128,10 @@ update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
 update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
 
 drop table med;
+
+-- test DLURLPATHWRITE
+create table l (link datalink(72));
+insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+select substr(link) from l;
+select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlurlpathwrite1 from l;
+drop table l;
