@@ -1050,9 +1050,7 @@ CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
 --------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
-RETURNS datalink
-    LANGUAGE plpgsql IMMUTABLE
-    AS $$
+RETURNS datalink LANGUAGE plpgsql IMMUTABLE AS $$
 declare
  my_dl datalink;
  my_uri text;
@@ -2348,7 +2346,8 @@ COMMENT ON FUNCTION read_lines(datalink, bigint)
 
 --------------------------------------------------------------- ---------------
 
-CREATE OR REPLACE FUNCTION write_text(filename file_path, content text, persistent integer default 0)
+CREATE OR REPLACE FUNCTION write_text(
+  filename file_path, content text, persistent integer default 0)
  RETURNS text
  LANGUAGE plperlu
 AS $function$
@@ -2368,7 +2367,8 @@ AS $function$
   if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
-  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
+  unless(spi_exec_prepared($p,$filename,$op))
+   { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
   open($fh,">",$filename) or 
    die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
@@ -2380,7 +2380,8 @@ $function$;
 COMMENT ON FUNCTION write_text(file_path,text,integer) IS 
   'Write new local file contents as text';
 
-CREATE OR REPLACE FUNCTION write(filename file_path, content bytea, persistent integer default 0)
+CREATE OR REPLACE FUNCTION write(
+  filename file_path, content bytea, persistent integer default 0)
  RETURNS text
  LANGUAGE plperlu
 AS $function$
@@ -2400,7 +2401,8 @@ AS $function$
   if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
-  unless(spi_exec_prepared($p,$filename,$op)) { die "DATALINK EXCEPTION - dl_file_new() failed"; }
+  unless(spi_exec_prepared($p,$filename,$op)) 
+   { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
   open($fh,">",$filename) or 
    die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
@@ -2414,7 +2416,8 @@ COMMENT ON FUNCTION write(file_path,bytea,integer) IS
 
 --------------------------------------------------------------- ---------------
 
-CREATE OR REPLACE FUNCTION write_text(link datalink, content text, persistent integer default 0)
+CREATE OR REPLACE FUNCTION write_text(
+  link datalink, content text, persistent integer default 0)
  RETURNS datalink
  LANGUAGE plpgsql
 AS $function$
@@ -2436,7 +2439,8 @@ $function$;
 COMMENT ON FUNCTION write_text(datalink,text,integer) IS 
   'Write datalink contents as text';
 
-CREATE OR REPLACE FUNCTION write(link datalink, content bytea, persistent integer default 0)
+CREATE OR REPLACE FUNCTION write(
+  link datalink, content bytea, persistent integer default 0)
  RETURNS datalink
  LANGUAGE plpgsql
 AS $function$
@@ -2477,7 +2481,8 @@ $$ language sql;
 comment on function fileexists(file_path) is 
   'BFILE - Returns whether file exists';
 
-create or replace function filegetname(datalink, OUT dirname text, OUT filename text, OUT dirpath text)
+create or replace function filegetname(
+  datalink, OUT dirname text, OUT filename text, OUT dirpath text)
 returns record as $$
   select dirname, substr(dlurlpathonly($1),length(dirpath)+1), dirpath
     from datalink.directory 
@@ -2487,8 +2492,10 @@ returns record as $$
 $$ strict language sql;
 comment on function filegetname(datalink) is 
   'BFILE - Returns directory name and filename for a datalink';
-create or replace function filegetname(file_path, OUT dirname text, OUT filename text, OUT dirpath text)
-returns record as $$ select * from datalink.filegetname(dlvalue($1,'FS') $$ strict language sql;
+create or replace function filegetname(
+  file_path, OUT dirname text, OUT filename text, OUT dirpath text)
+returns record as 
+$$ select * from datalink.filegetname(dlvalue($1,'FS') $$ strict language sql;
 comment on function filegetname(file_path) is 
   'BFILE - Returns directory name and filename for a file';
 
@@ -2572,8 +2579,8 @@ begin
   if tg_relid = 'datalink.directory'::regclass then
     update datalink.dl_directory
        set (dirname,dirowner,diracl,dirlco,dirurl,diroptions) =
-          (new.dirname,new.dirowner,new.diracl,
-           new.dirlco,new.dirurl,new.diroptions)
+           (new.dirname,new.dirowner,new.diracl,
+            new.dirlco,new.dirurl,new.diroptions)
      where dirpath = new.dirpath;
     if not found then
       insert into datalink.dl_directory 
@@ -2938,7 +2945,8 @@ create table insight_access_log (
 );
 comment on table insight_access_log is 'Insight access log for dl_authorize()';
 
-CREATE FUNCTION dl_url_makeinsight(url text, link_token dl_token, anonymous integer default 0) 
+CREATE FUNCTION dl_url_makeinsight(
+  url text, link_token dl_token, anonymous integer default 0) 
 RETURNS text LANGUAGE plpgsql strict
 AS $$
 declare
@@ -3078,11 +3086,13 @@ WITH a AS (
                 datalink.filegetname(dlvalue(linked_files.path::text)) as d
         )
  SELECT a.dirpath,
-    sum(a.size) FILTER (WHERE length(a.filename) > 0) AS size,
-    sum(1) FILTER (WHERE length(a.filename) > 0) AS count,
-    sum(case when a.state='LINKED' then 1 end) FILTER (WHERE length(a.filename) > 0) AS linked,
-    sum(case when a.err is not null then 1 end) FILTER (WHERE length(a.filename) > 0) AS error,
-    sum(case when a.state = ANY ('{LINK,UNLINK}'::file_link_state[]) then 1 end) 
+        sum(a.size) FILTER (WHERE length(a.filename) > 0) AS size,
+        sum(1) FILTER (WHERE length(a.filename) > 0) AS count,
+        sum(case when a.state='LINKED' then 1 end) 
+        FILTER (WHERE length(a.filename) > 0) AS linked,
+        sum(case when a.err is not null then 1 end) 
+        FILTER (WHERE length(a.filename) > 0) AS error,
+        sum(case when a.state = ANY ('{LINK,UNLINK}'::file_link_state[]) then 1 end) 
         FILTER (WHERE length(a.filename) > 0) AS waiting
    FROM a
   GROUP BY GROUPING SETS ((a.dirpath), ())

@@ -135,3 +135,13 @@ insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 select substr(link) from l;
 select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlurlpathwrite1 from l;
 drop table l;
+
+update datalink.directory 
+   set dirname='www'
+ where dirpath='/var/www/datalink/';
+
+create table l (link datalink(72));
+insert into l values (dlvalue('installcheck/utf8.txt','www'));
+select substr(link) from l;
+select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlurlpathwrite1 from l;
+drop table l;
