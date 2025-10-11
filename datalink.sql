@@ -1781,8 +1781,13 @@ INSERT INTO http_response_codes VALUES
  (510, 'Not Extended', '[RFC2774]'),
  (511, 'Network Authentication Required', '[RFC6585]'),
  (520, 'Web Server Returned an Unknown Error', 'Cloudflare'),
+ (521, 'Web Server Is Down', 'Cloudflare'),
+ (522, 'Connection Timed Out', 'Cloudflare'),
+ (523, 'Origin Is Unreachable', 'Cloudflare'),
+ (524, 'A Timeout Occurred', 'Cloudflare'),
  (525, 'SSL handshake failed', 'Cloudflare'),
  (526, 'Invalid SSL Certificate', 'Cloudflare'),
+ (527, 'Railgun Error', 'Cloudflare'),
  (999, 'Non-standard', null);
 --------------------------------------------------------------- ---------------
 -- datalink admin functions
