@@ -6,6 +6,8 @@ Version 0.25
 - DATALINK LINK notice shown only after file has been succesfully linked
 - new files trigger, file must not already exist when inserting into dl_new_files
 - `datalink.getlength(datalink)` now works for web links
+- added `pg_catalog.length(datalink)` function to return length of file
+- added `datalink.content_type(datalink)` function to return MIME type if available
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
 - insert and then delete of ON UNLINK DELETE datalinks inside one transaction now actually deletes files
 - store content type and and source url in datalinks returnd by `DLREPLACECONTENT()`
@@ -17,8 +19,6 @@ Version 0.25
 - datalinker improved error logging
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
-- added `pg_catalog.length(datalink)` function to return length of file
-- added `datalink.content_type(datalink)` function to return MIME type if available
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
 - ! replace/delete file bug
 - ! web permissions

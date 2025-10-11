@@ -1767,6 +1767,8 @@ INSERT INTO http_response_codes VALUES
  (429, 'Too Many Requests', '[RFC6585]'),
  (431, 'Request Header Fields Too Large', '[RFC6585]'),
  (451, 'Unavailable For Legal Reasons', '[RFC7725]'),
+ (498, 'Invalid Token', 'Esri'),
+ (499, 'Token Required', 'Esri'),
  (500, 'Internal Server Error', '[RFC2616]'),
  (501, 'Not Implemented', '[RFC2616]'),
  (502, 'Bad Gateway', '[RFC2616]'),
@@ -1777,8 +1779,11 @@ INSERT INTO http_response_codes VALUES
  (507, 'Insufficient Storage', '[RFC4918]'),
  (508, 'Loop Detected', '[RFC5842]'),
  (510, 'Not Extended', '[RFC2774]'),
- (511, 'Network Authentication Required', '[RFC6585]');
-
+ (511, 'Network Authentication Required', '[RFC6585]'),
+ (520, 'Web Server Returned an Unknown Error', 'Cloudflare'),
+ (525, 'SSL handshake failed', 'Cloudflare'),
+ (526, 'Invalid SSL Certificate', 'Cloudflare'),
+ (999, 'Non-standard', null);
 --------------------------------------------------------------- ---------------
 -- datalink admin functions
 --------------------------------------------------------------- ---------------
