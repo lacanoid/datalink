@@ -59,7 +59,7 @@ select d.datname::text as name,
        count(a)::int as connections
   from pg_database d
   left join pg_catalog.pg_stat_activity a on (a.datid=d.oid)
- where datallowconn
+ where datallowconn and running
    and a.pid is distinct from pg_backend_pid()
  group by 1,2 
 )
