@@ -30,6 +30,15 @@ AS $function$
 $function$
 ;
 
+CREATE OR REPLACE FUNCTION datalink.html_tidy(datalink)
+ RETURNS xml
+ LANGUAGE sql
+ STRICT
+AS $function$
+ select xmlparse(content datalink.html_tidy_text(substr($1)))
+$function$
+;
+
 create view datalink.curl_response_codes as 
 with 
 e as (
