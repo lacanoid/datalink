@@ -20,6 +20,7 @@ Version 0.25
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
+- added few additional HTTP error codes
 - ! replace/delete file bug
 - ! web permissions
 - ! FUSE filesystem
