@@ -103,6 +103,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_ref(datalink,dl_lco,regclass,name)                                               | plpgsql  | 
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
+ datalink     | dl_file_done(datalink,whoami)                                                                | plpgsql  | 
  datalink     | dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name)                                 | plpgsql  | 
  datalink     | dl_file_new(file_path,"char",datalink,jsonb,whoami)                                          | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
@@ -121,6 +122,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(100 rows)
+(101 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
