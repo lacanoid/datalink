@@ -1136,7 +1136,7 @@ begin
  t1 := link::jsonb->>'o';
  if has_token > 0 then
   -- handle possibly embedded write tokens first
-  l1 := datalink.dl_file_done(link);
+  l1 := datalink.dl_file_done(link,false);
   if l1 is not null then return l1; end if;
   -- no embeded write token, handle as usual
   l1 := link;
@@ -1187,9 +1187,14 @@ declare
  token datalink.dl_token;
  t1 text;
  u1 text;
+ l1 datalink;
 begin 
   u1 := link::jsonb->>'a';
   if has_token > 0 then
+    -- handle possibly embedded write tokens first
+    l1 := datalink.dl_file_done(link,true);
+    if l1 is not null then return l1; end if;
+    -- no embeded write token, handle as usual
     t1 := coalesce(link::jsonb->>'b',datalink.uri_get(u1,'token'));
     if t1 is not null then 
       link := jsonb_set(link::jsonb,'{o}',to_jsonb(t1));
@@ -3045,12 +3050,13 @@ alter function dl_file_new(file_path,"char",datalink,jsonb,datalink.whoami) owne
 
 --------------------------------------------------------------- ---------------
 -- wrap up external DLURLPATHWRITE generated files for purge
-create or replace function dl_file_done(link datalink, caller datalink.whoami default current_user) 
+create or replace function dl_file_done(link datalink, newcopy boolean default false, caller datalink.whoami default current_user) 
 returns datalink language plpgsql strict as $$
 DECLARE
  mypath text;
  m text[];
  t datalink.dl_token;
+ t1 text;
 BEGIN
   -- handle embedded write tokens
   mypath := datalink.uri_get(link::jsonb->>'a','path');
@@ -3063,7 +3069,19 @@ BEGIN
       set op='t'
     where op='e' and token = t 
    returning oldlink into link;
-   if found and link is not null then return link; end if;
+   if found and link is not null then 
+     if newcopy then
+      t1 := coalesce(link::jsonb->>'b',datalink.uri_get(u1,'token'));
+      if t1 is not null then 
+        link := jsonb_set(link::jsonb,'{o}',to_jsonb(t1));
+      end if;
+      link := jsonb_set(link::jsonb,'{b}',to_jsonb(t));
+      link := jsonb_set(link::jsonb,'{k}',to_jsonb('n'::text));
+     else
+      link := jsonb_set(link::jsonb,'{k}',to_jsonb('p'::text));
+     end if;
+     return link; 
+   end if;
    raise exception 'DATALINK EXCEPTION - invalid write token'
    using errcode = 'HW004', 
           detail = 'file corresponding to a write token was not found',

@@ -72,6 +72,7 @@ Wanted
 - nfs server
 - implement automatic expiration in pg_datalinker for for insight, etc...
 - forbid creating temporary files if no datalinker
+- reverse domain name handling perhaps something like rdn:http://net.domain.www -> http://www.domain.net
 
 Advanced
 --------

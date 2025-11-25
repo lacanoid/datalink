@@ -2,7 +2,11 @@ create extension datalink cascade;
 
 set search_path=datalink;
 
-\dx datalink
+select extname as "Name",
+       extversion as "Version",
+       extnamespace::regnamespace as "Schema",
+       obj_description(oid) as "Description" 
+  from pg_extension where extname = 'datalink';
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 
   from pg_proc p 

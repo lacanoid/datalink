@@ -3,8 +3,11 @@ NOTICE:  installing required extension "plperlu"
 NOTICE:  installing required extension "file_fdw"
 NOTICE:  installing required extension "uri"
 set search_path=datalink;
-\dx datalink
-               List of installed extensions
+select extname as "Name",
+       extversion as "Version",
+       extnamespace::regnamespace as "Schema",
+       obj_description(oid) as "Description" 
+  from pg_extension where extname = 'datalink';
    Name   | Version |  Schema  |       Description        
 ----------+---------+----------+--------------------------
  datalink | 0.25    | datalink | SQL/MED DATALINK support
@@ -103,7 +106,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_ref(datalink,dl_lco,regclass,name)                                               | plpgsql  | 
  datalink     | dl_datalink_send(datalink)                                                                   | internal | 
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
- datalink     | dl_file_done(datalink,whoami)                                                                | plpgsql  | 
+ datalink     | dl_file_done(datalink,boolean,whoami)                                                        | plpgsql  | 
  datalink     | dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name)                                 | plpgsql  | 
  datalink     | dl_file_new(file_path,"char",datalink,jsonb,whoami)                                          | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 

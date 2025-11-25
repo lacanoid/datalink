@@ -13,13 +13,18 @@ Version 0.25
 - store content type and and source url in datalinks returnd by `DLREPLACECONTENT()`
 - transactional file reads, no you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
-- no more excessive printing to stderr in `curl_get()`
+- no more excessive printing to stderr/stdout in `curl_get()`
 - added preliminary `curl_perform()` unified function, `curl_get()` and `curl_save()` are now just wrappers.
 - support for `data:` URLs in `curl_perform()`
 - datalinker improved error logging
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
+-- ! store token in dl_file_new
+-- ! dlnewcopy() + dl_file_done() fix
+-- ! dl_authorize() arguments change to support authorizing write tokens
+-- ! dl_authorize() in curl_perform()
+-- ! add dlurlcompletewrite()
 - added few additional HTTP error codes
 - ! replace/delete file bug
 - ! web permissions

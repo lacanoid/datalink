@@ -25,14 +25,20 @@ Some disciplines, which usually handle external files together with SQL data:
 - Administration, where files are used to keep PDF documents and such
 - Medical, where X-ray and other scans are kept in files
 
+Datalink Concepts:
+- Files are referenced through new DATALINK type
+- Database system has control over external files
+- No need to store file contents in database system
+- Access control and ACID mechanisms of DBMS can be extended to file system
+
 Benefits of datalinks:
 1. Does not require physically moving files stored on a file system into the database in order
- to gain the benefits of database's robust management capabilites.
+ to gain the benefits of database's robust management capabilites. 
+ Turning over the responsibility for managing referential integrity to the database minimizes
+ the opportunity for integrity errors between external files and database data.
 2. Eliminates the need to develop and maintain homegrown custom software to manage referential
  data integrity between the database and the file system.
-3. Turning over the responsibility for managing referential integrity to the database minimizes
- the opportunity for integrity errors between external files and database data.
-4. The ability to maintain performance and speed of access by locating external files in close
+3. The ability to maintain performance and speed of access by locating external files in close
  proximity to applications, and to continue using the file system directly for read and write operations.
 
 Datalinks are a part of [SQL/MED (Management of External Data)](https://en.wikipedia.org/wiki/SQL/MED) 
