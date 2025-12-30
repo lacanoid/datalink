@@ -2018,6 +2018,7 @@ DECLARE
   path datalink.file_path;
   url text;
   r record;
+  l1 datalink;
 BEGIN
   if not datalink.is_local(link) then
     raise exception 'DATALINK EXCEPTION - invalid datalink' 
@@ -2037,9 +2038,10 @@ BEGIN
               using errcode = 'HW307',
                     detail = 'no token in datalink';
   end if;  
-  path := datalink.filepathwrite(pg_catalog.dlnewcopy(link));
+  l1   := pg_catalog.dlnewcopy(link);
+  path := datalink.filepathwrite(l1);
   url  := pg_catalog.dlurlcomplete(link);
-  perform datalink.dl_file_new(path,'e',link);
+  perform datalink.dl_file_new(path,'e',link,(l1::jsonb->>'b')::datalink.dl_token);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
     raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
@@ -3011,9 +3013,10 @@ EXECUTE PROCEDURE datalink.dl_trigger_directory();
 
 -- mark file as temporary to be deleted if the transaction aborts
 create or replace function dl_file_new(file_path, op "char" default 't', 
-  oldlink datalink default null, options jsonb default null, 
-  caller datalink.whoami default current_user) returns text
-language plpgsql SECURITY DEFINER as $$
+  oldlink datalink default null, token datalink.dl_token default null,
+  options jsonb default null, 
+  caller datalink.whoami default current_user)
+returns text language plpgsql SECURITY DEFINER as $$
 declare 
   my_txid xid8;
   dsn text;
@@ -3028,8 +3031,9 @@ begin
   end if;
   IF NOT EXISTS (select 1 from datalink.dl_new_files where path = $1) THEN
     my_txid := pg_current_xact_id();
-    sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,oldlink,options) values (%L,%L,%L,%L,%L,%L) '||
-                  ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,options);
+    sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,oldlink,token,options)'||
+                  ' values (%L,%L,%L,%L,%L,%L,%L) '||
+                  ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,token,options);
     select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
     if not found THEN
       raise warning 'DATALINK WARNING - dblink extension recommended' 
@@ -3046,11 +3050,15 @@ begin
   return $1;
 end
 $$;
-alter function dl_file_new(file_path,"char",datalink,jsonb,datalink.whoami) owner to postgres;
+alter function dl_file_new(
+  file_path,"char",datalink,datalink.dl_token,jsonb,datalink.whoami)
+ owner to postgres;
 
 --------------------------------------------------------------- ---------------
 -- wrap up external DLURLPATHWRITE generated files for purge
-create or replace function dl_file_done(link datalink, newcopy boolean default false, caller datalink.whoami default current_user) 
+create or replace function dl_file_done(
+  link datalink, newcopy boolean default false,
+  caller datalink.whoami default current_user) 
 returns datalink language plpgsql strict as $$
 DECLARE
  mypath text;
