@@ -246,7 +246,7 @@ PATH:  /var/www/datalink/test4.txt
 ROLE:  root
 DETAIL:  delete permission for table owner is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 44 at RAISE
+CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 45 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment

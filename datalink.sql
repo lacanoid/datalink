@@ -76,7 +76,8 @@ CREATE TYPE pg_catalog.datalink (
    COLLATABLE = false
 );
 
-COMMENT ON TYPE pg_catalog.datalink IS 'SQL/MED DATALINK type for external file references';
+COMMENT ON TYPE pg_catalog.datalink
+     IS 'SQL/MED DATALINK type for external file references';
 create cast (datalink as jsonb) without function; 
 -- create cast (datalink as jsonb) without function as implicit;
 -- create cast (datalink as jsonb) with inout as implicit;
@@ -183,7 +184,8 @@ CREATE TABLE link_control_options (
   recovery dl_recovery,
   on_unlink dl_on_unlink
 );
-comment on table link_control_options is 'Valid combinations of Datalink Link Control Options';
+comment on table link_control_options
+     is 'Valid combinations of Datalink Link Control Options';
 grant select on link_control_options to public;
 
 --------------------------------------------------------------- ---------------
@@ -604,7 +606,8 @@ begin
  if fstat->>'typ' not in ('-','d') then 
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
-                  detail = format('file "%s" is neither file nor directory, but "%s"',file_path,fstat->>'typ');
+                  detail = format('file "%s" is neither file nor directory, but "%s"',
+		                  file_path,fstat->>'typ');
  end if;
  -- check for DELETE privilege
  if lco.on_unlink = 'DELETE' then
@@ -1598,7 +1601,10 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
 }
 # -------- handle file: URLs on localhost with embedded tokens
 elsif($url=~m|^file:/.*/(([a-z0-9\-]{36})[,;_:@])?(.+)$|i) {
-  # elog(ERROR,"DATALINK EXCEPTION - file: URLs with embedded tokens not implemented in curl_perform\nURL: $url");
+  my $p = spi_prepare(q{select datalink.dl_authorize_url($1) as url},'text');
+  my $v = spi_exec_prepared($p,$url);
+  $url = $v->{rows}->[0]->{url};
+  if(! $url) { elog(ERROR,"DATALINK EXCEPTION - invalid read token"); }    
 }
 # -------- open output file --------
 if(defined($filename)) {
@@ -2253,7 +2259,13 @@ begin
 end$$;
 comment on function dl_authorize(file_path, integer, regrole)
      is 'Authorize access to READ ACCESS DB file via embedded read token';
-
+--------------------------------------------------------------- ---------------
+create or replace function dl_authorize_url(url text) returns text
+language sql strict as $$
+select pg_catalog.dlvalue(
+         datalink.dl_authorize(datalink.uri_get($1,'path'),0)
+       )::jsonb->>'a';
+$$;
 --------------------------------------------------------------- ---------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)
  RETURNS text LANGUAGE plpgsql
