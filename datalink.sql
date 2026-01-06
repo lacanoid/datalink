@@ -2262,9 +2262,9 @@ comment on function dl_authorize(file_path, integer, regrole)
 --------------------------------------------------------------- ---------------
 create or replace function dl_authorize_url(url text) returns text
 language sql strict as $$
-select pg_catalog.dlvalue(
+select datalink.uri_set('file:/','path',
          datalink.dl_authorize(datalink.uri_get($1,'path'),0)
-       )::jsonb->>'a';
+       );
 $$;
 --------------------------------------------------------------- ---------------
 CREATE FUNCTION read_text(datalink, pos bigint default 1, len bigint default null)

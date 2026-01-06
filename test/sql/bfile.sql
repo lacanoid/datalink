@@ -3,19 +3,19 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 
-select length(dlvalue('/var/www/datalink/test2.txt')),
-       getlength(dlvalue('/var/www/datalink/test2.txt'));
+select length(dlvalue('/var/www/datalink/installcheck/utf8.txt')),
+       getlength(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 
-select substr(dlvalue('/var/www/datalink/test2.txt')),
-       substr(dlvalue('/var/www/datalink/test2.txt'),12),
-       substr(dlvalue('/var/www/datalink/test2.txt'),12,8)
+select substr(dlvalue('/var/www/datalink/installcheck/utf8.txt')),
+       substr(dlvalue('/var/www/datalink/installcheck/utf8.txt'),12),
+       substr(dlvalue('/var/www/datalink/installcheck/utf8.txt'),12,8)
        ;
 
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 
 insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
-insert into bfiles (bfile) values (dlvalue('test2.txt','www'));
+insert into bfiles (bfile) values (dlvalue('installcheck/utf8.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
 create domain bfile2 bfile;
@@ -41,43 +41,43 @@ truncate bfiles2;
 
 -- test text file reads
 
-select read_text('/var/www/datalink/test2.txt');
-select read_text('/var/www/datalink/test2.txt',11);
-select read_text('/var/www/datalink/test2.txt',11,10);
-select read_text(dlvalue('/var/www/datalink/test2.txt'));
-select read_text(dlvalue('/var/www/datalink/test2.txt'),11);
-select read_text(dlvalue('/var/www/datalink/test2.txt'),11,10);
+select read_text('/var/www/datalink/installcheck/utf8.txt');
+select read_text('/var/www/datalink/installcheck/utf8.txt',51);
+select read_text('/var/www/datalink/installcheck/utf8.txt',51,17);
+select read_text(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+select read_text(dlvalue('/var/www/datalink/installcheck/utf8.txt'),51);
+select read_text(dlvalue('/var/www/datalink/installcheck/utf8.txt'),51,17);
 select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
-select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11);
-select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),11,10);
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),51);
+select read_text(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),51,17);
 
-select * from read_lines('/var/www/datalink/test2.txt');
+select * from read_lines('/var/www/datalink/installcheck/utf8.txt');
 
 -- test binary file reads
 
-select read('/var/www/datalink/test2.txt');
-select read('/var/www/datalink/test2.txt',4);
-select read('/var/www/datalink/test2.txt',4,10);
-select read(dlvalue('/var/www/datalink/test2.txt'));
-select read(dlvalue('/var/www/datalink/test2.txt'),4);
-select read(dlvalue('/var/www/datalink/test2.txt'),4,10);
+select read('/var/www/datalink/installcheck/utf8.txt');
+select read('/var/www/datalink/installcheck/utf8.txt',4);
+select read('/var/www/datalink/installcheck/utf8.txt',4,10);
+select read(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+select read(dlvalue('/var/www/datalink/installcheck/utf8.txt'),4);
+select read(dlvalue('/var/www/datalink/installcheck/utf8.txt'),4,10);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'));
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4);
 select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt'),4,10);
 
 -- test checking for updated files
 
-insert into my_table2 values (dlvalue('/var/www/datalink/test2.txt'));
+insert into my_table2 values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 select datalink.has_updated(link) from my_table2;
-\! touch /var/www/datalink/test2.txt
+\! touch /var/www/datalink/installcheck/utf8.txt
 select datalink.has_updated(link) from my_table2;
 select datalink.has_updated(link) from my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 update my_table2 set link=dlnewcopy(link);
 select datalink.has_updated(link) from my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 truncate my_table2;
-select datalink.has_updated(dlvalue('/var/www/datalink/test2.txt'));
+select datalink.has_updated(dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 
 select datalink.has_updated('/etc/issue');
 
@@ -86,7 +86,7 @@ select datalink.has_updated('/etc/issue');
 create table files ( link datalink(2) );
 insert into files values (dlvalue('/var/www/datalink/test1.txt'));
 update files  set link = dlnewcopy(link);
-insert into files values (dlvalue('/var/www/datalink/test2.txt'));
+insert into files values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 insert into files values (dlreplacecontent('/var/www/datalink/test6.txt','http://www.github.com/robots.txt'));
 insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
 
