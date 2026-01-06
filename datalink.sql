@@ -2055,8 +2055,8 @@ BEGIN
           detail = format('CURL error %s%s',r.rc,' - '||r.error);
   end if;
   path := '/dlfs'||datalink.uri_get(           
-          datalink.dl_url_makeinsight(link::jsonb->>'a',
-          (link::jsonb->>'b')::datalink.dl_token,0),'path');
+          datalink.dl_url_makeinsight(l1::jsonb->>'a',
+          (l1::jsonb->>'b')::datalink.dl_token,0),'path');
   return path;
 END
 $function$;
@@ -3091,7 +3091,7 @@ BEGIN
    returning oldlink into link;
    if found and link is not null then 
      if newcopy then
-      t1 := coalesce(link::jsonb->>'b',datalink.uri_get(u1,'token'));
+      t1 := coalesce(link::jsonb->>'b',datalink.uri_get(link,'token'));
       if t1 is not null then 
         link := jsonb_set(link::jsonb,'{o}',to_jsonb(t1));
       end if;

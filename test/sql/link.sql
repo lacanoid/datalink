@@ -29,7 +29,7 @@ insert into sample_datalinks4 (link)
 values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 4'));
+values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 4'));
 
 insert into sample_datalinks3 (url,link) select dlurlcompleteonly(link),link from sample_datalinks4;
 

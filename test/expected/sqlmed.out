@@ -80,7 +80,7 @@ create table sample_files (
 insert into sample_files (filename)
 values 
   ('/var/www/datalink/test1.txt'),
-  ('/var/www/datalink/test2.txt'),
+  ('/var/www/datalink/installcheck/utf8.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
   ('/var/www/datalink/CHANGELOG.md');
@@ -88,7 +88,7 @@ select *,dlvalue(filename) from sample_files;
  id |                             filename                             |                                    dlvalue                                     
 ----+------------------------------------------------------------------+--------------------------------------------------------------------------------
   1 | /var/www/datalink/test1.txt                                      | {"a": "file:/var/www/datalink/test1.txt"}
-  2 | /var/www/datalink/test2.txt                                      | {"a": "file:/var/www/datalink/test2.txt"}
+  2 | /var/www/datalink/installcheck/utf8.txt                          | {"a": "file:/var/www/datalink/installcheck/utf8.txt"}
   3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
   4 | /var/www/datalink/testX.txt                                      | {"a": "file:/var/www/datalink/testX.txt"}
   5 | /var/www/datalink/CHANGELOG.md                                   | {"a": "file:/var/www/datalink/CHANGELOG.md"}
@@ -155,13 +155,13 @@ SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,r
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 15.3 Effect of replacing rows in base tables
-update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
+update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 --
 -- case 1.b.i.1 referenced file does not exist
 update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
@@ -173,7 +173,7 @@ PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 update med set link = dlvalue('file:///var/www/datalink/test4.txt'); -- err
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
@@ -183,7 +183,7 @@ SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,r
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 delete from med;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 --
 -- case 1.b.ii.2.A.I invalid write token
@@ -206,7 +206,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write permission for update
 DETAIL:  write access is BLOCKED for column med.link
@@ -215,23 +215,23 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 65 at RAISE
 --
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  File address is different for update of column med.link
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
-update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
+update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 drop table med;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 -- test DLURLPATHWRITE
 create table l (link datalink(72));
 NOTICE:  DATALINK DDL:TRIGGER on l

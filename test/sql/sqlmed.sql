@@ -41,7 +41,7 @@ create table sample_files (
 insert into sample_files (filename)
 values 
   ('/var/www/datalink/test1.txt'),
-  ('/var/www/datalink/test2.txt'),
+  ('/var/www/datalink/installcheck/utf8.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
   ('/var/www/datalink/CHANGELOG.md');
@@ -101,7 +101,7 @@ insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -
 
 -- 15.3 Effect of replacing rows in base tables
 
-update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
+update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 --
 -- case 1.b.i.1 referenced file does not exist
 update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
@@ -119,13 +119,13 @@ update med set link = dlnewcopy(link); -- ok
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
 --
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- err
-update med set link = dlvalue('file:///var/www/datalink/test2.txt'); -- ok
-update med set link = dlnewcopy('file:///var/www/datalink/test2.txt'); -- ok
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
+update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 
 drop table med;
 
