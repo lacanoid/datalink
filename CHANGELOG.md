@@ -20,8 +20,6 @@ Version 0.25
 - datalinker faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
--- ! store token in dl_file_new
--- ! dlnewcopy() + dl_file_done() fix
 -- ! dl_authorize() arguments change to support authorizing write tokens
 -- ! dl_authorize() in curl_perform()
 -- ! add dlurlcompletewrite()

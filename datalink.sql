@@ -1601,10 +1601,12 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
 }
 # -------- handle file: URLs on localhost with embedded tokens
 elsif($url=~m|^file:/.*/(([a-z0-9\-]{36})[,;_:@])?(.+)$|i) {
-  my $p = spi_prepare(q{select datalink.dl_authorize_url($1) as url},'text');
-  my $v = spi_exec_prepared($p,$url);
-  $url = $v->{rows}->[0]->{url};
-  if(! $url) { elog(ERROR,"DATALINK EXCEPTION - invalid read token"); }    
+  if( $url ) {
+   my $p = spi_prepare(q{select datalink.dl_authorize_url($1) as url},'text');
+   my $v = spi_exec_prepared($p,$url);
+   $url = $v->{rows}->[0]->{url};
+  }
+  if(! $url ) { elog(ERROR,"DATALINK EXCEPTION - invalid read token"); }    
 }
 # -------- open output file --------
 if(defined($filename)) {
