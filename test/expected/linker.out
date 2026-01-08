@@ -18,19 +18,19 @@ update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks6' and column_name='link2';
 insert into sample_datalinks6 (link)
-values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 1'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = link;
 ERROR:  DATALINK EXCEPTION - external file already linked
-DETAIL:  from sample_datalinks6.link as '/var/www/datalink/test2.txt'
+DETAIL:  from sample_datalinks6.link as '/var/www/datalink/installcheck/utf8.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 update sample_datalinks6 set link = link2;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = null;
 set client_min_messages=warning;
 select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
@@ -58,10 +58,10 @@ drop role datalink_test_user_123;
 set client_min_messages=notice;
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
-values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 2'));
+values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 2'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
@@ -69,39 +69,39 @@ DETAIL:  INTEGRITY ALL can only be used with file URLs
 HINT:  make sure you are using a file: URL scheme
 CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 18 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
-select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxxx','g') as dlurlpath1
+select regexp_replace(dlurlpath(link),'[a-f0-9\-]{32,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
-              dlurlpath1               
----------------------------------------
- /dlfs/var/www/datalink/xxxx;test2.txt
+                    dlurlpath1                     
+---------------------------------------------------
+ /dlfs/var/www/datalink/installcheck/xxxx;utf8.txt
 (1 row)
 
 select dlurlpathonly(link) from sample_datalinks6;
-        dlurlpathonly        
------------------------------
- /var/www/datalink/test2.txt
+              dlurlpathonly              
+-----------------------------------------
+ /var/www/datalink/installcheck/utf8.txt
 (1 row)
 
 update sample_datalinks6
    set link = dlnewcopy(link);
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = link, link = null;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = null, link = link2;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 create table sample_datalinks7 as 
 select * 
   from sample_datalinks6;
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
 truncate sample_datalinks6;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test2.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.

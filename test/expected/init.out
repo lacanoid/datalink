@@ -19,7 +19,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  where pronamespace = 'datalink'::regnamespace
     or (pronamespace = 'pg_catalog'::regnamespace 
         and proname like 'dl%'
-        and obj_description(p.oid) like 'SQL/MED%')
+        and obj_description(p.oid) like 'SQL/MED%'
+        or  obj_description(p.oid) ilike '%datalink%')
  order by 1, obj_description(p.oid) is null,
        cast(p.oid::regprocedure as text) collate "C";
  pronamespace |                                             oid                                              | lanname  |                                            obj_description                                             
@@ -50,6 +51,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlserver(text)                                                                            | sql      | SQL/MED - Returns the file server from URL
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
+ pg_catalog   | length(datalink)                                                                             | sql      | Returns size of a file pointed to by datalink
+ pg_catalog   | substr(datalink,integer,integer)                                                             | plpgsql  | Returns contents of file pointed to by datalink as a text string
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
  datalink     | curl_get(text,integer)                                                                       | sql      | Get content of remote URL with CURL. CURL groks URLs.
  datalink     | curl_perform(file_path,text,text[])                                                          | plperlu  | Access WWW with CURL. CURL groks URLs.
@@ -126,6 +129,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(102 rows)
+(104 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

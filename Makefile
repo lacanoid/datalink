@@ -43,7 +43,6 @@ testfiles:
 	chmod g+w /var/www/datalink/installcheck
 	rm -f /var/www/datalink/installcheck/*
 	cp docs/utf8.txt /var/www/datalink/installcheck
-	cp docs/utf8.txt /var/www/datalink/test2.txt
 	echo "Hello" > /var/www/datalink/test1.txt
 	cp -a LICENSE.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt

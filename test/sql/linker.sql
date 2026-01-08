@@ -22,7 +22,7 @@ update datalink.columns
  where table_name='sample_datalinks6' and column_name='link2';
 
 insert into sample_datalinks6 (link)
-values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 1'));
 
 update sample_datalinks6 set link2 = link;
 update sample_datalinks6 set link = link2;
@@ -46,11 +46,11 @@ set client_min_messages=notice;
 
 truncate sample_datalinks6;
 insert into sample_datalinks6 (link)
-values (dlvalue('/var/www/datalink/test2.txt','FS','Sample file datalink 2'));
+values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 2'));
 insert into sample_datalinks6 (link)
 values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 
-select regexp_replace(dlurlpath(link),'[a-z0-9\-]{10,}','xxxx','g') as dlurlpath1
+select regexp_replace(dlurlpath(link),'[a-f0-9\-]{32,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
 select dlurlpathonly(link) from sample_datalinks6;
 

@@ -2575,6 +2575,8 @@ $$;
 
 create or replace function pg_catalog.length(datalink) 
  RETURNS bigint LANGUAGE sql AS $$ select datalink.getlength($1) $$;
+comment on function pg_catalog.length(datalink) 
+     is 'Returns size of a file pointed to by datalink';
 
 create or replace function pg_catalog.substr(
   datalink, pos integer default null, len integer default null) 
@@ -2591,6 +2593,8 @@ begin
   return datalink.read_text($1);
 end
 $$;
+comment on function pg_catalog.substr(datalink, integer, integer) 
+     is 'Returns contents of file pointed to by datalink as a text string';
 
 --------------------------------------------------------------- ---------------
 -- directories
