@@ -11,7 +11,7 @@ Version 0.25
 - `datalink.dl_authorize()` now logs to new table `datalink.insight_access_log`
 - insert and then delete of ON UNLINK DELETE datalinks inside one transaction now actually deletes files
 - store content type and and source url in datalinks returnd by `DLREPLACECONTENT()`
-- transactional file reads, no you can write and read back new file inside transaction
+- transactional file reads, now you can write and read back new file inside transaction
 - replacing file contents multiple times inside transaction works now
 - no more excessive printing to stderr/stdout in `curl_get()`
 - added preliminary `curl_perform()` unified function, `curl_get()` and `curl_save()` are now just wrappers.
@@ -21,7 +21,6 @@ Version 0.25
 - `dlfm` command renamed to `dlfs`
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
 -- ! dl_authorize() arguments change to support authorizing write tokens
--- ! dl_authorize() in curl_perform()
 -- ! add dlurlcompletewrite()
 - added few additional HTTP error codes
 - ! replace/delete file bug

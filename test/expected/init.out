@@ -100,7 +100,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
  datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
  datalink     | content_type(datalink)                                                                       | sql      | 
- datalink     | dl_authorize_url(text)                                                                       | sql      | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
  datalink     | dl_datalink_recv(internal)                                                                   | internal | 
@@ -119,6 +118,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_trigger_event()                                                                           | plpgsql  | 
  datalink     | dl_trigger_table()                                                                           | plpgsql  | 
  datalink     | dl_url(datalink)                                                                             | sql      | 
+ datalink     | dl_url_authorize(text)                                                                       | sql      | 
  datalink     | dl_url_makeinsight(text,dl_token,integer)                                                    | plpgsql  | 
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 

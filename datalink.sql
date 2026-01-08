@@ -487,7 +487,8 @@ comment on view linked_files
 grant select on linked_files to public;
 --------------------------------------------------------------- ---------------
 -- for backup and restore and upgrades
-CREATE OR REPLACE FUNCTION set_online(boolean) returns boolean language plpgsql as $$
+CREATE OR REPLACE FUNCTION set_online(boolean) 
+returns boolean language plpgsql as $$
 begin
   execute
     'alter table datalink.dl_linked_files alter column online set default '||$1;
@@ -496,12 +497,14 @@ begin
   return $1;
 end
 $$ strict;
-COMMENT ON FUNCTION set_online(boolean) IS 'Set datalink online status for dump/restore';
+COMMENT ON FUNCTION set_online(boolean) 
+     IS 'Set datalink online status for dump/restore';
 
 --------------------------------------------------------------- ---------------
 
 CREATE OR REPLACE FUNCTION stat(file_path file_path,
-   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
+   OUT dev bigint, OUT inode bigint, OUT mode integer, 
+   OUT typ "char", OUT nlink integer,
    OUT uid integer, OUT gid integer,
    OUT rdev integer, OUT size numeric, 
    OUT atime numeric, OUT mtime numeric, OUT ctime numeric,
@@ -1602,7 +1605,7 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
 # -------- handle file: URLs on localhost with embedded tokens
 elsif($url=~m|^file:/.*/(([a-z0-9\-]{36})[,;_:@])?(.+)$|i) {
   if( $url ) {
-   my $p = spi_prepare(q{select datalink.dl_authorize_url($1) as url},'text');
+   my $p = spi_prepare(q{select datalink.dl_url_authorize($1) as url},'text');
    my $v = spi_exec_prepared($p,$url);
    $url = $v->{rows}->[0]->{url};
   }
@@ -2154,17 +2157,21 @@ $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, datalink) 
 IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
-create or replace function pg_catalog.dlreplacecontent(link datalink, new_content text) returns datalink
-language sql as $$ select pg_catalog.dlreplacecontent($1,dlvalue($2)) $$;
+create or replace function pg_catalog.dlreplacecontent(
+  link datalink, new_content text) returns datalink 
+language sql as 
+$$ select pg_catalog.dlreplacecontent($1,dlvalue($2)) $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(datalink, text) 
 IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
-create or replace function pg_catalog.dlreplacecontent(link text, new_content datalink) returns datalink
+create or replace function pg_catalog.dlreplacecontent(
+  link text, new_content datalink) returns datalink
 language sql as $$ select pg_catalog.dlreplacecontent(dlvalue($1),$2) $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(text, datalink) 
 IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
 
-create or replace function pg_catalog.dlreplacecontent(link text, new_content text) returns datalink
+create or replace function pg_catalog.dlreplacecontent(
+  link text, new_content text) returns datalink
 language sql as $$ select pg_catalog.dlreplacecontent(dlvalue($1),dlvalue($2)) $$;
 COMMENT ON FUNCTION pg_catalog.dlreplacecontent(text, text) 
 IS 'SQL/MED - Replace contents of a DATALINK with contents of another DATALINK';
@@ -2262,7 +2269,7 @@ end$$;
 comment on function dl_authorize(file_path, integer, regrole)
      is 'Authorize access to READ ACCESS DB file via embedded read token';
 --------------------------------------------------------------- ---------------
-create or replace function dl_authorize_url(url text) returns text
+create or replace function dl_url_authorize(url text) returns text
 language sql strict as $$
 select datalink.uri_set('file:/','path',
          datalink.dl_authorize(datalink.uri_get($1,'path'),0)
@@ -2286,9 +2293,9 @@ $$;
 COMMENT ON FUNCTION read_text(datalink,bigint,bigint) IS 
   'Read datalink contents as text';
 
-CREATE OR REPLACE FUNCTION read_text(filename file_path, pos bigint default 1, len bigint default null)
- RETURNS text
- LANGUAGE plperlu AS $$
+CREATE OR REPLACE FUNCTION read_text(
+  filename file_path, pos bigint default 1, len bigint default null)
+RETURNS text LANGUAGE plperlu AS $$
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
@@ -2328,9 +2335,9 @@ $$;
 COMMENT ON FUNCTION read(datalink,bigint,bigint) IS 
   'Read datalink contents as binary';
 
-CREATE OR REPLACE FUNCTION read(filename file_path, pos bigint default 1, len bigint default null)
- RETURNS bytea
- LANGUAGE plperlu AS $$
+CREATE OR REPLACE FUNCTION read(
+  filename file_path, pos bigint default 1, len bigint default null)
+RETURNS bytea LANGUAGE plperlu AS $$
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
