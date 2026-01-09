@@ -172,12 +172,12 @@ PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- case 1.b.ii.1 external file already linked
 insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
-update med set link = dlvalue('file:///var/www/datalink/test4.txt'); -- err
+update med set link = dlvalue('file:///var/www/datalink/installcheck/test4.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test4.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
-DETAIL:  from med.link as '/var/www/datalink/test4.txt'
+DETAIL:  from med.link as '/var/www/datalink/installcheck/test4.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM

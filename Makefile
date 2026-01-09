@@ -46,7 +46,7 @@ testfiles:
 	echo "Hello" > /var/www/datalink/test1.txt
 	cp -a LICENSE.md /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced
 	rm -f /var/www/datalink/test3.txt
-	date +%F > /var/www/datalink/test4.txt
+	date +%F > /var/www/datalink/installcheck/test4.txt
 	rm -f /var/www/datalink/test5.txt /var/www/datalink/test6.txt
 
 dump-test:

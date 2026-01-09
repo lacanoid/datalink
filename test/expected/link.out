@@ -238,11 +238,11 @@ select * from datalink.columns order by table_name;
  sample_datalinks4         | link        | NO           | NONE      | FS          | FS           | NO       | NONE
 (14 rows)
 
-insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
+insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test4.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory 
-PATH:  /var/www/datalink/test4.txt
+PATH:  /var/www/datalink/installcheck/test4.txt
 ROLE:  root
 DETAIL:  delete permission for table owner is required on directory
 HINT:  add appropriate entry in table datalink.access

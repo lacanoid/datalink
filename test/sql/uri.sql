@@ -62,7 +62,7 @@ select dlvalue('https://www.github.org')::uri;
 
 \x
 with d as (
- select 'file:///var/www/datalink/test4.txt#krneki' as link
+ select 'file:///var/www/datalink/installcheck/test4.txt#krneki' as link
 )
 select link,
        dlurlcomplete(link),
@@ -72,7 +72,7 @@ select link,
   from d;
 
 with d as (
- select dlvalue('file:///var/www/datalink/test4.txt#krneki') as link
+ select dlvalue('file:///var/www/datalink/installcheck/test4.txt#krneki') as link
 )
 select link,
        dlurlcomplete(link),

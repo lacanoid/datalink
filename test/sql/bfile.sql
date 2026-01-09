@@ -22,7 +22,7 @@ create domain bfile2 bfile;
 create table bfiles2 ( bfile bfile2 );
 
 insert into bfiles2 (bfile) values (dlvalue('test1.txt','www'));
-insert into bfiles2 (bfile) values (dlvalue('test4.txt','www'));
+insert into bfiles2 (bfile) values (dlvalue('installcheck/test4.txt','www'));
 
 select * from datalink.types;
 

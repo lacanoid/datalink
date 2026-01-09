@@ -124,7 +124,7 @@ create table my_table4(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',recovery='YES',on_unlink='DELETE' where table_name='my_table4';
 select * from datalink.columns order by table_name;
 
-insert into my_table4 values (dlvalue('/var/www/datalink/test4.txt'));
+insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test4.txt'));
 insert into my_table4 values (dlvalue('/etc/issue')); 
 
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);

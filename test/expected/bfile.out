@@ -41,8 +41,8 @@ CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regcla
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
-insert into bfiles2 (bfile) values (dlvalue('test4.txt','www'));
-NOTICE:  DATALINK LINK:/var/www/datalink/test4.txt
+insert into bfiles2 (bfile) values (dlvalue('installcheck/test4.txt','www'));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test4.txt
 select * from datalink.types;
  regtype  | typtype | typmod | depth 
 ----------+---------+--------+-------
@@ -98,7 +98,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 truncate bfiles2;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test4.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test4.txt
 -- test text file reads
 select read_text('/var/www/datalink/installcheck/utf8.txt');
            read_text           
