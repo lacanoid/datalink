@@ -1948,7 +1948,8 @@ CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
 AS $_$ select datalink.uri_get(
   case when datalink.is_local($1)
        then coalesce((
-               select dirurl||uri_escape(substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1))
+               select dirurl||
+                      replace(uri_escape(substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1)),'%2F','/')
                  from datalink.directory
                 where dirurl is not null
                   and pg_catalog.dlurlpathonly($1) like dirpath||'%'

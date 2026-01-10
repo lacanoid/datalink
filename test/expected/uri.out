@@ -163,7 +163,7 @@ select dlvalue('https://www.github.org')::uri;
 
 \x
 with d as (
- select 'file:///var/www/datalink/test4.txt#krneki' as link
+ select 'file:///var/www/datalink/installcheck/test4.txt#krneki' as link
 )
 select link,
        dlurlcomplete(link),
@@ -171,15 +171,15 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+-------------------------------------------
-link              | file:///var/www/datalink/test4.txt#krneki
-dlurlcomplete     | http://localhost/datalink/test4.txt#krneki
-dlurlcompleteonly | http://localhost/datalink/test4.txt
-dlurlpath         | /var/www/datalink/test4.txt
-dlurlpathonly     | /var/www/datalink/test4.txt
+-[ RECORD 1 ]-----+--------------------------------------------------------
+link              | file:///var/www/datalink/installcheck/test4.txt#krneki
+dlurlcomplete     | http://localhost/datalink/installcheck/test4.txt#krneki
+dlurlcompleteonly | http://localhost/datalink/installcheck/test4.txt
+dlurlpath         | /var/www/datalink/installcheck/test4.txt
+dlurlpathonly     | /var/www/datalink/installcheck/test4.txt
 
 with d as (
- select dlvalue('file:///var/www/datalink/test4.txt#krneki') as link
+ select dlvalue('file:///var/www/datalink/installcheck/test4.txt#krneki') as link
 )
 select link,
        dlurlcomplete(link),
@@ -187,12 +187,12 @@ select link,
        dlurlpath(link),
        dlurlpathonly(link)
   from d;
--[ RECORD 1 ]-----+-------------------------------------------------
-link              | {"a": "file:/var/www/datalink/test4.txt#krneki"}
-dlurlcomplete     | http://localhost/datalink/test4.txt#krneki
-dlurlcompleteonly | http://localhost/datalink/test4.txt
-dlurlpath         | /var/www/datalink/test4.txt
-dlurlpathonly     | /var/www/datalink/test4.txt
+-[ RECORD 1 ]-----+--------------------------------------------------------------
+link              | {"a": "file:/var/www/datalink/installcheck/test4.txt#krneki"}
+dlurlcomplete     | http://localhost/datalink/installcheck/test4.txt#krneki
+dlurlcompleteonly | http://localhost/datalink/installcheck/test4.txt
+dlurlpath         | /var/www/datalink/installcheck/test4.txt
+dlurlpathonly     | /var/www/datalink/installcheck/test4.txt
 
 with d as (
  select 'file:///var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced' as link
