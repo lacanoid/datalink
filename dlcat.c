@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         }
         
         res = PQexecParams(conn,
-                        "select datalink.dl_authorize($1,1)",
+                        "select datalink.dl_authorize($1,'h')",
                         1,       /* one param */
                         NULL,    /* let the backend deduce param type */
                         paramValues,

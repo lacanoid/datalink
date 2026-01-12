@@ -2,7 +2,7 @@
 --
 --  datalink
 --  version 0.25 lacanoid@ljudmila.org
---  30. december 2025
+--  31. december 2025
 --
 --------------------------------------------------------------- ---------------
 
@@ -2210,7 +2210,7 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
 
 --------------------------------------------------------------- ---------------
 create or replace function dl_authorize(
-  file_path, for_web integer default 1, myrole regrole default user::regrole) 
+  file_path, op "char" default 'h', myrole regrole default user::regrole) 
 returns file_path language plpgsql SECURITY DEFINER as $$
 declare
   mypath text;
@@ -2250,10 +2250,10 @@ begin
            inet_client_addr(), current_setting('application_name'), null::jsonb);
     return mypath;
   end if;
-  if for_web>0 then return null; end if;
+  if op='h' then return null; end if;
  end if; -- read access db (token found)
  mypath := $1;
- if for_web>0 then
+ if op='h' then
    return mypath;
  else 
    if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
@@ -2266,13 +2266,13 @@ begin
  end if; -- for web
  return null;
 end$$;
-comment on function dl_authorize(file_path, integer, regrole)
+comment on function dl_authorize(file_path, "char", regrole)
      is 'Authorize access to READ ACCESS DB file via embedded read token';
 --------------------------------------------------------------- ---------------
 create or replace function dl_url_authorize(url text) returns text
 language sql strict as $$
 select datalink.uri_set('file:/','path',
-         datalink.dl_authorize(datalink.uri_get($1,'path'),0)
+         datalink.dl_authorize(datalink.uri_get($1,'path'),'r')
        );
 $$;
 --------------------------------------------------------------- ---------------
@@ -2299,7 +2299,7 @@ RETURNS text LANGUAGE plperlu AS $$
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.dl_authorize($1,0) as path};
+  my $q=q{select datalink.dl_authorize($1,'r') as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
@@ -2341,7 +2341,7 @@ RETURNS bytea LANGUAGE plperlu AS $$
   use strict vars; 
   my ($filename,$pos,$len)=@_;
 
-  my $q=q{select datalink.dl_authorize($1,0) as path};
+  my $q=q{select datalink.dl_authorize($1,'r') as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
@@ -2366,7 +2366,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   use strict vars; 
   my ($filename,$pos)=@_;
 
-  my $q=q{select datalink.dl_authorize($1,0) as path};
+  my $q=q{select datalink.dl_authorize($1,'r') as path};
   my $p = spi_prepare($q,'datalink.file_path');
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
