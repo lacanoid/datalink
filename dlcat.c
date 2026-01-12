@@ -1,3 +1,7 @@
+/*
+ dlcat - PostgreSQL SQL/MED Datalink File Filter `cat` utility
+ version 0.25.1231
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -37,7 +41,7 @@ int main(int argc, char **argv) {
         }
         
         res = PQexecParams(conn,
-                        "select datalink.dl_authorize($1,'h')",
+                        "select datalink.dl_authorize($1)",
                         1,       /* one param */
                         NULL,    /* let the backend deduce param type */
                         paramValues,

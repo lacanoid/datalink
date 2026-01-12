@@ -2,7 +2,7 @@
 # dlfs - SQL/MED Datalink control program
 # version 0.25 by lacanoid@ljudmila.org
  
-our $version="0.24.1012";
+our $version="0.25.1231";
 
 use strict;
 use DBI;

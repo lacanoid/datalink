@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.25 lacanoid@ljudmila.org
+--  version 0.25.1231 lacanoid@ljudmila.org
 --  31. december 2025
 --
 --------------------------------------------------------------- ---------------
@@ -2209,8 +2209,10 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
      IS 'Is file path prefixed with a valid prefix?';
 
 --------------------------------------------------------------- ---------------
+-- authorize access to a file when filename contains a token
+-- op: 'r' - read, 'w' - write, 'g' - HTTP GET (default), 's' - stat
 create or replace function dl_authorize(
-  file_path, op "char" default 'h', myrole regrole default user::regrole) 
+  file_path, op "char" default 'g', myrole regrole default user::regrole) 
 returns file_path language plpgsql SECURITY DEFINER as $$
 declare
   mypath text;
@@ -2250,10 +2252,10 @@ begin
            inet_client_addr(), current_setting('application_name'), null::jsonb);
     return mypath;
   end if;
-  if op='h' then return null; end if;
+  if op='g' then return null; end if;
  end if; -- read access db (token found)
  mypath := $1;
- if op='h' then
+ if op='g' then
    return mypath;
  else 
    if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;

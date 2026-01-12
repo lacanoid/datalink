@@ -1,3 +1,7 @@
+/*
+pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
+version 0.25.1231
+*/
 #define FUSE_USE_VERSION 35
 
 #include <errno.h>
