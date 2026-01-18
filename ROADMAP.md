@@ -54,7 +54,7 @@ Wanted
 - functions to read and write text files in encodings other than utf8
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
 - proper substring instead of file position offsets in `substr()`
-- FUSE filesystem DLFF which supports READ ACCESS DB tokens
+- ✔︎ FUSE filesystem DLFF which supports READ ACCESS DB tokens
 - FUSE filesystem DLFF which supports WRITE ACCESS tokens
 - function to create new unused filename
 - ✔︎ improve support for data: URLs
@@ -73,6 +73,7 @@ Wanted
 - implement automatic expiration in pg_datalinker for for insight, etc...
 - forbid creating temporary files if no datalinker
 - reverse domain name handling perhaps something like rdn:http://net.domain.www -> http://www.domain.net
+- set file owner to table owner on newly created files from SQL, when they are unlinked
 
 Advanced
 --------
