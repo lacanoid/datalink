@@ -1,5 +1,3 @@
-! = planned/to-do
-
 Version 0.25
 ------------
 - improved handling of `ON UNLINK DELETE` permissions wrt/ table owner
@@ -16,16 +14,12 @@ Version 0.25
 - no more excessive printing to stderr/stdout in `curl_get()`
 - added preliminary `curl_perform()` unified function, `curl_get()` and `curl_save()` are now just wrappers.
 - support for `data:` URLs in `curl_perform()`
-- datalinker improved error logging
-- datalinker faster internal chmod
+- added few additional HTTP error codes
+- added preliminary FUSE filesystem `pg_dlfuse` with read support
+- `pg_datalinker` improved error logging
+- `pg_datalinker` faster internal chmod
 - `dlfm` command renamed to `dlfs`
 - added preliminary `DLURLPATHWRITE()` function from SQL standard
--- ! dl_authorize() arguments change to support authorizing write tokens
--- ! add dlurlcompletewrite()
-- added few additional HTTP error codes
-- ! replace/delete file bug
-- ! web permissions
-- ! FUSE filesystem
 
 Version 0.24
 ------------
