@@ -13,7 +13,8 @@ One can create datalink values from text URLs by using [`dlvalue()`](functions.m
 
 One can think of datalinks as 'bookmarks' to internet resources.
 
-Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque values.
+Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque. 
+There is a number of [scalar functions]((functions.md) to extract information from datalinks.
 
 One will normally want to store datalinks in tables:
 
@@ -37,10 +38,11 @@ One can see datalink columns for the whole database in view `datalink.columns`.
 
 Superusers will see all datalink columns whereas normal users will see only columns for owned tables.
 
-The above example does not specify any control options for a datalink column. This will not install
-any triggers on the table, resulting in a much faster performance, but potentionally allowing for
-invalid URLs to creep in. Note that `dlvalue()` constructor function does check for valid URLs. 
+The above example does not specify any control options for a datalink column, defaulting to NO LINK CONTROL.
+This will only store the datalink value, but not do any further semantics.
+This is simplest and fastest. 
 
+For more advanced functionallity you will need to set some link control options.
 
 Link Control Options
 --------------------
