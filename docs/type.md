@@ -12,9 +12,8 @@ One can create datalink values from text URLs by using [`dlvalue()`](functions.m
     (1 row)
 
 One can think of datalinks as 'bookmarks' to internet resources.
-
 Note that datalinks are internally represented as JSONB values, but should generally be considered as opaque. 
-There is a number of [scalar functions]((functions.md) to extract information from datalinks.
+There is a number of [scalar functions](functions.md) to extract information from datalinks.
 
 One will normally want to store datalinks in tables:
 
