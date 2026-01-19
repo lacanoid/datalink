@@ -44,6 +44,7 @@ Missing features:
 Extra features not in SQL standard:
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
 - PlPerlu interface `curl_get()` to [curl](https://curl.se/) via [WWW::Curl](https://metacpan.org/pod/WWW::Curl)
+- Functions for transactional file reading and writing
 - Directory and role based permission management for file system access control
 - Directory to URL mapping
 - Foreign server support for file:// URLs (for files on other postgres_fdw foreign servers)
