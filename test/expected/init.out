@@ -10,7 +10,7 @@ select extname as "Name",
   from pg_extension where extname = 'datalink';
    Name   | Version |  Schema  |       Description        
 ----------+---------+----------+--------------------------
- datalink | 0.25    | datalink | SQL/MED DATALINK support
+ datalink | 0.26    | datalink | SQL/MED DATALINK support
 (1 row)
 
 select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_description(p.oid) 

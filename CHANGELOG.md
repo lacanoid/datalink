@@ -1,3 +1,7 @@
+Version 0.26
+------------
+- nothing yet
+
 Version 0.25
 ------------
 - improved handling of `ON UNLINK DELETE` permissions wrt/ table owner
