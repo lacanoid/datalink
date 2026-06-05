@@ -1,6 +1,7 @@
 Version 0.26
 ------------
-- nothing yet
+- role datalink_web which is granted execute permission on curl functions
+- added `pg_catalog.bytea(datalink)` and `pg_catalog.xml(datalink)` functions to return datalink content
 
 Version 0.25
 ------------

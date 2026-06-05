@@ -9,6 +9,15 @@ SET client_min_messages = warning;
 
 COMMENT ON SCHEMA datalink IS 'SQL/MED DATALINK support';
 GRANT USAGE ON SCHEMA datalink TO PUBLIC;
+do $$
+begin
+  if not exists
+    ( select * from pg_roles where rolname = 'datalink_web' )
+  then
+    create role datalink_web;
+  end if;
+end
+$$;
 
 --------------------------------------------------------------- ---------------
 -- url type
@@ -1684,6 +1693,7 @@ if(defined($filename)) {
 return $r;
 $_$;
 revoke execute on function curl_perform(file_path,text,text[]) from public;
+grant execute on function curl_perform(file_path,text,text[]) to datalink_web;
 comment on function curl_perform(file_path,text,text[])
         is 'Access WWW with CURL. CURL groks URLs.';
 
@@ -1706,6 +1716,7 @@ select url, ok, rc, body, size, content_type, filetime, elapsed, error
                              else '{}' end :: text[]);
 $_$;
 revoke execute on function curl_get(text,integer) from public;
+grant execute on function curl_get(text,integer) to datalink_web;
 comment on function curl_get(text,integer)
      is 'Get content of remote URL with CURL. CURL groks URLs.';
 
@@ -1726,6 +1737,7 @@ select file_path, url, ok, rc, size, content_type, filetime, elapsed, error
                              else '{}' end :: text[] || '{bin}');
 $_$;
 revoke execute on function curl_save(file_path,text,int) from public;
+grant execute on function curl_save(file_path,text,int) to datalink_web;
 comment on function curl_save(file_path,text,int)
      is 'Save content of remote URL to a local file with CURL.';
 
@@ -2599,6 +2611,31 @@ end
 $$;
 comment on function pg_catalog.substr(datalink, integer, integer) 
      is 'Returns contents of file pointed to by datalink as a text string';
+
+create or replace function pg_catalog.bytea(
+  datalink, pos integer default null, len integer default null) 
+ RETURNS bytea LANGUAGE plpgsql AS $$
+begin
+  pos := coalesce(pos,1);
+  if len is not null then 
+    return substr(datalink.read($1), pos, len);
+  else
+    if pos > 1 then
+      return substr(datalink.read($1), pos);
+    end if;
+  end if;
+  return datalink.read($1);
+end
+$$;
+comment on function pg_catalog.bytea(datalink, integer, integer) 
+     is 'Returns contents of file pointed to by datalink as bytea';
+
+create or replace function pg_catalog.xml(datalink)
+ RETURNS xml LANGUAGE sql AS $$
+select xmlparse(content substr($1))
+$$;
+comment on function pg_catalog.xml(datalink) 
+     is 'Returns contents of file pointed to by datalink as XML';
 
 --------------------------------------------------------------- ---------------
 -- directories

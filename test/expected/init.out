@@ -25,6 +25,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
        cast(p.oid::regprocedure as text) collate "C";
  pronamespace |                                             oid                                              | lanname  |                                            obj_description                                             
 --------------+----------------------------------------------------------------------------------------------+----------+--------------------------------------------------------------------------------------------------------
+ pg_catalog   | bytea(datalink,integer,integer)                                                              | plpgsql  | Returns contents of file pointed to by datalink as bytea
  pg_catalog   | dlcomment(datalink)                                                                          | sql      | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
  pg_catalog   | dllinktype(datalink)                                                                         | sql      | SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value
  pg_catalog   | dllinktype(text)                                                                             | sql      | SQL/MED - Returns the link type (URL or FS) from URL
@@ -53,6 +54,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
  pg_catalog   | length(datalink)                                                                             | sql      | Returns size of a file pointed to by datalink
  pg_catalog   | substr(datalink,integer,integer)                                                             | plpgsql  | Returns contents of file pointed to by datalink as a text string
+ pg_catalog   | xml(datalink)                                                                                | sql      | Returns contents of file pointed to by datalink as XML
  datalink     | commit()                                                                                     | plpgsql  | Wait for datalinker to apply changes
  datalink     | curl_get(text,integer)                                                                       | sql      | Get content of remote URL with CURL. CURL groks URLs.
  datalink     | curl_perform(file_path,text,text[])                                                          | plperlu  | Access WWW with CURL. CURL groks URLs.
@@ -129,6 +131,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
  datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(104 rows)
+(106 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
