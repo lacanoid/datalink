@@ -2612,6 +2612,13 @@ $$;
 comment on function pg_catalog.substr(datalink, integer, integer) 
      is 'Returns contents of file pointed to by datalink as a text string';
 
+create or replace function pg_catalog.text(datalink)
+ RETURNS text LANGUAGE sql AS $$
+select datalink.read_text($1);
+$$;
+comment on function pg_catalog.text(datalink) 
+     is 'Returns contents of file pointed to by datalink as text';
+
 create or replace function pg_catalog.bytea(
   datalink, pos integer default null, len integer default null) 
  RETURNS bytea LANGUAGE plpgsql AS $$
@@ -2636,6 +2643,20 @@ select xmlparse(content substr($1))
 $$;
 comment on function pg_catalog.xml(datalink) 
      is 'Returns contents of file pointed to by datalink as XML';
+
+create or replace function pg_catalog.jsonb(datalink)
+ RETURNS jsonb LANGUAGE sql AS $$
+select substr($1)::jsonb
+$$;
+comment on function pg_catalog.jsonb(datalink) 
+     is 'Returns contents of file pointed to by datalink as JSONB';
+
+create or replace function pg_catalog.json(datalink)
+ RETURNS json LANGUAGE sql AS $$
+select substr($1)::json
+$$;
+comment on function pg_catalog.json(datalink) 
+     is 'Returns contents of file pointed to by datalink as JSON';
 
 --------------------------------------------------------------- ---------------
 -- directories
