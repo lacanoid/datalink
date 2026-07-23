@@ -169,7 +169,7 @@ File group is changed to `www-data`. This makes file readable by Apache server a
 
 Read permissions on the file are set for owner and group. other permissions are removed, so that normal users can'r read the file anymore.
 
-Note that this requires at least READ ACCESS BLOCKED option, so file will not be writable anyway.
+Note that this requires at least WRITE ACCESS BLOCKED option, so file will not be writable anyway.
 
 Pro: Access file contents from the database environment
 
