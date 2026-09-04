@@ -10,7 +10,7 @@ Wanted
 - ✔︎ Transactional File IO functions + file directories / bfile like fileio functionality
 - ✔︎ For constructor form dlvalue(basename,dirname) could be used, bfilename like
 - ✔︎ datalink.write_text() function to create new files
-- some sort of permissions as to what and who gets to do where. probably postgres acls.
+- ✔︎ some sort of permissions as to what and who gets to do where. probably postgres acls.
   - ✔︎ SELECT - read file contents
   - REFERENCES - link to files from database (for WRITE ACCESS BLOCKED)
   - ✔︎ DELETE - delete files (for ON UNLINK DELETE)
@@ -36,7 +36,7 @@ Wanted
 - add `curl_post` and `curl_put` functions
 - ✔︎ add `curl` save-to-file functions, use for DLREPLACECONTENT
 - ✔︎ add vacuum procedure for deleting temporary files (those not linked)
-- add vacuum procedure for managing `datalink.insight`
+- add vacuum procedures for managing `datalink.insight`
 - ✔︎ add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
@@ -68,12 +68,13 @@ Wanted
 - add capability to list directories
 - add standalone node.js file server with dlff (alternative to apache)
 - incremental write functions so one can write big files without having to buffer everything
-- command line tool to backup linked files to/from another host
+- command line tool to backup linked files to/from another host, similar to pg_basebackup
 - nfs server
 - implement automatic expiration in pg_datalinker for for insight, etc...
 - forbid creating temporary files if no datalinker
 - reverse domain name handling perhaps something like rdn:http://net.domain.www -> http://www.domain.net
 - set file owner to table owner on newly created files from SQL, when they are unlinked
+- implement strict locking in file write operations, as per standard: file can be opened for write only once.
 
 Advanced
 --------
@@ -118,7 +119,7 @@ Todo
 - additional permission checks for references
 - ✔︎ consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
-- check that src and dest in curl_save are not one and the same
+- check that src and dest in curl_save are not one the same
 - check src read permissions in curl_save
 - check `pg_read_server_files` and `pg_write_server` files roles
 - handle // urls and paths better
@@ -157,6 +158,8 @@ Todo
 - ✔︎ files with ON UNLINK DELETE don't get deleted if they have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
 - handle datalinks in temporary tables (now they don't get unlinked when table is dropped)
+- datalinker must purge files created with DLURLPATHWRITE() when transaction is aborted
+- purge files created with DLURLPATHWRITE() when file is unlinked
 
 Maybe
 =====
@@ -204,7 +207,7 @@ PROCEDURE READ (file_loc IN BFILE, amount IN OUT INTEGER, offset IN INTEGER, buf
 
 ✔︎ FUNCTION SUBSTR (file_loc IN BFILE, amount IN INTEGER := 32767, offset IN INTEGER := 1) RETURN RAW;
 
-✔︎ FUNCTION INSTR (file_loc IN BFILE, pattern IN RAW, offset IN INTEGER := 1,nth IN INTEGER := 1) RETURN INTEGER;
+FUNCTION INSTR (file_loc IN BFILE, pattern IN RAW, offset IN INTEGER := 1,nth IN INTEGER := 1) RETURN INTEGER;
 - fix to use less memory and respect offset
 - fix to support patterns
 
