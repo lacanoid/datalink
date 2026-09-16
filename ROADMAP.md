@@ -153,12 +153,12 @@ Todo
 - ✔︎ make `datalink.columns` updatable by normal users
 - ✔︎ show error count in `datalink.usage`
 - show OS dir owner in `datalink.directory`
-- check  permissions in `curl_save()`
+- ✔︎ check  permissions in `curl_save()`
 - ✔︎ trigger on `dl_new_files` to check that files don't exist
 - ✔︎ files with ON UNLINK DELETE don't get deleted if they have not been linked first
 - `substr()` et al should throw a warning/error when file not found 
 - handle datalinks in temporary tables (now they don't get unlinked when table is dropped)
-- datalinker must purge files created with DLURLPATHWRITE() when transaction is aborted
+- ✔︎ datalinker must purge files created with DLURLPATHWRITE() when transaction is aborted
 - purge files created with DLURLPATHWRITE() when file is unlinked
 
 Maybe
