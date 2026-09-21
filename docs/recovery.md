@@ -15,7 +15,7 @@ such as one returned by `DLURLPATHONLY()`,
 for example `/var/www/datalink.test3.txt`.
 
 Let `backup_file` be a corresponding file path for a datalink including token, 
-such as one returned by `DLURLPATHWRITE()`.
+such as one returned by `datalink.filepathwrite()`.
 for example `/var/www/datalink.test3.txt#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33`.
 
 The backup/restore works as follows:
