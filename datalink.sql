@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.0605 lacanoid@ljudmila.org
+--  version 0.26.0923 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -2154,14 +2154,16 @@ BEGIN
 
   r := datalink.curl_save(path,url);
   if not r.ok then
-    raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
+    raise exception e'DATALINK EXCEPTION - failed to copy resource\nURL: %',url
     using errcode = 'HW303',
           detail = format('CURL error %s%s',r.rc,' - '||r.error),
           hint = 'make sure URL is correct and referenced file actually exists';
   end if;
   link := jsonb_set(link::jsonb,'{k}' ,to_jsonb('r'::text));
-  link := jsonb_set(link::jsonb,'{ct}',to_jsonb(r.content_type));
   link := jsonb_set(link::jsonb,'{src}',to_jsonb(url));
+  if r.content_type is not null then
+    link := jsonb_set(link::jsonb,'{ct}',to_jsonb(r.content_type));
+  end if;
   return link;
 end
 $$;
