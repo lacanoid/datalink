@@ -2233,12 +2233,23 @@ declare
   f record;
   m text[];
 begin
- -- check for read token
+ -- check for embedded token
  m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  mypath := regexp_replace(mypath,'^/dlfs/','/');
--- check access
+-- check for write access for file created with dlurlpathwrite()
+ if op = 'w' then
+   update datalink.dl_new_files nf
+      set op = 'f'
+    where token=t::datalink.dl_token and nf.op = 'e'
+       -- and mypath like nf.path || '%'
+       -- and nf.regrole = myrole
+    returning path into f;
+   if found then return f.path; end if;
+   return null;
+ end if;
+-- check read access
  select token,state,read_access,write_access,
         pg_xact_status(txid) as xact_status
    from datalink.dl_linked_files
@@ -3164,7 +3175,7 @@ BEGIN
   if t is not null then
    update datalink.dl_new_files
       set op='t'
-    where op='e' and token = t 
+    where token = t and op in ('e','f') 
    returning oldlink into link;
    if found and link is not null then 
      if newcopy then

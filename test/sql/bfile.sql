@@ -87,8 +87,8 @@ create table files ( link datalink(2) );
 insert into files values (dlvalue('/var/www/datalink/test1.txt'));
 update files  set link = dlnewcopy(link);
 insert into files values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
-insert into files values (dlreplacecontent('/var/www/datalink/test6.txt','http://www.github.com/robots.txt'));
-insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
+insert into files values (dlreplacecontent('/var/www/datalink/installcheck/test6.txt','http://www.github.com/robots.txt'));
+insert into files values (datalink.write_text(dlvalue('installcheck/test5.txt','www'),'This is a test file 5'));
 
 select cons,path from datalink.dl_linked_files order by path;
 

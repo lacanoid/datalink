@@ -318,24 +318,24 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
 insert into files values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
-insert into files values (dlreplacecontent('/var/www/datalink/test6.txt','http://www.github.com/robots.txt'));
-NOTICE:  DATALINK LINK:/var/www/datalink/test6.txt
-insert into files values (datalink.write_text(dlvalue('test5.txt','www'),'This is a test file 5'));
-NOTICE:  DATALINK LINK:/var/www/datalink/test5.txt
+insert into files values (dlreplacecontent('/var/www/datalink/installcheck/test6.txt','http://www.github.com/robots.txt'));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test6.txt
+insert into files values (datalink.write_text(dlvalue('installcheck/test5.txt','www'),'This is a test file 5'));
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test5.txt
 select cons,path from datalink.dl_linked_files order by path;
-  cons  |                  path                   
---------+-----------------------------------------
+  cons  |                   path                   
+--------+------------------------------------------
+ w      | /var/www/datalink/installcheck/test5.txt
+ r      | /var/www/datalink/installcheck/test6.txt
  _null_ | /var/www/datalink/installcheck/utf8.txt
  n      | /var/www/datalink/test1.txt
- w      | /var/www/datalink/test5.txt
- r      | /var/www/datalink/test6.txt
 (4 rows)
 
 drop table files;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test6.txt
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test5.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test6.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test5.txt
 -- test curl
 select body from datalink.curl_get('https://raw.githubusercontent.com/lacanoid/datalink/refs/heads/master/docs/utf8.txt');
              body              

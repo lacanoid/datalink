@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.0904";
+our $version="0.26.0927";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -102,7 +102,7 @@ sub main() {
         $dbmeta = $dbh->selectrow_hashref(qq{
          select current_database() as datname,
                 (select setting from pg_settings where name='port') as port, 
-         	    (select extversion from pg_extension where extname='datalink') as extversion,
+                (select extversion from pg_extension where extname='datalink') as extversion,
                 current_timestamp as start,
                 (select count(*) from pg_stat_activity
                  where application_name='$config{appname}') as nl,
@@ -161,6 +161,7 @@ sub main() {
             from dl_new_files af
            where op in ('t','w','e') 
              and pg_xact_status(txid) is distinct from 'in progress'
+             and not ( op = 'e' and pg_xact_status(txid) = 'committed' )
            order by txid for update of af
         }),
         'purge_delete'=>$dbh->prepare(q{ delete from dl_new_files where path = $1 })

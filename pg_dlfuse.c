@@ -1,7 +1,8 @@
 /*
-pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
-version 0.25.1231
+   pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
+   version 0.26.0926
 */
+
 #define FUSE_USE_VERSION 35
 
 #include <errno.h>
@@ -17,87 +18,134 @@ version 0.25.1231
 char *conninfo = "service=pg_datalink application_name=pg_dlfuse";
 static PGconn *conn;
 
-static char *authorize(const char *path) {
-    const char *paramValues[1] = { path };
-    PGresult *res = PQexecParams(conn,
-        "SELECT datalink.dl_authorize($1)",
-        1,       // one param
-        NULL,    // let PostgreSQL deduce type
-        paramValues,
-        NULL, NULL, 0);
+/*
+ * authorize() calls datalink.dl_authorize(path) for read access,
+ * or datalink.dl_authorize(path, mode) when mode is non-NULL
+ * (e.g. mode = "w" for write access). Returns the real file
+ * system path to use, or NULL if access was not authorized.
+ */
+static char *authorize(const char *path, const char *mode) {
+	const char *paramValues[2] = { path, mode };
+	PGresult *res;
 
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        PQclear(res);
-        return NULL;
-    }
+	if (mode) {
+		res = PQexecParams(conn,
+			"SELECT datalink.dl_authorize($1,$2)",
+			2,        // two params
+			NULL,     // let PostgreSQL deduce types
+			paramValues,
+			NULL, NULL, 0);
+	} else {
+		res = PQexecParams(conn,
+			"SELECT datalink.dl_authorize($1)",
+			1,        // one param
+			NULL,     // let PostgreSQL deduce type
+			paramValues,
+			NULL, NULL, 0);
+	}
 
-    if (PQntuples(res) == 0 || PQgetisnull(res, 0, 0)) {
-        PQclear(res);
-        return NULL;
-    }
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		PQclear(res);
+		return NULL;
+	}
+	if (PQntuples(res) == 0 || PQgetisnull(res, 0, 0)) {
+		PQclear(res);
+		return NULL;
+	}
 
-    char *authorized_path = strdup(PQgetvalue(res, 0, 0));
-    PQclear(res);
-    return authorized_path;
+	char *authorized_path = strdup(PQgetvalue(res, 0, 0));
+	PQclear(res);
+	return authorized_path;
 }
 
-static int pg_getattr(const char *path, struct stat *stbuf) {
-    memset(stbuf, 0, sizeof(struct stat));
+static int dl_getattr(const char *path, struct stat *stbuf) {
+	memset(stbuf, 0, sizeof(struct stat));
 
-    char *real_path = authorize(path);
-    if (!real_path) return -ENOENT;
+	char *real_path = authorize(path, NULL);
+	if (!real_path) return -ENOENT;
 
-    int res = stat(real_path, stbuf);
-    free(real_path);
-
-    return (res == -1) ? -errno : 0;
+	int res = stat(real_path, stbuf);
+	free(real_path);
+	return (res == -1) ? -errno : 0;
 }
 
-static int pg_open(const char *path, struct fuse_file_info *fi) {
-    char *real_path = authorize(path);
-    if (!real_path) return -EACCES;
+static int dl_open(const char *path, struct fuse_file_info *fi) {
+	/* writable access is requested via O_WRONLY / O_RDWR (with or
+	   without O_APPEND/O_TRUNC) - anything else is treated as read */
+	int want_write = (fi->flags & O_ACCMODE) != O_RDONLY;
 
-    int fd = open(real_path, O_RDONLY);
-    free(real_path);
+	char *real_path = authorize(path, want_write ? "w" : NULL);
+	if (!real_path) return want_write ? -EACCES : -ENOENT;
 
-    if (fd == -1) return -errno;
+	/* preserve the caller's access mode and any append/trunc flags,
+	   but never allow O_CREAT through this filter */
+	int open_flags = fi->flags & ~O_CREAT;
+	int fd = open(real_path, open_flags);
+	free(real_path);
+	if (fd == -1) return -errno;
 
-    fi->fh = fd;
-    return 0;
+	fi->fh = fd;
+	return 0;
 }
 
-static int pg_read(const char *path, char *buf, size_t size, off_t offset,
-                   struct fuse_file_info *fi) {
-    (void) path;
-
-    int res = pread(fi->fh, buf, size, offset);
-    return (res == -1) ? -errno : res;
+static int dl_read(const char *path, char *buf, size_t size, off_t offset,
+                    struct fuse_file_info *fi) {
+	(void) path;
+	int res = pread(fi->fh, buf, size, offset);
+	return (res == -1) ? -errno : res;
 }
 
-static int pg_release(const char *path, struct fuse_file_info *fi) {
-    (void) path;
-    close(fi->fh);
-    return 0;
+static int dl_write(const char *path, const char *buf, size_t size,
+                     off_t offset, struct fuse_file_info *fi) {
+	(void) path;
+	int res = pwrite(fi->fh, buf, size, offset);
+	return (res == -1) ? -errno : res;
 }
 
-static const struct fuse_operations pg_oper = {
-    .getattr = pg_getattr,
-    .open = pg_open,
-    .read = pg_read,
-    .release = pg_release,
+static int dl_release(const char *path, struct fuse_file_info *fi) {
+	(void) path;
+	close(fi->fh);
+	return 0;
+}
+
+/*
+ * flush() may be called more than once per open() (e.g. if the
+ * process dup()'d the fd before closing each copy), so it must not
+ * actually close fi->fh. Flushing via close(dup(fd)) is the usual
+ * FUSE idiom: it forces any buffered writes for this fd out and
+ * surfaces write-back errors (e.g. from NFS) without releasing fh.
+ */
+static int dl_flush(const char *path, struct fuse_file_info *fi) {
+	(void) path;
+	int res = close(dup(fi->fh));
+	return (res == -1) ? -errno : 0;
+}
+
+static int dl_fsync(const char *path, int isdatasync, struct fuse_file_info *fi) {
+	(void) path;
+	int res = isdatasync ? fdatasync(fi->fh) : fsync(fi->fh);
+	return (res == -1) ? -errno : 0;
+}
+
+static const struct fuse_operations dl_oper = {
+	.getattr = dl_getattr,
+	.open    = dl_open,
+	.read    = dl_read,
+	.write   = dl_write,
+	.flush   = dl_flush,
+	.fsync   = dl_fsync,
+	.release = dl_release,
 };
 
 int main(int argc, char *argv[]) {
-    conn = PQconnectdb(conninfo);
-    if (PQstatus(conn) != CONNECTION_OK) {
-        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
-        PQfinish(conn);
-        return 1;
-    }
+	conn = PQconnectdb(conninfo);
+	if (PQstatus(conn) != CONNECTION_OK) {
+		fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
+		PQfinish(conn);
+		return 1;
+	}
 
-    int ret = fuse_main(argc, argv, &pg_oper, NULL);
-
-    PQfinish(conn);
-    return ret;
+	int ret = fuse_main(argc, argv, &dl_oper, NULL);
+	PQfinish(conn);
+	return ret;
 }
-
