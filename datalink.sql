@@ -2842,6 +2842,7 @@ BEGIN
   return new;
  end if; -- if datalink.access
 
+/*
  if tg_relid = 'datalink.access_web'::regclass then
   if tg_op = 'INSERT' THEN
     insert into datalink.dl_access_web (url,privilege_type,grantor,grantee)
@@ -2869,6 +2870,7 @@ BEGIN
   end if; -- delete
   return new;
  end if; -- if datalink.access_web
+*/
 END
 $$;
 
@@ -2897,6 +2899,7 @@ CREATE OR REPLACE FUNCTION has_file_privilege(
  LANGUAGE sql AS 
  $$select datalink.has_file_privilege(current_role::regrole,$1,$2,$3)$$;
 
+/*
 --------------------------------------------------------------- ---------------
 -- web access permisions
 --------------------------------------------------------------- ---------------
@@ -2940,6 +2943,7 @@ CREATE OR REPLACE FUNCTION has_web_privilege(
   url text, privilege text default 'SELECT', allowsuper boolean default true) 
 RETURNS boolean LANGUAGE sql AS 
 $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
+*/
 
 --------------------------------------------------------------- ---------------
 -- datalinker status

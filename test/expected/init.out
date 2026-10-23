@@ -131,9 +131,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_class_privilege(regclass)                                                                | sql      | 
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
- datalink     | has_web_privilege(regrole,text,text,boolean)                                                 | sql      | 
- datalink     | has_web_privilege(text,text,boolean)                                                         | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(109 rows)
+(107 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

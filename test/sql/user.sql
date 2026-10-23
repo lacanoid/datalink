@@ -4,7 +4,8 @@ SET client_min_messages = notice;
 SET search_path = public,datalink;
 
 -- test permissions on web functions
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes, root
+
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes, root
 
 begin;
 
@@ -18,15 +19,14 @@ create table user_links (
   link2 datalink
 );
 
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- no
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- no
 
 reset role;
 
-insert into datalink.dl_access_web values ('http://www.ljudmila.org','SELECT','datalink_test_user'::regrole);
+--insert into datalink.dl_access_web values ('http://www.ljudmila.org','SELECT','datalink_test_user'::regrole);
 set role datalink_test_user;
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes
 reset role;
-
 
 update datalink.columns
    set link_control='FILE', integrity='ALL',
@@ -41,7 +41,7 @@ update datalink.columns
 set role datalink_test_user;
 
 insert into user_links (link)
-values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 1'));
 
 update user_links
    set link = dlnewcopy(link);
@@ -58,7 +58,7 @@ savepoint p1;
 select * from datalink.read_text('/etc/passwd',1,4); -- should fail
 rollback to p1;
 
-select * from datalink.read_text('/var/www/datalink/test1.txt',1,5);
+select * from datalink.read_text('/var/www/datalink/installcheck/test1.txt',1,5);
 
 reset role;
 drop table user_links;

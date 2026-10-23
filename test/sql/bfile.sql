@@ -14,14 +14,14 @@ select substr(dlvalue('/var/www/datalink/installcheck/utf8.txt')),
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
 
-insert into bfiles (bfile) values (dlvalue('test1.txt','www'));
+insert into bfiles (bfile) values (dlvalue('installcheck/test1.txt','www'));
 insert into bfiles (bfile) values (dlvalue('installcheck/utf8.txt','www'));
 insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-abecedabeced','www'));
 
 create domain bfile2 bfile;
 create table bfiles2 ( bfile bfile2 );
 
-insert into bfiles2 (bfile) values (dlvalue('test1.txt','www'));
+insert into bfiles2 (bfile) values (dlvalue('installcheck/test1.txt','www'));
 insert into bfiles2 (bfile) values (dlvalue('installcheck/test4.txt','www'));
 
 select * from datalink.types;
@@ -84,7 +84,7 @@ select datalink.has_updated('/etc/issue');
 -- test link construction types
 
 create table files ( link datalink(2) );
-insert into files values (dlvalue('/var/www/datalink/test1.txt'));
+insert into files values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 update files  set link = dlnewcopy(link);
 insert into files values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 insert into files values (dlreplacecontent('/var/www/datalink/installcheck/test6.txt','http://www.github.com/robots.txt'));

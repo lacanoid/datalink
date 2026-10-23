@@ -2,12 +2,7 @@
 SET client_min_messages = notice;
 SET search_path = public,datalink;
 -- test permissions on web functions
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes, root
- has_web_privilege 
--------------------
- t
-(1 row)
-
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes, root
 begin;
 create role datalink_test_user;
 grant all on schema public to datalink_test_user;
@@ -17,21 +12,11 @@ create table user_links (
   link datalink,
   link2 datalink
 );
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- no
- has_web_privilege 
--------------------
- f
-(1 row)
-
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- no
 reset role;
-insert into datalink.dl_access_web values ('http://www.ljudmila.org','SELECT','datalink_test_user'::regrole);
+--insert into datalink.dl_access_web values ('http://www.ljudmila.org','SELECT','datalink_test_user'::regrole);
 set role datalink_test_user;
-select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes
- has_web_privilege 
--------------------
- t
-(1 row)
-
+--select datalink.has_web_privilege('http://www.ljudmila.org'); -- yes
 reset role;
 update datalink.columns
    set link_control='FILE', integrity='ALL',
@@ -44,25 +29,25 @@ update datalink.columns
  where table_name='user_links' and column_name='link2';
 set role datalink_test_user;
 insert into user_links (link)
-values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 1'));
+values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 1'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update user_links
    set link = dlnewcopy(link);
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 select * 
   from datalink.linked_files;
-            path             |       owner        | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |  err   
------------------------------+--------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------
- /var/www/datalink/test1.txt | datalink_test_user | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | _null_
+                   path                   |       owner        | state | read_access | write_access | recovery | on_unlink |  regclass  | attname |  err   
+------------------------------------------+--------------------+-------+-------------+--------------+----------+-----------+------------+---------+--------
+ /var/www/datalink/installcheck/test1.txt | datalink_test_user | LINK  | DB          | TOKEN        | YES      | RESTORE   | user_links | link    | _null_
 (1 row)
 
 update user_links set link = null;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 truncate user_links;
 savepoint p1;
 -- test permissions on file functions
@@ -72,7 +57,7 @@ FILE:  /etc/passwd
 ROLE:  datalink_test_user
 CONTEXT:  PL/Perl function "read_text"
 rollback to p1;
-select * from datalink.read_text('/var/www/datalink/test1.txt',1,5);
+select * from datalink.read_text('/var/www/datalink/installcheck/test1.txt',1,5);
  read_text 
 -----------
  Hello
