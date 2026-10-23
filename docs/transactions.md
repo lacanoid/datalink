@@ -13,8 +13,8 @@ The datalink system itself is essentially a two stage commit process, where chan
 are first recorded in the database and then applied by the [datalinker](dlfs.md) process.
 
 When files are beeing written transactionally, a new copy of the file is first written
-by postgres. The datalinker then replaces old files with new ones. This is somewhat
-analogous to the way MVCC rows are created in postgres itself. This applies to functions
+by postgres. The datalinker then replaces old files with new ones, which on unix is a fast atomic operation.
+This is somewhat analogous to the way MVCC rows are created in postgres itself. This applies to functions
 `datalink.write()`, `datalink.write_text()` and `dlreplacecontent()`.
 
 
