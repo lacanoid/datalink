@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.0923 lacanoid@ljudmila.org
+--  version 0.26.1022 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -678,7 +678,7 @@ begin
      if r.token is not distinct from my_token
      then -- same file and protection
         update datalink.dl_linked_files
-           set state='LINKED',
+          set state='LINKED',
                attrelid=my_regclass,
                attnum=my_attnum,
                address=my_address,
@@ -1554,7 +1554,7 @@ if(defined($filename)) {
      qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"); 
   }
   if(-e $filename) { 
-    elog(ERROR,"DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"); 
+    elog(ERROR,"DATALINK EXCEPTION - file exists\nFILE:  $filename\n"); 
   }
 }
 # -------- handle data: URLs --------
@@ -2066,7 +2066,7 @@ BEGIN
   perform datalink.dl_file_new(path,'e',link,(l1::jsonb->>'b')::datalink.dl_token);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
-    raise exception e'DATALINK EXCEPTIION - failed to copy resource\nURL: %',url
+    raise exception e'DATALINK EXCEPTION - failed to copy resource\nURL: %',url
     using errcode = 'HW303',
           detail = format('CURL error %s%s',r.rc,' - '||r.error);
   end if;
@@ -2444,7 +2444,7 @@ AS $function$
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op))
@@ -2478,7 +2478,7 @@ AS $function$
         qq{\nFILE:  $filename\nROLE:  }.quote_ident($fs->{user})."\n"; 
   }
 
-  if(-e $filename) { die "DATALINK EXCEPTIION - file exists\nFILE:  $filename\n"; }
+  if(-e $filename) { die "DATALINK EXCEPTION - file exists\nFILE:  $filename\n"; }
 
   $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   unless(spi_exec_prepared($p,$filename,$op)) 
@@ -3101,8 +3101,15 @@ create table dl_new_files (
   txid xid8 not null default pg_current_xact_id(),
   ctime timestamptz not null default now(),
   regrole regrole not null default current_role::regrole,
+  expires timestamptz default now() + interval '10 minutes',
   path file_path primary key,
   op "char" not null,
+  /* op values:
+   t = temporary
+   w = persistent
+   e = external (created by dlurlpathwrite)
+   f = finished externa, which has been opened for write
+   */ 
   oldlink datalink,
   options jsonb,
   token dl_token unique

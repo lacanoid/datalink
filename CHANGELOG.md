@@ -5,6 +5,8 @@ Version 0.26
 - added `pg_catalog.json(datalink)` and `pg_catalog.jsonb(datalink)` functions to return datalink content
 - added `pg_catalog.text(datalink)` function to return datalink content
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
+- added `expires` field to `datalink.dl_new_files`
+
 
 Version 0.25
 ------------

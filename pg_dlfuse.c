@@ -1,6 +1,6 @@
 /*
    pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
-   version 0.26.0926
+   version 0.25.1231 (+ write support)
 */
 
 #define FUSE_USE_VERSION 35
@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/xattr.h>
 #include <fuse.h>
 #include <libpq-fe.h>
 
@@ -127,14 +128,30 @@ static int dl_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 	return (res == -1) ? -errno : 0;
 }
 
+/*
+ * GETXATTR: read an extended attribute of the underlying real file.
+ * Read-only access is enough. As with the FUSE/getxattr(2) contract,
+ * size == 0 asks only for the attribute's size.
+ */
+static int dl_getxattr(const char *path, const char *name,
+                       char *value, size_t size) {
+	char *real_path = authorize(path, NULL);
+	if (!real_path) return -ENOENT;
+
+	ssize_t res = getxattr(real_path, name, value, size);
+	free(real_path);
+	return (res == -1) ? -errno : (int) res;
+}
+
 static const struct fuse_operations dl_oper = {
-	.getattr = dl_getattr,
-	.open    = dl_open,
-	.read    = dl_read,
-	.write   = dl_write,
-	.flush   = dl_flush,
-	.fsync   = dl_fsync,
-	.release = dl_release,
+  .getattr = dl_getattr,
+  .getxattr = dl_getxattr,
+  .open    = dl_open,
+  .read    = dl_read,
+  .write   = dl_write,
+  .flush   = dl_flush,
+  .fsync   = dl_fsync,
+  .release = dl_release,
 };
 
 int main(int argc, char *argv[]) {
