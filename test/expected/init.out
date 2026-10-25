@@ -25,7 +25,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
        cast(p.oid::regprocedure as text) collate "C";
  pronamespace |                                             oid                                              | lanname  |                                            obj_description                                             
 --------------+----------------------------------------------------------------------------------------------+----------+--------------------------------------------------------------------------------------------------------
- pg_catalog   | "json"(datalink)                                                                             | sql      | Returns contents of file pointed to by datalink as JSON
  pg_catalog   | bytea(datalink,integer,integer)                                                              | plpgsql  | Returns contents of file pointed to by datalink as bytea
  pg_catalog   | dlcomment(datalink)                                                                          | sql      | SQL/MED - Returns the comment value, if it exists, from a DATALINK value
  pg_catalog   | dllinktype(datalink)                                                                         | sql      | SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value
@@ -116,7 +115,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | dl_datalink_unref(datalink,dl_lco,regclass,name)                                             | plpgsql  | 
  datalink     | dl_file_done(datalink,boolean,whoami)                                                        | plpgsql  | 
  datalink     | dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name)                                 | plpgsql  | 
- datalink     | dl_file_new(file_path,"char",datalink,dl_token,jsonb,whoami)                                 | plpgsql  | 
+ datalink     | dl_file_new(file_path,"char",datalink,dl_token,timestamp with time zone,jsonb,whoami)        | plpgsql  | 
  datalink     | dl_file_unlink(file_path)                                                                    | plpgsql  | 
  datalink     | dl_newtoken()                                                                                | sql      | 
  datalink     | dl_trigger_access()                                                                          | plpgsql  | 
@@ -132,6 +131,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(107 rows)
+(106 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

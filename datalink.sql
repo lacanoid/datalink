@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1025 lacanoid@ljudmila.org
+--  version 0.26.1100 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -3128,7 +3128,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_directory();
 -- mark file as temporary to be deleted if the transaction aborts
 create or replace function dl_file_new(file_path, op "char" default 't', 
   oldlink datalink default null, token datalink.dl_token default null,
-  options jsonb default null, 
+  expires timestamptz default null, options jsonb default null, 
   caller datalink.whoami default current_user)
 returns text language plpgsql SECURITY DEFINER as $$
 declare 
@@ -3145,9 +3145,9 @@ begin
   end if;
   IF NOT EXISTS (select 1 from datalink.dl_new_files where path = $1) THEN
     my_txid := pg_current_xact_id();
-    sql := format('insert into datalink.dl_new_files (kind,path,txid,regrole,oldlink,token,options)'||
-                  ' values (%L,%L,%L,%L,%L,%L,%L) '||
-                  ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,token,options);
+    sql := format('insert into datalink.dl_new_files (kind,path,txid,regrole,oldlink,token,expires,options)'||
+                  ' values (%L,%L,%L,%L,%L,%L,%L,%L) '||
+                  ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,token,expires,options);
     select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
     if not found THEN
       raise warning 'DATALINK WARNING - dblink extension recommended' 
@@ -3165,7 +3165,7 @@ begin
 end
 $$;
 alter function dl_file_new(
-  file_path,"char",datalink,datalink.dl_token,jsonb,datalink.whoami)
+  file_path,"char",datalink,datalink.dl_token,timestamptz,jsonb,datalink.whoami)
  owner to postgres;
 
 --------------------------------------------------------------- ---------------
