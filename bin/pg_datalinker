@@ -157,11 +157,11 @@ sub main() {
         'err++'=>$dbh->prepare(q{ update dl_status set errs = errs + 1 }),
 
         'purge_get'=>$dbh->prepare(q{
-          select pg_xact_status(txid) as state, op, path 
+          select pg_xact_status(txid) as state, kind, path 
             from dl_new_files af
-           where op in ('t','w','e') 
+           where kind in ('t','w','e') 
              and pg_xact_status(txid) is distinct from 'in progress'
-             and not ( op = 'e' and pg_xact_status(txid) = 'committed' )
+             and not ( kind = 'e' and pg_xact_status(txid) = 'committed' )
            order by txid for update of af
         }),
         'purge_delete'=>$dbh->prepare(q{ delete from dl_new_files where path = $1 })
@@ -268,13 +268,13 @@ sub purge_files {
         my $path = $data->{path}; 
         if(path_valid_prefix($path)) {
             my $state = $data->{state};
-            my $op = $data->{op};
+            my $kind = $data->{kind};
             if($state eq 'in progress') { next; } 
             my $stat = file_stat($path);
             if($stat->{inode}) {
                 if($stat->{owner} eq $config{owner}) {
-                    log_msg('PURGE',"$op,$state,$path");
-                    if($state eq 'aborted' || ($state eq 'committed' && $op eq 't')) {
+                    log_msg('PURGE',"$kind,$state,$path");
+                    if($state eq 'aborted' || ($state eq 'committed' && $kind eq 't')) {
 			            file_delete($path);
 		            }
                 } else { 

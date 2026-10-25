@@ -1,6 +1,10 @@
 /*
    pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
    version 0.25.1231 (+ write support)
+
+   Build (libfuse 3):
+     gcc -Wall -Wextra -I`pg_config --includedir` -D_FILE_OFFSET_BITS=64 \
+         pg_dlfuse.c `pkg-config fuse3 --cflags --libs` -lpq -o pg_dlfuse
 */
 
 #define FUSE_USE_VERSION 35
@@ -59,7 +63,9 @@ static char *authorize(const char *path, const char *mode) {
 	return authorized_path;
 }
 
-static int dl_getattr(const char *path, struct stat *stbuf) {
+static int dl_getattr(const char *path, struct stat *stbuf,
+                      struct fuse_file_info *fi) {
+	(void) fi;
 	memset(stbuf, 0, sizeof(struct stat));
 
 	char *real_path = authorize(path, NULL);
@@ -143,12 +149,44 @@ static int dl_getxattr(const char *path, const char *name,
 	return (res == -1) ? -errno : (int) res;
 }
 
+/*
+ * TRUNCATE (FUSE 3 API): one callback for both cases.
+ *
+ * When called on an open file (ftruncate(2), or O_TRUNC), libfuse
+ * passes fi: the file was already authorized for write at open() time,
+ * so we truncate the fd directly. Calling authorize(path, "w") again
+ * would return NULL, since a file can only be authorized for writing
+ * once.
+ *
+ * When called by path only (truncate(2), fi == NULL) there is no open
+ * file, so this is the one write authorization for the file.
+ *
+ * libfuse 3 enables FUSE_CAP_ATOMIC_O_TRUNC by default, so O_TRUNC is
+ * passed to dl_open() (and on to open()) and does not arrive here as a
+ * separate truncate() that would use up the write authorization.
+ */
+static int dl_truncate(const char *path, off_t size, struct fuse_file_info *fi) {
+	int res;
+
+	if (fi) {
+		res = ftruncate(fi->fh, size);
+	} else {
+		char *real_path = authorize(path, "w");
+		if (!real_path) return -EACCES;
+
+		res = truncate(real_path, size);
+		free(real_path);
+	}
+	return (res == -1) ? -errno : 0;
+}
+
 static const struct fuse_operations dl_oper = {
   .getattr = dl_getattr,
   .getxattr = dl_getxattr,
   .open    = dl_open,
   .read    = dl_read,
   .write   = dl_write,
+  .truncate = dl_truncate,
   .flush   = dl_flush,
   .fsync   = dl_fsync,
   .release = dl_release,

@@ -2,11 +2,15 @@ Version 0.26
 ------------
 - role `datalink_web` which is granted execute permission on curl functions
 - remove (for now) web access control tables and functions
-- added `pg_catalog.bytea(datalink)` and `pg_catalog.xml(datalink)` functions to return datalink content
-- added `pg_catalog.json(datalink)` and `pg_catalog.jsonb(datalink)` functions to return datalink content
-- added `pg_catalog.text(datalink)` function to return datalink content
+- added `pg_catalog.text(datalink)` function to return datalink content as text
+- added `pg_catalog.bytea(datalink)` function to return datalink content as bytea
+- added `pg_catalog.xml(datalink)` function to return datalink content as XML
+- added `pg_catalog.jsonb(datalink)` functions to return datalink content as JSONB
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
+- move from libfuse to libfuse3
+- rename `datalink.dl_new_files.op` to `kind`
+- pg_dlfuse now works for simple writes as well
 
 Version 0.25
 ------------

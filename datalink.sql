@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1022 lacanoid@ljudmila.org
+--  version 0.26.1025 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -1309,8 +1309,8 @@ begin
   -- convert temporary file to permanent if not blocking
   if lco.link_control = 'FILE' and lco.write_access = 'FS'
   then
-      update datalink.dl_new_files set op = 'w'
-       where path = datalink.filepathwrite(link) and op = 't'
+      update datalink.dl_new_files set kind = 'w'
+       where path = datalink.filepathwrite(link) and kind = 't'
          and txid = pg_current_xact_id();
   end if;
 
@@ -2241,8 +2241,8 @@ begin
 -- check for write access for file created with dlurlpathwrite()
  if op = 'w' then
    update datalink.dl_new_files nf
-      set op = 'f'
-    where token=t::datalink.dl_token and nf.op = 'e'
+      set kind = 'f'
+    where token=t::datalink.dl_token and nf.kind = 'e'
        -- and mypath like nf.path || '%'
        -- and nf.regrole = myrole
     returning path into f;
@@ -2664,12 +2664,14 @@ $$;
 comment on function pg_catalog.jsonb(datalink) 
      is 'Returns contents of file pointed to by datalink as JSONB';
 
+/*
 create or replace function pg_catalog.json(datalink)
  RETURNS json LANGUAGE sql AS $$
 select substr($1)::json
 $$;
 comment on function pg_catalog.json(datalink) 
      is 'Returns contents of file pointed to by datalink as JSON';
+*/
 
 --------------------------------------------------------------- ---------------
 -- directories
@@ -3107,13 +3109,14 @@ create table dl_new_files (
   regrole regrole not null default current_role::regrole,
   expires timestamptz default now() + interval '10 minutes',
   path file_path primary key,
-  op "char" not null,
-  /* op values:
+  kind "char" not null,
+  /* kind values:
    t = temporary
    w = persistent
    e = external (created by dlurlpathwrite)
    f = finished externa, which has been opened for write
-   */ 
+   */
+  ops char[] default '{}',
   oldlink datalink,
   options jsonb,
   token dl_token unique
@@ -3142,7 +3145,7 @@ begin
   end if;
   IF NOT EXISTS (select 1 from datalink.dl_new_files where path = $1) THEN
     my_txid := pg_current_xact_id();
-    sql := format('insert into datalink.dl_new_files (op,path,txid,regrole,oldlink,token,options)'||
+    sql := format('insert into datalink.dl_new_files (kind,path,txid,regrole,oldlink,token,options)'||
                   ' values (%L,%L,%L,%L,%L,%L,%L) '||
                   ' on conflict (path) do nothing',$2,$1,my_txid,caller,oldlink,token,options);
     select extnamespace::regnamespace from pg_catalog.pg_extension where extname = 'dblink' into ns;
@@ -3185,8 +3188,8 @@ BEGIN
   mypath := regexp_replace(mypath,'^/dlfs/','/');
   if t is not null then
    update datalink.dl_new_files
-      set op='t'
-    where token = t and op in ('e','f') 
+      set kind='t'
+    where token = t and kind in ('e','f') 
    returning oldlink into link;
    if found and link is not null then 
      if newcopy then
