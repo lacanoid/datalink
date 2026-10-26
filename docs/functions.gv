@@ -1,0 +1,32 @@
+digraph G {
+  rankdir = LR;
+
+  dl_authorize;
+    dl_url_authorize -> dl_authorize;
+      dl_file_new;
+
+  read_text -> dl_authorize;
+    read -> dl_authorize;
+      read_lines -> dl_authorize;
+
+  curl_perform -> dl_url_authorize;
+    curl_perform -> dl_file_new;
+      curl_get -> curl_perform;
+        curl_save -> curl_perform;
+
+  read -> curl_get;
+    read_text -> curl_get;
+
+  substr -> read_text;
+    text -> read_text;
+      xml -> read_text;
+        jsonb -> read_text;
+	  bytea -> read;
+
+  dlreplacecontent -> curl_save;
+    dlurlpathwrite -> dl_file_new;
+
+  write_text -> dl_file_new;
+    write -> dl_file_new;
+
+}

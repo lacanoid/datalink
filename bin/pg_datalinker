@@ -19,6 +19,7 @@ BEGIN { $ENV{LC_ALL} = "C"; }
 our $opt_v = 0;  # verbosity
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
+our $opt_E - 1;  # call datalink.dl_expire()
 our $opt_R = 1;  # restore old files from backups
 our $opt_P = 1;  # process dl_new_files (purge temporary and files from aborted transactions)
 our $opt_L = 1;  # use advisory locks (support for datalink.commit())
@@ -250,7 +251,7 @@ sub main() {
                 } 
             }
         }
-        $dbh->do("call datalink.dl_expire()");
+        if($opt_E) { $dbh->do("call datalink.dl_expire()"); }
         $dbh->do("update datalink.dl_status set atime=now()");
     } # forever loop
 
