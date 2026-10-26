@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.0927";
+our $version="0.26.1100";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -250,6 +250,7 @@ sub main() {
                 } 
             }
         }
+        $dbh->do("call datalink.dl_expire()");
         $dbh->do("update datalink.dl_status set atime=now()");
     } # forever loop
 

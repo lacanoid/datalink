@@ -2034,7 +2034,7 @@ IS 'SQL/MED - Returns the file path from URL';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink)
+CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink, ttl interval default '10 minutes')
  RETURNS text LANGUAGE plpgsql STRICT AS $function$
 DECLARE
   path datalink.file_path;
@@ -2063,7 +2063,7 @@ BEGIN
   l1   := pg_catalog.dlnewcopy(link);
   path := datalink.filepathwrite(l1);
   url  := pg_catalog.dlurlcomplete(link);
-  perform datalink.dl_file_new(path,'e',link,(l1::jsonb->>'b')::datalink.dl_token);
+  perform datalink.dl_file_new(path,'e',link,(l1::jsonb->>'b')::datalink.dl_token,expires=>now()+ttl);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
     raise exception e'DATALINK EXCEPTION - failed to copy resource\nURL: %',url
@@ -2077,7 +2077,7 @@ BEGIN
 END
 $function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(datalink)
+COMMENT ON FUNCTION pg_catalog.dlurlpathwrite(datalink,interval)
      IS 'SQL/MED - Returns the writeable file path from DATALINK value';
 
 --------------------------------------------------------------- ---------------
@@ -2739,6 +2739,13 @@ begin
  end if;  -- if datalink.dl_directory
 
  if tg_relid = 'datalink.dl_new_files'::regclass then
+  if tg_op = 'UPDATE' then
+    if new.path is distinct from old.path then
+      raise exception 'DATALINK EXCEPTION - cannot rename %',
+	                  format(e'\nFILE:  %s', old.path)
+      using  detail = 'Cannot change path of existing file';
+    end if;
+  end if;
   if (datalink.stat(new.path)).size is not null THEN
     raise exception 'DATALINK EXCEPTION - file exists %',
 	                  format(e'\nFILE:  %s',new.path)
@@ -2985,6 +2992,20 @@ end
 $$;
 COMMENT ON PROCEDURE commit() 
      IS 'Wait for datalinker to apply changes';
+
+--------------------------------------------------------------- ---------------
+CREATE PROCEDURE dl_expire() language plpgsql as $$
+begin
+  update datalink.dl_new_files set kind='t'
+   where kind in ('e','f')
+     and now() > expires;
+  delete from datalink.insight
+   where now() > expires;
+end
+$$;
+COMMENT ON PROCEDURE dl_expire() 
+     IS 'Handle expired items';
+
 
 --------------------------------------------------------------- ---------------
 

@@ -8,9 +8,10 @@ Version 0.26
 - added `pg_catalog.jsonb(datalink)` functions to return datalink content as JSONB
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
+- added `datalinj.pg_expire()` procedure which datalinker calls often
 - move from libfuse to libfuse3
 - rename `datalink.dl_new_files.op` to `kind`
-- pg_dlfuse now works for simple writes as well
+- pg_dlfuse now works for simple writes
 
 Version 0.25
 ------------

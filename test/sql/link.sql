@@ -17,10 +17,10 @@ insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink 2'));
+values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 2'));
 
 insert into sample_datalinks4 (link)
-values (dlvalue('/var/www/datalink/test3.txt','FS','Sample file datalink 3'));
+values (dlvalue('/var/www/datalink/installcheck/test3.txt','FS','Sample file datalink 3'));
 
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
@@ -60,7 +60,7 @@ insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 
 insert into sample_datalinks5 (link)
-values (dlvalue('/var/www/datalink/test1.txt','FS','Sample file datalink'));
+values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink'));
 
 select state,regclass,attname,path
   from datalink.linked_files order by path;
@@ -128,7 +128,7 @@ insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test4.txt'
 insert into my_table4 values (dlvalue('/etc/issue')); 
 
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
-insert into my_table4 values (dlvalue('/var/www/datalink/test1.txt'));
+insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
 update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';
 delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
