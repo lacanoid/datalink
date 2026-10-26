@@ -12,6 +12,7 @@ Version 0.26
 - move from libfuse to libfuse3
 - rename `datalink.dl_new_files.op` to `kind`
 - pg_dlfuse now works for simple writes
+- dl_authorize now returns correct path for DLURLPATHWRITE paths
 
 Version 0.25
 ------------

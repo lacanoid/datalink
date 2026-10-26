@@ -29,14 +29,14 @@ update sample_datalinks6 set link = link2;
 update sample_datalinks6 set link2 = null;
 
 set client_min_messages=warning;
-select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
+select length(datalink.read_text('/var/www/datalink/installcheck/test1.txt')) > 0;
 --select length(datalink.read_text(dlurlpath(link)) > 0 from sample_datalinks6;
 --select length(datalink.read_text(dlurlpathonly(link)) > 0 from sample_datalinks6;
 --select length(datalink.read_text(link) > 0 from sample_datalinks6;
 drop role if exists datalink_test_user_123;
 create role datalink_test_user_123;
 set role datalink_test_user_123;
-select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
+select length(datalink.read_text('/var/www/datalink/installcheck/test1.txt')) > 0;
 --select length(datalink.read_text(dlurlpath(link)) > 0 from sample_datalinks6;
 --select length(datalink.read_text(dlurlpathonly(link)) > 0 from sample_datalinks6;
 --select length(datalink.read_text(link) > 0 from sample_datalinks6;
@@ -66,7 +66,7 @@ select *
 
 truncate sample_datalinks6;
 
-insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt'));
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
 
 insert into my_table2
@@ -137,7 +137,7 @@ select dirpath,privilege_type,grantee from datalink.access;
 
 select datalink.dl_url_makeinsight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
 
-insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt#11111111-2222-3333-4444-abecedabeced'));
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt#11111111-2222-3333-4444-abecedabeced'));
 select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
 truncate sample_datalinks6;
 

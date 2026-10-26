@@ -40,7 +40,7 @@ create table sample_files (
 
 insert into sample_files (filename)
 values 
-  ('/var/www/datalink/test1.txt'),
+  ('/var/www/datalink/installcheck/test1.txt'),
   ('/var/www/datalink/installcheck/utf8.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
@@ -92,12 +92,12 @@ create table med (link datalink(2)); -- INTEGRITY ALL
 insert into med (link) values (dlvalue('file:///var/www/datalink/non_existant_file')); -- err
 -- 
 -- case 1.b.1 invalid datalink construction
-insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt')); -- err
-insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt')); -- err
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
+insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
+insert into med (link) values (dlnewcopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 -- 
 -- case 1.b.2 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- err
 
 -- 15.3 Effect of replacing rows in base tables
 
@@ -107,14 +107,14 @@ update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt');
 update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- err
 --
 -- case 1.b.ii.1 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 update med set link = dlvalue('file:///var/www/datalink/installcheck/test4.txt'); -- err
 delete from med;
 --
 -- case 1.b.ii.2.A.I invalid write token
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
-update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/test1.txt'); -- err
 update med set link = dlnewcopy(link); -- ok
 --
 -- case 1.b.ii.2.B invalid write permission for update

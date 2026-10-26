@@ -2266,12 +2266,13 @@ begin
   if f.token::text = t then
     return mypath;
   end if; 
-  perform true from datalink.insight
+   select mypath from datalink.insight
     where read_token=t::datalink.dl_token
       and link_token=f.token
-    union select true from datalink.dl_new_files
+    union select path from datalink.dl_new_files
     where token=t::datalink.dl_token
-      and (oldlink::jsonb->>'b')::datalink.dl_token=f.token; 
+      and (oldlink::jsonb->>'b')::datalink.dl_token=f.token
+     into mypath;
   if found then 
     insert into datalink.insight_access_log 
            (read_token, link_token, atime, "role", pid, inet, app, data)

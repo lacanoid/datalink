@@ -33,7 +33,7 @@ update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = null;
 set client_min_messages=warning;
-select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
+select length(datalink.read_text('/var/www/datalink/installcheck/test1.txt')) > 0;
  ?column? 
 ----------
  t
@@ -45,9 +45,9 @@ select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
 drop role if exists datalink_test_user_123;
 create role datalink_test_user_123;
 set role datalink_test_user_123;
-select length(datalink.read_text('/var/www/datalink/test1.txt')) > 0;
+select length(datalink.read_text('/var/www/datalink/installcheck/test1.txt')) > 0;
 ERROR:  DATALINK EXCEPTION - SELECT permission denied on directory 
-FILE:  /var/www/datalink/test1.txt
+FILE:  /var/www/datalink/installcheck/test1.txt
 ROLE:  datalink_test_user_123
 CONTEXT:  PL/Perl function "read_text"
 --select length(datalink.read_text(dlurlpath(link)) > 0 from sample_datalinks6;
@@ -102,26 +102,26 @@ select *
 NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
 truncate sample_datalinks6;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt'));
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 select link::jsonb-'b' from sample_datalinks6; truncate sample_datalinks6;
-                 ?column?                  
--------------------------------------------
- {"a": "file:/var/www/datalink/test1.txt"}
+                        ?column?                        
+--------------------------------------------------------
+ {"a": "file:/var/www/datalink/installcheck/test1.txt"}
 (1 row)
 
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 insert into my_table2
 select dlvalue(filename)
   from sample_files
  where filename like '%.txt'
    and not (filename like '%X%' or filename like '%3.txt');
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 truncate my_table2;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 -- test for foreign servers
 -- select * from datalink.curl_get('file://zala/etc/issue');
@@ -280,15 +280,15 @@ select datalink.dl_url_makeinsight('http://server/dir/file.ext','11111111-2222-3
  http://server/dir/11111111-2222-3333-4444-abecedabeced;file.ext
 (1 row)
 
-insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/test1.txt#11111111-2222-3333-4444-abecedabeced'));
+insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt#11111111-2222-3333-4444-abecedabeced'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
-                              dlurlcomplete                               |                               dlurlpath                               
---------------------------------------------------------------------------+-----------------------------------------------------------------------
- http://localhost/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt | /dlfs/var/www/datalink/11111111-2222-3333-4444-abecedabeced;test1.txt
+                                     dlurlcomplete                                     |                                     dlurlpath                                      
+---------------------------------------------------------------------------------------+------------------------------------------------------------------------------------
+ http://localhost/datalink/installcheck/11111111-2222-3333-4444-abecedabeced;test1.txt | /dlfs/var/www/datalink/installcheck/11111111-2222-3333-4444-abecedabeced;test1.txt
 (1 row)
 
 truncate sample_datalinks6;
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt

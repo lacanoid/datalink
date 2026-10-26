@@ -79,7 +79,7 @@ create table sample_files (
 );
 insert into sample_files (filename)
 values 
-  ('/var/www/datalink/test1.txt'),
+  ('/var/www/datalink/installcheck/test1.txt'),
   ('/var/www/datalink/installcheck/utf8.txt'),
   ('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced'),
   ('/var/www/datalink/testX.txt'),
@@ -87,7 +87,7 @@ values
 select *,dlvalue(filename) from sample_files;
  id |                             filename                             |                                    dlvalue                                     
 ----+------------------------------------------------------------------+--------------------------------------------------------------------------------
-  1 | /var/www/datalink/test1.txt                                      | {"a": "file:/var/www/datalink/test1.txt"}
+  1 | /var/www/datalink/installcheck/test1.txt                         | {"a": "file:/var/www/datalink/installcheck/test1.txt"}
   2 | /var/www/datalink/installcheck/utf8.txt                          | {"a": "file:/var/www/datalink/installcheck/utf8.txt"}
   3 | /var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced | {"a": "file:/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced"}
   4 | /var/www/datalink/testX.txt                                      | {"a": "file:/var/www/datalink/testX.txt"}
@@ -135,28 +135,28 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
 -- case 1.b.1 invalid datalink construction
-insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
-insert into med (link) values (dlnewcopy('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlnewcopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 56 at RAISE
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 -- 
 -- case 1.b.2 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- err
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - external file already linked
-DETAIL:  from med.link as '/var/www/datalink/test1.txt'
+DETAIL:  from med.link as '/var/www/datalink/installcheck/test1.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 15.3 Effect of replacing rows in base tables
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 --
 -- case 1.b.i.1 referenced file does not exist
@@ -170,12 +170,12 @@ CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --
 -- case 1.b.ii.1 external file already linked
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update med set link = dlvalue('file:///var/www/datalink/installcheck/test4.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test4.txt
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/installcheck/test4.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
@@ -184,30 +184,30 @@ PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERF
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 delete from med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 --
 -- case 1.b.ii.2.A.I invalid write token
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
-insert into med (link) values (dlvalue('file:///var/www/datalink/test1.txt')); -- ok
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
-update med set link = dlnewcopy('file:///var/www/datalink/test1.txt'); -- err
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
+update med set link = dlnewcopy('file:///var/www/datalink/installcheck/test1.txt'); -- err
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  New value doesn't contain a matching write token for update of column med.link
 HINT:  Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 74 at RAISE
 update med set link = dlnewcopy(link); -- ok
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
-NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 --
 -- case 1.b.ii.2.B invalid write permission for update
 update datalink.columns set read_access='DB',write_access='BLOCKED' where table_name='med';
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write permission for update
 DETAIL:  write access is BLOCKED for column med.link
 HINT:  set write_access to ADMIN or TOKEN
@@ -216,12 +216,12 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 65 at RAISE
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- err
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  File address is different for update of column med.link
 CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
-NOTICE:  DATALINK UNLINK:/var/www/datalink/test1.txt
+NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
