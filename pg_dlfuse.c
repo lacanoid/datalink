@@ -91,6 +91,17 @@ static int dl_open(const char *path, struct fuse_file_info *fi) {
 	free(real_path);
 	if (fd == -1) return -errno;
 
+	/* remove write permission from the file */
+	if (want_write) {
+	  struct stat st;
+	  if (fstat(fd, &st) == -1 ||
+	      fchmod(fd, (st.st_mode & 07777) & ~(S_IWUSR | S_IWGRP | S_IWOTH)) == -1) {
+	    int err = errno;
+	    close(fd);
+	    return -err;
+	  }
+	}
+
 	fi->fh = fd;
 	return 0;
 }
