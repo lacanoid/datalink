@@ -4,7 +4,7 @@
 
    Build (libfuse 3):
      gcc -Wall -Wextra -I`pg_config --includedir` -D_FILE_OFFSET_BITS=64 \
-         pg_dlfuse.c `pkg-config fuse3 --cflags --libs` -lpq -o pg_dlfuse
+         pg_dlfuse.c `pkg-config fuse3 --cflags --libs` -lpq -pthread -o pg_dlfuse
 */
 
 #define FUSE_USE_VERSION 35
@@ -15,44 +15,110 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
 #include <fuse.h>
 #include <libpq-fe.h>
 
 char *conninfo = "service=pg_datalink application_name=pg_dlfuse";
-static PGconn *conn;
+
+/*
+ * Every thread uses its own PGconn: a libpq connection must not be
+ * used by several threads at once, and libfuse runs callbacks on a
+ * pool of worker threads. The connection is created lazily the first
+ * time a thread needs it and closed when the thread exits.
+ */
+static pthread_key_t conn_key;
+static pthread_once_t conn_once = PTHREAD_ONCE_INIT;
+
+static void conn_destroy(void *p) {
+	if (p) PQfinish((PGconn *) p);
+}
+
+static void conn_key_init(void) {
+	pthread_key_create(&conn_key, conn_destroy);
+}
+
+/* Returns this thread's connection, connecting if it has none yet.
+   Returns NULL if the database cannot be reached (the next call
+   tries again). */
+static PGconn *get_conn(void) {
+	pthread_once(&conn_once, conn_key_init);
+
+	PGconn *conn = pthread_getspecific(conn_key);
+	if (conn) return conn;
+
+	conn = PQconnectdb(conninfo);
+	if (PQstatus(conn) != CONNECTION_OK) {
+		fprintf(stderr, "pg_dlfuse: connection to database failed: %s",
+		        PQerrorMessage(conn));
+		PQfinish(conn);
+		return NULL;
+	}
+	pthread_setspecific(conn_key, conn);
+	return conn;
+}
+
+static PGresult *run_authorize(PGconn *conn, const char *path, const char *mode) {
+	const char *paramValues[2] = { path, mode };
+
+	if (mode) {
+		return PQexecParams(conn,
+			"SELECT datalink.dl_authorize($1,$2)",
+			2,        // two params
+			NULL,     // let PostgreSQL deduce types
+			paramValues,
+			NULL, NULL, 0);
+	}
+	return PQexecParams(conn,
+		"SELECT datalink.dl_authorize($1)",
+		1,        // one param
+		NULL,     // let PostgreSQL deduce type
+		paramValues,
+		NULL, NULL, 0);
+}
 
 /*
  * authorize() calls datalink.dl_authorize(path) for read access,
  * or datalink.dl_authorize(path, mode) when mode is non-NULL
  * (e.g. mode = "w" for write access). Returns the real file
  * system path to use, or NULL if access was not authorized.
+ *
+ * If this thread's connection turns out to be broken (e.g. the
+ * database was restarted), it is reset and the query is tried once
+ * more. A query that fails while the connection is still healthy is
+ * a real error and is not retried.
+ *
+ * Note for mode "w": if the connection breaks after the server ran
+ * the query but before the answer arrived, the one-time write
+ * authorization is used up and the retry returns NULL, so the open
+ * is refused. It fails closed; a second write grant is never given.
  */
 static char *authorize(const char *path, const char *mode) {
-	const char *paramValues[2] = { path, mode };
-	PGresult *res;
+	PGconn *conn = get_conn();
+	if (!conn) return NULL;
 
-	if (mode) {
-		res = PQexecParams(conn,
-			"SELECT datalink.dl_authorize($1,$2)",
-			2,        // two params
-			NULL,     // let PostgreSQL deduce types
-			paramValues,
-			NULL, NULL, 0);
-	} else {
-		res = PQexecParams(conn,
-			"SELECT datalink.dl_authorize($1)",
-			1,        // one param
-			NULL,     // let PostgreSQL deduce type
-			paramValues,
-			NULL, NULL, 0);
-	}
+	PGresult *res = NULL;
+	for (int attempt = 0; attempt < 2; attempt++) {
+		if (PQstatus(conn) != CONNECTION_OK) {
+			PQreset(conn);
+			if (PQstatus(conn) != CONNECTION_OK) {
+				fprintf(stderr, "pg_dlfuse: reconnect failed: %s",
+				        PQerrorMessage(conn));
+				return NULL;
+			}
+		}
 
-	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		res = run_authorize(conn, path, mode);
+		if (PQresultStatus(res) == PGRES_TUPLES_OK) break;
+
 		PQclear(res);
-		return NULL;
+		res = NULL;
+		if (PQstatus(conn) == CONNECTION_OK) return NULL;  /* real error */
 	}
+	if (!res) return NULL;
+
 	if (PQntuples(res) == 0 || PQgetisnull(res, 0, 0)) {
 		PQclear(res);
 		return NULL;
@@ -204,14 +270,16 @@ static const struct fuse_operations dl_oper = {
 };
 
 int main(int argc, char *argv[]) {
-	conn = PQconnectdb(conninfo);
-	if (PQstatus(conn) != CONNECTION_OK) {
-		fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
-		PQfinish(conn);
+	/* Check at startup that the database is reachable, then close the
+	   connection again: worker threads open their own, and a libpq
+	   connection must not be carried across fuse_main()'s fork. */
+	PGconn *test = PQconnectdb(conninfo);
+	if (PQstatus(test) != CONNECTION_OK) {
+		fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(test));
+		PQfinish(test);
 		return 1;
 	}
+	PQfinish(test);
 
-	int ret = fuse_main(argc, argv, &dl_oper, NULL);
-	PQfinish(conn);
-	return ret;
+	return fuse_main(argc, argv, &dl_oper, NULL);
 }
