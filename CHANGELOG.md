@@ -9,10 +9,14 @@ Version 0.26
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
 - added `datalinj.pg_expire()` procedure which datalinker calls often
-- move from libfuse to libfuse3
 - rename `datalink.dl_new_files.op` to `kind`
-- pg_dlfuse now works for simple writes
 - dl_authorize now returns correct path for DLURLPATHWRITE paths
+- `pg_dlfuse` move from libfuse to libfuse3
+- `pg_dlfuse` now works for simple writes
+- `pg_dlfuse` now better manages database connection
+- `pg_dlfuse` set `postgres` effective user
+- `dlfs` command improvements - integrated dlff start/stop/status
+- `dlurlpathwrite` now generates anonymous temporary write access tokens
 
 Version 0.25
 ------------

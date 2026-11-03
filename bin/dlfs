@@ -453,9 +453,11 @@ sub daemons_status {
     }
 }
 
-our $DAEMON_EXEC;
+our $DAEMON1_EXEC;
+our $DAEMON2_EXEC;
 our $DAEMON_LOG;
-our $DAEMON_PID;
+our $DAEMON1_PID;
+our $DAEMON2_PID;
 our $DAEMON_RUNNING=0;
 our @DAEMON_ARGS;
 
@@ -463,9 +465,11 @@ sub daemon_setup {
 #    $NAME=$config{appname};
 #    $DAEMON = "/usr/sbin/pg_datalinker";
 #    chomp($DAEMON);
-    $DAEMON_EXEC = "/usr/sbin/".$NAME;
+    $DAEMON1_EXEC = "/usr/sbin/".$DLFM;
+    $DAEMON2_EXEC = "/usr/sbin/".$DLFF;
     $DAEMON_LOG  = "/var/log/postgresql/$NAME.log";
-    $DAEMON_PID  = "/var/run/postgresql/$NAME.pid";
+    $DAEMON1_PID  = "/var/run/postgresql/$DLFM.pid";
+    $DAEMON2_PID  = "/var/run/postgresql/$DLFF.pid";
 }
 
 sub daemon_start {
@@ -473,14 +477,20 @@ sub daemon_start {
     daemon_setup();
     daemon_stop();
     if($systemctl) {
-        sys("systemctl","start",$NAME);
+        sys("systemctl","start",$DLFM);
+        sys("systemctl","start",$DLFF);
     } else {
         sys("start-stop-daemon","--start",
-            "--name",$NAME,
-            "--pidfile",$DAEMON_PID,"--make-pidfile",
+            "--name",$DLFM,
+            "--pidfile",$DAEMON1_PID,"--make-pidfile",
             "--background","--no-close",
-            "--exec","$DAEMON_EXEC","--", 
+            "--exec","$DAEMON1_EXEC","--", 
             "-l",$DAEMON_LOG,"run");
+        sys("start-stop-daemon","--start",
+            "--name",$DLFF,
+            "--pidfile",$DAEMON2_PID,"--make-pidfile",
+            "--background","--no-close",
+            "--exec","$DAEMON2_EXEC","--");
     }
 }
 
@@ -488,11 +498,15 @@ sub daemon_stop {
     $opt_e = 0;
     daemon_setup();
     if($systemctl) {
-        sys("systemctl","stop",$NAME);
+        sys("systemctl","stop",$DLFF);
+        sys("systemctl","stop",$DLFM);
     } else {
         sys("start-stop-daemon","--stop",
-            "--pidfile",$DAEMON_PID,"--remove-pidfile",
-            "--name",$NAME);
+            "--pidfile",$DAEMON2_PID,"--remove-pidfile",
+            "--name",$DLFF);
+        sys("start-stop-daemon","--stop",
+            "--pidfile",$DAEMON1_PID,"--remove-pidfile",
+            "--name",$DLFM);
     }
 }
 
@@ -500,11 +514,15 @@ sub daemon_status {
     $opt_e = 0;
     daemon_setup();
     if($systemctl) {
-        sys("systemctl","status",$NAME);
+        sys("systemctl","status",$DLFM);
+        sys("systemctl","status",$DLFF);
     } else {
         sys("start-stop-daemon","--status",
-            "--pidfile",$DAEMON_PID,
-            "--name",$NAME);
+            "--pidfile",$DAEMON1_PID,
+            "--name",$DLFM);
+        sys("start-stop-daemon","--status",
+            "--pidfile",$DAEMON2_PID,
+            "--name",$DLFF);
         if($sysex) { 
             $DAEMON_RUNNING = 0;
             log_msg('STOPPED');
@@ -523,7 +541,7 @@ sub daemon_log {
 
 sub daemon_see {
     $opt_e = 0;
-    sys("ps aux | grep pg_datalinker | grep -v grep");
+    sys("ps aux | grep pg_ | grep -v grep");
 }
 
 ########################################

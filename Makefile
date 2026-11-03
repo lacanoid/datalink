@@ -18,7 +18,7 @@ SCRIPTS = bin/pg_datalinker bin/dlfs
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
-INSTALL_PROGRAM = $(INSTALL) -m 6755 -o www-data -g www-data
+INSTALL_PROGRAM = $(INSTALL) -m 6755 -o postgres -g postgres
 
 install: installextras
 
@@ -26,9 +26,9 @@ installcheck: testfiles
 
 installextras:
 	if [ ! -f /usr/sbin/pg_datalinker ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_datalinker ; fi
+	if [ ! -f /usr/sbin/pg_dlfuse ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_dlfuse ; fi
 	if [ ! -f /usr/sbin/dlfs ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/dlfs ; fi
 	if [ ! -f /usr/bin/dlcat ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/bin/dlcat ; fi
-	if [ ! -f /usr/sbin/pg_dlfuse ] ; then ln -s /usr/share/postgresql-common/pg_wrapper /usr/sbin/pg_dlfuse ; fi
 	if [ ! -f /etc/postgresql-common/pg_datalinker.prefix ] ; then /usr/bin/install -m 644 pg_datalinker.prefix /etc/postgresql-common ; fi
 	if [ ! -f /etc/apache2/sites-available/datalink.conf ] ; then /usr/bin/install -m 644 datalink.conf /etc/apache2/sites-available ; fi
 	/usr/bin/install -m 644 pg_datalinker.service /etc/systemd/system

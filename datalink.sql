@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1100 lacanoid@ljudmila.org
+--  version 0.26.1103 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -2038,6 +2038,7 @@ CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink, ttl interval default '1
  RETURNS text LANGUAGE plpgsql STRICT AS $function$
 DECLARE
   path datalink.file_path;
+  wtoken datalink.dl_token;
   url text;
   r record;
   l1 datalink;
@@ -2060,10 +2061,11 @@ BEGIN
               using errcode = 'HW307',
                     detail = 'no token in datalink';
   end if;  
-  l1   := pg_catalog.dlnewcopy(link);
-  path := datalink.filepathwrite(l1);
-  url  := pg_catalog.dlurlcomplete(link);
-  perform datalink.dl_file_new(path,'e',link,(l1::jsonb->>'b')::datalink.dl_token,expires=>now()+ttl);
+  l1     := pg_catalog.dlnewcopy(link);
+  path   := datalink.filepathwrite(l1);
+  wtoken := datalink.dl_newtoken();
+  url    := pg_catalog.dlurlcomplete(link);
+  perform datalink.dl_file_new(path,'e',link,wtoken,expires=>now()+ttl);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
     raise exception e'DATALINK EXCEPTION - failed to copy resource\nURL: %',url
@@ -2071,8 +2073,8 @@ BEGIN
           detail = format('CURL error %s%s',r.rc,' - '||r.error);
   end if;
   path := '/dlfs'||datalink.uri_get(           
-          datalink.dl_url_makeinsight(l1::jsonb->>'a',
-          (l1::jsonb->>'b')::datalink.dl_token,0),'path');
+             datalink.dl_url_makeinsight(l1::jsonb->>'a',wtoken,0),
+	  'path');
   return path;
 END
 $function$;
@@ -3201,6 +3203,7 @@ DECLARE
  m text[];
  t datalink.dl_token;
  t1 text;
+ r record;
 BEGIN
   -- handle embedded write tokens
   mypath := datalink.uri_get(link::jsonb->>'a','path');
@@ -3212,8 +3215,10 @@ BEGIN
    update datalink.dl_new_files
       set kind='t'
     where token = t and kind in ('e','f') 
-   returning oldlink into link;
-   if found and link is not null then 
+   returning oldlink,path into r;
+   link := r.oldlink;
+   if found and link is not null and t is not null then 
+     t := datalink.uri_get(pg_catalog.dlvalue(r.path),'token');
      if newcopy then
       t1 := coalesce(link::jsonb->>'b',datalink.uri_get(link,'token'));
       if t1 is not null then 
