@@ -23,8 +23,8 @@ Wanted
 - ✔︎ make `dlfs` command line tool for datalinker admin
 - `dlfs` suspend/unsuspend operations for better dump/restore (suspend=stop datalinker and restore all original file permissions)
 - `dlfs` interactive setup
-- `dlfs` usage
-- make it possible to change LCO with datalink values present
+- ✔︎ `dlfs` usage
+- make it more possible to change LCO with datalink values present
 - ✔︎ add copy file and move file operations
 - ✔︎ Files on remote servers. Perhaps foreign servers + dblink
 - ✔︎ make domains on datalinks work
@@ -40,7 +40,7 @@ Wanted
 - ✔︎ add `mtime` to `dl_linked_files` and a function to check if a datalink has changed
 - foreign servers only somewhat work. They should work for `stat()`, too.
 - handle symbolic links better (resolve?)
-- handle directories as datalinks better (forbid is some cases?)
+- handle directories as datalinks better (forbid in some cases?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
 - add `dirname`,`extension`,`basename`,`filename` to uri_get/set
@@ -55,7 +55,7 @@ Wanted
 - per URL (with wildcards) access controls for `curl_get` and `curl_save`
 - proper substring instead of file position offsets in `substr()`
 - ✔︎ FUSE filesystem DLFF which supports READ ACCESS DB tokens
-- FUSE filesystem DLFF which supports WRITE ACCESS tokens
+- ✔︎ FUSE filesystem DLFF which supports WRITE ACCESS tokens
 - function to create new unused filename
 - ✔︎ improve support for data: URLs
 - ✔︎ keep temporary files when they are linked to READ ACCESS FS columns
@@ -70,11 +70,11 @@ Wanted
 - incremental write functions so one can write big files without having to buffer everything
 - command line tool to backup linked files to/from another host, similar to pg_basebackup
 - nfs server
-- implement automatic expiration in pg_datalinker for for insight, etc...
+- ✔︎ implement automatic expiration in pg_datalinker for for insight, etc...
 - forbid creating temporary files if no datalinker
 - reverse domain name handling perhaps something like rdn:http://net.domain.www -> http://www.domain.net
 - set file owner to table owner on newly created files from SQL, when they are unlinked
-- implement strict locking in file write operations, as per standard: file can be opened for write only once.
+- ✔︎ implement strict locking in file write operations, as per standard: file can be opened for write only once.
 
 Advanced
 --------
@@ -91,7 +91,7 @@ Bugs and Issues
 - datalinker: permissions are wrong on restored files
 - ✔︎ multiple updates with write_text() in one transaction fails
 - apache handler vs unicode urls
-- critical states in whole setup (sometimes permissions don't get restored ok)
+- critical states in whole setup (sometimes permissions don't get restored ok?)
 
 Todo
 ====
@@ -119,7 +119,7 @@ Todo
 - additional permission checks for references
 - ✔︎ consider WRITE ACCESS ADMIN/TOKEN and with respect to RECOVERY YES and file replace.
 - skip curl for integrity='ALL' and check for files only with file_stat (file exists but is not readable by postgres)
-- check that src and dest in curl_save are not one the same
+- check that src and dest in curl_save are not one and the same
 - check src read permissions in curl_save
 - check `pg_read_server_files` and `pg_write_server` files roles
 - handle // urls and paths better
@@ -159,7 +159,7 @@ Todo
 - `substr()` et al should throw a warning/error when file not found 
 - handle datalinks in temporary tables (now they don't get unlinked when table is dropped)
 - ✔︎ datalinker must purge files created with DLURLPATHWRITE() when transaction is aborted
-- purge files created with DLURLPATHWRITE() when file is unlinked
+- ✔︎ purge files created with DLURLPATHWRITE() when file is unlinked
 
 Maybe
 =====
@@ -167,8 +167,9 @@ Maybe
 - ✔︎ perl function to read text file sequentialy and return a set of (i int,o bigint,line text) 
 - add DLVALUE(uri, ...)
 - add DLVALUE(datalink)
-- support for data: URLs
-- content_type function
+- ✔︎ support for data: URLs
+- ✔︎ datalink.content_type function
+- datalink.source function
 - directory listing function, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
 - ✔︎ create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
@@ -179,7 +180,7 @@ Maybe
 - ✔︎ add timing info to curl_get()
 - ✔︎ better punycode support in `dlvalue()`
 - support for http ranges in `curl_get()` (and apache handler!)
-- perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful? 
+- ✔︎ perhaps [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace) could be useful? 
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - build simple webserver into pg_datalinker

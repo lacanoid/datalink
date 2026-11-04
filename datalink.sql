@@ -2073,7 +2073,7 @@ BEGIN
           detail = format('CURL error %s%s',r.rc,' - '||r.error);
   end if;
   path := '/dlfs'||datalink.uri_get(           
-             datalink.dl_url_makeinsight(l1::jsonb->>'a',wtoken,0),
+             datalink.dl_url_makeinsight(l1::jsonb->>'a',wtoken),
 	  'path');
   return path;
 END

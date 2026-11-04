@@ -2,7 +2,7 @@
 # dlfs - SQL/MED Datalink control program
 # version 0.25 by lacanoid@ljudmila.org
  
-our $version="0.25.1231";
+our $version="0.26.1104";
 
 use strict;
 use DBI;
@@ -29,8 +29,6 @@ our $SERVICE = 'pg_datalink';
 our $NAME    = 'pg_datalinker';
 our $DLFM    = 'pg_datalinker';
 our $DLFF    = 'pg_dlfuse';
-our @DAEMONS = ($DLFM, $DLFF);
-our $DAEMON  = "/usr/sbin/pg_datalinker";
 
 #---------------------------------------
 our %config = (
@@ -446,11 +444,8 @@ sub iso_timestamp {
 # daemon stuff
 
 sub daemons_status {
-    foreach my $d (@DAEMONS) {
-        $NAME=$d;
-        daemon_setup();
-        daemon_status();
-    }
+    daemon_setup();
+    daemon_status();
 }
 
 our $DAEMON1_EXEC;
