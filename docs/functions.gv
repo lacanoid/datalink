@@ -2,6 +2,8 @@ digraph G {
   rankdir = LR;
 
   dl_authorize;
+  dl_url_makeinsight;
+  
     dl_url_authorize -> dl_authorize;
       dl_file_new;
 
@@ -25,6 +27,7 @@ digraph G {
 
   dlreplacecontent -> curl_save;
     dlurlpathwrite -> dl_file_new;
+    dlurlpathwrite -> dl_url_makeinsight;
 
   write_text -> dl_file_new;
     write -> dl_file_new;

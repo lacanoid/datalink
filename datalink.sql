@@ -1933,14 +1933,15 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, anonymous integer default 0) 
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, time_to_live integer default 0) 
 RETURNS text LANGUAGE sql STRICT stable
 AS $_$ 
    select case 
           when $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
-          then datalink.dl_url_makeinsight(pg_catalog.dlurlcompleteonly($1)
-                                   ,($1::jsonb->>'b')::datalink.dl_token,anonymous)
+          then datalink.dl_url_makeinsight(pg_catalog.dlurlcompleteonly($1),
+                        ($1::jsonb->>'b')::datalink.dl_token,
+                        case when $2>0 then ($2::text)::interval end)
           else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
 $_$;
@@ -2015,7 +2016,8 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
            and (datalink.link_control_options($1)).read_access = 'DB'
           then '/dlfs'||datalink.uri_get(
             datalink.dl_url_makeinsight($1::jsonb->>'a',
-                     ($1::jsonb->>'b')::datalink.dl_token,anonymous),'path')
+                     ($1::jsonb->>'b')::datalink.dl_token,
+		     case when $2>0 then ($2::text)::interval end),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
                          '#'||coalesce($1::jsonb->>'b',
@@ -2997,7 +2999,7 @@ COMMENT ON PROCEDURE commit()
      IS 'Wait for datalinker to apply changes';
 
 --------------------------------------------------------------- ---------------
-CREATE PROCEDURE dl_expire() language plpgsql as $$
+CREATE PROCEDURE dl_vacuum() language plpgsql as $$
 begin
   update datalink.dl_new_files set kind='t'
    where kind in ('e','f')
@@ -3006,7 +3008,7 @@ begin
    where now() > expires;
 end
 $$;
-COMMENT ON PROCEDURE dl_expire() 
+COMMENT ON PROCEDURE dl_vacuum() 
      IS 'Handle expired items';
 
 
@@ -3106,16 +3108,18 @@ create table insight_access_log (
 comment on table insight_access_log is 'Insight access log for dl_authorize()';
 
 CREATE FUNCTION dl_url_makeinsight(
-  url text, link_token dl_token, anonymous integer default 0) 
-RETURNS text LANGUAGE plpgsql strict
+  url text, link_token dl_token, time_to_live interval default null) 
+RETURNS text LANGUAGE plpgsql
 AS $$
 declare
   m text[];
 begin
+ if $1 is null or $2 is null then return null; end if;
  -- check for read token
  m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
- if anonymous>0 then
-  insert into datalink.insight (link_token) values (link_token) 
+ if time_to_live is not null then
+  insert into datalink.insight (link_token,expires)
+  values (link_token,now()+time_to_live) 
   returning read_token into link_token;
  end if;
  return coalesce(m[1]||link_token||';'||m[4],$1);
