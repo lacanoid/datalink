@@ -462,12 +462,12 @@ sub file_read_access_db {
     my ($path,$opt)=@_;
     log_debug('CHOWNMOD',$opt);
     if(defined($config{owner})) {
-        if(defined($config{group})) { sys("chown",$config{owner}.':'.$config{group},$path); } 
-        else { sys("chown",$config{owner},$path); }
+        if(defined($config{group})) { file_chown($path,$config{owner}.':'.$config{group}); } 
+        else { file_chown($path,$config{owner}); }
     }
     if($opt_O && $opt->{relowner}) {
         my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
-        sys("chown",$name,$path);
+        file_chown($path,$name);
     }
     if(defined($config{db_mode})) { file_chmod($path,$config{db_mode}); }
 }
@@ -477,22 +477,38 @@ sub file_restore {
     my $info = $opt->{info};
     log_debug('RESTOR',$opt);
     if($info) {
-        if(defined($info->{own})) {
-            sys("chown",$info->{own},$path);
-        }
+        if(defined($info->{owner})) { file_chown($path,$info->{owner}); }
         if(defined($info->{mod})) { file_chmod($path,$info->{mod}); }
     }
 }
 
 sub file_chown {
-    my ($path,$own,$grp)=@_;
+    my ($path,$owner)=@_;
+    my ($own,$grp);
+    if($owner=~/^([^:]+)(:(.+))?$/) {
+	$own=$1; $grp=$3;
+	my $uid=$own; unless($uid=~/^\d+$/) { $uid=(getpwnam($own))[2]; }
+	if(!$uid) { $uid=-1; }       
+	my $gid=$grp; unless($gid=~/^\d+$/) { $gid=(getgrnam($grp))[2]; }
+	if(!$gid) { $gid=-1; }
+	log_msg('CHOWN',[$path,"($owner)->($uid:$gid)"]);
+	if($opt_I) {
+	    if( $uid>0 || $gid>0 ) {
+		chown( $uid,$gid,$path );
+		if ($!) { log_err('CHOWN',"failed to chown: $!"); }
+	    }
+	    return;
+	}
+	sys("chown",$owner,$path);
+    }
 }
 
 sub file_chmod {
     my ($path,$mod)=@_;
+    log_msg('CHMOD',[$path,$mod]);
     if($opt_I) { 
-        log_msg('CHMOD',$mod);
-        chmod(oct($mod),$path); return; 
+        chmod(oct($mod),$path);
+	return; 
     }
     sys("chmod",$mod,$path);
 }

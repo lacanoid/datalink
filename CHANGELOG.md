@@ -8,7 +8,7 @@ Version 0.26
 - added `pg_catalog.jsonb(datalink)` functions to return datalink content as JSONB
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
-- added `datalink.pg_vacuum()` procedure which datalinker calls often
+- added `datalink.pg_vacuum()` procedure to expire old items which datalinker calls often
 - rename `datalink.dl_new_files.op` to `kind`
 - dl_authorize now returns correct path for DLURLPATHWRITE paths
 - `pg_dlfuse` move from libfuse to libfuse3
@@ -17,6 +17,7 @@ Version 0.26
 - `pg_dlfuse` set `postgres` effective user
 - `dlfs` command improvements - integrated dlff start/stop/status
 - `dlurlpathwrite` now generates anonymous temporary write access tokens
+
 
 Version 0.25
 ------------
