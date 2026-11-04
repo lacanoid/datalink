@@ -1611,7 +1611,7 @@ elsif($url=~m|^file://[^/]|i && !($url=~m|^file://localhost/|i)) {
   $r->{url}=$url;
 }
 # -------- handle file: URLs on localhost with embedded tokens
-elsif($url=~m|^file:/.*/(([a-z0-9\-]{36})[,;_:@])?(.+)$|i) {
+elsif($url=~m|^file:/.*/(([a-z0-9\-]{36})[,;_:@~])?(.+)$|i) {
   if( $url ) {
    my $p = spi_prepare(q{select datalink.dl_url_authorize($1) as url},'text');
    my $v = spi_exec_prepared($p,$url);
@@ -3116,7 +3116,7 @@ declare
 begin
  if $1 is null or $2 is null then return null; end if;
  -- check for read token
- m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
+ m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36})[,;_:@~])?(.*)$','i');
  if time_to_live is not null then
   insert into datalink.insight (link_token,expires)
   values (link_token,now()+time_to_live) 
@@ -3211,7 +3211,7 @@ DECLARE
 BEGIN
   -- handle embedded write tokens
   mypath := datalink.uri_get(link::jsonb->>'a','path');
-  m := regexp_matches(mypath,'^(.*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
+  m := regexp_matches(mypath,'^(.*/)(([a-z0-9\-]{36})[,;_:@~])?(.*)$','i');
   mypath := coalesce(m[1]||m[4],mypath);
   t := m[3]::datalink.dl_token;
   mypath := regexp_replace(mypath,'^/dlfs/','/');
