@@ -28,8 +28,10 @@ digraph G {
   dlreplacecontent -> curl_save;
     dlurlpathwrite -> dl_file_new;
     dlurlpathwrite -> dl_url_makeinsight;
+    dlurlpath -> dl_url_makeinsight;
+    dlurlcomplete -> dl_url_makeinsight;
 
-  write_text -> dl_file_new;
+write_text -> dl_file_new;
     write -> dl_file_new;
 
 }

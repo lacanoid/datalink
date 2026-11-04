@@ -135,7 +135,7 @@ These are specified by the SQL/MED standard.
 
 Most of these have been overloaded to work on text URLs as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
-#### dlurlcomplete( datalink [ , anonymous integer ] ) → text
+#### dlurlcomplete( datalink [ , time_to_live integer ] ) → text
 
 Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
@@ -167,7 +167,9 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
      file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When parameter `anonymous` is nonzero, then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table.
+When parameter `time_to_live` is nonzero,
+then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table
+with expiration times in `time_to_live` seconds.
 This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
 
 #### dlurlcompleteonly( datalink ) → text
@@ -193,7 +195,7 @@ The function also omits any `fragment` part of the URL (stuff after #)
      file:/var/www/datalink/test1.txt
     (1 row)
 
-#### dlurlpath( datalink [ , anonymous integer ] ) → text
+#### dlurlpath( datalink [ , time_to_live integer ] ) → text
 
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
@@ -215,10 +217,10 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When parameter  `anonymous` is nonzero, then generated read tokens will be unique and 
-appropriate records will be inserted into the `datalink.insight` table.
-This can be used to avoid revealing stored tokens and keep evidence of accesses. 
-Access can be revoked by deleting entries from `datalink.insight`.
+When parameter `time_to_live` is nonzero,
+then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table
+with expiration times in `time_to_live` seconds.
+This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
 
 #### dlurlpathonly( datalink ) → text
 

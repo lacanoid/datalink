@@ -2009,7 +2009,7 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink, anonymous integer default 0)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink, time_to_live integer default 0)
  RETURNS text LANGUAGE sql STRICT AS $function$
    select case 
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
@@ -2028,7 +2028,7 @@ $function$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, integer)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpath(text, anonymous integer default 0)
+CREATE FUNCTION pg_catalog.dlurlpath(text, time_to_live integer default 0)
  RETURNS text LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
@@ -2238,7 +2238,7 @@ declare
   m text[];
 begin
  -- check for embedded token
- m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36})[,;_:@])?(.*)$','i');
+ m := regexp_matches($1,'^(.*/)(([a-z0-9\-]{36})[,;_:@~])?(.*)$','i');
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
  mypath := regexp_replace(mypath,'^/dlfs/','/');
