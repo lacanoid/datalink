@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.1104";
+our $version="0.26.1105";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -77,7 +77,9 @@ sub main() {
     if($opt_l) {
         # redirect output to file
         open STDOUT, ">>", $opt_l or die "$0: open: $!";
+	STDOUT->autoflush(1);
         open STDERR, ">&STDOUT"   or die "$0: dup: $!";
+	STDERR->autoflush(1);
     }
     my $ready;
 
