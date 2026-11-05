@@ -12,7 +12,7 @@ Backup and recovery uses token value as a backup identifier:
 
 Let `base_file` be a corresponding file path for a datalink, 
 such as one returned by `DLURLPATHONLY()`,
-for example `/var/www/datalink.test3.txt`.
+for example `/var/www/datalink/test3.txt`.
 
 Let `backup_file` be a corresponding file path for a datalink including token, 
 such as one returned by `datalink.filepathwrite()`.
@@ -22,13 +22,13 @@ The backup/restore works as follows:
 
 1. If `base_file` exists and `backup_file` doesn't, then `base_file` is *copied* to `backup_file` using `cp -a`, file is *backed up*.
 
-This way, one can create a new backup copy simply by saying:
-
-    mydb=# UPDATE my_table SET link=DLNEWCOPY(link);
-
 Each time a new token is assigned (and stored) a backup is created corresponding to that token:
 
     % cp -a /var/www/datalink.test3.txt /var/www/datalink.test3.txt#ae3cc23d-7a87-419a-b2f8-e6dc9d682d33
+
+This way, one can create a new backup copy simply by saying:
+
+    mydb=# UPDATE my_table SET link=DLNEWCOPY(link);
 
 2. If `base_file` doesn't exists and `backup_file` does, then `backup_file` is *linked* to `base_file` using `ln`, file is *restored*.
 
@@ -43,7 +43,7 @@ by performing, effectively restoring it:
 
 Note that this is true link, not a symbolic one.
 
-3. If both files exist, then `base_file` is first deleted and then `backup_file` is linked.
+3. If both files exist, then `base_file` is first deleted and then `backup_file` is linked as above.
 
 4. If neither file exists, then it is an error. This is normally checked for in advance in SQL environment.
 
