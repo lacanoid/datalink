@@ -22,11 +22,16 @@ values
   ('sftp://user:pass@host/fileC.txt#80653c50-908b-4f74-a7ca-398a6035a2d1'),
   ('mailto:lacanoid@ljudmila.org?subject=feedback'),
   ('https://video.kulturnik.si/?qwhat=galerije&q=piran'),
+  ('https://video.kulturnik.si:1234/?qwhat=galerije&q=piran'),
   ('file:///var/www/datalink/'),
   ('file:///var/www/datalink'),
   ('file:/var/www/datalink'),
   ('file://localhost/var/www/datalink'),
-  ('http://http//http://@http://http://?http://#http://')
+  ('http://http//http://@http://http://?http://#http://'),
+  ('http://debian.org:80/?q=news'),
+  ('https://debian.org:443/?q=news'),
+  ('http://www.debian.org/'),
+  ('http://www.debian.org')
 ;
 
 insert into sample_urls (url) values ('data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=');
@@ -35,6 +40,7 @@ select url,
        uri_get(url,'scheme') as scheme,
        uri_get(url,'userinfo') as userinfo,
        uri_get(url,'host') as host,
+       uri_get(url,'port') as port,
        uri_get(url,'path') as path,
        uri_get(url,'query') as query,
        uri_get(url,'fragment') as fragment,
@@ -45,8 +51,17 @@ select url,
 select url,
        uri_get(url,'scheme') as scheme,
        uri_get(url,'server') as server,
+       dlurlserver(dlvalue(url::text)),
+       uri_get(url,'filename') as filename,
        uri_get(url,'basename') as basename,
-       uri_set(url,'basename','foo.bar')
+       uri_get(url,'ext') as ext
+  from sample_urls
+;
+
+select url,
+       uri_set(url,'filename','foo.bar') as set_filename,
+       uri_set(url,'basename','foo.bar') as set_basename,
+       uri_set(url,'ext','json') as set_ext
   from sample_urls
 ;
 
@@ -107,7 +122,9 @@ with d as (
 select link,
        dlurlcomplete(link),
        dlurlcompleteonly(link),
-       datalink.uri_get(link,'basename') as basename
+       datalink.uri_get(link,'filename') as filename,
+       datalink.uri_get(link,'basename') as basename,
+       datalink.uri_get(link,'ext') as ext
   from d;
 
 ;

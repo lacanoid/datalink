@@ -885,13 +885,16 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
   RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
    select case part
           when 'scheme' then uri_scheme($1)
-          when 'server' then uri_host($1)
+          when 'server' then format('%s%s',uri_host($1),':'||uri_port($1))
           when 'userinfo' then uri_userinfo($1)
           when 'host' then uri_host($1)
+          when 'port' then uri_port($1)::text
           when 'path' then uri_unescape(uri_path($1))
           when 'ext'
 	  then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
-          when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'basename'
+	  then regexp_replace(nullif(to_json(uri_path_array($1))->>-1,''),
+	                      '(\.[^/]*)$','')
           when 'filename' then nullif(to_json(uri_path_array($1))->>-1,'')
           when 'dirname'
 	  then regexp_replace(uri_unescape(uri_path($1)),'^(.*)/.*$','\1/')	  
@@ -932,11 +935,24 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   elsif($part eq 'port') {  $u->port($v); }
   elsif($part eq 'host_port') {  $u->host_port($v); }
   elsif($part eq 'path') {  $u->path($v); }
+  elsif($part eq 'ext') {
+    my $p=$u->path();
+    $p=~s|(\.[^/\.]*)$||;
+    $v=~s|^\.||;
+    $p.='.'.$v;
+    $u->path($p);
+  }
   elsif($part eq 'basename') {  
-    my $p=$u->path(); $p=~s|/[^/]*$||; $p.='/'.$v; $u->path($p);
+    my $p=$u->path();
+    $p=~s|(\.[^/\.]*)$||; my $ext=$1;
+    $p=~s|/[^/]*$||;
+    $p.='/'.$v.$ext;
+    $u->path($p);
   }
   elsif($part eq 'filename') {  
-    my $p=$u->path(); $p=~s|/[^/]*$||; $p.='/'.$v; $u->path($p);
+    my $p=$u->path(); $p=~s|/[^/]*$||;
+    $p.='/'.$v;
+    $u->path($p);
   }
   elsif($part eq 'query') {  $u->query($v); }
   elsif($part eq 'query_form') {  $u->query_form($v); }
@@ -1989,7 +2005,7 @@ IS 'SQL/MED - Returns normalized URL value';
 
 CREATE FUNCTION pg_catalog.dlurlserver(datalink)
  RETURNS text LANGUAGE sql IMMUTABLE STRICT
-   AS $function$select nullif(datalink.uri_get($1::jsonb->>'a','host'),'')$function$;
+   AS $function$select nullif(datalink.uri_get($1::jsonb->>'a','server'),'')$function$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
 

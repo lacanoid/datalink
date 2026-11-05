@@ -257,18 +257,19 @@ Use `dlurlscheme()` function to get uppercased URL scheme part of a datalink.
 #### dlurlserver( datalink ) → text
 
 Use `dlurlserver()` function to get lowercased URL server part of a datalink.
-This does not include username and password if they are present in URL.
+This includes host and possibly port.
+It does not include username and password if they are present in URL.
 
     mydb=> select dlurlserver(dlvalue('https://user:password@www.github.io:1234/foo/bar'));
-      dlurlserver  
-    ---------------
-     www.github.io
+         dlurlserver  
+    --------------------
+     www.github.io:1234
     (1 row)
 
     mydb=> select dlurlserver('https://user:password@www.github.io:1234/foo/bar');
-      dlurlserver  
-    ---------------
-     www.github.io
+         dlurlserver  
+    --------------------
+     www.github.io:1234
     (1 row)
 
 #### dlcomment( datalink ) → text
@@ -334,20 +335,34 @@ Indicates that a HTTP request was successfully completed.
 URI manipulation
 ----------------
 
+You can use `extract(part from datalink)` as a shortcut for `uri_get`.
+
+    mydb=> select extract('host' from dlvalue('http://www.github.com/robots.txt');
+         extract 
+    ----------------
+     www.github.com
+    (1 row)
+
+    mydb=> select extract('basename' from dlvalue('http://www.github.com/robots.txt');
+     extract 
+    ---------
+     robots
+    (1 row)
+
 #### uri_get( uri text, part ) → text
 
 Get a part of URI, returns text.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
+Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
 
 #### uri_get( datalink , part ) → text
 
 Get a part of a datalink's URI, returns text.
-Part can be same as above.
+Part can be specified same as above.
 
 #### uri_set( uri text, part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
-Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `userinfo`, `host`, `port`, `host_port`, `path`, `filename`, `query`, `fragment` or `token`.
+Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `ext`, `query`, `fragment` or `token`.
 
 Web access
 ----------

@@ -20,6 +20,7 @@ Version 0.26
 - add tilde ~ to allowable token~filename separators
 - datalinker logs autoflush
 - datalinker internal chmod
+- improved uri get/set routines with more options and `extract`
 - `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 
 Version 0.25

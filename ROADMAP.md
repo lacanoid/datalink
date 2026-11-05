@@ -43,7 +43,7 @@ Wanted
 - handle directories as datalinks better (forbid in some cases?)
 - handle directories/bundles better
 - make new tokens/backups only if file changed
-- add `dirname`,`extension`,`basename`,`filename` to uri_get/set
+- ✔︎ add `dirname`,`ext`,`basename`,`filename` to uri_get/set
 - add check constraint(s) for valid urls for link_control='NO' (instead of triggers)
 - ✔︎ url beautifier function for sanitizing broken urls
 - ✔︎ convert URI to/from IRI (unicode URI), punycode
@@ -160,6 +160,7 @@ Todo
 - handle datalinks in temporary tables (now they don't get unlinked when table is dropped)
 - ✔︎ datalinker must purge files created with DLURLPATHWRITE() when transaction is aborted
 - ✔︎ purge files created with DLURLPATHWRITE() when file is unlinked
+- for INTEGRITY SELECTIVE file: links check for valid file_path
 
 Maybe
 =====
@@ -170,7 +171,7 @@ Maybe
 - ✔︎ support for data: URLs
 - ✔︎ datalink.content_type function
 - datalink.source function
-- directory listing function, maybe called datalink.catalog()
+- directory listing functions, maybe called datalink.catalog()
 - ✔︎ add datalink.uri_get(datalink,...)
 - ✔︎ create explicit datalink.exists(datalink) function, or perhaps datalink.get_info(datalink)
 - ✔︎ more compact datalink storage (use 1 letter json keys)
@@ -184,7 +185,7 @@ Maybe
 - get rid of plperlu, needs new implementations of functions curl_get, file_stat and uri_set, read_, write_ ...
 - perhaps [pg_curl](https://github.com/RekGRpth/pg_curl) could be helpful?
 - build simple webserver into pg_datalinker
-- rename pg_linked_files to pg_files_linked, pg_admin_files to pg_files_new
+- ✔︎ rename pg_linked_files to pg_files_linked, pg_admin_files to pg_files_new
 - casts from datalink to file_path
 
 
