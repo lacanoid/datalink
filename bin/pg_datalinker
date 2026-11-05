@@ -16,22 +16,29 @@ our $json = JSON->new->allow_nonref;
 BEGIN { $ENV{LC_ALL} = "C"; }
 #---------------------------------------
 
-our $opt_v = 0;  # verbosity
+# supported
+our $opt_v = 1;  # verbosity
+our $opt_t = 0;  # trace debug
+our $opt_l;      # logfile
+our $opt_n = 20; # number of iterations in fast inner loop
+our $opt_r = 10; # when fatal error wait this long then restarts
+our $opt_C = 0;  # only check configuration
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
-our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_E = 1;  # call datalink.dl_expire()
+our $opt_I = 1;  # use internal functions (faster)
+our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
 our $opt_R = 1;  # restore old files from backups
 our $opt_P = 1;  # process dl_new_files (purge temporary and files from aborted transactions)
 our $opt_L = 1;  # use advisory locks (support for datalink.commit())
-our $opt_C = 0;  # only check configuration
-our $opt_I = 1;  # use internal functions (faster)
-our $opt_n = 20; # number of iterations in fast inner loop
-our $opt_r = 10; # when fatal error wait this long then restarts
-our $opt_e = 1;  # echo commands
-our $opt_l;      # logfile
 our $macOS = 0;  # running on macOS
 
-getopt('l');
+# currently unsupported (psql-like options)
+our $opt_d;      # database name
+our $opt_h;      # database host
+our $opt_p;      # database port
+our $opt_U;      # database role
+
+getopt('ldhpU');
 
 #---------------------------------------
 
@@ -154,8 +161,12 @@ sub main() {
         }),
         'job_delete'=>$dbh->prepare(q{ delete from dl_linked_files where path = $1 }),
 
-        'mtime'=>$dbh->prepare(q{
-          update dl_status set mtime=now(), links = links + $1, unlinks = unlinks + $2
+        'mtime'=>$dbh->prepare(qq{
+          update dl_status
+             set mtime=now(),
+                 links = links + \$1, unlinks = unlinks + \$2,
+                 pid = default,
+                 cpid = '$$'
         }),
         'err++'=>$dbh->prepare(q{ update dl_status set errs = errs + 1 }),
 
@@ -207,12 +218,13 @@ sub main() {
                     my $u=$data->{relowner};
                     if($data->{state} eq 'LINK') {
                         if($info) {
-                            log_msg("RE-LINK:$ts:$u:".$data->{lco},$path_backup);
-			                $info->{del}=0;
+                            log_msg("RELINK:$ts:$u:".$data->{lco},$path);
+			    $info->{del}=0;
                             file_unlink($path,$data); $cu++;
                         } else {
-                            log_msg("LINK:$ts:$u:".$data->{lco},$path_backup);
+                            log_msg("LINK:$ts:$u:".$data->{lco},$path);
                         }
+			log_info("PATH",$path_backup);
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
                         queryOrDie('job_set',$path,$err?'ERROR':'LINKED',$json->encode($r),$err);
@@ -220,7 +232,7 @@ sub main() {
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
-                        log_msg("UNLINK:$ts:".$data->{lco},$path_backup);
+                        log_msg("UNLINK:$ts:".$data->{lco},$path);
                         file_unlink($path,$data); $cu++;
                         queryOrDie('job_delete',$path);
                         next;
@@ -268,8 +280,11 @@ sub main() {
 
 sub purge_files {
     my $rv = queryOrDie('purge_get');
+    my $dn = 0;
+    my $di = 0;
     while(my $data = $q{purge_get}->fetchrow_hashref) {
-        my $path = $data->{path}; 
+	my $path = $data->{path}; 
+	$dn++;
         if(path_valid_prefix($path)) {
             my $state = $data->{state};
             my $kind = $data->{kind};
@@ -277,9 +292,9 @@ sub purge_files {
             my $stat = file_stat($path);
             if($stat->{inode}) {
                 if($stat->{owner} eq $config{owner}) {
-                    log_msg('PURGE',"$kind,$state,$path");
+                    log_info('PURGE',"$kind,$state,$path");
                     if($state eq 'aborted' || ($state eq 'committed' && $kind=~/[tv]/)) {
-			file_delete($path);
+			file_delete($path); $di++;
 		    }
                 } else { 
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
@@ -493,11 +508,10 @@ sub file_chown {
 	if(!$uid) { $uid=-1; }       
 	my $gid=$grp; unless($gid=~/^\d+$/) { $gid=(getgrnam($grp))[2]; }
 	if(!$gid) { $gid=-1; }
-	log_msg('CHOWN',[$path,"($owner)->($uid:$gid)"]);
+	log_info('CHOWN',["($owner)->($uid:$gid)"]);
 	if($opt_I) {
 	    if( $uid>0 || $gid>0 ) {
-		chown( $uid,$gid,$path );
-		if ($!) { log_err('CHOWN',"failed to chown: $!"); }
+		if(!chown( $uid,$gid,$path )) { perror($path); }
 	    }
 	    return;
 	}
@@ -507,9 +521,9 @@ sub file_chown {
 
 sub file_chmod {
     my ($path,$mod)=@_;
-    log_msg('CHMOD',[$path,$mod]);
+    log_info('CHMOD',[$mod]);
     if($opt_I) { 
-        chmod(oct($mod),$path);
+        if(!chmod( oct($mod),$path )) { perror($path); }
 	return; 
     }
     sys("chmod",$mod,$path);
@@ -522,11 +536,11 @@ sub file_delete {
 	    log_msg('NO DELETE',"Delete disabled: '$path'. HINT:use -D option");
 	    return;
     }
-    if($opt) { log_msg('DELETE',$path); }
     else {
+	if($opt) { log_info('DELETE',$path); }
         my $s = file_stat($path);
         if(!($s->{owner} eq $config{owner})) {
-        	log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+	    log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
     	    return;
         }
     }
@@ -577,11 +591,11 @@ sub file_backup_restore {
         }
         if(-f $path_backup) {
             if($move) {
-                log_msg('REPLACE',$path_backup);
+                log_info('REPLACE',$path_backup);
                 sys("mv","-f",$path_backup,$path);
             }
             else {
-                log_msg('RESTORE',$path_backup);
+                log_info('RESTORE',$path_backup);
                 sys("ln","-f",$path_backup,$path);
             }
         } else {
@@ -630,7 +644,7 @@ our $sysex;
 
 sub sys {
     my @args = @_;
-    if($opt_e) { log_msg("SYS",[@args]); }
+    log_info("SYS",[@args]);
     $sysex = undef; $syserr=undef;
     system(@args);
 
@@ -679,7 +693,7 @@ sub wget {
 
 sub log_debug {
     my ($txt,$data)=@_;
-    if($opt_v) {
+    if($opt_t) {
         print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
     }
 }
@@ -692,9 +706,14 @@ sub log_msg {
 sub log_err {
     my ($txt,$data)=@_;
     push @err,[$txt,$data];
-    if($opt_e) {
-        print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
-    }
+    print STDERR "ERROR:$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+}
+
+sub log_info { if($opt_v) { log_msg(@_); } }
+
+sub perror {
+    my ($txt)=@_;
+    if($!) { print STDERR "PERROR:$txt: $!\n"; }
 }
 
 sub log_fatal {

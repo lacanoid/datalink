@@ -3002,7 +3002,6 @@ $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
   cpid integer,
-  name text,
   version text,
   ctime timestamptz,
   mtime timestamptz,
@@ -3011,7 +3010,7 @@ CREATE TABLE dl_status (
   unlinks bigint default 0,
   errs bigint default 0
 );
-insert into dl_status (name,version) values ('dlfm','init');
+insert into dl_status (version) values ('init');
 grant select on dl_status to public;
 
 --------------------------------------------------------------- ---------------
@@ -3071,10 +3070,13 @@ COMMENT ON FUNCTION has_datalinker()
 --------------------------------------------------------------- ---------------
 
 create view status as
-select pid,cpid,version,
+select pid,cpid,application_name as app,version,
        now()-ctime as start,now()-mtime modify,
        links, unlinks, errs
-  from datalink.dl_status where datalink.has_datalinker();
+   from pg_stat_activity
+   join datalink.dl_status using (pid)
+  where datname = current_database()
+;
 grant select on status to public;
 comment on view status is 'Datalinker status';
 
