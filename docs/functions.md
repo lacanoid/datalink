@@ -135,7 +135,7 @@ These are specified by the SQL/MED standard.
 
 Most of these have been overloaded to work on text URLs as well as datalinks. If argument is passed as text, it is implicitly converted to datalink first.
 
-#### dlurlcomplete( datalink [ , time_to_live integer ] ) → text
+#### dlurlcomplete( datalink [ , time_to_live interval ] ) → text
 
 Use `dlurlcomplete()` function to convert datalinks back to URLs. 
 
@@ -167,10 +167,10 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
      file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When parameter `time_to_live` is nonzero,
-then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table
-with expiration times in `time_to_live` seconds.
-This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
+When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
+This can be useful to avoid revealing stored tokens. 
+Appropriate records will be inserted into `datalink.insight` table
+with expiration set for now + specified interval.
 
 #### dlurlcompleteonly( datalink ) → text
 
@@ -195,7 +195,7 @@ The function also omits any `fragment` part of the URL (stuff after #)
      file:/var/www/datalink/test1.txt
     (1 row)
 
-#### dlurlpath( datalink [ , time_to_live integer ] ) → text
+#### dlurlpath( datalink [ , time_to_live interval ] ) → text
 
 Use `dlurlpath()` function to get file path from datalink. File path may contain access token.
 
@@ -217,10 +217,10 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
      /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
     (1 row)
 
-When parameter `time_to_live` is nonzero,
-then generated read tokens will be unique and appropriate records will be inserted into `datalink.insight` table
-with expiration times in `time_to_live` seconds.
-This can be used to avoid revealing stored tokens. Access can be revoked by deleting entries from `datalink.insight`.
+When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
+This can be useful to avoid revealing stored tokens. 
+Appropriate records will be inserted into `datalink.insight` table
+with expiration set for now + specified interval.
 
 #### dlurlpathonly( datalink ) → text
 
@@ -337,17 +337,17 @@ URI manipulation
 #### uri_get( uri text, part ) → text
 
 Get a part of URI, returns text.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
 
 #### uri_get( datalink , part ) → text
 
 Get a part of a datalink's URI, returns text.
-Part can be one of  `scheme`, `server`, `userinfo`, `host`, `path`, `basename`, `query`, `fragment`, `token`, `canonical` or `only`.
+Part can be same as above.
 
 #### uri_set( uri text, part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
-Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `userinfo`, `host`, `port`, `host_port`, `path`, `basename`, `query`, `fragment` or `token`.
+Part can be one of  `src`, `scheme`, `server`, `authority`, `path_query`, `userinfo`, `host`, `port`, `host_port`, `path`, `filename`, `query`, `fragment` or `token`.
 
 Web access
 ----------
@@ -493,6 +493,12 @@ These are in `pg_catalog` schema, so generally you don't need to specify a schem
 Return substring of length from a file starting with offset.
 
 #### length( datalink ) → bigint
-Return file size in bytes. Same as `datalink.getlength()`, but less typing.
+Return file size in bytes. SHortcut for `datalink.getlength()`.
+
+#### extract( part from uri ) → text
+Extract URI part. Shortcut for `datalink.uri_get()`.
+
+#### extract( part from datalink ) → text
+Extract URI part. Shortcut for `datalink.uri_get()`.
 
 [Datalink manual](README.md)

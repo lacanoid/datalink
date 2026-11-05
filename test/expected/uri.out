@@ -296,3 +296,46 @@ select length(dlvalue('data:application/octet-stream;base64,AAECAwQFBgcICQoLDA0O
     256
 (1 row)
 
+-- extract() functions
+select extract('dirname' from dlvalue('/tmp/filename.txt'));
+ extract 
+---------
+ /tmp/
+(1 row)
+
+select extract('basename' from dlvalue('/tmp/filename.txt'));
+   extract    
+--------------
+ filename.txt
+(1 row)
+
+select extract('filename' from dlvalue('/tmp/filename.txt'));
+   extract    
+--------------
+ filename.txt
+(1 row)
+
+select extract('scheme' from dlvalue('/tmp/filename.txt'));
+ extract 
+---------
+ file
+(1 row)
+
+select extract('ext' from dlvalue('/tmp/filename.txt'));
+ extract 
+---------
+ .txt
+(1 row)
+
+select extract('ext' from dlvalue('/tmp/filename'));
+ extract 
+---------
+ _null_
+(1 row)
+
+select extract('ext' from dlvalue('/tmp/foo.bar/filename.txt'));
+ extract 
+---------
+ .txt
+(1 row)
+

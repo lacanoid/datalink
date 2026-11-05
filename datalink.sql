@@ -889,12 +889,17 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'userinfo' then uri_userinfo($1)
           when 'host' then uri_host($1)
           when 'path' then uri_unescape(uri_path($1))
+          when 'ext'
+	  then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
           when 'basename' then nullif(to_json(uri_path_array($1))->>-1,'')
-          when 'dirname' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'filename' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'dirname'
+	  then regexp_replace(uri_unescape(uri_path($1)),'^(.*)/.*$','\1/')	  
           when 'query' then uri_query($1)
           when 'fragment' then uri_fragment($1)
           when 'token' then uri_unescape(uri_fragment($1))
-          when 'canonical' then uri_normalize($1)::text
+          when 'canonical' then uri_normalize($1)::text -- DEPRECATED
+          when 'normal' then uri_normalize($1)::text
           -- without fragment
           when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
           end $$;
@@ -928,6 +933,9 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   elsif($part eq 'host_port') {  $u->host_port($v); }
   elsif($part eq 'path') {  $u->path($v); }
   elsif($part eq 'basename') {  
+    my $p=$u->path(); $p=~s|/[^/]*$||; $p.='/'.$v; $u->path($p);
+  }
+  elsif($part eq 'filename') {  
     my $p=$u->path(); $p=~s|/[^/]*$||; $p.='/'.$v; $u->path($p);
   }
   elsif($part eq 'query') {  $u->query($v); }
@@ -1106,7 +1114,7 @@ begin
  end if;
  my_uri := regexp_replace(my_uri,'^file://(localhost)?/','file:/','i'); -- remove localhost
  my_uri := my_uri::datalink.url; -- validate URL
- my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.url,'canonical'));
+ my_dl  := jsonb_build_object('a',datalink.uri_get(my_uri::datalink.url,'normal'));
  if comment is not null then
    my_dl:=jsonb_set(my_dl::jsonb,array['c'],to_jsonb(comment));
  end if;
@@ -1933,24 +1941,23 @@ IS 'SQL/MED - Returns the comment value, if it exists, from a DATALINK value';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, time_to_live integer default 0) 
+CREATE FUNCTION pg_catalog.dlurlcomplete(datalink, time_to_live interval default '0') 
 RETURNS text LANGUAGE sql STRICT stable
 AS $_$ 
    select case 
           when $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then datalink.dl_url_makeinsight(pg_catalog.dlurlcompleteonly($1),
-                        ($1::jsonb->>'b')::datalink.dl_token,
-                        case when $2>0 then ($2::text)::interval end)
+                        ($1::jsonb->>'b')::datalink.dl_token, $2)
           else format('%s%s',pg_catalog.dlurlcompleteonly($1),'#'||datalink.uri_get($1::jsonb->>'a','fragment'))
           end
 $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, integer) 
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(datalink, interval) 
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlcomplete(text, integer default 0) RETURNS text LANGUAGE sql STRICT stable
+CREATE FUNCTION pg_catalog.dlurlcomplete(text, interval default '0') RETURNS text LANGUAGE sql STRICT stable
 AS $_$ select pg_catalog.dlurlcomplete(dlvalue($1),$2) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, integer) 
+COMMENT ON FUNCTION pg_catalog.dlurlcomplete(text, interval) 
 IS 'SQL/MED - Returns normalized URL value';
 
 --------------------------------------------------------------- ---------------
@@ -2009,15 +2016,14 @@ IS 'SQL/MED - Returns the scheme from URL';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlpath(datalink, time_to_live integer default 0)
+CREATE FUNCTION pg_catalog.dlurlpath(datalink, time_to_live interval default '0')
  RETURNS text LANGUAGE sql STRICT AS $function$
    select case 
           when datalink.is_local($1) and $1::jsonb->>'b' is not null 
            and (datalink.link_control_options($1)).read_access = 'DB'
           then '/dlfs'||datalink.uri_get(
             datalink.dl_url_makeinsight($1::jsonb->>'a',
-                     ($1::jsonb->>'b')::datalink.dl_token,
-		     case when $2>0 then ($2::text)::interval end),'path')
+                     ($1::jsonb->>'b')::datalink.dl_token,$2),'path')
           else coalesce(datalink.filepath($1),
                   format('%s%s',datalink.uri_get($1::jsonb->>'a','path'),
                          '#'||coalesce($1::jsonb->>'b',
@@ -2025,13 +2031,13 @@ CREATE FUNCTION pg_catalog.dlurlpath(datalink, time_to_live integer default 0)
           end
 $function$;
 
-COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, integer)
+COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, interval)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlurlpath(text, time_to_live integer default 0)
+CREATE FUNCTION pg_catalog.dlurlpath(text, time_to_live interval default '0')
  RETURNS text LANGUAGE sql STRICT IMMUTABLE
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
-COMMENT ON FUNCTION pg_catalog.dlurlpath(text, integer) 
+COMMENT ON FUNCTION pg_catalog.dlurlpath(text, interval) 
 IS 'SQL/MED - Returns the file path from URL';
 
 --------------------------------------------------------------- ---------------
@@ -2607,10 +2613,24 @@ create or replace function content_type(datalink)
                   (select content_type from datalink.curl_get(dlurlcomplete($1),0)));
 $$;
 
+--------------------------------------------------------------- ---------------
+-- (in)compatibility functions
+--------------------------------------------------------------- ---------------
+
 create or replace function pg_catalog.length(datalink) 
  RETURNS bigint LANGUAGE sql AS $$ select datalink.getlength($1) $$;
 comment on function pg_catalog.length(datalink) 
      is 'Returns size of a file pointed to by datalink';
+
+create or replace function pg_catalog.extract(text,datalink) 
+ RETURNS text LANGUAGE sql AS $$ select datalink.uri_get($2,$1) $$;
+comment on function pg_catalog.extract(text,datalink) 
+     is 'Extract datalink URI part';
+
+create or replace function pg_catalog.extract(text,uri) 
+ RETURNS text LANGUAGE sql AS $$ select datalink.uri_get($2,$1) $$;
+comment on function pg_catalog.extract(text,uri) 
+     is 'Extract URI part';
 
 create or replace function pg_catalog.substr(
   datalink, pos integer default null, len integer default null) 
@@ -2966,6 +2986,7 @@ $$select datalink.has_web_privilege(current_role::regrole,$1,$2,$3)$$;
 CREATE TABLE dl_status (
   pid integer default pg_backend_pid(),
   cpid integer,
+  name text,
   version text,
   ctime timestamptz,
   mtime timestamptz,
@@ -2974,7 +2995,7 @@ CREATE TABLE dl_status (
   unlinks bigint default 0,
   errs bigint default 0
 );
-insert into dl_status (version) values ('init');
+insert into dl_status (name,version) values ('dlfm','init');
 grant select on dl_status to public;
 
 --------------------------------------------------------------- ---------------
@@ -3001,7 +3022,7 @@ COMMENT ON PROCEDURE commit()
 --------------------------------------------------------------- ---------------
 CREATE PROCEDURE dl_vacuum() language plpgsql as $$
 begin
-  update datalink.dl_new_files set kind='t'
+  update datalink.dl_new_files set kind='v'
    where kind in ('e','f')
      and now() > expires;
   delete from datalink.insight
@@ -3108,7 +3129,7 @@ create table insight_access_log (
 comment on table insight_access_log is 'Insight access log for dl_authorize()';
 
 CREATE FUNCTION dl_url_makeinsight(
-  url text, link_token dl_token, time_to_live interval default null) 
+  url text, link_token dl_token, time_to_live interval default '0') 
 RETURNS text LANGUAGE plpgsql
 AS $$
 declare
@@ -3117,7 +3138,7 @@ begin
  if $1 is null or $2 is null then return null; end if;
  -- check for read token
  m := regexp_matches(url,'^([^#]*/)(([a-z0-9\-]{36})[,;_:@~])?(.*)$','i');
- if time_to_live is not null then
+ if time_to_live > '0' then
   insert into datalink.insight (link_token,expires)
   values (link_token,now()+time_to_live) 
   returning read_token into link_token;
@@ -3142,7 +3163,8 @@ create table dl_new_files (
    t = temporary
    w = persistent
    e = external (created by dlurlpathwrite)
-   f = finished externa, which has been opened for write
+   f = finished external, which has been opened for write
+   v = vacuum, to be deleted
    */
   ops char[] default '{}',
   oldlink datalink,

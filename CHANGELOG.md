@@ -17,7 +17,10 @@ Version 0.26
 - `pg_dlfuse` set `postgres` effective user
 - `dlfs` command improvements - integrated dlff start/stop/status
 - `dlurlpathwrite` now generates anonymous temporary write access tokens
-
+- add tilde ~ to allowable token~filename separators
+- datalinker logs autoflush
+- datalinker internal chmod
+- `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 
 Version 0.25
 ------------

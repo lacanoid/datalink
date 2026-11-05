@@ -162,7 +162,7 @@ sub main() {
         'purge_get'=>$dbh->prepare(q{
           select pg_xact_status(txid) as state, kind, path 
             from dl_new_files af
-           where kind in ('t','w','e') 
+           where kind in ('t','w','e','v') 
              and pg_xact_status(txid) is distinct from 'in progress'
              and not ( kind = 'e' and pg_xact_status(txid) = 'committed' )
            order by txid for update of af
@@ -278,9 +278,9 @@ sub purge_files {
             if($stat->{inode}) {
                 if($stat->{owner} eq $config{owner}) {
                     log_msg('PURGE',"$kind,$state,$path");
-                    if($state eq 'aborted' || ($state eq 'committed' && $kind eq 't')) {
-			            file_delete($path);
-		            }
+                    if($state eq 'aborted' || ($state eq 'committed' && $kind=~/[tv]/)) {
+			file_delete($path);
+		    }
                 } else { 
                     log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
                 }

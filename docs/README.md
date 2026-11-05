@@ -77,7 +77,7 @@ This extension provides a number of additional features:
 - [URI manipulation](functions.md#user-content-uri-manipulation)
 - [File system to URL mapping](dlff.md)
 - [Web access via CURL](functions.md#user-content-web-access)
-- [File reading and writing](functions.md#user-content-reading-files)
+- [Transactional file reading and writing](functions.md#user-content-reading-files)
 - [Enable file access for non superuser database roles](security.md)
 - [Directory permissions system](configuration.md)
 - [Compatibility functions](functions.md#user-content-compatibility-functions)
