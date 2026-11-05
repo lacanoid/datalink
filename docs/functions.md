@@ -244,6 +244,62 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      /var/www/datalink/test1.txt
     (1 row)
 
+
+#### dlurlpathonly( datalink ) → text
+
+Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
+
+    mydb=> select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
+             dlurlpathonly         
+    ------------------------------
+     /var/www/datalink/index.html
+    (1 row)
+
+    mydb=> select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
+     dlurlpathonly 
+    ---------------
+     /foo/bar
+    (1 row)
+
+    mydb=> select dlurlpathonly(link) from t;
+            dlurlpathonly        
+    -----------------------------
+     /var/www/datalink/test1.txt
+    (1 row)
+
+
+#### dlurlpathwrite( datalink [, time_to_live interval]) → text
+
+This can be used with datalinks linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option.
+
+Use this function to get file path from datalink containing write access token.
+This can be used to change file contents from external application via DLFF.
+Copy of a file is created first so that the user works on a copy.
+
+    mydb=> create table t ( link datalink(272) );
+    NOTICE:  DATALINK DDL:TRIGGER on t
+    CREATE TABLE
+    mydb=> insert into t values (dlvalue('fortune.txt','www'));
+    NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
+    INSERT 0 1
+    mydb=> select dlurlpathwrite(link) from t;
+                                 dlurlpathwrite
+    -------------------------------------------------------------------------
+     /dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt
+    (1 row)
+
+then in shell (or external app) ...
+
+    $ /usr/games/fortune > '/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt'
+
+and finally in postgres ...
+
+    mydb=> update t set link=dlnewcopy('/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt');
+    NOTICE:  DATALINK UNLINK:/var/www/datalink/fortune.txt
+    NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
+    UPDATE 1
+
+
 #### dlurlscheme( datalink ) → text
 
 Use `dlurlscheme()` function to get uppercased URL scheme part of a datalink.

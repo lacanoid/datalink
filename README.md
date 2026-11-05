@@ -27,7 +27,8 @@ Currently, it implements the following:
 - LCO: NO LINK CONTROL - only check for valid URLs and normalize them
 - LCO: FILE LINK CONTROL INTEGRITY SELECTIVE - check if file exists with CURL HEAD, this also works for web
 - LCO: FILE LINK CONTROL INTEGRITY ALL - keep track of linked files in `datalink.dl_linked_files` table
-- Simple file manager  to provide other LCOs, see below
+- Simple file manager (datalinker) to provide other LCOs, see below
+- Simple file filter (FUSE filesystem) to authenticate READ ACCESS DB datalinks
 
 With datalinker:
 - LCO: READ ACCESS DB - make file owned by database (chown, chmod)
@@ -52,7 +53,8 @@ Extra features not in SQL standard:
 
 This extension uses a number of advanced Postgres features for implementation,
 including custom types, transactions, jsonb, triggers, updatable views, uuids, listen/notify, file_fdw, plperlu, dblink, advisory locks...
-Currently it is fully implemented in high-level languages (no C), mostly in sql, plpgsql and plperlu.
+Postgres extension is currently fully implemented in high-level languages such as sql, plpgsql and plperlu.
+C is used for the implementation of FUSE Datalink File Filter.
 However it requires [pguri](https://github.com/lacanoid/pguri) extension for URL processing and [curl](https://curl.se/) for
 integrity checking. All these together provide a powerful file and web framework within SQL environment.
 
