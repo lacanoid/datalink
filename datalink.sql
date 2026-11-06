@@ -903,6 +903,8 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'token' then uri_unescape(uri_fragment($1))
           when 'canonical' then uri_normalize($1)::text -- DEPRECATED
           when 'normal' then uri_normalize($1)::text
+	  when 'uri' then $1::text
+	  when 'url' then $1::text
           -- without fragment
           when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
           end $$;
@@ -963,8 +965,19 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   return $u->as_string;
   $function$
   ;
-
 COMMENT ON FUNCTION uri_set(uri,text,text) IS 'Set (replace) parts of URI';
+
+/*
+CREATE OR REPLACE FUNCTION uri_set(link datalink, part text, val text)
+ RETURNS datalink LANGUAGE sql IMMUTABLE STRICT AS $$
+  select 
+   jsonb_set($1::jsonb,array['a'],to_jsonb(
+     datalink.uri_set(($1::jsonb->>'a')::uri,$2,$3)
+   ))::datalink;
+$$;
+
+COMMENT ON FUNCTION uri_set(datalink,text,text) IS 'Set (replace) parts of datalink URI, return datalink';
+*/
 
 --------------------------------------------------------------- ---------------
 CREATE OR REPLACE FUNCTION iri(iri text) RETURNS text language sql strict as $$
@@ -1658,6 +1671,8 @@ if(defined($filename)) {
       if(defined($r->{body})) { utf8::encode($r->{body}); }
     }
     print $fh $r->{body};
+    # this happens only if we already have the content
+    # if curl is actually used to get content then file is closed below
     close $fh;
     $r->{body}=undef;
   }
@@ -2327,7 +2342,7 @@ comment on function dl_authorize(file_path, "char", regrole)
 --------------------------------------------------------------- ---------------
 create or replace function dl_url_authorize(url text) returns text
 language sql strict as $$
-select datalink.uri_set('file:/','path',
+select datalink.uri_set('file:/'::uri,'path',
          datalink.dl_authorize(datalink.uri_get($1,'path'),'r')
        );
 $$;
@@ -3161,7 +3176,7 @@ begin
   values (link_token,now()+time_to_live) 
   returning read_token into link_token;
  end if;
- return coalesce(m[1]||link_token||';'||m[4],$1);
+ return coalesce(m[1]||link_token||'~'||m[4],$1);
 end
 $$;
 

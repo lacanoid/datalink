@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.1105";
+our $version="0.26.1106";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -161,12 +161,16 @@ sub main() {
         }),
         'job_delete'=>$dbh->prepare(q{ delete from dl_linked_files where path = $1 }),
 
+        'atime'=>$dbh->prepare(qq{
+          update dl_status
+             set atime=now(),
+                 pid = default, version='$version', cpid = '$$'
+        }),
         'mtime'=>$dbh->prepare(qq{
           update dl_status
              set mtime=now(),
                  links = links + \$1, unlinks = unlinks + \$2,
-                 pid = default,
-                 cpid = '$$'
+                 pid = default, version='$version', cpid = '$$'
         }),
         'err++'=>$dbh->prepare(q{ update dl_status set errs = errs + 1 }),
 
@@ -265,8 +269,7 @@ sub main() {
                 } 
             }
         }
-        if($opt_E) { $dbh->do("call datalink.dl_vacuum()"); }
-        $dbh->do("update datalink.dl_status set atime=now()");
+	queryOrDie('atime');
     } # forever loop
 
     if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
@@ -282,6 +285,7 @@ sub purge_files {
     my $rv = queryOrDie('purge_get');
     my $dn = 0;
     my $di = 0;
+    if($opt_E) { $dbh->do("call datalink.dl_vacuum()"); }
     while(my $data = $q{purge_get}->fetchrow_hashref) {
 	my $path = $data->{path}; 
 	$dn++;
@@ -522,8 +526,9 @@ sub file_chown {
 sub file_chmod {
     my ($path,$mod)=@_;
     log_info('CHMOD',[$mod]);
-    if($opt_I) { 
-        if(!chmod( oct($mod),$path )) { perror($path); }
+    if($opt_I) {
+	my $m = oct($mod) & 0777; # prevent setting SUID bits
+        if(!chmod( $m, $path )) { perror($path); }
 	return; 
     }
     sys("chmod",$mod,$path);

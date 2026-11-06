@@ -122,6 +122,7 @@ Todo
 - check that src and dest in curl_save are not one and the same
 - check src read permissions in curl_save
 - check `pg_read_server_files` and `pg_write_server` files roles
+- check for sticky bits on linked file and show warning / error
 - handle // urls and paths better
 - write() & co should consider valid prefixes
 - datalinker: use config file

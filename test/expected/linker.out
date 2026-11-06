@@ -73,7 +73,7 @@ select regexp_replace(dlurlpath(link),'[a-f0-9\-]{32,}','xxxx','g') as dlurlpath
   from sample_datalinks6;
                     dlurlpath1                     
 ---------------------------------------------------
- /dlfs/var/www/datalink/installcheck/xxxx;utf8.txt
+ /dlfs/var/www/datalink/installcheck/xxxx~utf8.txt
 (1 row)
 
 select dlurlpathonly(link) from sample_datalinks6;
@@ -277,7 +277,7 @@ select dirpath,privilege_type,grantee from datalink.access;
 select datalink.dl_url_makeinsight('http://server/dir/file.ext','11111111-2222-3333-4444-abecedabeced');
                        dl_url_makeinsight                        
 -----------------------------------------------------------------
- http://server/dir/11111111-2222-3333-4444-abecedabeced;file.ext
+ http://server/dir/11111111-2222-3333-4444-abecedabeced~file.ext
 (1 row)
 
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt#11111111-2222-3333-4444-abecedabeced'));
@@ -287,7 +287,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 select dlurlcomplete(link),dlurlpath(link) from sample_datalinks6;
                                      dlurlcomplete                                     |                                     dlurlpath                                      
 ---------------------------------------------------------------------------------------+------------------------------------------------------------------------------------
- http://localhost/datalink/installcheck/11111111-2222-3333-4444-abecedabeced;test1.txt | /dlfs/var/www/datalink/installcheck/11111111-2222-3333-4444-abecedabeced;test1.txt
+ http://localhost/datalink/installcheck/11111111-2222-3333-4444-abecedabeced~test1.txt | /dlfs/var/www/datalink/installcheck/11111111-2222-3333-4444-abecedabeced~test1.txt
 (1 row)
 
 truncate sample_datalinks6;

@@ -18,8 +18,10 @@ Version 0.26
 - `dlfs` command improvements - integrated dlff start/stop/status
 - `dlurlpathwrite` now generates anonymous temporary write access tokens
 - add tilde ~ to allowable token~filename separators
+- use tilde ~ as a default token~filename separator. So file paths no longer need quotes in shell.
 - datalinker logs autoflush
 - datalinker internal chmod
+- datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
 - improved uri get/set routines with more options and `extract`
 - `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 

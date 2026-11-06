@@ -256,7 +256,7 @@ DETAIL:  Extension dblink is needed for automatic delete of files from aborted t
 HINT:  Install dblink extension
                   dlurlpathwrite1                  
 ---------------------------------------------------
- /dlfs/var/www/datalink/installcheck/xxxx;utf8.txt
+ /dlfs/var/www/datalink/installcheck/xxxx~utf8.txt
 (1 row)
 
 drop table l;
@@ -287,7 +287,7 @@ DETAIL:  Extension dblink is needed for automatic delete of files from aborted t
 HINT:  Install dblink extension
                   dlurlpathwrite1                  
 ---------------------------------------------------
- /dlfs/var/www/datalink/installcheck/xxxx;utf8.txt
+ /dlfs/var/www/datalink/installcheck/xxxx~utf8.txt
 (1 row)
 
 drop table l;
