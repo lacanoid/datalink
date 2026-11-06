@@ -1,28 +1,28 @@
 Version 0.26
 ------------
+- much improved `uri_get/set` routines with more options and `extract`
+- `pg_dlfuse` now works for simple writes
+- `dlurlpathwrite` now generates anonymous temporary write access tokens
+- add tilde ~ to allowable token~filename separators
+- use tilde ~ as a default token~filename separator. So file paths no longer need quotes in shell.
 - role `datalink_web` which is granted execute permission on curl functions
 - remove (for now) web access control tables and functions
 - added `pg_catalog.text(datalink)` function to return datalink content as text
 - added `pg_catalog.bytea(datalink)` function to return datalink content as bytea
 - added `pg_catalog.xml(datalink)` function to return datalink content as XML
 - added `pg_catalog.jsonb(datalink)` functions to return datalink content as JSONB
-- added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
+- teach `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
 - added `datalink.pg_vacuum()` procedure to expire old items which datalinker calls often
-- improved uri get/set routines with more options and `extract`
-- add 'uri_set(datalink)' function which returns datalink
+- add `uri_set(datalink)` function which returns datalink
 - `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 - rename `datalink.dl_new_files.op` to `kind`
-- `set_online` changed to procedure
-- dl_authorize now returns correct path for DLURLPATHWRITE paths
+- function `set_online` changed to procedure
+- `dl_authorize now` returns correct path for DLURLPATHWRITE paths
 - `pg_dlfuse` move from libfuse to libfuse3
-- `pg_dlfuse` now works for simple writes
 - `pg_dlfuse` now better manages database connection
 - `pg_dlfuse` set `postgres` effective user
 - `dlfs` command improvements - integrated dlff start/stop/status
-- `dlurlpathwrite` now generates anonymous temporary write access tokens
-- add tilde ~ to allowable token~filename separators
-- use tilde ~ as a default token~filename separator. So file paths no longer need quotes in shell.
 - datalinker logs autoflush
 - datalinker internal chmod
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
