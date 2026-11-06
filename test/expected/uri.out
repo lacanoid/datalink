@@ -358,43 +358,43 @@ select length(dlvalue('data:application/octet-stream;base64,AAECAwQFBgcICQoLDA0O
 (1 row)
 
 -- extract() functions
-select extract('dirname' from dlvalue('/tmp/filename.txt'));
+select extract('dirname' from dlvalue('/tmp/file name.txt'));
  extract 
 ---------
  /tmp/
 (1 row)
 
-select extract('basename' from dlvalue('/tmp/filename.txt'));
- extract  
-----------
- filename
+select extract('basename' from dlvalue('/tmp/file name.txt'));
+  extract  
+-----------
+ file name
 (1 row)
 
-select extract('filename' from dlvalue('/tmp/filename.txt'));
-   extract    
---------------
- filename.txt
+select extract('filename' from dlvalue('/tmp/file name.txt'));
+    extract    
+---------------
+ file name.txt
 (1 row)
 
-select extract('scheme' from dlvalue('/tmp/filename.txt'));
+select extract('scheme' from dlvalue('/tmp/file name.txt'));
  extract 
 ---------
  file
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/filename.txt'));
+select extract('ext' from dlvalue('/tmp/file name.txt'));
  extract 
 ---------
  .txt
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/filename'));
+select extract('ext' from dlvalue('/tmp/file name'));
  extract 
 ---------
  _null_
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/foo.bar/filename.txt'));
+select extract('ext' from dlvalue('/tmp/foo.bar/file name.txt'));
  extract 
 ---------
  .txt

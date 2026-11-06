@@ -53,7 +53,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  pg_catalog   | dlurlserver(text)                                                                            | sql      | SQL/MED - Returns the file server from URL
  pg_catalog   | dlvalue(text,datalink,text)                                                                  | sql      | SQL/MED - Construct a DATALINK value relative to another DATALINK value
  pg_catalog   | dlvalue(text,dl_linktype,text)                                                               | plpgsql  | SQL/MED - Construct a DATALINK value
- pg_catalog   | dlvalue(uri,datalink,text)                                                                   | sql      | SQL/MED - Construct a DATALINK value from URI
+ pg_catalog   | dlvalue(uri)                                                                                 | sql      | SQL/MED - Construct a DATALINK value from URI
  pg_catalog   | jsonb(datalink)                                                                              | sql      | Returns contents of file pointed to by datalink as JSONB
  pg_catalog   | length(datalink)                                                                             | sql      | Returns size of a file pointed to by datalink
  pg_catalog   | substr(datalink,integer,integer)                                                             | plpgsql  | Returns contents of file pointed to by datalink as a text string

@@ -48,9 +48,9 @@ select dlurlpath(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
 (1 row)
 
 select dlurlcomplete(dlvalue('/tmp/test-_=!@$^&()[]{}#?','FS'));
-                      dlurlcomplete                       
-----------------------------------------------------------
- file:/tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#%3F
+                     dlurlcomplete                      
+--------------------------------------------------------
+ file:/tmp/test-_%3D%21%40%24%5E%26%28%29%5B%5D%7B%7D#?
 (1 row)
 
 insert into sample_urls (url)

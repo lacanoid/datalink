@@ -892,13 +892,15 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'ext'
 	  then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
           when 'basename'
-	  then regexp_replace(nullif(to_json(uri_path_array($1))->>-1,''),
+	  then regexp_replace(nullif(
+	                      uri_unescape(to_json(uri_path_array($1))->>-1),''),
 	                      '(\.[^/]*)$','')
-          when 'filename' then nullif(to_json(uri_path_array($1))->>-1,'')
+          when 'filename'
+	  then nullif(uri_unescape(to_json(uri_path_array($1))->>-1),'')
           when 'dirname'
 	  then regexp_replace(uri_unescape(uri_path($1)),'^(.*)/.*$','\1/')	  
-          when 'query' then uri_query($1)
-          when 'fragment' then uri_fragment($1)
+          when 'query' then uri_unescape(uri_query($1))
+          when 'fragment' then uri_unescape(uri_fragment($1))
           when 'token' then uri_unescape(uri_fragment($1))
           when 'canonical' then uri_normalize($1)::text -- DEPRECATED
           when 'normal' then uri_normalize($1)::text
@@ -1170,10 +1172,10 @@ $$;
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - Construct a DATALINK value';
 
-CREATE FUNCTION pg_catalog.dlvalue(url uri, url_base datalink DEFAULT NULL, comment text DEFAULT NULL) 
+CREATE FUNCTION pg_catalog.dlvalue(url uri)
 RETURNS datalink LANGUAGE sql IMMUTABLE AS
-$$ SELECT pg_catalog.dlvalue($1::text,$2,$3); $$;
-COMMENT ON FUNCTION pg_catalog.dlvalue(uri,datalink,text) 
+$$ SELECT pg_catalog.dlvalue($1::text,'URL'); $$;
+COMMENT ON FUNCTION pg_catalog.dlvalue(uri) 
 IS 'SQL/MED - Construct a DATALINK value from URI';
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
