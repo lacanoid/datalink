@@ -376,22 +376,22 @@ Validation
 
 These are intended to be used with constraints.
 
-#### is_valid( datalink ) → boolean
+#### datalink.is_valid( datalink ) → boolean
 
 Indicates that a datalink URL is valid.
 
-#### is_local( datalink ) → boolean
+#### datalink.is_local( datalink ) → boolean
 
 Indicates that a datalink references a local file.
 
-#### is_http_success( datalink ) → boolean
+#### datalink.is_http_success( datalink ) → boolean
 
 Indicates that a HTTP request was successfully completed.
 
 URI manipulation
 ----------------
 
-You can use `extract(part from datalink)` as a shortcut for `uri_get`.
+You can use `extract(part from datalink)` as a shortcut for `datalink.uri_get`.
 
     mydb=> select extract('host' from dlvalue('http://www.github.com/robots.txt');
          extract 
@@ -405,25 +405,30 @@ You can use `extract(part from datalink)` as a shortcut for `uri_get`.
      robots
     (1 row)
 
-#### uri_get( uri text, part ) → text
+#### datalink.uri_get( uri text, part ) → text
 
 Get a part of URI, returns text.
 Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
 
-#### uri_get( datalink , part ) → text
+#### datalink.uri_get( datalink , part ) → text
 
 Get a part of a datalink's URI, returns text.
 Part can be specified same as above.
 
-#### uri_set( uri text, part , value text ) → text
+#### datalink.uri_set( uri text, part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
 Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `ext`, `query`, `fragment` or `token`.
 
+#### datalink.uri_set( link datalink, part , value text ) → datalink
+
+Set a part of datalinks's URI to a value, returns same datalink with new URI.
+Part can be specified same as above.
+
 Web access
 ----------
 
-#### curl_get( url text [ , mode integer  ] ) → record
+#### datalink.curl_get( url text [ , mode integer  ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -449,7 +454,7 @@ When file: URLs refer to files on other servers, [PostgreSQL foreign servers](fo
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 
-#### curl_save( local_file file_path, url text [ , persistent integer ] ) → record
+#### datalink.curl_save( local_file file_path, url text [ , persistent integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
@@ -461,7 +466,7 @@ Only superuser can execute this function, execute permission for other users mus
 Reading files
 -------------
 
-#### read_text( file_path [ , position [ , length ] ] ) → text 
+#### datalink.read_text( file_path [ , position [ , length ] ] ) → text 
 Read local file contents as text. 
 
 Returns text.
@@ -470,12 +475,12 @@ If the file is linked with `READ ACCESS DB` access is first checked with `dl_aut
 This implements access with filename-embedded read tokens as per SQL standard.
 A user can alternatively have SELECT privilege on the directory to read the file.
 
-#### read_text( datalink [ , position [ , length ] ] ) → text
+#### datalink.read_text( datalink [ , position [ , length ] ] ) → text
 Read datalink contents as text. Datalink can be anywhere on the web.
 
 Returns text.
 
-#### read( file_path [ , position [ , length ] ] ) → bytea 
+#### datalink.read( file_path [ , position [ , length ] ] ) → bytea 
 Read local file contents as binary. 
 
 Returns bytea.
@@ -484,12 +489,12 @@ If the file is linked with `READ ACCESS DB` access is first checked with `dl_aut
 This implements access with filename-embedded read tokens as per SQL standard.
 A user can alternatively have SELECT privilege on the directory to read the file.
 
-#### read_lines( file_path [ , position ] ) → table (i,o,line)
+#### datalink.read_lines( file_path [ , position ] ) → table (i,o,line)
 Read local file contents as lines of text.
 
 Returns set of lines with line numbers and file offset.
 
-#### read_lines( datalink [ , position ] ) → table (i,o,line)
+#### datalink.read_lines( datalink [ , position ] ) → table (i,o,line)
 Read datalink contents as lines of text. Currently works only for local files.
 
 Returns set of lines with line numbers and file offset.
@@ -498,7 +503,7 @@ Returns set of lines with line numbers and file offset.
 New file creation
 ------------------
 
-#### write_text( file_path , content text [ , persistent integer ] ) → text
+#### datalink.write_text( file_path , content text [ , persistent integer ] ) → text
 Write local file contents as text. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
@@ -511,12 +516,16 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
-#### write_text( datalink , content text [ , persistent integer ] ) → datalink
+#### datalink.write_text( datalink , content text [ , persistent integer ] ) → datalink
 Write datalink contents as text. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
-This is typically used in UPDATE statements.
+This is typically used in INSERT or UPDATE statements.
 
-    mydb=# update l set link = datalink.write_text(link,'New content');
+    mydb=# insert into l values (datalink.write_text(dlvalue('/var/www/datalink/hello.txt'),'New content'));
+    NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
+    INSERT 0 1
+    
+    mydb=# update l set link = datalink.write_text(link,'Newer content');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     UPDATE 1
@@ -525,7 +534,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 Returns new datalink, which can be used for update of a datalink column.
 
-#### write( file_path , content bytea [ , persistent integer ] ) → text
+#### datalink.write( file_path , content bytea [ , persistent integer ] ) → text
 Write local file contents as binary. File must not exist. This is to prevent overwriting existing files.
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
@@ -534,7 +543,7 @@ When parameter `persistent` is nonzero, then created file will be permanent, oth
 
 User must have CREATE privilege on the directory.
 
-#### write( datalink , content bytea [ , persistent integer ] ) → datalink
+#### datalink.write( datalink , content bytea [ , persistent integer ] ) → datalink
 Write datalink contents as binary. New version of file is created and then old file is replaced by the datalinker when transaction is commited.
 
 This is typically used in UPDATE statements.
@@ -546,13 +555,13 @@ Returns new datalink, which can be used for update of a datalink column.
 File information functions
 --------------------------
 
-#### fileexists( datalink ) → integer
+#### datalink.fileexists( datalink ) → integer
 Check if file exists.
 
-#### getlength( datalink ) → bigint
+#### datalink.getlength( datalink ) → bigint
 Return file size in bytes.
 
-#### has_updated( datalink ) → integer
+#### datalink.has_updated( datalink ) → integer
 Returns whether linked file has changed since it was linked. This makes sense only for INTEGRITY ALL WRITE ACCESS FS datalinks.
 
 (In)compatibility functions
@@ -564,12 +573,12 @@ These are in `pg_catalog` schema, so generally you don't need to specify a schem
 Return substring of length from a file starting with offset.
 
 #### length( datalink ) → bigint
-Return file size in bytes. SHortcut for `datalink.getlength()`.
-
-#### extract( part from uri ) → text
-Extract URI part. Shortcut for `datalink.uri_get()`.
+Return file size in bytes. Shortcut for `datalink.getlength()`.
 
 #### extract( part from datalink ) → text
+Extract datalink's URI part. Shortcut for `datalink.uri_get()`.
+
+#### extract( part from uri ) → text
 Extract URI part. Shortcut for `datalink.uri_get()`.
 
 [Datalink manual](README.md)

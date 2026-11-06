@@ -228,7 +228,7 @@ sub main() {
                         } else {
                             log_msg("LINK:$ts:$u:".$data->{lco},$path);
                         }
-			log_info("PATH",$path_backup);
+			log_info("TOKEN",$data->{token});
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
                         queryOrDie('job_set',$path,$err?'ERROR':'LINKED',$json->encode($r),$err);
@@ -596,11 +596,11 @@ sub file_backup_restore {
         }
         if(-f $path_backup) {
             if($move) {
-                log_info('REPLACE',$path_backup);
+                log_info('REPLACE',$path);
                 sys("mv","-f",$path_backup,$path);
             }
             else {
-                log_info('RESTORE',$path_backup);
+                log_info('RECOVER',$path);
                 sys("ln","-f",$path_backup,$path);
             }
         } else {

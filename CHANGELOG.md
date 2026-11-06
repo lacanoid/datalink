@@ -9,7 +9,11 @@ Version 0.26
 - added op='w' to `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
 - added `datalink.pg_vacuum()` procedure to expire old items which datalinker calls often
+- improved uri get/set routines with more options and `extract`
+- add 'uri_set(datalink)' function which returns datalink
+- `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 - rename `datalink.dl_new_files.op` to `kind`
+- `set_online` changed to procedure
 - dl_authorize now returns correct path for DLURLPATHWRITE paths
 - `pg_dlfuse` move from libfuse to libfuse3
 - `pg_dlfuse` now works for simple writes
@@ -22,8 +26,6 @@ Version 0.26
 - datalinker logs autoflush
 - datalinker internal chmod
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
-- improved uri get/set routines with more options and `extract`
-- `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 
 Version 0.25
 ------------

@@ -495,8 +495,8 @@ comment on view linked_files
 grant select on linked_files to public;
 --------------------------------------------------------------- ---------------
 -- for backup and restore and upgrades
-CREATE OR REPLACE FUNCTION set_online(boolean) 
-returns boolean language plpgsql as $$
+CREATE OR REPLACE PROCEDURE set_online(boolean) 
+language plpgsql as $$
 begin
   execute
     'alter table datalink.dl_linked_files alter column online set default '||$1;
@@ -504,8 +504,8 @@ begin
    where online is distinct from $1;
   return $1;
 end
-$$ strict;
-COMMENT ON FUNCTION set_online(boolean) 
+$$;
+COMMENT ON PROCEDURE set_online(boolean) 
      IS 'Set datalink online status for dump/restore';
 
 --------------------------------------------------------------- ---------------
@@ -877,7 +877,6 @@ CREATE OR REPLACE FUNCTION uri_get(url text, part text)
  RETURNS text LANGUAGE SQL immutable strict AS $$
   select datalink.uri_get($1::uri,$2)
 $$;
-
 COMMENT ON FUNCTION uri_get(text,text) IS 'Get (extract) parts of URI';
 --------------------------------------------------------------- ---------------
 
@@ -912,11 +911,17 @@ COMMENT ON FUNCTION uri_get(uri,text) IS 'Get (extract) parts of URI';
 
 CREATE OR REPLACE FUNCTION uri_get(link datalink, part text)
  RETURNS text LANGUAGE sql IMMUTABLE STRICT AS $$
-  select datalink.uri_get($1::jsonb->>'a',$2) $$;
+  select datalink.uri_get(($1::jsonb->>'a')::uri,$2) $$;
 
 COMMENT ON FUNCTION uri_get(datalink,text) IS 'Get (extract) parts of datalink URI';
 
 --------------------------------------------------------------- ---------------
+
+CREATE OR REPLACE FUNCTION uri_set(url text, part text, val text)
+ RETURNS text LANGUAGE SQL immutable strict AS $$
+  select datalink.uri_set($1::uri,$2,$3)
+$$;
+COMMENT ON FUNCTION uri_set(text,text,text) IS 'Set (replace) parts of URI';
 
 CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
  RETURNS text
@@ -926,9 +931,15 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   my $u=$_[0];
   my $part=$_[1]; lc($part);
   my $v=$_[2];
-  if($part eq 'src') { $u = URI->new_abs($v,$u); return $u->as_string; }
+  if($part eq 'src') {
+   $u = URI->new_abs($v,$u);
+   return $u->as_string;
+  }
   $u = URI->new($u);
-  if($part eq 'scheme') { $u->scheme($v); }
+  if($path eq 'uri' || $part eq 'url') {
+    $u = URI->new($v); return $u->as_string;
+  }
+  elsif($part eq 'scheme') { $u->scheme($v); }
   elsif($part eq 'server') {  $u->host($v); }
   elsif($part eq 'authority') {  $u->authority($v); }
   elsif($part eq 'path_query') {  $u->path_query($v); }
@@ -967,17 +978,19 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   ;
 COMMENT ON FUNCTION uri_set(uri,text,text) IS 'Set (replace) parts of URI';
 
-/*
-CREATE OR REPLACE FUNCTION uri_set(link datalink, part text, val text)
- RETURNS datalink LANGUAGE sql IMMUTABLE STRICT AS $$
-  select 
-   jsonb_set($1::jsonb,array['a'],to_jsonb(
-     datalink.uri_set(($1::jsonb->>'a')::uri,$2,$3)
-   ))::datalink;
-$$;
-
-COMMENT ON FUNCTION uri_set(datalink,text,text) IS 'Set (replace) parts of datalink URI, return datalink';
-*/
+CREATE OR REPLACE FUNCTION datalink.uri_set(link datalink, part text, val text)
+ RETURNS datalink LANGUAGE plpgsql IMMUTABLE
+AS $function$
+begin
+  link := jsonb_set(
+    $1::jsonb, array['a'],to_jsonb(
+    datalink.uri_set(($1::jsonb->>'a')::uri,$2,$3))
+  );
+  return link;
+end
+$function$
+;
+COMMENT ON FUNCTION uri_set(datalink,text,text) IS 'Set (replace) parts of datalink URI, returns datalink!';
 
 --------------------------------------------------------------- ---------------
 CREATE OR REPLACE FUNCTION iri(iri text) RETURNS text language sql strict as $$
@@ -1157,10 +1170,16 @@ $$;
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text) 
 IS 'SQL/MED - Construct a DATALINK value';
 
+CREATE FUNCTION pg_catalog.dlvalue(url uri, url_base datalink DEFAULT NULL, comment text DEFAULT NULL) 
+RETURNS datalink LANGUAGE sql IMMUTABLE AS
+$$ SELECT pg_catalog.dlvalue($1::text,$2,$3); $$;
+COMMENT ON FUNCTION pg_catalog.dlvalue(uri,datalink,text) 
+IS 'SQL/MED - Construct a DATALINK value from URI';
+
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
     LANGUAGE sql IMMUTABLE
-    AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1),
+    AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1)::text,
                         null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
 
 COMMENT ON FUNCTION pg_catalog.dlvalue(text,datalink,text) 
