@@ -10,7 +10,7 @@ INCLUDES = -I/usr/include/postgresql
 PG_LIBS = -L$(shell $(PG_CONFIG) --pkglibdir)
 BINDIR = $(shell $(PG_CONFIG) --bindir)
 
-REGRESS = init type sqlmed selective link linker uri curl user bfile
+REGRESS = init type sqlmed selective link nolinker linker uri curl user bfile
 REGRESS_OPTS = --inputdir=test
 
 SCRIPTS = bin/pg_datalinker bin/dlfs

@@ -771,6 +771,9 @@ begin
           txid  = default
     where path  = file_path and info is null
           and r.on_unlink = 'DELETE'
+-- FIXME: needed for $opt_O to work
+--        fix datalinker checks first, then remaining broken tests	  
+--          and ( r.on_unlink = 'DELETE' or r.read_access = 'DB' )
       and state = 'LINK';
    -- not yet linked, delete
    delete from datalink.dl_linked_files

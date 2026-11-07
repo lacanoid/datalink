@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.1106";
+our $version="0.26.1107";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -26,7 +26,7 @@ our $opt_C = 0;  # only check configuration
 our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_E = 1;  # call datalink.dl_expire()
 our $opt_I = 1;  # use internal functions (faster)
-our $opt_O = 0;  # for read_access='DB' set linked file owner to relowner if possible
+our $opt_O = 1;  # when restoring permissions, perhaps set owner to relowner
 our $opt_R = 1;  # restore old files from backups
 our $opt_P = 1;  # process dl_new_files (purge temporary and files from aborted transactions)
 our $opt_L = 1;  # use advisory locks (support for datalink.commit())
@@ -220,13 +220,14 @@ sub main() {
                     log_debug("DATA",$data);
                     my $ts=iso_timestamp();
                     my $u=$data->{relowner};
+		    my $ll = "$ts:$u:".$data->{lco}.":".$data->{cons};
                     if($data->{state} eq 'LINK') {
                         if($info) {
-                            log_msg("RELINK:$ts:$u:".$data->{lco},$path);
+                            log_msg("RELINK:$ll",$path);
 			    $info->{del}=0;
                             file_unlink($path,$data); $cu++;
                         } else {
-                            log_msg("LINK:$ts:$u:".$data->{lco},$path);
+                            log_msg("LINK:$ll",$path);
                         }
 			log_info("TOKEN",$data->{token});
                         my $r=file_link($path,$data); $cl++;
@@ -236,7 +237,7 @@ sub main() {
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
-                        log_msg("UNLINK:$ts:".$data->{lco},$path);
+                        log_msg("UNLINK:$ll",$path);
                         file_unlink($path,$data); $cu++;
                         queryOrDie('job_delete',$path);
                         next;
@@ -300,8 +301,9 @@ sub purge_files {
                     if($state eq 'aborted' || ($state eq 'committed' && $kind=~/[tv]/)) {
 			file_delete($path); $di++;
 		    }
-                } else { 
-                    log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+                } else {
+		    log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
+		    if($opt_v) { log_stack(); }
                 }
             } else { 
                 # log_err("FILE DOES NOT EXISTS","File '$path' does not exist.");
@@ -475,9 +477,25 @@ sub file_unlink {
         file_unlink_delete($path,$opt);
     }
     if($opt->{read_access} eq 'DB') {
-	    if(-f $path || -d $path) { file_restore($path,$opt); }
+	if(-f $path || -d $path) {
+	    file_restore($path,$opt);
+	    file_setown($path,$opt);
+	}
     }
 }
+
+sub file_unlink_delete {
+    my ($path,$opt)=@_;
+    my $info = $opt->{info};
+    if(($info && $info->{del}) || !$info) {
+        if(!($opt->{on_unlink} eq 'DELETE')) {
+            log_err('NO DELETE',"Not ON UNLINK DELETE");
+            return;
+        }
+        file_delete($path,$opt);
+    }
+}
+
 # set file permissions for read_access db
 sub file_read_access_db {
     my ($path,$opt)=@_;
@@ -485,10 +503,6 @@ sub file_read_access_db {
     if(defined($config{owner})) {
         if(defined($config{group})) { file_chown($path,$config{owner}.':'.$config{group}); } 
         else { file_chown($path,$config{owner}); }
-    }
-    if($opt_O && $opt->{relowner}) {
-        my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwnam($opt->{relowner});
-        file_chown($path,$name);
     }
     if(defined($config{db_mode})) { file_chmod($path,$config{db_mode}); }
 }
@@ -500,6 +514,24 @@ sub file_restore {
     if($info) {
         if(defined($info->{owner})) { file_chown($path,$info->{owner}); }
         if(defined($info->{mod})) { file_chmod($path,$info->{mod}); }
+    }
+}
+
+sub file_setown {
+    my ($path,$opt)=@_;
+    unless($opt_O) { return; }
+    my $info = $opt->{info};
+    log_debug('SETOWN',$opt);
+    if($opt->{relowner}) {
+	if((!($info->{owner})) || $info->{owner} eq "$config{owner}:$config{owner}") {
+	    # no original owner or owned (created by) postgres
+	    my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire)
+		= getpwnam($opt->{relowner});
+	    if($name eq $opt->{relowner}) {
+		# system user exists
+		file_chown($path,$name);
+	    }
+	}
     }
 }
 
@@ -519,7 +551,7 @@ sub file_chown {
 	    }
 	    return;
 	}
-	sys("chown",$owner,$path);
+	sys("chown","--",$owner,$path);
     }
 }
 
@@ -531,7 +563,7 @@ sub file_chmod {
         if(!chmod( $m, $path )) { perror($path); }
 	return; 
     }
-    sys("chmod",$mod,$path);
+    sys("chmod","--",$mod,$path);
 }
 
 sub file_delete {
@@ -544,27 +576,16 @@ sub file_delete {
     else {
 	if($opt) { log_info('DELETE',$path); }
         my $s = file_stat($path);
-        if(!($s->{owner} eq $config{owner})) {
+	# only for purged files
+	if(defined($opt->{info}) && !($s->{owner} eq $config{owner})) {
 	    log_err("BAD OWNER","File '$path' is not owned by '$config{owner}'.");
-    	    return;
-        }
+	    return;
+	}
     }
     if($opt_I) { unlink($path); }
     else { sys('rm',$path); }
 }
 
-sub file_unlink_delete {
-    my ($path,$opt)=@_;
-    my $info = $opt->{info};
-    if(($info && $info->{del}) || !$info) {
-        if(!($opt->{on_unlink} eq 'DELETE')) {
-            log_err('NO DELETE',"Not ON UNLINK DELETE");
-            return;
-        }
-#        if(defined($info->{own})) { file_delete($path,$opt); }
-        file_delete($path,$opt);
-    }
-}
 # does file have a backup copy
 sub file_has_backup {
     my ($path,$opt)=@_;
@@ -696,10 +717,18 @@ sub wget {
 ########################################
 # logging
 
+sub log_stack {
+    my $i = 1;
+    print STDERR "Stack Trace:\n";
+    while ( (my @call_details = (caller($i++))) ){
+	print STDERR $call_details[1].":".$call_details[2]." in function ".$call_details[3]."\n";
+    }
+}
+
 sub log_debug {
     my ($txt,$data)=@_;
     if($opt_t) {
-        print "$txt:".(ref($data)?$json->pretty->encode($data):$data)."\n";
+        print "$txt:".(ref($data)?$json->encode($data):$data)."\n";
     }
 }
 

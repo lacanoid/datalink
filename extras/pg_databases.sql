@@ -59,7 +59,7 @@ select d.datname::text as name,
        count(a)::int as connections
   from pg_database d
   left join pg_catalog.pg_stat_activity a on (a.datid=d.oid)
- where datallowconn and running
+ where datallowconn
    and a.pid is distinct from pg_backend_pid()
  group by 1,2 
 )
@@ -73,5 +73,27 @@ WHERE running;
 COMMENT ON VIEW pg_databases IS 'All connectable postgres databases on all clusters';
 
 GRANT SELECT ON pg_databases TO PUBLIC;
+
+CREATE OR REPLACE VIEW pg_roles AS
+  SELECT dbs.cluster,
+    dbs.rolname,
+    dbs.rolcanlogin,
+    dbs.rolsuper,
+    dbs.roldata
+   FROM datalink.pg_clusters() c(version, cluster, port, running, recovery, buffers, pgdata, logfile),
+    LATERAL public.dblink('port='::text || c.port, '
+select current_setting(''cluster_name'') as cluster,
+       current_setting(''port'')::int as port,
+       rolcanlogin,
+       rolname, oid as rolid,
+       rolsuper,
+       row_to_json(r) as roldata
+  from pg_roles r order by rolname
+'::text) dbs(cluster text, port integer, rolcanlogin boolean, rolname text, rolid oid, rolsuper boolean, roldata jsonb)
+  WHERE c.running;
+
+COMMENT ON VIEW pg_roles IS 'All roles on all clusters';
+
+GRANT SELECT ON pg_roles TO PUBLIC;
 
 END;
