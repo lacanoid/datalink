@@ -38,6 +38,7 @@ update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='user_links' and column_name='link2';
 
+set datalink.relax = 'm';
 set role datalink_test_user;
 
 insert into user_links (link)

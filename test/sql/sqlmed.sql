@@ -110,10 +110,14 @@ update med set link = dlvalue('file:///var/www/datalink/non_existant_file'); -- 
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 update med set link = dlvalue('file:///var/www/datalink/installcheck/test4.txt'); -- err
 delete from med;
+
 --
 -- case 1.b.ii.2.A.I invalid write token
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+set datalink.relax = 'm';
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/test1.txt'); -- err
 update med set link = dlnewcopy(link); -- ok
 --
@@ -127,10 +131,13 @@ update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 
+reset datalink.relax;
 drop table med;
 
 -- test DLURLPATHWRITE
 create table l (link datalink(72));
+insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+set datalink.relax = 'm';
 insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 select substr(link) from l;
 select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlurlpathwrite1 from l;

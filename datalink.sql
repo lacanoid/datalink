@@ -3041,19 +3041,11 @@ grant select on dl_status to public;
 --------------------------------------------------------------- ---------------
 CREATE PROCEDURE commit() language plpgsql as $$
 begin
-
-  if not datalink.has_datalinker() then
-        raise exception 'DATALINK ERROR - datalinker required' 
-        using errcode = '57050',
-                 hint = 'make sure pg_datalinker process is running to finalize your commits';
-  end if;
-
+  perform datalink.require_datalinker(-1);
   notify "datalink.linker_jobs"; 
   commit;
-
   perform pg_advisory_lock(x'41444154494c4b4e'::bigint);
   perform pg_advisory_unlock(x'41444154494c4b4e'::bigint);
-
 end
 $$;
 COMMENT ON PROCEDURE commit() 
@@ -3096,13 +3088,14 @@ create or replace function require_datalinker(retries integer default 1) returns
 language plpgsql as $$
 begin
   if datalink.has_datalinker() then return true; end if;
-  if current_setting('datalink.linker_required',true) is not null
-  then raise exception 'DATALINK EXCEPTION - datalinker required' 
-       using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
-  else raise warning 'DATALINK WARNING - datalinker recommended' 
+  if retries = 0  or
+     (retries > 0 and current_setting('datalink.relax',true) like '%m%')
+  then raise warning 'DATALINK WARNING - datalinker recommended' 
        using errcode = '57050',
                 hint = 'Make sure pg_datalinker process is running to finalize your commits.';
+  else raise exception 'DATALINK EXCEPTION - datalinker required' 
+       using errcode = '57050',
+                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
   end if;
   return false;
 end

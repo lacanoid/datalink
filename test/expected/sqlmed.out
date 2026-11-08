@@ -189,6 +189,14 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 -- case 1.b.ii.2.A.I invalid write token
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
+ERROR:  DATALINK EXCEPTION - datalinker required
+HINT:  Make sure pg_datalinker process is running. Perhaps "dlfs start"?
+CONTEXT:  PL/pgSQL function require_datalinker(integer) line 9 at RAISE
+SQL statement "SELECT datalink.require_datalinker()"
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 25 at PERFORM
+PL/pgSQL function dl_trigger_table() line 94 at assignment
+set datalink.relax = 'm';
+insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
@@ -230,11 +238,20 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
+reset datalink.relax;
 drop table med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 -- test DLURLPATHWRITE
 create table l (link datalink(72));
 NOTICE:  DATALINK DDL:TRIGGER on l
+insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
+ERROR:  DATALINK EXCEPTION - datalinker required
+HINT:  Make sure pg_datalinker process is running. Perhaps "dlfs start"?
+CONTEXT:  PL/pgSQL function require_datalinker(integer) line 9 at RAISE
+SQL statement "SELECT datalink.require_datalinker()"
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 25 at PERFORM
+PL/pgSQL function dl_trigger_table() line 94 at assignment
+set datalink.relax = 'm';
 insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
 HINT:  Make sure pg_datalinker process is running to finalize your commits.
