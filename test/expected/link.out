@@ -17,7 +17,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 2'));
@@ -28,7 +28,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/installcheck/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
@@ -40,7 +40,7 @@ DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 4'));
@@ -86,7 +86,7 @@ DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink'));
@@ -248,7 +248,7 @@ DETAIL:  delete permission for table owner is required on directory
 HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 45 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue')); 
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -258,7 +258,7 @@ DETAIL:  unknown path prefix for "/etc/issue"
 HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));

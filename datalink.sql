@@ -1316,28 +1316,14 @@ begin
   if lco.integrity <> 'NONE' then
     -- check if this is a file not a link
     if lco.integrity = 'ALL' and dlurlscheme(link)<>'FILE' then
-        raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
-              using errcode = 'HW005',
-                    detail = 'INTEGRITY ALL can only be used with file URLs',
-                    hint = 'make sure you are using a file: URL scheme';
+       raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+             using errcode = 'HW005',
+                   detail = 'INTEGRITY ALL can only be used with file URLs',
+                   hint = 'make sure you are using a file: URL scheme';
     end if;
     -- check if datalinker is needed and running
     if lco.integrity = 'ALL' and link_options>10 then
-      if not datalink.has_datalinker() then
---        raise exception 'DATALINK EXCEPTION - datalinker required'
-        if current_setting('datalink.linker_required',true) is not null
-        then 
-          raise exception 
-                'DATALINK EXCEPTION - datalinker required' 
-          using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
-        else
-          raise warning 
-                'DATALINK WARNING - datalinker recommended' 
-          using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running to finalize your commits.';
-        end if; -- datalinker required
-      end if; -- datalinker not running
+        perform datalink.require_datalinker();
     end if; -- integrity ALL
 
     if lco.integrity = 'ALL' then has_token := 1; end if;
@@ -3105,6 +3091,22 @@ $function$
 ;
 COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
+
+create or replace function require_datalinker(retries integer default 1) returns boolean
+language plpgsql as $$
+begin
+  if datalink.has_datalinker() then return true; end if;
+  if current_setting('datalink.linker_required',true) is not null
+  then raise exception 'DATALINK EXCEPTION - datalinker required' 
+       using errcode = '57050',
+                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
+  else raise warning 'DATALINK WARNING - datalinker recommended' 
+       using errcode = '57050',
+                hint = 'Make sure pg_datalinker process is running to finalize your commits.';
+  end if;
+  return false;
+end
+$$;
 
 --------------------------------------------------------------- ---------------
 

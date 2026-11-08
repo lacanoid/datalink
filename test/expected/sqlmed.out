@@ -131,7 +131,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 
 -- case 1.b.1 invalid datalink construction
@@ -152,7 +152,7 @@ ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/installcheck/test1.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 -- 15.3 Effect of replacing rows in base tables
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
@@ -166,7 +166,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 55 at RAISE
+CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 --
 -- case 1.b.ii.1 external file already linked
@@ -180,7 +180,7 @@ ERROR:  DATALINK EXCEPTION - external file already linked
 DETAIL:  from med.link as '/var/www/datalink/installcheck/test4.txt'
 CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 92 at PERFORM
+PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 delete from med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
