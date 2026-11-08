@@ -14,6 +14,7 @@ Version 0.26
 - teach `datalink.dl_authorize()` to authorize paths created with `DLURLPATHWRITE()`
 - added `expires` field to `datalink.dl_new_files`
 - added `datalink.pg_vacuum()` procedure to expire old items which datalinker calls often
+- added `datalink.require_datalinker()` function
 - add `uri_set(datalink)` function which returns datalink
 - `dlurlpath` and `dlurlcomplete` changed to specify interval instead of integer
 - rename `datalink.dl_new_files.op` to `kind`
@@ -23,6 +24,7 @@ Version 0.26
 - `pg_dlfuse` now better manages database connection
 - `pg_dlfuse` set `postgres` effective user
 - `dlfs` command improvements - integrated dlff start/stop/status
+- datalinker is now more often required, bypass with SET datalink.relax = 'm'
 - datalinker logs autoflush
 - datalinker internal chmod
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
