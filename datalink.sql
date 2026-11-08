@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1104 lacanoid@ljudmila.org
+--  version 0.26.1108 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -770,10 +770,10 @@ begin
       set state = 'UNLINK',
           txid  = default
     where path  = file_path and info is null
-          and r.on_unlink = 'DELETE'
--- FIXME: needed for $opt_O to work
---        fix datalinker checks first, then remaining broken tests	  
---          and ( r.on_unlink = 'DELETE' or r.read_access = 'DB' )
+-- FIXME: needed for $opt_O to work in transaction
+--        currently breaks many tests
+      and r.on_unlink = 'DELETE'
+--    and ( r.on_unlink = 'DELETE' or r.read_access = 'DB' )
       and state = 'LINK';
    -- not yet linked, delete
    delete from datalink.dl_linked_files
@@ -2818,14 +2818,9 @@ begin
     using  detail = 'Existing file cannot be made new';
   end if; -- if file exists
 
-  if not datalink.has_datalinker() 
-     and current_setting('datalink.linker_required',true) is not null
-  then
-    raise exception 'DATALINK ERROR - datalinker required' 
-    using errcode = '57050',
-           detail = 'datalinker is needed to purge files created from aborted transactions',
-             hint = 'make sure pg_datalinker process is running, try "dlfs start".';
-  end if;
+  perform datalink.require_datalinker(0,
+    'Datalinker is needed to purge files created from aborted transactions'
+  );
  end if; -- if datalink.dl_new_files
 
  return new;
@@ -3084,18 +3079,20 @@ $function$
 COMMENT ON FUNCTION has_datalinker()
      IS 'Is datalinker process currently running?';
 
-create or replace function require_datalinker(retries integer default 1) returns boolean
+create or replace function require_datalinker(
+  retries integer default 1, detail text default null) returns boolean
 language plpgsql as $$
 begin
   if datalink.has_datalinker() then return true; end if;
+  detail := coalesce(detail,'Datalinker process should be running to finalize your commits.');
   if retries = 0  or
-     (retries > 0 and current_setting('datalink.relax',true) like '%m%')
+     (retries > 0 and current_setting('datalink.relax',true) like any('{%m%,%*%}'))
   then raise warning 'DATALINK WARNING - datalinker recommended' 
-       using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running to finalize your commits.';
+       using errcode = '57050', detail = detail,
+                hint = 'Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?';
   else raise exception 'DATALINK EXCEPTION - datalinker required' 
-       using errcode = '57050',
-                hint = 'Make sure pg_datalinker process is running. Perhaps "dlfs start"?';
+       using errcode = '57050', detail = detail,
+                hint = 'Make sure that pg_datalinker is running. Perhaps "dlfs start"?';
   end if;
   return false;
 end

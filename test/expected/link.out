@@ -241,7 +241,8 @@ select * from datalink.columns order by table_name;
 set datalink.relax = 'm';
 insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test4.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - DELETE permission denied on directory 
 PATH:  /var/www/datalink/installcheck/test4.txt
 ROLE:  root
@@ -253,7 +254,8 @@ PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERF
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/issue"
 HINT:  run "dlfs add" to add prefixes
@@ -264,7 +266,8 @@ PL/pgSQL function dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update datalink.columns set write_access='ADMIN',recovery='NO',on_unlink='RESTORE' where table_name='my_table4';
 update datalink.columns set write_access='ADMIN',recovery='YES',on_unlink='RESTORE' where table_name='my_table4';

@@ -32,13 +32,15 @@ set role datalink_test_user;
 insert into user_links (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 1'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update user_links
    set link = dlnewcopy(link);
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 select * 
   from datalink.linked_files;

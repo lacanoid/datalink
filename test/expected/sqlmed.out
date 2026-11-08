@@ -190,15 +190,17 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 update datalink.columns set read_access='DB',write_access='TOKEN' where table_name='med';
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 ERROR:  DATALINK EXCEPTION - datalinker required
-HINT:  Make sure pg_datalinker process is running. Perhaps "dlfs start"?
-CONTEXT:  PL/pgSQL function require_datalinker(integer) line 9 at RAISE
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
+CONTEXT:  PL/pgSQL function require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker()"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 25 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 set datalink.relax = 'm';
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/test1.txt'); -- err
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
@@ -209,7 +211,8 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 74 at RAISE
 update med set link = dlnewcopy(link); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 --
 -- case 1.b.ii.2.B invalid write permission for update
@@ -231,12 +234,14 @@ CONTEXT:  PL/pgSQL function dl_trigger_table() line 82 at RAISE
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 reset datalink.relax;
 drop table med;
@@ -246,15 +251,17 @@ create table l (link datalink(72));
 NOTICE:  DATALINK DDL:TRIGGER on l
 insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 ERROR:  DATALINK EXCEPTION - datalinker required
-HINT:  Make sure pg_datalinker process is running. Perhaps "dlfs start"?
-CONTEXT:  PL/pgSQL function require_datalinker(integer) line 9 at RAISE
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
+CONTEXT:  PL/pgSQL function require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker()"
 PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 25 at PERFORM
 PL/pgSQL function dl_trigger_table() line 94 at assignment
 set datalink.relax = 'm';
 insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 select substr(link) from l;
             substr             
@@ -271,6 +278,9 @@ select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlur
 WARNING:  DATALINK WARNING - dblink extension recommended
 DETAIL:  Extension dblink is needed for automatic delete of files from aborted transactions
 HINT:  Install dblink extension
+WARNING:  DATALINK WARNING - datalinker recommended
+DETAIL:  Datalinker is needed to purge files created from aborted transactions
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
                   dlurlpathwrite1                  
 ---------------------------------------------------
  /dlfs/var/www/datalink/installcheck/xxxx~utf8.txt
@@ -285,7 +295,8 @@ create table l (link datalink(72));
 NOTICE:  DATALINK DDL:TRIGGER on l
 insert into l values (dlvalue('installcheck/utf8.txt','www'));
 WARNING:  DATALINK WARNING - datalinker recommended
-HINT:  Make sure pg_datalinker process is running to finalize your commits.
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 select substr(link) from l;
             substr             
@@ -302,6 +313,9 @@ select regexp_replace(dlurlpathwrite(link),'[a-f0-9\-]{30,}','xxxx','g') as dlur
 WARNING:  DATALINK WARNING - dblink extension recommended
 DETAIL:  Extension dblink is needed for automatic delete of files from aborted transactions
 HINT:  Install dblink extension
+WARNING:  DATALINK WARNING - datalinker recommended
+DETAIL:  Datalinker is needed to purge files created from aborted transactions
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
                   dlurlpathwrite1                  
 ---------------------------------------------------
  /dlfs/var/www/datalink/installcheck/xxxx~utf8.txt
