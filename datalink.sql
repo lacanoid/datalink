@@ -618,7 +618,7 @@ begin
       raise exception 'DATALINK EXCEPTION - referenced file not valid' 
             using errcode = 'HW007',
                   detail = format('file "%s" is neither file nor directory, but "%s"',
-		                  file_path,fstat->>'typ');
+                                  file_path,fstat->>'typ');
  end if;
  -- check for DELETE privilege
  if lco.on_unlink = 'DELETE' then
@@ -893,22 +893,22 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'port' then uri_port($1)::text
           when 'path' then uri_unescape(uri_path($1))
           when 'ext'
-	  then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
+          then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
           when 'basename'
-	  then regexp_replace(nullif(
-	                      uri_unescape(to_json(uri_path_array($1))->>-1),''),
-	                      '(\.[^/]*)$','')
+          then regexp_replace(nullif(
+                              uri_unescape(to_json(uri_path_array($1))->>-1),''),
+                              '(\.[^/]*)$','')
           when 'filename'
-	  then nullif(uri_unescape(to_json(uri_path_array($1))->>-1),'')
+          then nullif(uri_unescape(to_json(uri_path_array($1))->>-1),'')
           when 'dirname'
-	  then regexp_replace(uri_unescape(uri_path($1)),'^(.*)/.*$','\1/')	  
+          then regexp_replace(uri_unescape(uri_path($1)),'^(.*)/.*$','\1/')       
           when 'query' then uri_unescape(uri_query($1))
           when 'fragment' then uri_unescape(uri_fragment($1))
           when 'token' then uri_unescape(uri_fragment($1))
           when 'canonical' then uri_normalize($1)::text -- DEPRECATED
           when 'normal' then uri_normalize($1)::text
-	  when 'uri' then $1::text
-	  when 'url' then $1::text
+          when 'uri' then $1::text
+          when 'url' then $1::text
           -- without fragment
           when 'only' then regexp_replace(uri_normalize($1)::text,'#.*','')
           end $$;
@@ -1923,7 +1923,9 @@ begin
  end if; 
 
  if new_lco is distinct from co.lco then
-   complicated := (old_options.integrity is distinct from new_options.integrity)
+   complicated := (old_options.integrity<'ALL' and new_options.integrity='ALL')
+               or (old_options.integrity='ALL' and new_options.integrity<'ALL')
+               or (old_options.integrity='NONE' and new_options.integrity='SELECTIVE')
                or (old_options.read_access='FS' and new_options.read_access>'FS')
                or (old_options.read_access>'FS' and new_options.read_access='FS')
                or (old_options.write_access='FS' and new_options.write_access>'FS')
@@ -1934,11 +1936,18 @@ begin
       my_column_name,cast(my_regclass as text),my_column_name);
     execute e into n;
     if n > 0 then
-        raise exception 'DATALINK EXCEPTION' 
-              using errcode = 'HW000',
-              detail = format('Cannot change link control options; %s non-null values present in column "%s"',
-                        n,my_column_name),
-                    hint = format('Perhaps you can "truncate %s"',my_regclass);
+        if old_options.integrity = 'ALL' and new_options.integrity < 'ALL' then
+          -- unlink files
+          perform datalink.dl_file_unlink(path)
+             from datalink.dl_linked_files
+            where attrelid = my_regclass and attnum = co.attnum;            
+        else 
+          raise exception 'DATALINK EXCEPTION' 
+                using errcode = 'HW000',
+                detail = format('Cannot change link control options; %s non-null values present in column "%s"',
+                          n,my_column_name),
+                  hint = format('Perhaps you can "truncate %s"',my_regclass);
+        end if; -- old.integrity = 'ALL'
     end if; -- values present
    end if; -- complicated
 
@@ -2123,7 +2132,7 @@ BEGIN
   end if;
   path := '/dlfs'||datalink.uri_get(           
              datalink.dl_url_makeinsight(l1::jsonb->>'a',wtoken),
-	  'path');
+          'path');
   return path;
 END
 $function$;
@@ -2340,7 +2349,7 @@ begin
    if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
    raise exception
           'DATALINK EXCEPTION - SELECT permission denied on directory %',
-	  format(e'\nFILE:  %s\nROLE:  %s\n',mypath,myrole) 
+          format(e'\nFILE:  %s\nROLE:  %s\n',mypath,myrole) 
    using errcode = 'HW007',
          detail  = format('no SELECT permission for directory'),
          hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
@@ -2636,10 +2645,10 @@ $$ select case
           when datalink.is_local($1)
           then (datalink.stat(datalink.filepath($1))).size::bigint 
           else ( with a as
-	  (select rc,size from datalink.curl_get(dlurlcomplete($1),0))
+          (select rc,size from datalink.curl_get(dlurlcomplete($1),0))
                select case 
-	              when rc between 200 and 299 then size
-	              end from a ) end
+                      when rc between 200 and 299 then size
+                      end from a ) end
 $$ language sql;
 comment on function getlength(datalink) is 
   'BFILE - Returns datalink file size';
@@ -2808,13 +2817,13 @@ begin
   if tg_op = 'UPDATE' then
     if new.path is distinct from old.path then
       raise exception 'DATALINK EXCEPTION - cannot rename %',
-	                  format(e'\nFILE:  %s', old.path)
+                          format(e'\nFILE:  %s', old.path)
       using  detail = 'Cannot change path of existing file';
     end if;
   end if;
   if (datalink.stat(new.path)).size is not null THEN
     raise exception 'DATALINK EXCEPTION - file exists %',
-	                  format(e'\nFILE:  %s',new.path)
+                          format(e'\nFILE:  %s',new.path)
     using  detail = 'Existing file cannot be made new';
   end if; -- if file exists
 
@@ -3239,7 +3248,7 @@ begin
   if (datalink.stat($1)).size is not null THEN
     raise exception
             'DATALINK EXCEPTION - file exists %',
-	    format(e'\nFILE:  %s',$1)
+            format(e'\nFILE:  %s',$1)
     using detail = 'Existing file cannot be made new';
   end if;
   IF NOT EXISTS (select 1 from datalink.dl_new_files where path = $1) THEN

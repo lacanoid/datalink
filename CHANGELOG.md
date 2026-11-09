@@ -25,9 +25,9 @@ Version 0.26
 - `pg_dlfuse` set `postgres` effective user
 - `dlfs` command improvements - integrated dlff start/stop/status
 - datalinker is now more often required, bypass with SET datalink.relax = 'm'
-- datalinker logs autoflush
-- datalinker internal chmod
+- datalinker logs autoflush, relinking imrpovements, internal chmod
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
+- `datalink.modlco()` improvements
 
 Version 0.25
 ------------

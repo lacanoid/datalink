@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.1107";
+our $version="0.26.1109";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -27,9 +27,7 @@ our $opt_D = 1;  # really delete linked files with ON UNLINK DELETE
 our $opt_E = 1;  # call datalink.dl_expire()
 our $opt_I = 1;  # use internal functions (faster)
 our $opt_O = 1;  # when restoring permissions, perhaps set owner to relowner
-our $opt_R = 1;  # restore old files from backups
-our $opt_P = 1;  # process dl_new_files (purge temporary and files from aborted transactions)
-our $opt_L = 1;  # use advisory locks (support for datalink.commit())
+our $opt_R = 1;  # recover old files from backups
 our $macOS = 0;  # running on macOS
 
 # currently unsupported (psql-like options)
@@ -49,7 +47,9 @@ our %config = (
     owner => 'postgres',
     db_mode => '0440',
     prefix_file => "/etc/postgresql-common/pg_datalinker.prefix",
-    prefix => ["/var/www/datalink/"]
+    prefix => ["/var/www/datalink/"],
+    disable_locks => 0,  # do not use advisory locks (support for datalink.commit())
+    disable_purge => 0   # do not process dl_new_files (purge temporary and files from aborted transactions)
 );
 
 my ($operation)=@ARGV;
@@ -187,7 +187,7 @@ sub main() {
 
     #---------------------------------------
 
-    if($opt_L) { $dbh->do("select pg_advisory_lock($lockid)"); }
+    unless($config{disable_locks}) { $dbh->do("select pg_advisory_lock($lockid)"); }
     while(1) {
         log_debug('READY');
         config_observe();
@@ -251,9 +251,9 @@ sub main() {
             } # if not sleepy
         } # while not sleepy
 
-        if($opt_P) { purge_files(); }
+        unless($config{disable_purge}) { purge_files(); }
 
-        if($opt_L) { # this is to make datalink.commit() work
+        unless($config{disable_locks}) { # this is to make datalink.commit() work
             $dbh->do("select pg_advisory_unlock($lockid)");
             $dbh->do("select pg_advisory_lock($lockid)");  }
 
@@ -273,7 +273,7 @@ sub main() {
 	queryOrDie('atime');
     } # forever loop
 
-    if($opt_L) { $dbh->do("select pg_advisory_unlock($lockid)"); }
+    unless($config{disable_locks}) { $dbh->do("select pg_advisory_unlock($lockid)"); }
 
     log_msg('END');
 }
@@ -443,7 +443,7 @@ sub file_link {
     if(file_has_backup($path,$opt)) { # has backup
         if(!$have || $opt->{recovery} eq 'YES' || 
            $opt->{write_access} eq 'ADMIN' || $opt->{write_access} eq 'TOKEN') {
-            file_backup_restore($path,$opt);
+            file_backup_recover($path,$opt);
         }
         if($opt->{read_access} eq 'DB') { file_read_access_db($path,$opt); }
     } else { # no backup
@@ -469,18 +469,16 @@ sub file_link {
 # unlink file from sql environment
 sub file_unlink {
     my ($path,$opt)=@_;
-    if($opt->{write_access} ne 'FS') {
+    my $info = $opt->{info};
+    if($opt->{write_access} ne 'FS' || $info->{lco} > 10) {
         file_unblock($path,$opt);
     }
     if($opt->{on_unlink} eq 'DELETE') {
 #    if($opt->{info} && $opt->{info}{del}) {
         file_unlink_delete($path,$opt);
     }
-    if($opt->{read_access} eq 'DB') {
-	if(-f $path || -d $path) {
-	    file_restore($path,$opt);
-	    file_setown($path,$opt);
-	}
+    if(-f $path || -d $path) { # if not deleted above
+	file_restore($path,$opt);
     }
 }
 
@@ -515,6 +513,7 @@ sub file_restore {
         if(defined($info->{owner})) { file_chown($path,$info->{owner}); }
         if(defined($info->{mod})) { file_chmod($path,$info->{mod}); }
     }
+    file_setown($path,$opt);
 }
 
 sub file_setown {
@@ -569,9 +568,13 @@ sub file_chmod {
 sub file_delete {
     my ($path,$opt)=@_;
     log_debug('FILE DELETE',$opt);
+    if(!path_valid_prefix($path)) {
+	log_err("DELETE PREFIX",sprintf("Bad path prefix for file_delete in '$path'")); 
+	return;
+    }
     if(!$opt_D) {
-	    log_msg('NO DELETE',"Delete disabled: '$path'. HINT:use -D option");
-	    return;
+	log_msg('NO DELETE',"Delete disabled: '$path'. HINT:use -D option");
+	return;
     }
     else {
 	if($opt) { log_info('DELETE',$path); }
@@ -606,13 +609,13 @@ sub file_backup {
     }
 }
 # revert a file to previous version from backup
-sub file_backup_restore {
+sub file_backup_recover {
     my ($path,$opt)=@_;
     my $move = !($opt->{recovery} eq 'YES');
      if($opt->{token}) {
         my $path_backup = path_backup($path,$opt->{token});
         if(-f $path && !$opt_R) {
-            log_err("NO RESTORE","Restore disabled: HINT:use -R option");
+            log_err("NO RECOVERY","Recovery disabled: HINT:use -R option");
             return;
         }
         if(-f $path_backup) {

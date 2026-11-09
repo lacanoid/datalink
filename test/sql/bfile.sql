@@ -67,6 +67,7 @@ select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/he
 
 -- test checking for updated files
 
+update datalink.columns set integrity='ALL', write_access='FS' where table_name='my_table2';
 insert into my_table2 values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 select datalink.has_updated(link) from my_table2;
 \! touch /var/www/datalink/installcheck/utf8.txt
