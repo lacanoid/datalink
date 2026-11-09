@@ -137,3 +137,8 @@ delete from datalink.access where dirpath='/var/www/datalink/' and privilege_typ
 select * from datalink.columns where table_name='my_table4';
 truncate my_table4;
 
+-- insert into efiles1 (dlvalue('/var/www/datalink/installcheck/test1.txt'));
+
+update datalink.columns set integrity = 'ALL' where table_name = 'efiles1';
+
+truncate efiles1;

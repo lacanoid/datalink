@@ -468,6 +468,7 @@ create table dl_linked_files (
    w    - write() functions
    r    - dlreplacecontent() function
    n    - dlnewcopy() function
+   m    - automatically linked by modlco()
 */
 -- index for datalinker
 create index dl_linked_files_txid on dl_linked_files (txid) 

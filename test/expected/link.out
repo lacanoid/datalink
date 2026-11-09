@@ -286,3 +286,12 @@ select * from datalink.columns where table_name='my_table4';
 
 truncate my_table4;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
+-- insert into efiles1 (dlvalue('/var/www/datalink/installcheck/test1.txt'));
+update datalink.columns set integrity = 'ALL' where table_name = 'efiles1';
+ERROR:  DATALINK EXCEPTION
+DETAIL:  Cannot change link control options; 1 non-null values present in column "file"
+HINT:  Perhaps you can "truncate efiles1"
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 56 at RAISE
+SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
+PL/pgSQL function dl_trigger_columns() line 25 at PERFORM
+truncate efiles1;
