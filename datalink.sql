@@ -1926,7 +1926,7 @@ begin
  if new_lco is distinct from co.lco then
    complicated := (old_options.integrity<'ALL' and new_options.integrity='ALL')
                or (old_options.integrity='ALL' and new_options.integrity<'ALL')
-               or (old_options.integrity='NONE' and new_options.integrity='SELECTIVE')
+               or (old_options.integrity='NONE' and new_options.integrity>'NONE')
                or (old_options.read_access='FS' and new_options.read_access>'FS')
                or (old_options.read_access>'FS' and new_options.read_access='FS')
                or (old_options.write_access='FS' and new_options.write_access>'FS')
