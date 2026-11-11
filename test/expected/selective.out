@@ -58,10 +58,13 @@ select *
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks3' and column_name='link';
+WARNING:  DATALINK WARNING - datalinker recommended
+DETAIL:  Datalinker process should be running to finalize your commits.
+HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Cannot change link control options; 6 non-null values present in column "link"
 HINT:  Perhaps you can "truncate sample_datalinks3"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 56 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 89 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 25 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';

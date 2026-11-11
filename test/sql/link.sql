@@ -137,8 +137,14 @@ delete from datalink.access where dirpath='/var/www/datalink/' and privilege_typ
 select * from datalink.columns where table_name='my_table4';
 truncate my_table4;
 
--- insert into efiles1 (dlvalue('/var/www/datalink/installcheck/test1.txt'));
+insert into efiles1 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
+insert into efiles1 values (dlvalue('/var/www/datalink/installcheck/test4.txt'));
 
-update datalink.columns set integrity = 'ALL' where table_name = 'efiles1';
+update datalink.columns set integrity = 'ALL' where table_name = 'efiles1'; -- err not local
+delete from efiles1 where not datalink.is_local(file);
+update datalink.columns set integrity = 'ALL' where table_name = 'efiles1'; -- err no token
+
+update efiles1 set file=dlpreviouscopy(file);
+update datalink.columns set integrity = 'ALL' where table_name = 'efiles1'; -- ok
 
 truncate efiles1;

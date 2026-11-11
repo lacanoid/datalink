@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1108 lacanoid@ljudmila.org
+--  version 0.26.1111 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -211,15 +211,23 @@ RETURNS dl_lco
 LANGUAGE sql IMMUTABLE
 AS $_$
  select cast (trunc(
-   (case $2 when 'ALL' then 2 when 'SELECTIVE' then 1 when 'NONE' then 0 else 0 end)
+   (case $2 when 'ALL' then 2
+            when 'SELECTIVE' then 1
+	    when 'NONE' then 0 else 0 end)
    + 10 * (  
       (case $4
-       when 'ADMIN' then 3 when 'TOKEN' then 2 when 'BLOCKED' then 1 when 'FS' then 0
+       when 'ADMIN' then 3
+       when 'TOKEN' then 2
+       when 'BLOCKED' then 1
+       when 'FS' then 0
        else 0 end)
       + 4 * (case $3 when 'DB' then 1 when 'FS' then 0 else 0 end)
       + 10 * (
         (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
-        + (case $6 when 'DELETE' then 2 when 'RESTORE' then 0 when 'NONE' then 0 else 0 end)
+        + (case $6
+	   when 'DELETE' then 2
+	   when 'RESTORE' then 0
+	   when 'NONE' then 0 else 0 end)
       ))
     ) as datalink.dl_lco)
 $_$;
@@ -230,7 +238,8 @@ IS 'Calculate dl_lco from enumerated options';
 
 --------------------------------------------------------------- ---------------
 -- find dl_lco for a column
-create or replace function dl_lco(regclass regclass,column_name name) returns dl_lco
+create or replace function dl_lco(
+  regclass regclass,column_name name) returns dl_lco
 as $$
  select coalesce(
           dt.typmod,
@@ -1897,6 +1906,9 @@ declare
  old_options datalink.link_control_options;
  new_options datalink.link_control_options;
  complicated boolean;
+ rb1 boolean;
+ fn1 datalink.file_path;
+ tok1 datalink.dl_token;
 begin
  select into co * from datalink.dl_columns
   where regclass = my_regclass and column_name = my_column_name; 
@@ -1937,11 +1949,41 @@ begin
       my_column_name,cast(my_regclass as text),my_column_name);
     execute e into n;
     if n > 0 then
+      perform datalink.require_datalinker(0);
+      perform atttypmod from pg_attribute
+        where attrelid=my_regclass and attname=my_column_name
+          for update of pg_attribute;
         if old_options.integrity = 'ALL' and new_options.integrity < 'ALL' then
           -- unlink files
           perform datalink.dl_file_unlink(path)
              from datalink.dl_linked_files
             where attrelid = my_regclass and attnum = co.attnum;            
+        elsif old_options.integrity < 'ALL' and new_options.integrity = 'ALL' then
+	  -- link files
+	  e := format('select %s as link from %s where %I is not null',
+	  my_column_name,cast(my_regclass as text),my_column_name);
+          for obj in execute e
+	  loop
+	    if datalink.is_local(obj.link) then
+	      tok1 := cast(obj.link::jsonb->>'b' as datalink.dl_token);
+	      if tok1 is null then
+                raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+                using errcode = 'HW005',
+                       detail = format('column %s.%I contains datalinks which are missing tokens',
+		                    cast(my_regclass as text),my_column_name),
+                         hint = 'update them with DLPREVIOUSCOPY() to assign tokens';
+	      else
+	        fn1 := pg_catalog.dlurlpathonly(obj.link)::datalink.file_path;
+                rb1 := datalink.dl_file_link(fn1,tok1,'m',new_lco,my_regclass,my_column_name);
+	      end if;
+	    else
+              raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+              using errcode = 'HW005',
+                     detail = format('column %s.%I contains datalinks which reference non local files',
+		                    cast(my_regclass as text),my_column_name),
+                       hint = 'make sure you are using a file: URL scheme';
+	    end if; -- local file
+	  end loop;
         else 
           raise exception 'DATALINK EXCEPTION' 
                 using errcode = 'HW000',
