@@ -1548,9 +1548,12 @@ begin
     if new.integrity is not distinct from old.integrity then
       if new.link_control is distinct from old.link_control then
         if new.link_control = 'NO' then my_lco := 0; end if;
---        if new.link_control = 'FILE' then my_lco := 1; end if;
       end if; -- link control changed
-    end if; -- integrity not changed
+    else 
+      if new.link_control is not distinct from old.link_control then
+        if new.integrity = 'NONE' then my_lco := 0; end if;
+      end if; -- link not control changed
+    end if; -- integrity changed
     perform datalink.modlco(regclass(old.table_name),old.column_name,my_lco);
     return new;
  end if; -- if datalink.columns
@@ -1977,11 +1980,13 @@ begin
                 rb1 := datalink.dl_file_link(fn1,tok1,'m',new_lco,my_regclass,my_column_name);
 	      end if;
 	    else
-              raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
-              using errcode = 'HW005',
-                     detail = format('column %s.%I contains datalinks which reference non local files',
-		                    cast(my_regclass as text),my_column_name),
-                       hint = 'make sure you are using a file: URL scheme';
+	      if obj.link::jsonb->>'a' is not null then
+                raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
+                using errcode = 'HW005',
+                       detail = format('column %s.%I contains datalinks which reference non local files',
+		                      cast(my_regclass as text),my_column_name),
+                         hint = 'make sure you are using a file: URL scheme';
+	      end if; -- has url
 	    end if; -- local file
 	  end loop;
         else 
