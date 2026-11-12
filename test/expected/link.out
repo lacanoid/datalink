@@ -147,7 +147,7 @@ update datalink.columns
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Invalid link control options (101)
 HINT:  see table datalink.link_control_options for valid link control options
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 33 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 34 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 select * from columns;
@@ -277,7 +277,7 @@ HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Cannot change link control options; 1 non-null values present in column "link"
 HINT:  Perhaps you can "truncate my_table4"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 91 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 93 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
@@ -298,7 +298,7 @@ HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  column efiles1.file contains datalinks which reference non local files
 HINT:  make sure you are using a file: URL scheme
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 82 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 84 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 delete from efiles1 where not datalink.is_local(file);
@@ -309,7 +309,7 @@ HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  column efiles1.file contains datalinks which are missing tokens
 HINT:  update them with DLPREVIOUSCOPY() to assign tokens
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 71 at RAISE
+CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 72 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 update efiles1 set file=dlpreviouscopy(file);

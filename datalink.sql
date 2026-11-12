@@ -1,4 +1,4 @@
---------------------------------------------------------------- ---------------
+ --------------------------------------------------------------- ---------------
 --
 --  datalink
 --  version 0.26.1111 lacanoid@ljudmila.org
@@ -134,14 +134,16 @@ create or replace view types as
 with recursive r (regtype, typtype, typmod, depth)
 as (
   select oid::regtype,  t.typtype, 
-         case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco, 
+         case when t.typtypmod > 0
+              then t.typtypmod-4 end :: datalink.dl_lco, 
          0
     from pg_catalog.pg_type as t 
    where oid = 'pg_catalog.datalink'::regtype
   union all
   select oid::regtype,  t.typtype, 
          coalesce(
-           case when t.typtypmod > 0 then t.typtypmod-4 end :: datalink.dl_lco, 
+           case when t.typtypmod > 0
+                then t.typtypmod-4 end :: datalink.dl_lco, 
            r.typmod
          ), 
          depth+1
@@ -213,7 +215,7 @@ AS $_$
  select cast (trunc(
    (case $2 when 'ALL' then 2
             when 'SELECTIVE' then 1
-	    when 'NONE' then 0 else 0 end)
+            when 'NONE' then 0 else 0 end)
    + 10 * (  
       (case $4
        when 'ADMIN' then 3
@@ -225,9 +227,9 @@ AS $_$
       + 10 * (
         (case $5 when 'YES' then 1 when 'NO' then 0 else 0 end)
         + (case $6
-	   when 'DELETE' then 2
-	   when 'RESTORE' then 0
-	   when 'NONE' then 0 else 0 end)
+           when 'DELETE' then 2
+           when 'RESTORE' then 0
+           when 'NONE' then 0 else 0 end)
       ))
     ) as datalink.dl_lco)
 $_$;
@@ -315,8 +317,10 @@ from
 )
 -- valid option combinations per SQL/MED 2011 
 select distinct * from l
- where lc='NO'    and itg='NONE'      and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
-    or lc='FILE'  and itg='SELECTIVE' and ra='FS' and wa='FS' and unl='NONE' and rec='NO'
+ where lc='NO'    and itg='NONE'      and ra='FS' and wa='FS'
+                  and unl='NONE'      and rec='NO'
+    or lc='FILE'  and itg='SELECTIVE' and ra='FS' and wa='FS'
+                  and unl='NONE'      and rec='NO'
     or lc='FILE'  and itg='ALL'       and (
           ra='FS' and wa='FS'      and unl='NONE' and rec='NO'
        or ra='FS' and wa='BLOCKED' and unl='RESTORE'
@@ -552,7 +556,8 @@ $function$;
 COMMENT ON FUNCTION stat(file_path) IS 'Return info record from stat(2)';
 
 CREATE OR REPLACE FUNCTION stat(link datalink,
-   OUT dev bigint, OUT inode bigint, OUT mode integer, OUT typ "char", OUT nlink integer,
+   OUT dev bigint, OUT inode bigint,
+   OUT mode integer, OUT typ "char", OUT nlink integer,
    OUT uid integer, OUT gid integer,
    OUT rdev integer, OUT size numeric, 
    OUT atime numeric, OUT mtime numeric, OUT ctime numeric,
@@ -579,7 +584,8 @@ begin
   return null;
 end
 $$ language plpgsql strict;
-comment on function filepath(datalink) is 'Returns the read file path from DATALINK value';
+comment on function filepath(datalink)
+     is 'Returns the read file path from DATALINK value';
 
 --------------------------------------------------------------- ---------------
 -- link a file to SQL
@@ -688,7 +694,7 @@ begin
      if r.token is not distinct from my_token
      then -- same file and protection
         update datalink.dl_linked_files
-          set state='LINKED',
+           set state='LINKED',
                attrelid=my_regclass,
                attnum=my_attnum,
                address=my_address,
@@ -803,7 +809,9 @@ begin
   elsif r.state = 'UNLINK' then
         raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
               using errcode = 'HW000', 
-                    detail = format('file is ''%s'' waiting for unlink by the datalinker process',r.path),
+                    detail = format(
+                              'file is ''%s'' waiting for unlink by the datalinker process',
+                              r.path),
                       hint = 'start datalinker with "dlfs start"';
 
   else
@@ -905,9 +913,9 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'ext'
           then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
           when 'basename'
-          then regexp_replace(nullif(
-                              uri_unescape(to_json(uri_path_array($1))->>-1),''),
-                              '(\.[^/]*)$','')
+          then regexp_replace(nullif(uri_unescape(
+                               to_json(uri_path_array($1))->>-1
+                              ),''), '(\.[^/]*)$','')
           when 'filename'
           then nullif(uri_unescape(to_json(uri_path_array($1))->>-1),'')
           when 'dirname'
@@ -1128,7 +1136,8 @@ CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
 -- SQL/MED datalink functions
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlvalue(url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
+CREATE FUNCTION pg_catalog.dlvalue(
+  url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
 RETURNS datalink LANGUAGE plpgsql IMMUTABLE AS $$
 declare
  my_dl datalink;
@@ -1308,7 +1317,8 @@ IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file conte
 --------------------------------------------------------------- ---------------
 
 -- reference a datalink
-CREATE FUNCTION dl_datalink_ref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
+CREATE FUNCTION dl_datalink_ref(
+  link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink LANGUAGE plpgsql AS $_$
 declare
  lco datalink.link_control_options;
@@ -1395,7 +1405,8 @@ end$_$;
 
 --------------------------------------------------------------- ---------------
 -- unreference a datalink
-CREATE FUNCTION dl_datalink_unref(link datalink, link_options dl_lco, regclass regclass, column_name name) 
+CREATE FUNCTION dl_datalink_unref(
+  link datalink, link_options dl_lco, regclass regclass, column_name name) 
 RETURNS datalink LANGUAGE plpgsql AS $_$
 declare
  lco datalink.link_control_options;
@@ -1925,7 +1936,8 @@ begin
  if not datalink.has_class_privilege(my_regclass) then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-            detail = format('Must be owner of class '%s' to change link control options',my_regclass);
+            detail = format('Must be owner of class '%s' to change link control options',
+                            my_regclass);
  end if;
 
  select * into old_options from datalink.link_control_options where lco = co.lco;
@@ -1962,37 +1974,39 @@ begin
              from datalink.dl_linked_files
             where attrelid = my_regclass and attnum = co.attnum;            
         elsif old_options.integrity < 'ALL' and new_options.integrity = 'ALL' then
-	  -- link files
-	  e := format('select %s as link from %s where %I is not null',
-	  my_column_name,cast(my_regclass as text),my_column_name);
+          -- link files
+          e := format('select %s as link from %s where %I is not null',
+          my_column_name,cast(my_regclass as text),my_column_name);
           for obj in execute e
-	  loop
-	    if datalink.is_local(obj.link) then
-	      tok1 := cast(obj.link::jsonb->>'b' as datalink.dl_token);
-	      if tok1 is null then
+          loop
+            if datalink.is_local(obj.link) then
+              tok1 := cast(obj.link::jsonb->>'b' as datalink.dl_token);
+              if tok1 is null then
                 raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
                 using errcode = 'HW005',
-                       detail = format('column %s.%I contains datalinks which are missing tokens',
-		                    cast(my_regclass as text),my_column_name),
+                       detail = format(
+                                  'column %s.%I contains datalinks which are missing tokens',
+                                  cast(my_regclass as text),my_column_name),
                          hint = 'update them with DLPREVIOUSCOPY() to assign tokens';
-	      else
-	        fn1 := pg_catalog.dlurlpathonly(obj.link)::datalink.file_path;
+              else
+                fn1 := pg_catalog.dlurlpathonly(obj.link)::datalink.file_path;
                 rb1 := datalink.dl_file_link(fn1,tok1,'m',new_lco,my_regclass,my_column_name);
-	      end if;
-	    else
-	      if obj.link::jsonb->>'a' is not null then
+              end if;
+            else
+              if obj.link::jsonb->>'a' is not null then
                 raise exception 'DATALINK EXCEPTION - invalid datalink construction' 
                 using errcode = 'HW005',
                        detail = format('column %s.%I contains datalinks which reference non local files',
-		                      cast(my_regclass as text),my_column_name),
+                                       cast(my_regclass as text),my_column_name),
                          hint = 'make sure you are using a file: URL scheme';
-	      end if; -- has url
-	    end if; -- local file
-	  end loop;
+              end if; -- has url
+            end if; -- local file
+          end loop;
         else 
           raise exception 'DATALINK EXCEPTION' 
                 using errcode = 'HW000',
-                detail = format('Cannot change link control options; %s non-null values present in column "%s"',
+                detail = format(
+                          'Cannot change link control options; %s non-null values present in column "%s"',
                           n,my_column_name),
                   hint = format('Perhaps you can "truncate %s"',my_regclass);
         end if; -- old.integrity = 'ALL'
