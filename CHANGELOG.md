@@ -26,6 +26,7 @@ Version 0.26
 - `dlfs` command improvements - integrated dlff start/stop/status
 - datalinker is now more often required, bypass with SET datalink.relax = 'm'
 - datalinker logs autoflush, relinking imrpovements, internal chmod
+- datalinker better transaction handling
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
 - `datalink.modlco()` improvements
 

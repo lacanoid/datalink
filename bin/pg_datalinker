@@ -2,7 +2,7 @@
 # pg_datalinker - SQL/MED datalinker daemon
 # version 0.26 by lacanoid@ljudmila.org
 
-our $version="0.26.1109";
+our $version="0.26.1111";
 our $lockid=0x41444154494c4b4e; # "DATALINK" as ASCII
 
 use strict;
@@ -94,7 +94,7 @@ sub main() {
     # open database
     while(!($ready>0)) {
         log_debug('CONNECT');
-        $dbh = DBI->connect($config{dsn});
+        $dbh = DBI->connect($config{dsn},undef,undef,{AutoCommit=>0});
         if($dbh) { $ready=1; } 
         else {
             if($ready==0) {
@@ -199,10 +199,12 @@ sub main() {
             if(!$sleepy) {
                 while(my $data = $q{jobs_get}->fetchrow_hashref) {
                     if(!$data->{path}) { 
-                        log_err("INPUT","No path in ",$data); next; 
+                        log_err("INPUT","No path in ",$data);
+			next; 
                     }
                     if(!$data->{token}) { 
-                        log_err("INPUT","No token in ",$data); next; 
+                        log_err("INPUT","No token in ",$data);
+			next; 
                     }
 
                     my $path = $data->{path}; 
@@ -212,6 +214,7 @@ sub main() {
                         log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
                         queryOrDie('job_set',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
                         queryOrDie('err++');
+			$dbh->commit();
                         next; 
                     }
                     @err=();
@@ -233,13 +236,16 @@ sub main() {
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
                         queryOrDie('job_set',$path,$err?'ERROR':'LINKED',$json->encode($r),$err);
+			$dbh->commit();
                         if($err) { queryOrDie('err++'); }
+			$dbh->commit();
                         next;
                     }
                     elsif($data->{state} eq 'UNLINK') {
                         log_msg("UNLINK:$ll",$path);
                         file_unlink($path,$data); $cu++;
                         queryOrDie('job_delete',$path);
+			$dbh->commit();
                         next;
                     }
                     else {
@@ -248,6 +254,7 @@ sub main() {
                     } 
                 } # while fetchrow jobs_get
                 queryOrDie('mtime',$cl,$cu);
+		$dbh->commit();
             } # if not sleepy
         } # while not sleepy
 
@@ -271,6 +278,7 @@ sub main() {
             }
         }
 	queryOrDie('atime');
+	$dbh->commit();
     } # forever loop
 
     unless($config{disable_locks}) { $dbh->do("select pg_advisory_unlock($lockid)"); }
@@ -283,10 +291,10 @@ sub main() {
 # 1. delete files created in aborted transactions
 
 sub purge_files {
-    my $rv = queryOrDie('purge_get');
     my $dn = 0;
     my $di = 0;
     if($opt_E) { $dbh->do("call datalink.dl_vacuum()"); }
+    my $rv = queryOrDie('purge_get');
     while(my $data = $q{purge_get}->fetchrow_hashref) {
 	my $path = $data->{path}; 
 	$dn++;
@@ -310,6 +318,7 @@ sub purge_files {
             }
         } 
         queryOrDie('purge_delete',$path);
+	$dbh->commit();
     }
 }
 
@@ -457,6 +466,7 @@ sub file_link {
               lco => $opt->{lco},
               token => $opt->{token},
               del => ($opt->{on_unlink} eq 'DELETE'),
+	      op => $opt->{state},
               addr => '{'.$s->{dev}.','.$s->{inode}.'}'
     };
 
