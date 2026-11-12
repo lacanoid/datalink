@@ -262,9 +262,12 @@ sub main() {
 
         unless($config{disable_locks}) { # this is to make datalink.commit() work
             $dbh->do("select pg_advisory_unlock($lockid)");
-            $dbh->do("select pg_advisory_lock($lockid)");  }
+            $dbh->do("select pg_advisory_lock($lockid)");
+	    $dbh->commit();
+	}
 
         if($sleepy) {
+	    $dbh->commit();
             log_debug('IDLE');
             for(my $i=0;$i<$opt_n;$i++) {
                 while(my $not = $dbh->pg_notifies) {
