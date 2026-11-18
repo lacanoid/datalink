@@ -244,30 +244,6 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      /var/www/datalink/test1.txt
     (1 row)
 
-
-#### dlurlpathonly( datalink ) → text
-
-Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
-
-    mydb=> select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
-             dlurlpathonly         
-    ------------------------------
-     /var/www/datalink/index.html
-    (1 row)
-
-    mydb=> select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
-     dlurlpathonly 
-    ---------------
-     /foo/bar
-    (1 row)
-
-    mydb=> select dlurlpathonly(link) from t;
-            dlurlpathonly        
-    -----------------------------
-     /var/www/datalink/test1.txt
-    (1 row)
-
-
 #### dlurlpathwrite( datalink [, time_to_live interval]) → text
 
 This can be used with datalinks linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option.
