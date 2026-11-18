@@ -244,7 +244,7 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      /var/www/datalink/test1.txt
     (1 row)
 
-#### dlurlpathwrite( datalink [, time_to_live interval]) → text
+#### dlurlpathwrite( datalink [ , time_to_live interval ] ) → text
 
 This can be used with datalinks linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option.
 
@@ -382,7 +382,7 @@ You can use `extract(part from datalink)` as a shortcut for `datalink.uri_get`.
      robots
     (1 row)
 
-#### datalink.uri_get( uri text, part ) → text
+#### datalink.uri_get( uri text , part ) → text
 
 Get a part of URI, returns text.
 Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
@@ -392,12 +392,12 @@ Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dir
 Get a part of a datalink's URI, returns text.
 Part can be specified same as above.
 
-#### datalink.uri_set( uri text, part , value text ) → text
+#### datalink.uri_set( uri text , part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
 Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `ext`, `query`, `fragment` or `token`.
 
-#### datalink.uri_set( link datalink, part , value text ) → datalink
+#### datalink.uri_set( link datalink , part , value text ) → datalink
 
 Set a part of datalinks's URI to a value, returns same datalink with new URI.
 Part can be specified same as above.
@@ -405,7 +405,7 @@ Part can be specified same as above.
 Web access
 ----------
 
-#### datalink.curl_get( url text [ , mode integer  ] ) → record
+#### datalink.curl_get( url text [ , mode integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -431,7 +431,7 @@ When file: URLs refer to files on other servers, [PostgreSQL foreign servers](fo
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 
-#### datalink.curl_save( local_file file_path, url text [ , persistent integer ] ) → record
+#### datalink.curl_save( local_file file_path , url text [ , persistent integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
