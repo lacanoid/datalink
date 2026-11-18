@@ -164,7 +164,7 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
     mydb=> select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
-     file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+     file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434~test1.txt
     (1 row)
 
 When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
@@ -212,9 +212,9 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
     (1 row)
 
     mydb=> select dlurlpath(link) from t;
-                                dlurlpath                             
-    ------------------------------------------------------------------
-     /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+                                  dlurlpath                             
+    ----------------------------------------------------------------------
+     /dlfs/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434~test1.txt
     (1 row)
 
 When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
@@ -262,16 +262,16 @@ Copy of a file is created first so that the user works on a copy.
     mydb=> select dlurlpathwrite(link) from t;
                                  dlurlpathwrite
     -------------------------------------------------------------------------
-     /dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt
+     /dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt
     (1 row)
 
 then in shell (or external app) ...
 
-    $ /usr/games/fortune > '/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt'
+    $ /usr/games/fortune > '/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt'
 
 and finally in postgres ...
 
-    mydb=> update t set link=dlnewcopy('/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt');
+    mydb=> update t set link=dlnewcopy('/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/fortune.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
     UPDATE 1
