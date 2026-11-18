@@ -18,6 +18,7 @@ Currently, it implements the following:
 - SQL/MED functions DLURLCOMPLETE, DLURLCOMPLETEONLY
 - SQL/MED functions DLURLPATH, DLURLPATHONLY
 - SQL/MED functions DLURLSCHEME, DLURLSERVER
+- DLURLPATHWRITE function
 - DLREPLACECONTENT function, can be used to copy and download files
 - DLLINKTYPE function
 - DLCOMMENT function
@@ -40,7 +41,7 @@ With datalinker:
 - LCO: ON UNLINK DELETE - delete file when no longer referenced
 
 Missing features:
-- SQL/MED functions DLURLCOMPLETEWRITE, DLURLPATHWRITE
+- SQL/MED function DLURLCOMPLETEWRITE
 
 Extra features not in SQL standard:
 - URI handling functions `uri_get()` and `uri_set()`, uses [pguri](https://github.com/lacanoid/pguri)
@@ -154,6 +155,7 @@ Functions for extracting information from datalink type:
 - `DLURLCOMPLETEONLY(datalink) → url`
 - `DLURLPATH(datalink) → path`
 - `DLURLPATHONLY(datalink) → path`
+- `DLURLPATHWRITE(datalink) → path`
 - `DLURLSERVER(datalink) → text`
 - `DLURLSCHEME(datalink) → text`
 - `DLCOMMENT(datalink) → text`
