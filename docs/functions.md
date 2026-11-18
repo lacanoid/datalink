@@ -157,10 +157,11 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
     mydb=> create table t ( link datalink(52) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
+    
     mydb=> insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
-
+    
     mydb=> select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
@@ -256,9 +257,11 @@ Copy of a file is created first so that the user works on a copy.
     mydb=> create table t ( link datalink(272) );
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
+    
     mydb=> insert into t values (dlvalue('fortune.txt','www'));
     NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
     INSERT 0 1
+    
     mydb=> select dlurlpathwrite(link) from t;
                                  dlurlpathwrite
     -------------------------------------------------------------------------
