@@ -485,7 +485,7 @@ Write local file contents as text. File must not exist. This is to prevent overw
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
     
-    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
+    mydb=> insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
 
@@ -498,11 +498,11 @@ Write datalink contents as text. New version of file is created and then old fil
 
 This is typically used in INSERT or UPDATE statements.
 
-    mydb=# insert into l values (datalink.write_text(dlvalue('/var/www/datalink/hello.txt'),'New content'));
+    mydb=> insert into l values (datalink.write_text(dlvalue('/var/www/datalink/hello.txt'),'New content'));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
     
-    mydb=# update l set link = datalink.write_text(link,'Newer content');
+    mydb=> update l set link = datalink.write_text(link,'Newer content');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     UPDATE 1
