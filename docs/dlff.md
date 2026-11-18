@@ -28,12 +28,12 @@ Direct file system access (libc)
 This is implemented as a FUSE filesystem and provides read and write support.
 
     my_db=# select dlurlpath(link) from t;
-                                dlurlpath                             
-    ------------------------------------------------------------------
-    /var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt
+                                  dlurlpath                             
+    ----------------------------------------------------------------------
+    /dlfs/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt
     (1 row)
 
-    $ cat '/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt'
+    $ cat '/dlfs/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt'
 
 SQL file functions
 ------------------
@@ -81,12 +81,12 @@ be a web server.
 This can be used with filenames provided by `DLURLPATH()` SQL function. 
 
     my_db=# select dlurlpath(link) from t;
-                                dlurlpath                             
-    ------------------------------------------------------------------
-    /var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt
+                                  dlurlpath                             
+    ----------------------------------------------------------------------
+    /dlfs/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt
     (1 row)
 
-    $ dlcat '/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt'
+    $ dlcat '/dlfs/var/www/datalink/738a74c2-4126-4350-947b-e9f0c0735411~test1.txt'
 
 
 [Datalink manual](README.md)
