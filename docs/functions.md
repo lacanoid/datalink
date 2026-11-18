@@ -249,7 +249,8 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
 This can be used with datalinks linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option.
 
 Use this function to get file path from datalink containing write access token.
-This can be used to change file contents from external application via DLFF.
+This can be used to change file contents from external application via the 
+[Datalink File Filter](dlff.md).
 Copy of a file is created first so that the user works on a copy.
 
     mydb=> create table t ( link datalink(272) );
