@@ -54,14 +54,14 @@ select url,
        dlurlserver(dlvalue(url::text)),
        uri_get(url,'filename') as filename,
        uri_get(url,'basename') as basename,
-       uri_get(url,'ext') as ext
+       uri_get(url,'suffix') as ext
   from sample_urls
 ;
 
 select url,
        uri_set(url,'filename','foo.bar') as set_filename,
        uri_set(url,'basename','foo.bar') as set_basename,
-       uri_set(url,'ext','json') as set_ext
+       uri_set(url,'suffix','json') as set_ext
   from sample_urls
 ;
 
@@ -124,7 +124,7 @@ select link,
        dlurlcompleteonly(link),
        datalink.uri_get(link,'filename') as filename,
        datalink.uri_get(link,'basename') as basename,
-       datalink.uri_get(link,'ext') as ext
+       datalink.uri_get(link,'suffix') as ext
   from d;
 
 ;
@@ -162,8 +162,8 @@ select extract('dirname' from dlvalue('/tmp/file name.txt'));
 select extract('basename' from dlvalue('/tmp/file name.txt'));
 select extract('filename' from dlvalue('/tmp/file name.txt'));
 select extract('scheme' from dlvalue('/tmp/file name.txt'));
-select extract('ext' from dlvalue('/tmp/file name.txt'));
-select extract('ext' from dlvalue('/tmp/file name'));
-select extract('ext' from dlvalue('/tmp/foo.bar/file name.txt'));
+select extract('suffix' from dlvalue('/tmp/file name.txt'));
+select extract('suffix' from dlvalue('/tmp/file name'));
+select extract('suffix' from dlvalue('/tmp/foo.bar/file name.txt'));
 
 

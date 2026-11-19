@@ -1,7 +1,7 @@
- --------------------------------------------------------------- ---------------
+--------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1111 lacanoid@ljudmila.org
+--  version 0.26.1119 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -910,7 +910,7 @@ CREATE OR REPLACE FUNCTION uri_get(url uri, part text)
           when 'host' then uri_host($1)
           when 'port' then uri_port($1)::text
           when 'path' then uri_unescape(uri_path($1))
-          when 'ext'
+          when 'suffix'
           then (regexp_match(uri_unescape(uri_path($1)),'^.*(\.[^/]*)$'))[1]
           when 'basename'
           then regexp_replace(nullif(uri_unescape(
@@ -971,7 +971,7 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   elsif($part eq 'port') {  $u->port($v); }
   elsif($part eq 'host_port') {  $u->host_port($v); }
   elsif($part eq 'path') {  $u->path($v); }
-  elsif($part eq 'ext') {
+  elsif($part eq 'suffix') {
     my $p=$u->path();
     $p=~s|(\.[^/\.]*)$||;
     $v=~s|^\.||;

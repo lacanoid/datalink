@@ -100,7 +100,7 @@ select url,
        dlurlserver(dlvalue(url::text)),
        uri_get(url,'filename') as filename,
        uri_get(url,'basename') as basename,
-       uri_get(url,'ext') as ext
+       uri_get(url,'suffix') as ext
   from sample_urls
 ;
                                    url                                   | scheme |         server          |       dlurlserver       |                filename                 |          basename          |     ext     
@@ -134,7 +134,7 @@ select url,
 select url,
        uri_set(url,'filename','foo.bar') as set_filename,
        uri_set(url,'basename','foo.bar') as set_basename,
-       uri_set(url,'ext','json') as set_ext
+       uri_set(url,'suffix','json') as set_ext
   from sample_urls
 ;
                                    url                                   |                             set_filename                              |                               set_basename                                |                                 set_ext                                  
@@ -291,7 +291,7 @@ select link,
        dlurlcompleteonly(link),
        datalink.uri_get(link,'filename') as filename,
        datalink.uri_get(link,'basename') as basename,
-       datalink.uri_get(link,'ext') as ext
+       datalink.uri_get(link,'suffix') as ext
   from d;
 -[ RECORD 1 ]-----+-------------------------------------------------------------------------------------------------
 link              | {"a": "file:/var/www/datalink/test3.txt", "b": "11111111-2222-3333-4444-abecedabeced", "k": "p"}
@@ -382,19 +382,19 @@ select extract('scheme' from dlvalue('/tmp/file name.txt'));
  file
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/file name.txt'));
+select extract('suffix' from dlvalue('/tmp/file name.txt'));
  extract 
 ---------
  .txt
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/file name'));
+select extract('suffix' from dlvalue('/tmp/file name'));
  extract 
 ---------
  _null_
 (1 row)
 
-select extract('ext' from dlvalue('/tmp/foo.bar/file name.txt'));
+select extract('suffix' from dlvalue('/tmp/foo.bar/file name.txt'));
  extract 
 ---------
  .txt

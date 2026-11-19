@@ -408,7 +408,7 @@ You can use `extract(part from datalink)` as a shortcut for `datalink.uri_get`.
 #### datalink.uri_get( uri text, part ) → text
 
 Get a part of URI, returns text.
-Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `ext`, `query`, `fragment`, `token`, `normal` or `only`.
+Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `suffix`, `query`, `fragment`, `token`, `normal` or `only`.
 
 #### datalink.uri_get( datalink , part ) → text
 
@@ -418,7 +418,7 @@ Part can be specified same as above.
 #### datalink.uri_set( uri text, part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
-Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `ext`, `query`, `fragment` or `token`.
+Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `suffix`, `query`, `fragment` or `token`.
 
 #### datalink.uri_set( link datalink, part , value text ) → datalink
 
