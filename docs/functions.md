@@ -157,14 +157,15 @@ Tokens are generated when INTEGRITY ALL datalinks are stored in tables and are u
     mydb=> create table t ( link datalink(52) ); 
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
+    
     mydb=> insert into t values (dlvalue('/var/www/datalink/test1.txt')); 
     NOTICE:  DATALINK LINK:/var/www/datalink/test1.txt
     INSERT 0 1
-
+    
     mydb=> select dlurlcomplete(link) from t;
                                   dlurlcomplete                              
     -------------------------------------------------------------------------
-     file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+     file:/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434~test1.txt
     (1 row)
 
 When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
@@ -212,9 +213,9 @@ Use `dlurlpath()` function to get file path from datalink. File path may contain
     (1 row)
 
     mydb=> select dlurlpath(link) from t;
-                                dlurlpath                             
-    ------------------------------------------------------------------
-     /var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434;test1.txt
+                                  dlurlpath                             
+    ----------------------------------------------------------------------
+     /dlfs/var/www/datalink/b6fd3d9b-45bb-400b-b2f5-fcd72c380434~test1.txt
     (1 row)
 
 When parameter `time_to_live` is greater than '0' then generated read tokens will be unique.
@@ -244,57 +245,36 @@ Use `dlurlpathonly()` function to get file path from datalink. File path never c
      /var/www/datalink/test1.txt
     (1 row)
 
-
-#### dlurlpathonly( datalink ) → text
-
-Use `dlurlpathonly()` function to get file path from datalink. File path never contains access token.
-
-    mydb=> select dlurlpathonly(dlvalue('/var/www/datalink/index.html'));
-             dlurlpathonly         
-    ------------------------------
-     /var/www/datalink/index.html
-    (1 row)
-
-    mydb=> select dlurlpathonly(dlvalue('https://user:password@www.gitgub.io:1234/foo/bar'));
-     dlurlpathonly 
-    ---------------
-     /foo/bar
-    (1 row)
-
-    mydb=> select dlurlpathonly(link) from t;
-            dlurlpathonly        
-    -----------------------------
-     /var/www/datalink/test1.txt
-    (1 row)
-
-
-#### dlurlpathwrite( datalink [, time_to_live interval]) → text
+#### dlurlpathwrite( datalink [ , time_to_live interval ] ) → text
 
 This can be used with datalinks linked with WRITE ACCESS ADMIN or WRITE ACCESS TOKEN option.
 
 Use this function to get file path from datalink containing write access token.
-This can be used to change file contents from external application via DLFF.
+This can be used to change file contents from external application via the 
+[Datalink File Filter](dlff.md).
 Copy of a file is created first so that the user works on a copy.
 
     mydb=> create table t ( link datalink(272) );
     NOTICE:  DATALINK DDL:TRIGGER on t
     CREATE TABLE
+    
     mydb=> insert into t values (dlvalue('fortune.txt','www'));
     NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
     INSERT 0 1
+    
     mydb=> select dlurlpathwrite(link) from t;
                                  dlurlpathwrite
     -------------------------------------------------------------------------
-     /dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt
+     /dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt
     (1 row)
 
 then in shell (or external app) ...
 
-    $ /usr/games/fortune > '/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt'
+    $ /usr/games/fortune > '/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt'
 
 and finally in postgres ...
 
-    mydb=> update t set link=dlnewcopy('/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b;fortune.txt');
+    mydb=> update t set link=dlnewcopy('/dlfs/var/www/datalink/3841b151-332c-4933-aa8c-05c4a5e6cb4b~fortune.txt');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/fortune.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/fortune.txt
     UPDATE 1
@@ -405,7 +385,7 @@ You can use `extract(part from datalink)` as a shortcut for `datalink.uri_get`.
      robots
     (1 row)
 
-#### datalink.uri_get( uri text, part ) → text
+#### datalink.uri_get( uri text , part ) → text
 
 Get a part of URI, returns text.
 Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dirname`, `filename`, `basename`, `suffix`, `query`, `fragment`, `token`, `normal` or `only`.
@@ -415,12 +395,12 @@ Part can be one of  `scheme`, `userinfo`, `server`, `host`, `port`, `path`, `dir
 Get a part of a datalink's URI, returns text.
 Part can be specified same as above.
 
-#### datalink.uri_set( uri text, part , value text ) → text
+#### datalink.uri_set( uri text , part , value text ) → text
 
 Set a part of URI to a value, returns new URI.
 Part can be one of  `src`, `scheme`,  `authority`, `userinfo`, `server`,  `host`, `port`, `path`, `path_query`, `host_port`, `filename`, `basename`, `suffix`, `query`, `fragment` or `token`.
 
-#### datalink.uri_set( link datalink, part , value text ) → datalink
+#### datalink.uri_set( link datalink , part , value text ) → datalink
 
 Set a part of datalinks's URI to a value, returns same datalink with new URI.
 Part can be specified same as above.
@@ -428,7 +408,7 @@ Part can be specified same as above.
 Web access
 ----------
 
-#### datalink.curl_get( url text [ , mode integer  ] ) → record
+#### datalink.curl_get( url text [ , mode integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request.
 
@@ -454,7 +434,7 @@ When file: URLs refer to files on other servers, [PostgreSQL foreign servers](fo
 Only superuser can execute this function, execute permission for other users must be explicitly granted.
 
 
-#### datalink.curl_save( local_file file_path, url text [ , persistent integer ] ) → record
+#### datalink.curl_save( local_file file_path , url text [ , persistent integer ] ) → record
 
 Use CURL to fetch content from the World Wide Web via GET request and save it to a local file.
 
@@ -508,7 +488,7 @@ Write local file contents as text. File must not exist. This is to prevent overw
 
 Returns given file path. This can be passed as argument to DLVALUE() for use in INSERT statement.
     
-    mydb=# insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
+    mydb=> insert into l values (dlvalue(datalink.write_text('/var/www/datalink/hello.txt','New content')));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
 
@@ -521,11 +501,11 @@ Write datalink contents as text. New version of file is created and then old fil
 
 This is typically used in INSERT or UPDATE statements.
 
-    mydb=# insert into l values (datalink.write_text(dlvalue('/var/www/datalink/hello.txt'),'New content'));
+    mydb=> insert into l values (datalink.write_text(dlvalue('/var/www/datalink/hello.txt'),'New content'));
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     INSERT 0 1
     
-    mydb=# update l set link = datalink.write_text(link,'Newer content');
+    mydb=> update l set link = datalink.write_text(link,'Newer content');
     NOTICE:  DATALINK UNLINK:/var/www/datalink/hello.txt
     NOTICE:  DATALINK LINK:/var/www/datalink/hello.txt
     UPDATE 1
