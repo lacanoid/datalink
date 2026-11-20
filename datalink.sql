@@ -1154,7 +1154,7 @@ begin
  if my_type = 'URL' then 
    select dirpath||uri_unescape(substr(url,length(dirurl::text)+1))
      from datalink.directory
-    where dirurl is not null and url like dirurl||'%'
+    where dirurl is not null and starts_with(url::text,dirurl::text)
     order by length(dirurl::text) desc limit 1
      into my_uri;
    if my_uri is not null then my_type:='FS'; end if;
@@ -2082,7 +2082,7 @@ AS $_$ select datalink.uri_get(
                select dirurl||substr(pg_catalog.dlurlpathonly($1),length(dirpath)+1)
                  from datalink.directory
                 where dirurl is not null
-                  and pg_catalog.dlurlpathonly($1) like dirpath||'%'
+                  and starts_with(pg_catalog.dlurlpathonly($1)::text,dirpath::text)
                 order by length(dirpath) desc limit 1
             ),$1::jsonb->>'a')
        else $1::jsonb->>'a'
@@ -2336,7 +2336,7 @@ CREATE FUNCTION has_valid_prefix(file_path)
 AS $function$
 select exists (
  select prefix from datalink.dl_prfx
-  where $1 like prefix||'%'
+  where starts_with($1::text,prefix::text)
 )
 $function$
 ;
@@ -2689,7 +2689,7 @@ create or replace function filegetname(
 returns record as $$
   select dirname, substr(dlurlpathonly($1),length(dirpath)+1), dirpath
     from datalink.directory 
-   where dlurlpathonly($1) like dirpath||'%'
+   where starts_with(dlurlpathonly($1)::text,dirpath::text)
    order by length(dirpath) desc
    limit 1
 $$ strict language sql;
@@ -2834,7 +2834,7 @@ select coalesce(dirpath,prefix) as dirpath,
        dirurl,
        diroptions
   from dl_prfx dp
-  left join dl_directory dir on (dir.dirpath like dp.prefix||'%')
+  left join dl_directory dir on (starts_with(dir.dirpath::text,dp.prefix::text))
 ;
 COMMENT ON VIEW directory 
      IS 'Configured datalink file system directories, updatable';
@@ -2909,7 +2909,7 @@ EXECUTE PROCEDURE datalink.dl_trigger_directory();
 create or replace function filegetdirectory(file_path)
 returns directory as $$
   select * from datalink.directory 
-   where $1 like dirpath||'%'
+   where starts_with($1::text,dirpath::text)
    order by length(dirpath) desc limit 1
 $$ strict language sql;
 comment on function filegetdirectory(file_path) 
