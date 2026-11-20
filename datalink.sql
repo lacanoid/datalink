@@ -2456,7 +2456,8 @@ RETURNS text LANGUAGE plperlu AS $$
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or 
+  my $fh;
+  open($fh,"<",$filename) or 
    die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
@@ -2498,7 +2499,8 @@ RETURNS bytea LANGUAGE plperlu AS $$
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or 
+  my $fh;
+  open($fh,"<",$filename) or 
    die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   binmode $fh;
   if($pos>1) { seek($fh,$pos-1,0); }
@@ -2523,7 +2525,8 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
-  open my $fh, $filename or 
+  my $fh;
+  open($fh,"<",$filename) or 
    die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos;
