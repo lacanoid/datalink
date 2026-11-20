@@ -266,7 +266,9 @@ select coalesce((select lco
                    from datalink.dl_linked_files f 
                   where f.token = ($1::jsonb->>'b')::datalink.dl_token)
                ,0)::datalink.dl_lco
-$function$;
+$function$
+set search_path=pg_catalog,pg_temp
+;
 COMMENT ON FUNCTION dl_lco(datalink) 
 IS 'Find dl_lco for a linked datalink';
 
@@ -274,7 +276,7 @@ IS 'Find dl_lco for a linked datalink';
 -- expand lco into individual options
 CREATE FUNCTION link_control_options(dl_lco) 
 RETURNS link_control_options
-LANGUAGE sql IMMUTABLE AS $_$
+LANGUAGE sql stable AS $_$
 select * from datalink.link_control_options where lco = $1
 $_$;
 
@@ -285,7 +287,7 @@ IS 'Calculate link_control_options from dl_lco';
 -- get link_control_options for a linked datalink
 CREATE OR REPLACE FUNCTION link_control_options(datalink)
  RETURNS link_control_options
- LANGUAGE sql IMMUTABLE
+ LANGUAGE sql stable
 AS $function$
 select lco.*
   from datalink.link_control_options lco
@@ -366,7 +368,7 @@ CREATE VIEW dl_columns AS
    JOIN pg_type t ON (t.oid = a.atttypid)
    JOIN datalink.types dt ON (dt.regtype = t.oid)
    LEFT JOIN pg_attrdef def ON (c.oid = def.adrelid AND a.attnum = def.adnum)
-  WHERE (c.relkind = 'r'::"char" AND a.attnum > 0 AND NOT a.attisdropped)
+  WHERE (c.relkind = any('{r,p}') AND a.attnum > 0 AND NOT a.attisdropped)
   ORDER BY s.nspname, c.relname, a.attnum;
 
 --------------------------------------------------------------- ---------------
@@ -451,7 +453,9 @@ SELECT
     else '' end
     AS sql_advice
    FROM dl_triggers
-$$;
+$$
+set search_path=pg_catalog,pg_temp
+;
 
 --------------------------------------------------------------- ---------------
 -- linked files
@@ -661,7 +665,7 @@ begin
    from datalink.dl_linked_files
    join pg_attribute a using (attrelid,attnum)
   where path = file_path or address = my_address
-    for update;
+    for update of dl_linked_files;
  if not found then
   -- not found in dl_linked_files
   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
@@ -1109,7 +1113,9 @@ begin
 
 end if;
 end
-$$;
+$$
+set search_path=pg_catalog,pg_temp
+;
 alter function dl_trigger_event() owner to postgres;
 
 --------------------------------------------------------------- ---------------
@@ -1138,7 +1144,7 @@ CREATE FUNCTION dl_newtoken() RETURNS dl_token LANGUAGE sql
 
 CREATE FUNCTION pg_catalog.dlvalue(
   url text, linktype dl_linktype DEFAULT NULL, comment text DEFAULT NULL) 
-RETURNS datalink LANGUAGE plpgsql IMMUTABLE AS $$
+RETURNS datalink LANGUAGE plpgsql STABLE AS $$
 declare
  my_dl datalink;
  my_uri text;
@@ -1195,14 +1201,14 @@ COMMENT ON FUNCTION pg_catalog.dlvalue(text,dl_linktype,text)
 IS 'SQL/MED - Construct a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlvalue(url uri)
-RETURNS datalink LANGUAGE sql IMMUTABLE AS
+RETURNS datalink LANGUAGE sql STABLE AS
 $$ SELECT pg_catalog.dlvalue($1::text,'URL'); $$;
 COMMENT ON FUNCTION pg_catalog.dlvalue(uri) 
 IS 'SQL/MED - Construct a DATALINK value from URI';
 
 CREATE FUNCTION pg_catalog.dlvalue(url text, url_base datalink, comment text DEFAULT NULL) 
 RETURNS datalink
-    LANGUAGE sql IMMUTABLE
+    LANGUAGE sql STABLE
     AS $$select dlvalue(datalink.uri_set(($2::jsonb->>'a')::uri,'src',$1)::text,
                         null::datalink.dl_linktype,coalesce($3,dlcomment($2)))$$;
 
@@ -1532,7 +1538,9 @@ begin
   new := jsonb_populate_record(new,rn);
   return new;   
 end
-$_X$;
+$_X$
+set search_path=pg_catalog,pg_temp
+;
 
 --------------------------------------------------------------- ---------------
 
@@ -2037,7 +2045,9 @@ end if; -- lco has changed
 
  return new_options;
 end;
-$_$;
+$_$
+set search_path=pg_catalog,pg_temp
+;
 COMMENT ON FUNCTION modlco(my_regclass regclass, my_column_name name, my_lco dl_lco) 
 IS 'Modify link control options for a datalink column';
 
@@ -2075,7 +2085,7 @@ IS 'SQL/MED - Returns normalized URL value';
 --------------------------------------------------------------- ---------------
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(datalink) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT stable
 AS $_$ select datalink.uri_get(
   case when datalink.is_local($1)
        then coalesce((
@@ -2092,7 +2102,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(datalink)
 IS 'SQL/MED - Returns the data location attribute (URL) from a DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlcompleteonly(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT stable
 AS $_$ select dlurlcompleteonly(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlcompleteonly(text) 
 IS 'SQL/MED - Returns normalized URL value';
@@ -2316,7 +2326,7 @@ alter domain url add check (datalink.uri_get(value,'scheme') is not null);
 -- alter domain url add check (value ~* '^(https?|s?ftp|file):///?[^\s/$.?#].[^\s]*$');
 
 create function dl_url(datalink) returns uri 
-  language sql strict immutable 
+  language sql strict stable 
 as $$ select dlurlcomplete($1)::uri $$;
 
 create cast (datalink as uri) with function datalink.dl_url;
@@ -2417,7 +2427,9 @@ begin
          hint    = format('add SELECT privilege for role %s to table DATALINK.ACCESS',myrole);
  end if; -- for web
  return null;
-end$$;
+end$$
+set search_path=pg_catalog,pg_temp
+;
 comment on function dl_authorize(file_path, "char", regrole)
      is 'Authorize access to READ ACCESS DB file via embedded read token';
 --------------------------------------------------------------- ---------------
@@ -2723,9 +2735,11 @@ comment on function getlength(file_path) is
   'BFILE - Returns file size';
 
 create or replace function content_type(datalink)
-  returns text language sql immutable strict as $$
-  select coalesce($1::jsonb->>'ct',
-                  (select content_type from datalink.curl_get(dlurlcomplete($1),0)));
+  returns text language sql volatile strict as $$
+  select case when $1::jsonb->>'ct' is not null
+              then $1::jsonb->>'ct'
+	      else (select content_type from datalink.curl_get(dlurlcomplete($1),0))
+	 end;
 $$;
 
 --------------------------------------------------------------- ---------------
@@ -3213,7 +3227,9 @@ begin
   end if;
   return u::int;
 end
-$$;
+$$
+set search_path=pg_catalog,pg_temp
+;
 COMMENT ON FUNCTION has_updated(datalink) 
      IS 'Check if linked file has been updated since it was linked';
 
@@ -3336,7 +3352,9 @@ begin
   END IF; -- not exists
   return $1;
 end
-$$;
+$$
+set search_path=pg_catalog,pg_temp
+;
 alter function dl_file_new(
   file_path,"char",datalink,datalink.dl_token,timestamptz,jsonb,datalink.whoami)
  owner to postgres;

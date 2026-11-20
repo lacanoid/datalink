@@ -425,7 +425,7 @@ create table bar ( link datalink(123) );
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Invalid link control options
 HINT:  see table datalink.link_control_options for valid link control options
-CONTEXT:  PL/pgSQL function dl_trigger_event() line 43 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_event() line 43 at RAISE
 begin;
 create table foo ( link datalink(172) );
 select * from datalink.columns where table_name in ('foo','bar');

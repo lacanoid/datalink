@@ -23,7 +23,7 @@ update datalink.columns
        read_access='DB', write_access='TOKEN',
        recovery='YES', on_unlink='RESTORE'
  where table_name='user_links' and column_name='link';
-NOTICE:  DATALINK DDL:TRIGGER on user_links
+NOTICE:  DATALINK DDL:TRIGGER on public.user_links
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='user_links' and column_name='link2';

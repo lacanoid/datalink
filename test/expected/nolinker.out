@@ -13,7 +13,7 @@ update datalink.columns
        read_access='DB', write_access='TOKEN',
        recovery='YES', on_unlink='RESTORE'
  where table_name='sample_datalinks6' and column_name='link';
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks6
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks6
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks6' and column_name='link2';
@@ -22,10 +22,10 @@ values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file data
 ERROR:  DATALINK EXCEPTION - datalinker required
 DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
-CONTEXT:  PL/pgSQL function require_datalinker(integer,text) line 10 at RAISE
+CONTEXT:  PL/pgSQL function datalink.require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker()"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 25 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 25 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 set datalink.relax = 'm';
 insert into sample_datalinks6 (link)
 values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 1'));
@@ -35,11 +35,11 @@ HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = link;
 ERROR:  DATALINK EXCEPTION - external file already linked
-DETAIL:  from sample_datalinks6.link as '/var/www/datalink/installcheck/utf8.txt'
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
+DETAIL:  from public.sample_datalinks6.link as '/var/www/datalink/installcheck/utf8.txt'
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 update sample_datalinks6 set link = link2;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 update sample_datalinks6 set link2 = null;
@@ -79,8 +79,8 @@ values (dlvalue('http://www.debian.org/tmp/CHANGELOG.md',null,'Weblink'));
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  INTEGRITY ALL can only be used with file URLs
 HINT:  make sure you are using a file: URL scheme
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 18 at RAISE
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 18 at RAISE
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 select regexp_replace(dlurlpath(link),'[a-f0-9\-]{32,}','xxxx','g') as dlurlpath1
   from sample_datalinks6;
                     dlurlpath1                     
@@ -113,7 +113,7 @@ NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 create table sample_datalinks7 as 
 select * 
   from sample_datalinks6;
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks7
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks7
 truncate sample_datalinks6;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 insert into sample_datalinks6 (link) values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
@@ -152,7 +152,7 @@ DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-NOTICE:  DATALINK DDL:TRIGGER on my_table2
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table2
 truncate my_table2;
 -- test for foreign servers
 -- select * from datalink.curl_get('file://zala/etc/issue');
@@ -328,6 +328,6 @@ call datalink.commit();
 ERROR:  DATALINK EXCEPTION - datalinker required
 DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
-CONTEXT:  PL/pgSQL function require_datalinker(integer,text) line 10 at RAISE
+CONTEXT:  PL/pgSQL function datalink.require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker(-1)"
 PL/pgSQL function commit() line 3 at PERFORM

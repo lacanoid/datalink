@@ -10,7 +10,7 @@ create table sample_datalinks2 (
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks2
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks2
 select regclass,column_name,dlco.*
   from datalink.dl_columns left join datalink.link_control_options dlco using (lco);
          regclass          | column_name | lco | link_control | integrity | read_access | write_access | recovery | on_unlink 
@@ -30,8 +30,8 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/foo+bar/no_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
  where table_name='sample_datalinks2' and column_name='link';
@@ -43,8 +43,8 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blah
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 select dlurlcomplete(link), link::jsonb->>'b' is not null as has_token from sample_datalinks2;
        dlurlcomplete        | has_token 
 ----------------------------+-----------
@@ -63,8 +63,8 @@ DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Cannot change link control options; 6 non-null values present in column "link"
-HINT:  Perhaps you can "truncate sample_datalinks3"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 93 at RAISE
+HINT:  Perhaps you can "truncate public.sample_datalinks3"
+CONTEXT:  PL/pgSQL function datalink.modlco(regclass,name,datalink.dl_lco) line 93 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 delete from sample_datalinks3 where dllinktype(link)='FS';
@@ -74,14 +74,14 @@ create domain rfile datalink(1);
 create domain efile datalink(2);
 create table efiles0 ( file file );
 create table efiles1 ( file rfile );
-NOTICE:  DATALINK DDL:TRIGGER on efiles1
+NOTICE:  DATALINK DDL:TRIGGER on public.efiles1
 create table efiles2 ( file efile );
-NOTICE:  DATALINK DDL:TRIGGER on efiles2
+NOTICE:  DATALINK DDL:TRIGGER on public.efiles2
 insert into efiles1 values (dlvalue('https://www.wikipedia.org/','URL','Sample HTTPS datalink'));
 insert into efiles1 values (dlvalue('http://blahXXXX','URL','Broken datalink'));
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blahxxxx
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment

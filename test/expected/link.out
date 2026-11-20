@@ -9,16 +9,16 @@ create table sample_datalinks4 (
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link';
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks4
 insert into sample_datalinks4 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink 1'));
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfs add" to add prefixes
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 2'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
@@ -28,8 +28,8 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/var/www/datalink/installcheck/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
@@ -38,10 +38,10 @@ values (dlvalue('/etc/hosts','FS','Sample file datalink 4'));
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/hosts"
 HINT:  run "dlfs add" to add prefixes
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
@@ -78,16 +78,16 @@ create table sample_datalinks5 (
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks5' and column_name='link';
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks5
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks5
 insert into sample_datalinks5 (link)
 values (dlvalue('/etc/passwd','FS','Sample file datalink'));
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/passwd"
 HINT:  run "dlfs add" to add prefixes
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
@@ -120,14 +120,14 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 truncate sample_datalinks4;
 alter table sample_datalinks4
  add column link datalink;
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks4
 alter table sample_datalinks4
  add column link2 datalink;
 -- select dl_chattr('sample_datalinks4','link2',dl_lco(link_control=>'FILE',integrity=>'ALL'));
 update datalink.columns
    set link_control='FILE', integrity='ALL'
  where table_name='sample_datalinks4' and column_name='link2';
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks4
 insert into sample_datalinks4 (link)
 select link
   from sample_datalinks3
@@ -147,7 +147,7 @@ update datalink.columns
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Invalid link control options (101)
 HINT:  see table datalink.link_control_options for valid link control options
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 34 at RAISE
+CONTEXT:  PL/pgSQL function datalink.modlco(regclass,name,datalink.dl_lco) line 34 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 select * from columns;
@@ -206,19 +206,19 @@ alter table sample_datalinks4 drop column link4;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/test3.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
-NOTICE:  DATALINK DDL:TRIGGER on sample_datalinks4
+NOTICE:  DATALINK DDL:TRIGGER on public.sample_datalinks4
 create table my_table(link datalink);
 update datalink.columns set integrity='SELECTIVE' where table_name='my_table';
-NOTICE:  DATALINK DDL:TRIGGER on my_table
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table
 create table my_table2(link datalink);
 update datalink.columns set integrity='ALL' where table_name='my_table2';
-NOTICE:  DATALINK DDL:TRIGGER on my_table2
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table2
 create table my_table3(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED' where table_name='my_table3';
-NOTICE:  DATALINK DDL:TRIGGER on my_table3
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table3
 create table my_table4(link datalink);
 update datalink.columns set integrity='ALL',write_access='BLOCKED',read_access='DB',recovery='YES',on_unlink='DELETE' where table_name='my_table4';
-NOTICE:  DATALINK DDL:TRIGGER on my_table4
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table4
 select * from datalink.columns order by table_name;
         table_name         | column_name | link_control | integrity | read_access | write_access | recovery | on_unlink 
 ---------------------------+-------------+--------------+-----------+-------------+--------------+----------+-----------
@@ -248,10 +248,10 @@ PATH:  /var/www/datalink/installcheck/test4.txt
 ROLE:  root
 DETAIL:  delete permission for table owner is required on directory
 HINT:  add appropriate entry in table datalink.access
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 45 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 45 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into my_table4 values (dlvalue('/etc/issue'));
 WARNING:  DATALINK WARNING - datalinker recommended
 DETAIL:  Datalinker process should be running to finalize your commits.
@@ -259,10 +259,10 @@ HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  unknown path prefix for "/etc/issue"
 HINT:  run "dlfs add" to add prefixes
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 18 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -276,8 +276,8 @@ DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION
 DETAIL:  Cannot change link control options; 1 non-null values present in column "link"
-HINT:  Perhaps you can "truncate my_table4"
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 93 at RAISE
+HINT:  Perhaps you can "truncate public.my_table4"
+CONTEXT:  PL/pgSQL function datalink.modlco(regclass,name,datalink.dl_lco) line 93 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 delete from datalink.access where dirpath='/var/www/datalink/' and privilege_type='DELETE' and grantee=current_role;
@@ -296,9 +296,9 @@ WARNING:  DATALINK WARNING - datalinker recommended
 DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
-DETAIL:  column efiles1.file contains datalinks which reference non local files
+DETAIL:  column public.efiles1.file contains datalinks which reference non local files
 HINT:  make sure you are using a file: URL scheme
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 84 at RAISE
+CONTEXT:  PL/pgSQL function datalink.modlco(regclass,name,datalink.dl_lco) line 84 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 delete from efiles1 where not datalink.is_local(file);
@@ -307,9 +307,9 @@ WARNING:  DATALINK WARNING - datalinker recommended
 DETAIL:  Datalinker process should be running to finalize your commits.
 HINT:  Is is suggested that pg_datalinker is running. Perhaps "dlfs start"?
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
-DETAIL:  column efiles1.file contains datalinks which are missing tokens
+DETAIL:  column public.efiles1.file contains datalinks which are missing tokens
 HINT:  update them with DLPREVIOUSCOPY() to assign tokens
-CONTEXT:  PL/pgSQL function modlco(regclass,name,dl_lco) line 72 at RAISE
+CONTEXT:  PL/pgSQL function datalink.modlco(regclass,name,datalink.dl_lco) line 72 at RAISE
 SQL statement "SELECT datalink.modlco(regclass(old.table_name),old.column_name,my_lco)"
 PL/pgSQL function dl_trigger_columns() line 28 at PERFORM
 update efiles1 set file=dlpreviouscopy(file);

@@ -24,7 +24,7 @@ select substr(dlvalue('/var/www/datalink/installcheck/utf8.txt')),
 
 create domain bfile datalink(2);
 create table bfiles ( bfile bfile );
-NOTICE:  DATALINK DDL:TRIGGER on bfiles
+NOTICE:  DATALINK DDL:TRIGGER on public.bfiles
 insert into bfiles (bfile) values (dlvalue('installcheck/test1.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 insert into bfiles (bfile) values (dlvalue('installcheck/utf8.txt','www'));
@@ -33,14 +33,14 @@ insert into bfiles (bfile) values (dlvalue('test3.txt#11111111-2222-3333-4444-ab
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
 create domain bfile2 bfile;
 create table bfiles2 ( bfile bfile2 );
-NOTICE:  DATALINK DDL:TRIGGER on bfiles2
+NOTICE:  DATALINK DDL:TRIGGER on public.bfiles2
 insert into bfiles2 (bfile) values (dlvalue('installcheck/test1.txt','www'));
 ERROR:  DATALINK EXCEPTION - external file already linked
-DETAIL:  from bfiles.bfile as '/var/www/datalink/installcheck/test1.txt'
-CONTEXT:  PL/pgSQL function dl_file_link(file_path,dl_token,"char",dl_lco,regclass,name) line 82 at RAISE
+DETAIL:  from public.bfiles.bfile as '/var/www/datalink/installcheck/test1.txt'
+CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 82 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
-PL/pgSQL function dl_datalink_ref(datalink,dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
+PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
 insert into bfiles2 (bfile) values (dlvalue('installcheck/test4.txt','www'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test4.txt
 select * from datalink.types;
@@ -247,7 +247,7 @@ select read(dlvalue('https://raw.githubusercontent.com/lacanoid/datalink/refs/he
 
 -- test checking for updated files
 update datalink.columns set integrity='ALL', write_access='FS' where table_name='my_table2';
-NOTICE:  DATALINK DDL:TRIGGER on my_table2
+NOTICE:  DATALINK DDL:TRIGGER on public.my_table2
 insert into my_table2 values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
 select datalink.has_updated(link) from my_table2;
@@ -312,7 +312,7 @@ HINT:  store a datalink referencing this file in a column with INTEGRITY ALL opt
 
 -- test link construction types
 create table files ( link datalink(2) );
-NOTICE:  DATALINK DDL:TRIGGER on files
+NOTICE:  DATALINK DDL:TRIGGER on public.files
 insert into files values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 update files  set link = dlnewcopy(link);
@@ -378,7 +378,7 @@ select * from datalink.read_text('/var/www/datalink/installcheck/curl_save.txt')
 
 -- test transactional writes and reads
 create table l1 (link datalink(2));
-NOTICE:  DATALINK DDL:TRIGGER on l1
+NOTICE:  DATALINK DDL:TRIGGER on public.l1
 begin;
 insert into l1 values (datalink.write_text(dlvalue('installcheck/xact1.1.txt','www'),'This is a write test file'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/xact1.1.txt
