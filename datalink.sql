@@ -838,7 +838,7 @@ use URI;
 use File::Basename;
 
 my $u=URI->new($_[0]);
-my $part=$_[1]; lc($part);
+my $part=$_[1]; $part=lc($part);
 
 # common
  if($part eq 'path') { return $u->path; }
@@ -952,14 +952,14 @@ CREATE OR REPLACE FUNCTION uri_set(url uri, part text, val text)
   AS $function$
   use URI;
   my $u=$_[0];
-  my $part=$_[1]; lc($part);
+  my $part=$_[1]; $part=lc($part);
   my $v=$_[2];
   if($part eq 'src') {
    $u = URI->new_abs($v,$u);
    return $u->as_string;
   }
   $u = URI->new($u);
-  if($path eq 'uri' || $part eq 'url') {
+  if($part eq 'uri' || $part eq 'url') {
     $u = URI->new($v); return $u->as_string;
   }
   elsif($part eq 'scheme') { $u->scheme($v); }
@@ -1936,7 +1936,7 @@ begin
  if not datalink.has_class_privilege(my_regclass) then
       raise exception 'DATALINK EXCEPTION' 
             using errcode = 'HW000',
-            detail = format('Must be owner of class '%s' to change link control options',
+            detail = format('Must be owner of class ''%s'' to change link control options',
                             my_regclass);
  end if;
 
@@ -1975,8 +1975,8 @@ begin
             where attrelid = my_regclass and attnum = co.attnum;            
         elsif old_options.integrity < 'ALL' and new_options.integrity = 'ALL' then
           -- link files
-          e := format('select %s as link from %s where %I is not null',
-          my_column_name,cast(my_regclass as text),my_column_name);
+          e := format('select %I as link from %s where %I is not null',
+                      my_column_name,cast(my_regclass as text),my_column_name);
           for obj in execute e
           loop
             if datalink.is_local(obj.link) then
@@ -2528,7 +2528,7 @@ CREATE OR REPLACE FUNCTION read_lines(filename file_path, pos bigint default 1)
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos;
   while(my $line = <$fh>) {
-    chop($line);
+    chomp($line);
     if(defined($line)) { utf8::decode($line); }
     return_next {i=>$i,o=>$o,line=>$line};
     $i++; $o+=length($line)+1;
@@ -2698,7 +2698,7 @@ comment on function filegetname(datalink) is
 create or replace function filegetname(
   file_path, OUT dirname text, OUT filename text, OUT dirpath text)
 returns record as 
-$$ select * from datalink.filegetname(dlvalue($1,'FS') $$ strict language sql;
+$$ select * from datalink.filegetname(dlvalue($1,'FS')) $$ strict language sql;
 comment on function filegetname(file_path) is 
   'BFILE - Returns directory name and filename for a file';
 
