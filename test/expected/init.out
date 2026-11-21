@@ -111,6 +111,7 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | write(file_path,bytea,integer)                                                               | plperlu  | Write new local file contents as binary
  datalink     | write_text(datalink,text,integer)                                                            | plpgsql  | Write datalink contents as text
  datalink     | write_text(file_path,text,integer)                                                           | plperlu  | Write new local file contents as text
+ datalink     | "grant"(text,file_path,name)                                                                 | plpgsql  | 
  datalink     | content_type(datalink)                                                                       | sql      | 
  datalink     | dl_datalink_in(cstring)                                                                      | internal | 
  datalink     | dl_datalink_out(datalink)                                                                    | internal | 
@@ -136,7 +137,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | has_file_privilege(file_path,text,boolean)                                                   | sql      | 
  datalink     | has_file_privilege(regrole,file_path,text,boolean)                                           | sql      | 
  datalink     | require_datalinker(integer,text)                                                             | plpgsql  | 
+ datalink     | revoke(text,file_path,name)                                                                  | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(112 rows)
+(114 rows)
 
 truncate datalink.dl_directory;  -- clean for tests

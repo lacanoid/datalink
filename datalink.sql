@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1119 lacanoid@ljudmila.org
+--  version 0.26.1120 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -1611,6 +1611,7 @@ my ($filename,$url,$options)=@_;
 use strict; use warnings;
 use WWW::Curl::Easy;
 use MIME::Base64 qw(decode_base64);
+use Fcntl qw(O_WRONLY O_CREAT O_EXCL);
 use JSON;
 # -------- examine options --------
 my ($head,$binmode)=(0,0);
@@ -1703,7 +1704,7 @@ if(defined($filename)) {
   my $p = spi_prepare(q{select datalink.dl_file_new($1,$2)},'datalink.file_path','"char"');
   spi_exec_prepared($p,$filename,$op) or
     elog(ERROR,"DATALINK EXCEPTION - dl_file_new() failed");
-  open($fh,">",$filename) or 
+  sysopen($fh,$filename,O_WRONLY|O_CREAT|O_EXCL,0666) or 
     elog(ERROR,"DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n");
   if(defined($r) && $fh) { # we already have the result
     if($binmode) { 
@@ -2581,6 +2582,7 @@ CREATE OR REPLACE FUNCTION write_text(
  LANGUAGE plperlu
 AS $function$
   use strict vars; 
+  use Fcntl qw(O_WRONLY O_CREAT O_EXCL);
   my ($filename,$bufr,$persistent)=@_;
   my $fh;
   my $op = ($persistent>0)?'w':'t';
@@ -2599,7 +2601,7 @@ AS $function$
   unless(spi_exec_prepared($p,$filename,$op))
    { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
-  open($fh,">",$filename) or 
+  sysopen($fh,$filename,O_WRONLY|O_CREAT|O_EXCL,0666) or 
    die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
   if(defined($bufr)) { utf8::encode($bufr); }
   print $fh $bufr;
@@ -2615,6 +2617,7 @@ CREATE OR REPLACE FUNCTION write(
  LANGUAGE plperlu
 AS $function$
   use strict vars; 
+  use Fcntl qw(O_WRONLY O_CREAT O_EXCL);
   my ($filename,$bufr,$persistent)=@_;
   my $fh;
   my $op = ($persistent>0)?'w':'t';
@@ -2633,7 +2636,7 @@ AS $function$
   unless(spi_exec_prepared($p,$filename,$op)) 
    { die "DATALINK EXCEPTION - dl_file_new() failed"; }
 
-  open($fh,">",$filename) or 
+  sysopen($fh,$filename,O_WRONLY|O_CREAT|O_EXCL,0666) or 
    die "DATALINK EXCEPTION - cannot open file for writing: $!\nFILE: $filename\n";
   binmode($fh);
   print $fh decode_bytea($bufr);
@@ -3061,7 +3064,7 @@ create or replace procedure datalink.revoke(
 language plpgsql as $$
 begin
   delete from datalink.access
-   where privilege_type = $1
+   where privilege_type = upper($1)
      and dirpath = $2
      and ( grantee = $3 or $3 is null );
 end
