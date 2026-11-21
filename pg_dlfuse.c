@@ -1,6 +1,13 @@
+#define _GNU_SOURCE
 /*
    pg_dlfuse - PostgreSQL SQL/MED Datalink File Filter for FUSE
    version 0.25.1231 (+ write support)
+
+   Access control is done by the database, in datalink.dl_authorize().
+   A file can only be reached with a valid token in its file name:
+     'f' - read access (stat, getxattr, open for reading)
+     'w' - open for writing, authorized only once per file
+   Directories can be stat'ed without a token, to be able to reach files.
 
    Build (libfuse 3):
      gcc -Wall -Wextra -I`pg_config --includedir` -D_FILE_OFFSET_BITS=64 \
@@ -16,10 +23,20 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/xattr.h>
 #include <fuse.h>
 #include <libpq-fe.h>
+
+#if defined(__linux__) && defined(__has_include)
+#  if __has_include(<linux/openat2.h>)
+#    include <linux/openat2.h>
+#  endif
+#endif
 
 char *conninfo = "service=pg_datalink application_name=pg_dlfuse";
 
@@ -60,42 +77,35 @@ static PGconn *get_conn(void) {
 	return conn;
 }
 
-static PGresult *run_authorize(PGconn *conn, const char *path, const char *mode) {
-	const char *paramValues[2] = { path, mode };
+static PGresult *run_authorize(PGconn *conn, const char *path, const char *op) {
+	const char *paramValues[2] = { path, op };
 
-	if (mode) {
-		return PQexecParams(conn,
-			"SELECT datalink.dl_authorize($1,$2)",
-			2,        // two params
-			NULL,     // let PostgreSQL deduce types
-			paramValues,
-			NULL, NULL, 0);
-	}
 	return PQexecParams(conn,
-		"SELECT datalink.dl_authorize($1)",
-		1,        // one param
-		NULL,     // let PostgreSQL deduce type
+		"SELECT datalink.dl_authorize($1,$2::\"char\")",
+		2,        // two params
+		NULL,     // let PostgreSQL deduce types
 		paramValues,
 		NULL, NULL, 0);
 }
 
 /*
- * authorize() calls datalink.dl_authorize(path) for read access,
- * or datalink.dl_authorize(path, mode) when mode is non-NULL
- * (e.g. mode = "w" for write access). Returns the real file
- * system path to use, or NULL if access was not authorized.
+ * authorize() calls datalink.dl_authorize(path, op), op being 'f' for
+ * read access or 'w' for write access. Returns the real file system
+ * path to use, or NULL if access was not authorized.
  *
  * If this thread's connection turns out to be broken (e.g. the
  * database was restarted), it is reset and the query is tried once
  * more. A query that fails while the connection is still healthy is
  * a real error and is not retried.
  *
- * Note for mode "w": if the connection breaks after the server ran
+ * Note for op 'w': if the connection breaks after the server ran
  * the query but before the answer arrived, the one-time write
  * authorization is used up and the retry returns NULL, so the open
  * is refused. It fails closed; a second write grant is never given.
  */
-static char *authorize(const char *path, const char *mode) {
+static char *authorize(const char *path, char op) {
+	const char opstr[2] = { op, '\0' };
+
 	PGconn *conn = get_conn();
 	if (!conn) return NULL;
 
@@ -110,7 +120,7 @@ static char *authorize(const char *path, const char *mode) {
 			}
 		}
 
-		res = run_authorize(conn, path, mode);
+		res = run_authorize(conn, path, opstr);
 		if (PQresultStatus(res) == PGRES_TUPLES_OK) break;
 
 		PQclear(res);
@@ -129,15 +139,41 @@ static char *authorize(const char *path, const char *mode) {
 	return authorized_path;
 }
 
+/* Only these open flags are passed on. This also leaves out O_CREAT:
+   files are never created through this filter. */
+#define OPEN_FLAGS_MASK \
+  (O_ACCMODE | O_APPEND | O_TRUNC | O_SYNC | O_DSYNC | O_NONBLOCK | O_NOATIME)
+
+/*
+ * Open a file without following symbolic links, so that a link inside
+ * a prefix cannot lead out of it. With openat2() (Linux 5.6) no symlink
+ * is followed anywhere in the path; on older kernels only a symlink as
+ * the last path component is refused. If your prefixes lie behind
+ * symlinked directories (e.g. /var/run), this refuses them as well.
+ */
+static int open_nosymlinks(const char *path, int flags) {
+#if defined(SYS_openat2) && defined(RESOLVE_NO_SYMLINKS)
+	struct open_how how;
+	memset(&how, 0, sizeof(how));
+	how.flags = flags | O_CLOEXEC;
+	how.resolve = RESOLVE_NO_SYMLINKS;
+
+	int fd = syscall(SYS_openat2, AT_FDCWD, path, &how, sizeof(how));
+	if (fd != -1 || errno != ENOSYS) return fd;
+#endif
+	return open(path, flags | O_NOFOLLOW | O_CLOEXEC);
+}
+
 static int dl_getattr(const char *path, struct stat *stbuf,
                       struct fuse_file_info *fi) {
 	(void) fi;
 	memset(stbuf, 0, sizeof(struct stat));
 
-	char *real_path = authorize(path, NULL);
+	char *real_path = authorize(path, 'f');
 	if (!real_path) return -ENOENT;
 
-	int res = stat(real_path, stbuf);
+	/* a symlink as the file itself is not followed */
+	int res = lstat(real_path, stbuf);
 	free(real_path);
 	return (res == -1) ? -errno : 0;
 }
@@ -147,13 +183,11 @@ static int dl_open(const char *path, struct fuse_file_info *fi) {
 	   without O_APPEND/O_TRUNC) - anything else is treated as read */
 	int want_write = (fi->flags & O_ACCMODE) != O_RDONLY;
 
-	char *real_path = authorize(path, want_write ? "w" : NULL);
-	if (!real_path) return want_write ? -EACCES : -ENOENT;
+	char *real_path = authorize(path, want_write ? 'w' : 'f');
+	if (!real_path) return -EACCES;
 
-	/* preserve the caller's access mode and any append/trunc flags,
-	   but never allow O_CREAT through this filter */
-	int open_flags = fi->flags & ~O_CREAT;
-	int fd = open(real_path, open_flags);
+	/* preserve the caller's access mode and any append/trunc flags */
+	int fd = open_nosymlinks(real_path, fi->flags & OPEN_FLAGS_MASK);
 	free(real_path);
 	if (fd == -1) return -errno;
 
@@ -218,10 +252,10 @@ static int dl_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
  */
 static int dl_getxattr(const char *path, const char *name,
                        char *value, size_t size) {
-	char *real_path = authorize(path, NULL);
+	char *real_path = authorize(path, 'f');
 	if (!real_path) return -ENOENT;
 
-	ssize_t res = getxattr(real_path, name, value, size);
+	ssize_t res = lgetxattr(real_path, name, value, size);
 	free(real_path);
 	return (res == -1) ? -errno : (int) res;
 }
@@ -248,11 +282,17 @@ static int dl_truncate(const char *path, off_t size, struct fuse_file_info *fi) 
 	if (fi) {
 		res = ftruncate(fi->fh, size);
 	} else {
-		char *real_path = authorize(path, "w");
+		char *real_path = authorize(path, 'w');
 		if (!real_path) return -EACCES;
 
-		res = truncate(real_path, size);
+		int fd = open_nosymlinks(real_path, O_WRONLY);
 		free(real_path);
+		if (fd == -1) return -errno;
+
+		res = ftruncate(fd, size);
+		int err = errno;
+		close(fd);
+		errno = err;
 	}
 	return (res == -1) ? -errno : 0;
 }
@@ -269,7 +309,80 @@ static const struct fuse_operations dl_oper = {
   .release = dl_release,
 };
 
+/* The daemon must run as this unix user, and all files are accessed
+   with its permissions. */
+#define RUN_USER "postgres"
+
+/*
+ * Make sure the process runs as RUN_USER, with real, effective and
+ * saved user and group ids all set to that user, so no root identity
+ * is left over that could be regained later.
+ *
+ *  - effective uid is root: switch to RUN_USER (supplementary groups,
+ *    gid, uid) permanently.
+ *  - effective uid is already RUN_USER (possibly with a leftover real
+ *    or saved uid, e.g. from a setuid binary): clean up the real and
+ *    saved uids.
+ *  - anyone else is refused, as the files could not be accessed with
+ *    the right permissions.
+ */
+static int run_as_user(const char *name) {
+	struct passwd *pw = getpwnam(name);
+	if (!pw) {
+		fprintf(stderr, "pg_dlfuse: unix user \"%s\" does not exist\n", name);
+		return -1;
+	}
+
+	uid_t ruid, euid, suid;
+	gid_t rgid, egid, sgid;
+	if (getresuid(&ruid, &euid, &suid) == -1 ||
+	    getresgid(&rgid, &egid, &sgid) == -1) {
+		fprintf(stderr, "pg_dlfuse: cannot determine current user: %s\n",
+		        strerror(errno));
+		return -1;
+	}
+
+	if (euid == 0) {
+		if (initgroups(name, pw->pw_gid) == -1 ||
+		    setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) == -1 ||
+		    setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) == -1) {
+			fprintf(stderr, "pg_dlfuse: cannot switch to user \"%s\": %s\n",
+			        name, strerror(errno));
+			return -1;
+		}
+	} else if (euid == pw->pw_uid) {
+		if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) == -1) {
+			fprintf(stderr, "pg_dlfuse: cannot clean up user ids: %s\n",
+			        strerror(errno));
+			return -1;
+		}
+	} else {
+		fprintf(stderr, "pg_dlfuse: must be run as user \"%s\" or as root "
+		        "(ruid=%d euid=%d suid=%d)\n",
+		        name, (int) ruid, (int) euid, (int) suid);
+		return -1;
+	}
+
+	/* verify the result: nothing but RUN_USER may be left */
+	if (getresuid(&ruid, &euid, &suid) == -1 ||
+	    ruid != pw->pw_uid || euid != pw->pw_uid || suid != pw->pw_uid ||
+	    setuid(0) == 0) {
+		fprintf(stderr, "pg_dlfuse: failed to run as user \"%s\" "
+		        "(ruid=%d euid=%d suid=%d)\n",
+		        name, (int) ruid, (int) euid, (int) suid);
+		return -1;
+	}
+
+	/* let libpq find ~/.pg_service.conf of RUN_USER */
+	setenv("HOME", pw->pw_dir, 1);
+	setenv("USER", pw->pw_name, 1);
+	setenv("LOGNAME", pw->pw_name, 1);
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
+	if (run_as_user(RUN_USER) == -1) return 1;
+
 	/* Check at startup that the database is reachable, then close the
 	   connection again: worker threads open their own, and a libpq
 	   connection must not be carried across fuse_main()'s fork. */
@@ -281,5 +394,29 @@ int main(int argc, char *argv[]) {
 	}
 	PQfinish(test);
 
-	return fuse_main(argc, argv, &dl_oper, NULL);
+	/* Always run in the foreground with allow_other. The only thing the
+	   command line can change is the mount point, which defaults to
+	   /dlfs. Other arguments (e.g. -o options) are passed on to libfuse. */
+	char **fargv = malloc((argc + 6) * sizeof(char *));
+	if (!fargv) return 1;
+
+	int fargc = 0;
+	int have_mountpoint = 0;
+	fargv[fargc++] = argv[0];
+	fargv[fargc++] = "-f";
+	fargv[fargc++] = "-o";
+	fargv[fargc++] = "allow_other";
+
+	for (int i = 1; i < argc; i++) {
+		fargv[fargc++] = argv[i];
+		if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+			fargv[fargc++] = argv[++i];      /* value of -o */
+		} else if (argv[i][0] != '-') {
+			have_mountpoint = 1;
+		}
+	}
+	if (!have_mountpoint) fargv[fargc++] = "/dlfs";
+	fargv[fargc] = NULL;
+
+	return fuse_main(fargc, fargv, &dl_oper, NULL);
 }

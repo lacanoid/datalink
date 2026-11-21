@@ -2355,7 +2355,9 @@ COMMENT ON FUNCTION has_valid_prefix(datalink.file_path)
 
 --------------------------------------------------------------- ---------------
 -- authorize access to a file when filename contains a token
--- op: 'r' - read, 'w' - write, 'g' - HTTP GET (default), 's' - stat
+-- op: 'r' - read, 'w' - write, 'g' - HTTP GET (default),
+--     'f' - file system (FUSE): access only with a valid token in the file
+--           name, except for directories, which are needed to reach files
 create or replace function dl_authorize(
   file_path, op "char" default 'g', myrole regrole default user::regrole) 
 returns file_path language plpgsql SECURITY DEFINER as $$
@@ -2371,12 +2373,15 @@ begin
    'i');
  mypath := coalesce(m[1]||m[4],$1);
  t := m[3]::datalink.dl_token;
- mypath := regexp_replace(mypath,'^/dlfs/','/');
+ if op <> 'f' then  -- FUSE paths are relative to the mount point
+   mypath := regexp_replace(mypath,'^/dlfs/','/');
+ end if;
 -- check for write access for file created with dlurlpathwrite()
  if op = 'w' then
    update datalink.dl_new_files nf
       set kind = 'f'
     where token=t::datalink.dl_token and nf.kind = 'e'
+      and (nf.expires is null or nf.expires > now())
        -- and mypath like nf.path || '%'
        -- and nf.regrole = myrole
     returning path into f;
@@ -2414,11 +2419,15 @@ begin
            inet_client_addr(), current_setting('application_name'), null::jsonb);
     return mypath;
   end if;
-  if op='g' then return null; end if;
+  if op in ('g','f') then return null; end if;
  end if; -- read access db (token found)
  mypath := $1;
  if op='g' then
    return mypath;
+ elsif op='f' then
+   -- no valid token: only directories are visible, to be able to reach files
+   if (datalink.stat(mypath)).typ = 'd' then return mypath; end if;
+   return null;
  else 
    if datalink.has_file_privilege(myrole,mypath,'SELECT',true) then return mypath; end if;
    raise exception
@@ -3037,6 +3046,26 @@ $$;
 CREATE TRIGGER "access_touch"
 INSTEAD OF UPDATE OR INSERT OR DELETE ON datalink.access FOR EACH ROW
 EXECUTE PROCEDURE datalink.dl_trigger_access();
+
+create or replace procedure datalink.grant(
+  privilege_type text,dirpath datalink.file_path,grantee name)
+language plpgsql as $$
+begin
+  insert into datalink.access (dirpath,privilege_type,grantee,grantor)
+  values (dirpath,privilege_type,grantee,user);
+end
+$$;
+
+create or replace procedure datalink.revoke(
+  privilege_type text,dirpath datalink.file_path,grantee name default null)
+language plpgsql as $$
+begin
+  delete from datalink.access
+   where privilege_type = $1
+     and dirpath = $2
+     and ( grantee = $3 or $3 is null );
+end
+$$;
 
 --------------------------------------------------------------- ---------------
 -- inquire file access permitions
