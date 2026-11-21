@@ -2413,11 +2413,13 @@ begin
     where token=t::datalink.dl_token
       and (oldlink::jsonb->>'b')::datalink.dl_token=f.token
      into mypath;
-  if found then 
+  if found then
+    /*
     insert into datalink.insight_access_log 
            (read_token, link_token, atime, "role", pid, inet, app, data)
     values (t::datalink.dl_token, f.token, now(), myrole, pg_backend_pid(), 
            inet_client_addr(), current_setting('application_name'), null::jsonb);
+    */
     return mypath;
   end if;
   if op in ('g','f') then return null; end if;
