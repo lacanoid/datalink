@@ -1639,6 +1639,12 @@ if($options=~m|head|i) { $head=1; }
 if($options=~m|bin|i) { $binmode=1; }
 if($options=~m|persistent|i) { $op='w'; }
 if($options=~m|extern|i) { $op='e'; }
+# -------- settings, with defaults --------
+my $guc = sub {
+  my ($name,$default)=@_;
+  my $v = spi_exec_query("select current_setting('$name',true) as v")->{rows}->[0]->{v};
+  return (defined($v) && $v ne '') ? $v : $default;
+};
 # -------- start time  --------
 my (%r,$r); # results
 my $fh;     # file handle
@@ -1742,13 +1748,47 @@ if(defined($filename)) {
 # -------- pass request to curl --------
 unless(defined($r)) { 
   $r=\%r;
+
+  # -------- which protocols may be used? --------
+  # data: and foreign file: URLs are handled above without curl, and local
+  # file: URLs have been authorized (dl_url_authorize). Whatever else is left
+  # must be http or https, even if curl groks ftp, gopher, dict, ldap, smb...
+  # This is also enforced by curl itself (CURLOPT_PROTOCOLS, bit masks:
+  # HTTP=1, HTTPS=2, FILE=1024), including after redirects.
+  my ($protocols,$redir_protocols);
+  if($url=~m|^file:|i)        { $protocols=1024; $redir_protocols=0; }
+  elsif($url=~m|^https?://|i) { $protocols=1|2;  $redir_protocols=1|2; }
+  else { elog(ERROR,"DATALINK EXCEPTION - unsupported URL scheme\nURL: $url\n"); }
+
+  # optional allow list for web URLs: a regular expression in the setting
+  # datalink.curl_allow, e.g. '^https://(www\.)?example\.org/'
+  if($protocols!=1024) {
+    my $allow = $guc->('datalink.curl_allow','');
+    if($allow ne '' && $url !~ /$allow/i) {
+      elog(ERROR,"DATALINK EXCEPTION - URL not allowed by datalink.curl_allow\nURL: $url\n");
+    }
+  }
+
+  # -------- limits --------
+  # in memory: datalink.max_read_size, to a file: datalink.curl_max_download
+  # (0 = no limit), time: datalink.curl_timeout seconds for GET (HEAD is 5)
+  my $limit   = defined($filename) ? $guc->('datalink.curl_max_download',0)
+                                   : $guc->('datalink.max_read_size',134217728);
+  my $timeout = $guc->('datalink.curl_timeout',60);
+  my $got = 0;  # bytes received
+
   my $curl = WWW::Curl::Easy->new;
   $r{url} = $url;  
   $curl->setopt(CURLOPT_USERAGENT,
                 "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
   $curl->setopt(CURLOPT_URL, $url);
   $curl->setopt(CURLOPT_HEADER,$head?1:0);
+  $curl->setopt(CURLOPT_PROTOCOLS, $protocols);
+  $curl->setopt(CURLOPT_REDIR_PROTOCOLS, $redir_protocols);
   $curl->setopt(CURLOPT_FOLLOWLOCATION, 1);
+  $curl->setopt(CURLOPT_MAXREDIRS, 5);
+  $curl->setopt(CURLOPT_CONNECTTIMEOUT, 5);
+  $curl->setopt(CURLOPT_NOSIGNAL, 1);  # postgres uses signals (SIGALRM) itself
   $curl->setopt(CURLOPT_VERBOSE, 0);
   ## $curl->setopt(CURLOPT_RANGE, '100-200');
 
@@ -1759,9 +1799,23 @@ unless(defined($r)) {
   $curl->setopt(CURLOPT_WRITEDATA, \$response_body);
   if($head) { $curl->setopt(CURLOPT_NOBODY, 1); 
               $curl->setopt(CURLOPT_TIMEOUT, 5);}
+  else      { $curl->setopt(CURLOPT_TIMEOUT, $timeout);
+              # refused early when the server tells the size ...
+              if($limit>0) { $curl->setopt(CURLOPT_MAXFILESIZE, $limit); } }
   if(defined($filename) && $fh) { 
     if($head)  { $curl->setopt(CURLOPT_WRITEHEADER,$fh); }
     else  { $curl->setopt(CURLOPT_WRITEDATA,$fh); }
+  }
+  unless($head) {
+    # ... and stopped while receiving when it does not: returning 0 makes
+    # curl fail with a write error
+    $curl->setopt(CURLOPT_WRITEFUNCTION, sub {
+      my ($chunk)=@_;
+      $got += length($chunk);
+      return 0 if $limit>0 && $got>$limit;
+      if($fh) { print $fh $chunk or return 0; } else { $response_body .= $chunk; }
+      return length($chunk);
+    });
   }
   my $retcode = $curl->perform;
   if(defined($filename) && $fh) { close $fh; }
@@ -1782,7 +1836,10 @@ unless(defined($r)) {
   if($head) { $r{size} = $curl->getinfo(CURLINFO_CONTENT_LENGTH_DOWNLOAD); }
   else      { $r{size} = $curl->getinfo(CURLINFO_SIZE_DOWNLOAD); }
   $r{elapsed} = $curl->getinfo(CURLINFO_TOTAL_TIME);
-  if(!($retcode==0)) { $r{error} = $curl->strerror($retcode); }
+  if(!($retcode==0)) { 
+    $r{error} = ($limit>0 && $got>$limit) ? "response is larger than $limit bytes"
+                                          : $curl->strerror($retcode); 
+  }
   $r{content_type} = $curl->getinfo(CURLINFO_CONTENT_TYPE);
   $r{filetime} = $curl->getinfo(CURLINFO_FILETIME);
   $r{url} = $curl->getinfo(CURLINFO_EFFECTIVE_URL);
@@ -2367,6 +2424,7 @@ AS $function$
 select exists (
  select prefix from datalink.dl_prfx
   where starts_with($1::text,prefix::text)
+    and right(prefix,1) = '/'
 )
 $function$
 ;
