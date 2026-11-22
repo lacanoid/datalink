@@ -2174,7 +2174,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlpath(datalink, interval)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlpath(text, time_to_live interval default '0')
- RETURNS text LANGUAGE sql STRICT IMMUTABLE
+ RETURNS text LANGUAGE sql STRICT STABLE
 AS $_$ select dlurlpath(dlvalue($1),$2) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpath(text, interval) 
 IS 'SQL/MED - Returns the file path from URL';
@@ -2247,7 +2247,7 @@ COMMENT ON FUNCTION filepathwrite(datalink)
      IS 'Returns the write file path from DATALINK value';
 
 CREATE FUNCTION filepathwrite(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT STABLE
 AS $_$ select datalink.filepathwrite(dlvalue($1)) $_$;
 COMMENT ON FUNCTION filepathwrite(text) 
 IS 'Returns the write file path from URL';
@@ -2264,7 +2264,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlpathonly(datalink)
      IS 'SQL/MED - Returns the file path from DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlpathonly(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT STABLE
 AS $_$ select dlurlpathonly(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlpathonly(text) 
 IS 'SQL/MED - Returns the file path from URL';
@@ -3506,7 +3506,7 @@ select -row_number() over(order by s.mtime desc),
        dlpreviouscopy(dlvalue(path,'FS'),1)
   from ls, datalink.stat(path) s
  where path ~* '#[0-9a-z\-]{36}$'
-   and path like $1||'%'
+   and starts_with(path,$1)
  order by s.mtime desc;
 end
 $$;
