@@ -2498,13 +2498,22 @@ RETURNS text LANGUAGE plperlu AS $$
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
+  my $max  = spi_exec_query(q{select coalesce(nullif(
+              current_setting('datalink.max_read_size',true),'')::bigint,
+              134217728) as n})->{rows}->[0]->{n};
+  my $avail = (-s $filename) - ($pos-1);  $avail = 0 if $avail < 0;
+  my $want  = defined($len) ? $len : $avail;
+  $want = $avail if $want > $avail;      # never allocate more than the file has
+  die "DATALINK EXCEPTION - file too large to read at once: $want bytes\n"
+    . "HINT: read it in parts with read_text(file,pos,len), or raise datalink.max_read_size\n"
+    if $want > $max;
+
   my $fh;
   open($fh,"<",$filename) or 
    die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
-  if(defined($len)) { read $fh,$bufr,$len; } 
-  else { local $/; $bufr = <$fh>; }
+  read $fh,$bufr,$want;
   close $fh;
   if(defined($bufr)) { utf8::decode($bufr); }
   return $bufr;
@@ -2541,14 +2550,23 @@ RETURNS bytea LANGUAGE plperlu AS $$
   my $fs = spi_exec_prepared($p,$filename)->{rows}->[0];
   if(defined($fs->{path})) { $filename=$fs->{path}; }
 
+  my $max  = spi_exec_query(q{select coalesce(nullif(
+              current_setting('datalink.max_read_size',true),'')::bigint,
+              134217728) as n})->{rows}->[0]->{n};
+  my $avail = (-s $filename) - ($pos-1);  $avail = 0 if $avail < 0;
+  my $want  = defined($len) ? $len : $avail;
+  $want = $avail if $want > $avail;      # never allocate more than the file has
+  die "DATALINK EXCEPTION - file too large to read at once: $want bytes\n"
+    . "HINT: read it in parts with read(file,pos,len), or raise datalink.max_read_size\n"
+    if $want > $max;
+
   my $fh;
   open($fh,"<",$filename) or 
    die "DATALINK EXCEPTION -  cannot open file for reading: $!\nFILE: $filename\n";
   binmode $fh;
   if($pos>1) { seek($fh,$pos-1,0); }
   my $i=1; my $o=$pos; my $bufr;
-  if(defined($len)) { read $fh,$bufr,$len; } 
-  else { local $/; $bufr = <$fh>; }
+  read $fh,$bufr,$want;
   close $fh;
   return encode_bytea($bufr);
 $$;
