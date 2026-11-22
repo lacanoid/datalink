@@ -8,6 +8,7 @@ use HTML::Tidy;
 my $tidy = HTML::Tidy->new( {
  doctype=>'omit', output_xhtml=>1,
  clean=>1, bare=>1, indent=>1,
+ 'numeric-entities'=>1,
  'drop-empty-paras'=>1, 'drop-proprietary-attributes'=>1,
  'punctuation-wrap'=>1, 'show-body-only'=>1, 'hide-comments'=>1,
 });
