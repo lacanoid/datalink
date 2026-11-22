@@ -3065,10 +3065,10 @@ create or replace procedure datalink.revoke(
   privilege_type text,dirpath datalink.file_path,grantee name default null)
 language plpgsql as $$
 begin
-  delete from datalink.access
-   where privilege_type = upper($1)
-     and dirpath = $2
-     and ( grantee = $3 or $3 is null );
+  delete from datalink.access a
+   where a.privilege_type = upper($1)
+     and a.dirpath = $2
+     and ( a.grantee = $3 or $3 is null );
 end
 $$;
 
