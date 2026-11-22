@@ -669,8 +669,24 @@ begin
  if not found then
   -- not found in dl_linked_files
   insert into datalink.dl_linked_files (token,path,lco,attrelid,attnum,address,size,mtime,cons)
-  values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons);
-  notify "datalink.linker_jobs"; 
+  values (my_token,file_path,my_lco,my_regclass,my_attnum,my_address,my_size,my_mtime,my_cons)
+  on conflict do nothing;
+  if found then
+    notify "datalink.linker_jobs";
+  else
+    -- LOST RACE: the select above found nothing, but a concurrent transaction
+    -- linked this file (or another name for it) before our insert. We waited
+    -- for it to commit, so its row is visible now. Report it the same way as
+    -- an already linked file is reported below.
+    select * into r
+      from datalink.dl_linked_files
+      join pg_attribute a using (attrelid,attnum)
+     where path = file_path or address = my_address;
+    raise exception 'DATALINK EXCEPTION - external file already linked' 
+      using errcode = 'HW002', 
+      detail = format('from %s.%s as ''%s'' (linked concurrently)',
+                      r.attrelid::text,coalesce(r.attname::text,'?'),r.path);
+  end if;
  else -- found in dl_linked_files
   -- this is needed to eliminate problems during pg_restore
   if r.token = my_token and r.path = file_path and r.lco = my_lco and
