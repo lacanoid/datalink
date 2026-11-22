@@ -132,17 +132,17 @@ URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 -- 
 -- case 1.b.1 invalid datalink construction
 insert into med (link) values (dlpreviouscopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
-CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 56 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 60 at RAISE
 insert into med (link) values (dlnewcopy('file:///var/www/datalink/installcheck/test1.txt')); -- err
 ERROR:  DATALINK EXCEPTION - invalid datalink construction
 DETAIL:  DLPREVIOUSCOPY and DLNEWCOPY are not permitted in INSERT
-CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 56 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 60 at RAISE
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
 -- 
@@ -153,7 +153,7 @@ DETAIL:  from public.med.link as '/var/www/datalink/installcheck/test1.txt'
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 98 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 -- 15.3 Effect of replacing rows in base tables
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
@@ -167,7 +167,7 @@ URL:  file:/var/www/datalink/non_existant_file
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 --
 -- case 1.b.ii.1 external file already linked
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
@@ -181,7 +181,7 @@ DETAIL:  from public.med.link as '/var/www/datalink/installcheck/test4.txt'
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 98 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 delete from med;
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/utf8.txt
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
@@ -195,7 +195,7 @@ HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
 CONTEXT:  PL/pgSQL function datalink.require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker()"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 25 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 set datalink.relax = 'm';
 insert into med (link) values (dlvalue('file:///var/www/datalink/installcheck/test1.txt')); -- ok
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -207,7 +207,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write token
 DETAIL:  New value doesn't contain a matching write token for update of column public.med.link
 HINT:  Supply value with valid write token (DLNEWCOPY) or set write_access to ADMIN
-CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 74 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 78 at RAISE
 update med set link = dlnewcopy(link); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -222,7 +222,7 @@ NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - invalid write permission for update
 DETAIL:  write access is BLOCKED for column public.med.link
 HINT:  set write_access to ADMIN or TOKEN
-CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 65 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 69 at RAISE
 --
 -- case 1.b.ii.2.C referenced file not valid
 update datalink.columns set read_access='DB',write_access='ADMIN' where table_name='med';
@@ -230,7 +230,7 @@ update med set link = dlnewcopy('file:///var/www/datalink/installcheck/utf8.txt'
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 ERROR:  DATALINK EXCEPTION - referenced file not valid
 DETAIL:  File address is different for update of column public.med.link
-CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 82 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_trigger_table() line 86 at RAISE
 update med set link = dlvalue('file:///var/www/datalink/installcheck/utf8.txt'); -- ok
 NOTICE:  DATALINK UNLINK:/var/www/datalink/installcheck/test1.txt
 WARNING:  DATALINK WARNING - datalinker recommended
@@ -256,7 +256,7 @@ HINT:  Make sure that pg_datalinker is running. Perhaps "dlfs start"?
 CONTEXT:  PL/pgSQL function datalink.require_datalinker(integer,text) line 10 at RAISE
 SQL statement "SELECT datalink.require_datalinker()"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 25 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 set datalink.relax = 'm';
 insert into l values (dlvalue('/var/www/datalink/installcheck/utf8.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended

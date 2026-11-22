@@ -1452,6 +1452,7 @@ CREATE FUNCTION dl_trigger_table() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER AS $_X$
 declare
   r record;
+  cols json;
   ro jsonb;
   rn jsonb;
   link1 pg_catalog.datalink;
@@ -1468,11 +1469,15 @@ begin
   if tg_op in ('DELETE','UPDATE') then ro := row_to_json(old)::jsonb; end if;  
   if tg_op in ('INSERT','UPDATE') then rn := row_to_json(new)::jsonb; end if;
 
-  -- unlink old values
-  for r in
-  select column_name,lco 
+  select json_object_agg(column_name,lco)
     from datalink.dl_columns 
    where regclass = tg_relid
+    into cols;
+
+  -- unlink old values
+  for r in
+  select column_name, lco::text::datalink.dl_lco
+    from json_each(cols) as cols(column_name,lco)
   loop
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
@@ -1482,16 +1487,15 @@ begin
     if tg_op in ('DELETE','UPDATE') then
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_datalink_unref(link1,r.lco,tg_relid,r.column_name);
-       end if;
-    end if;
-   end if;
+       end if; -- url is not null
+    end if; -- -- delete ir update
+   end if; -- distinct
   end loop; -- unlink old values
 
   -- link new values
   for r in
-  select column_name,lco 
-    from datalink.dl_columns 
-   where regclass = tg_relid
+  select column_name, lco::text::datalink.dl_lco
+    from json_each(cols) as cols(column_name,lco)
   loop
    link1 := null; link2 := null;
    opt := datalink.link_control_options(r.lco);
@@ -1547,7 +1551,6 @@ begin
       end if; -- have URL
     end if; -- insert or update
    end if; -- distinct
-
   end loop; -- link new values
 
   if tg_op = 'DELETE' then return old; end if;

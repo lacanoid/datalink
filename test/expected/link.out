@@ -18,7 +18,7 @@ HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink 2'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
@@ -29,7 +29,7 @@ URL:  file:/var/www/datalink/installcheck/test3.txt
 DETAIL:  CURL error 37 - Couldn't read a file:// file
 HINT:  make sure URL is correct and referenced file actually exists
 CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/test3.txt#11111111-2222-3333-4444-abecedabeced','FS','Sample file datalink 3b'));
 NOTICE:  DATALINK LINK:/var/www/datalink/test3.txt
@@ -41,7 +41,7 @@ HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into sample_datalinks4 (link)
 values (dlvalue('/var/www/datalink/installcheck/utf8.txt','FS','Sample file datalink 4'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/utf8.txt
@@ -87,7 +87,7 @@ HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into sample_datalinks5 (link)
 values (dlvalue('/var/www/datalink/installcheck/test1.txt','FS','Sample file datalink'));
 NOTICE:  DATALINK LINK:/var/www/datalink/installcheck/test1.txt
@@ -251,7 +251,7 @@ HINT:  add appropriate entry in table datalink.access
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 45 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into my_table4 values (dlvalue('/etc/issue'));
 WARNING:  DATALINK WARNING - datalinker recommended
 DETAIL:  Datalinker process should be running to finalize your commits.
@@ -262,7 +262,7 @@ HINT:  run "dlfs add" to add prefixes
 CONTEXT:  PL/pgSQL function datalink.dl_file_link(datalink.file_path,datalink.dl_token,"char",datalink.dl_lco,regclass,name) line 18 at RAISE
 SQL statement "SELECT datalink.dl_file_link(my_path,my_token,cons,link_options,regclass,column_name)"
 PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 78 at PERFORM
-PL/pgSQL function datalink.dl_trigger_table() line 94 at assignment
+PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 insert into datalink.access values ('/var/www/datalink/','DELETE',current_role::regrole);
 insert into my_table4 values (dlvalue('/var/www/datalink/installcheck/test1.txt'));
 WARNING:  DATALINK WARNING - datalinker recommended
