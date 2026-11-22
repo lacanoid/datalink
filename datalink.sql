@@ -1476,8 +1476,8 @@ begin
 
   -- unlink old values
   for r in
-  select column_name, lco::text::datalink.dl_lco
-    from json_each(cols) as cols(column_name,lco)
+  select column_name::name, lco::text::datalink.dl_lco
+    from json_each(cols) as c(column_name,lco)
   loop
    link1 := null; link2 := null;
    if tg_op in ('DELETE','UPDATE') then link1 := ro->>r.column_name; end if;
@@ -1488,14 +1488,14 @@ begin
        if dlurlcomplete(link1) is not null then
          link1 := datalink.dl_datalink_unref(link1,r.lco,tg_relid,r.column_name);
        end if; -- url is not null
-    end if; -- -- delete ir update
+    end if; -- delete or update
    end if; -- distinct
   end loop; -- unlink old values
 
   -- link new values
   for r in
-  select column_name, lco::text::datalink.dl_lco
-    from json_each(cols) as cols(column_name,lco)
+  select column_name::name, lco::text::datalink.dl_lco
+    from json_each(cols) as c(column_name,lco)
   loop
    link1 := null; link2 := null;
    opt := datalink.link_control_options(r.lco);
@@ -2136,7 +2136,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlserver(datalink)
      IS 'SQL/MED - Returns the file server from DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlserver(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT STABLE
 AS $_$ select dlurlserver(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlserver(text) 
 IS 'SQL/MED - Returns the file server from URL';
@@ -2151,7 +2151,7 @@ COMMENT ON FUNCTION pg_catalog.dlurlscheme(datalink)
      IS 'SQL/MED - Returns the scheme from DATALINK value';
 
 CREATE FUNCTION pg_catalog.dlurlscheme(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT STABLE
 AS $_$ select dlurlscheme(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dlurlscheme(text) 
 IS 'SQL/MED - Returns the scheme from URL';
@@ -2285,7 +2285,7 @@ COMMENT ON FUNCTION pg_catalog.dllinktype(datalink)
      IS 'SQL/MED - Returns the link type (URL, FS or custom) of DATALINK value';
 
 CREATE FUNCTION pg_catalog.dllinktype(text) RETURNS text
-    LANGUAGE sql STRICT IMMUTABLE
+    LANGUAGE sql STRICT STABLE
 AS $_$ select dllinktype(dlvalue($1)) $_$;
 COMMENT ON FUNCTION pg_catalog.dllinktype(text) 
 IS 'SQL/MED - Returns the link type (URL or FS) from URL';
