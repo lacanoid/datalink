@@ -3083,7 +3083,10 @@ select (current_setting('is_superuser')::boolean and $4) or exists (
   select dirpath from datalink.access 
    where privilege_type=upper($3)
      and dirpath = (datalink.filegetdirectory ($2)).dirpath
-     and (grantee = 'PUBLIC' or grantee = $1::text)
+     and (grantee = 'PUBLIC' 
+          or coalesce(pg_catalog.pg_has_role($1::oid,
+                                             pg_catalog.to_regrole(grantee)::oid,
+                                             'USAGE'),false))
 )
 $$ LANGUAGE sql;
 

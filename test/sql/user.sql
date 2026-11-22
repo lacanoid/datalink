@@ -68,5 +68,20 @@ drop role datalink_test_user;
 
 abort;
 
+-- more permissions checking
+
+begin;
+create role datalink_test_role_1;
+create role datalink_test_role_2;
+
+call datalink.grant('DELETE','/var/www/datalink/','datalink_test_role_2');
+
+select datalink.has_file_privilege('datalink_test_role_1'::regrole,'/var/www/datalink/file1.txt','DELETE',false);
+
+grant datalink_test_role_2 to datalink_test_role_1;
+
+select datalink.has_file_privilege('datalink_test_role_1'::regrole,'/var/www/datalink/file1.txt','DELETE',false);
+
+abort;
 
 
