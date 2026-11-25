@@ -10,6 +10,8 @@ use DBI;
 use JSON;
 use IPC::Run 'run';
 use Getopt::Std;
+use Cwd qw(realpath);
+use File::Basename qw(dirname);
 use Time::HiRes qw{usleep};
 our $json = JSON->new->allow_nonref;
 
@@ -75,12 +77,18 @@ our $dbh;
 our $dbmeta = {};
 our %q;
 our @err;
+our $path_error;  # code telling why the last path_valid() call failed
 
 $|=1;
 
 #---------------------------------------
 
 sub main() {
+    # chown, chattr etc. need root privileges
+    if($> != 0) {
+        print STDERR "$0: must be run as root (ruid=$< euid=$>)\n";
+        exit 1;
+    }
     if($opt_l) {
         # redirect output to file
         open STDOUT, ">>", $opt_l or die "$0: open: $!";
@@ -210,9 +218,9 @@ sub main() {
                     my $path = $data->{path}; 
                     my $path_backup = path_backup($data->{path},$data->{token});
 
-                    if(!path_valid_prefix($path)) { 
-                        log_err("PREFIX",sprintf("Bad path prefix in '$path'")); 
-                        queryOrDie('job_set',$path,'ERROR',undef,'[{"code":"PREFIX"}]');
+                    if(!path_valid($path)) { 
+                        log_err($path_error,"Bad path '$path'"); 
+                        queryOrDie('job_set',$path,'ERROR',undef,to_json([{code=>$path_error}]));
                         queryOrDie('err++');
 			$dbh->commit();
                         next; 
@@ -232,7 +240,6 @@ sub main() {
                         } else {
                             log_msg("LINK:$ll",$path);
                         }
-			log_info("TOKEN",$data->{token});
                         my $r=file_link($path,$data); $cl++;
                         my $err=(@err)?to_json(\@err):undef;
                         queryOrDie('job_set',$path,$err?'ERROR':'LINKED',$json->encode($r),$err);
@@ -301,7 +308,7 @@ sub purge_files {
     while(my $data = $q{purge_get}->fetchrow_hashref) {
 	my $path = $data->{path}; 
 	$dn++;
-        if(path_valid_prefix($path)) {
+        if(path_valid($path)) {
             my $state = $data->{state};
             my $kind = $data->{kind};
             if($state eq 'in progress') { next; } 
@@ -319,7 +326,9 @@ sub purge_files {
             } else { 
                 # log_err("FILE DOES NOT EXISTS","File '$path' does not exist.");
             }
-        } 
+        } else {
+            log_err($path_error,"Bad path '$path', not purged");
+        }
         queryOrDie('purge_delete',$path);
 	$dbh->commit();
     }
@@ -391,24 +400,51 @@ sub path_backup {
     else { return $path; }
 }
 
+# returns the (normalized) prefix which path starts with, or 0
 sub path_valid_prefix {
     my ($path)=@_;
-    my $prefix;
-    for $prefix (@{$config{prefix}}) {
-       if(rindex($path,$prefix,0)==0) { return 1 }
+    for my $prefix (@{$config{prefix}}) {
+       my $p = $prefix;
+       $p .= '/' unless $p =~ m|/$|;  # so that /data does not match /database
+       if(rindex($path,$p,0)==0) { return $p }
     }
     return 0
 }
 
+# check if it is safe to act on a path (link, chown, chmod, delete...)
+# returns true if so, otherwise false and sets $path_error to a code:
+# CHARS, RELATIVE, PARENT, PREFIX, SYMLINK or TYPE
 sub path_valid {
     my ($path)=@_;
+    $path_error = undef;
+    $path =~ s|(?<=.)/+$||;   # directories may come with a trailing slash
     # illegal chars % and *
-    if($path=~m|[%*]|) { return 0; } 
-    # not absolute
-    if(!(rindex($path,'/')==0)) { return 0; }
+    if($path=~m|[%*]|) { $path_error='CHARS'; return 0; } 
+    # not absolute, or empty path components
+    if(substr($path,0,1) ne '/' || $path=~m|//|) { $path_error='RELATIVE'; return 0; }
     # parent
-    if(rindex($path,'/../')>=0) { return 0; }
-    return path_valid_prefix($path);
+    if($path=~m{(^|/)\.\.(/|$)}) { $path_error='PARENT'; return 0; }
+    # must be below a configured prefix
+    my $prefix = path_valid_prefix($path);
+    if(!$prefix) { $path_error='PREFIX'; return 0; }
+    # no symlinks anywhere in the path below the prefix. The prefix itself 
+    # may be reached through symlinks, so compare with its resolved name
+    my $dir = dirname($path);
+    my $real = realpath($dir);
+    if(defined($real)) {   # if the parent does not exist, there is nothing to harm
+        my $rprefix = realpath($prefix);
+        if(!defined($rprefix)) { $path_error='PREFIX'; return 0; }
+        $rprefix =~ s|/+$||;
+        if($real ne $rprefix . substr($dir,length($prefix)-1)) { $path_error='SYMLINK'; return 0; }
+    }
+    # only regular files and directories, never the symlink itself
+    my @s = lstat($path);
+    if(@s) {
+        my $t = $s[2] & 0170000;
+        if($t == 0120000) { $path_error='SYMLINK'; return 0; }
+        if($t != 0100000 && $t != 0040000) { $path_error='TYPE'; return 0; }
+    }
+    return 1;
 }
 
 ########################################
@@ -549,16 +585,21 @@ sub file_setown {
 
 sub file_chown {
     my ($path,$owner)=@_;
-    my ($own,$grp);
     if($owner=~/^([^:]+)(:(.+))?$/) {
-	$own=$1; $grp=$3;
-	my $uid=$own; unless($uid=~/^\d+$/) { $uid=(getpwnam($own))[2]; }
-	if(!$uid) { $uid=-1; }       
-	my $gid=$grp; unless($gid=~/^\d+$/) { $gid=(getgrnam($grp))[2]; }
-	if(!$gid) { $gid=-1; }
+	my ($own,$grp)=($1,$3);
+	# -1 means: do not change. Note that uid 0 and gid 0 are valid values!
+	my ($uid,$gid)=(-1,-1);
+	if(defined($own)) { 
+	    $uid = ($own=~/^\d+$/) ? $own : (getpwnam($own))[2]; 
+	    $uid = -1 unless defined($uid);
+	}
+	if(defined($grp)) { 
+	    $gid = ($grp=~/^\d+$/) ? $grp : (getgrnam($grp))[2]; 
+	    $gid = -1 unless defined($gid);
+	}
 	log_info('CHOWN',["($owner)->($uid:$gid)"]);
 	if($opt_I) {
-	    if( $uid>0 || $gid>0 ) {
+	    if( $uid != -1 || $gid != -1 ) {
 		if(!chown( $uid,$gid,$path )) { perror($path); }
 	    }
 	    return;
@@ -581,8 +622,8 @@ sub file_chmod {
 sub file_delete {
     my ($path,$opt)=@_;
     log_debug('FILE DELETE',$opt);
-    if(!path_valid_prefix($path)) {
-	log_err("DELETE PREFIX",sprintf("Bad path prefix for file_delete in '$path'")); 
+    if(!path_valid($path)) {
+	log_err("DELETE $path_error","Bad path for file_delete in '$path'"); 
 	return;
     }
     if(!$opt_D) {
