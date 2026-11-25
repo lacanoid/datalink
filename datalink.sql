@@ -1,7 +1,7 @@
 --------------------------------------------------------------- ---------------
 --
 --  datalink
---  version 0.26.1122 lacanoid@ljudmila.org
+--  version 0.26.1125 lacanoid@ljudmila.org
 --
 --------------------------------------------------------------- ---------------
 
@@ -1338,6 +1338,52 @@ IS 'SQL/MED - Returns a DATALINK value indicating that the referenced file conte
 -- referential integrity triggers
 --------------------------------------------------------------- ---------------
 
+-- does a local file exist? (needs superuser rights, hence SECURITY DEFINER)
+-- (callers are responsible for any prefix checks, e.g. dl_file_link)
+CREATE FUNCTION dl_file_exists(file_path file_path) RETURNS boolean
+LANGUAGE sql STABLE STRICT SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $$
+select (pg_stat_file($1::text, true)).size is not null
+$$;
+comment on function dl_file_exists(file_path)
+     is 'Does a local file exist?';
+
+--------------------------------------------------------------- ---------------
+-- does the file or web resource a datalink points to exist?
+-- local files are checked with pg_stat_file(), everything else with curl.
+-- returns the URL which was actually found (it may differ from the datalink 
+-- URL: a '#' in a file name is retried as %23), and for web resources the
+-- HTTP response code
+CREATE FUNCTION dl_datalink_exists(link datalink,
+  OUT ok boolean, OUT rc integer, OUT error text, OUT url text)
+RETURNS record LANGUAGE plpgsql STABLE STRICT AS $_$
+declare
+ r record;
+begin
+ url := format('%s%s',$1::jsonb->>'a','#'||($1::jsonb->>'b'));
+ url := url::datalink.url;
+
+ if datalink.is_local(link) then
+    ok := datalink.dl_file_exists(pg_catalog.dlurlpathonly(link));
+    if not ok then
+      ok := datalink.dl_file_exists(datalink.filepathwrite(link));
+    end if;
+    if not ok then error := 'file does not exist or is not accessible'; end if;
+    return;
+ end if;
+
+ r := datalink.curl_get(url,0);
+ if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
+    url := replace(url,'#','%23');
+    r := datalink.curl_get(url,0);
+ end if;
+ ok := r.ok; rc := r.rc; error := r.error;
+end$_$;
+comment on function dl_datalink_exists(datalink)
+     is 'Does the file or web resource a datalink points to exist?';
+
+--------------------------------------------------------------- ---------------
 -- reference a datalink
 CREATE FUNCTION dl_datalink_ref(
   link datalink, link_options dl_lco, regclass regclass, column_name name) 
@@ -1371,19 +1417,13 @@ begin
     if lco.integrity = 'ALL' then has_token := 1; end if;
 
     -- check if referenced file exists
-    r := datalink.curl_get(url,0);
-    if not r.ok and dlurlscheme(link) = 'FILE' and url ~ '#' then 
-      url := replace(url,'#','%23');
-      r := datalink.curl_get(url,0);
-    end if;
-    if not r.ok and dlurlscheme(link) = 'FILE' then
-      r.ok := not (datalink.stat(pg_catalog.dlurlpathonly(link))).inode is null;
-    end if;
-
+    r := datalink.dl_datalink_exists(link);
+    url := r.url;
     if not r.ok then
       raise exception e'DATALINK EXCEPTION - referenced file does not exist\nURL:  %',url 
             using errcode = 'HW003', 
-                  detail = format('CURL error %s - %s',r.rc,r.error),
+                  detail = case when r.rc is null then r.error
+                           else format('CURL error %s - %s',r.rc,r.error) end,
                   hint = 'make sure URL is correct and referenced file actually exists';
     end if;
     -- store HTTP response code if one was returned

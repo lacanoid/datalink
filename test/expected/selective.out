@@ -28,9 +28,9 @@ insert into sample_datalinks2 (link)
 values (dlvalue('file:///foo+bar/no_file','URL','Sample file datalink 2'));
 ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  file:/foo+bar/no_file
-DETAIL:  CURL error 37 - Couldn't read a file:// file
+DETAIL:  file does not exist or is not accessible
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 34 at RAISE
 PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 update datalink.columns
    set link_control='FILE', integrity='SELECTIVE'
@@ -43,7 +43,7 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blah
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 34 at RAISE
 PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment
 select dlurlcomplete(link), link::jsonb->>'b' is not null as has_token from sample_datalinks2;
        dlurlcomplete        | has_token 
@@ -83,5 +83,5 @@ ERROR:  DATALINK EXCEPTION - referenced file does not exist
 URL:  http://blahxxxx
 DETAIL:  CURL error 6 - Couldn't resolve host name
 HINT:  make sure URL is correct and referenced file actually exists
-CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 41 at RAISE
+CONTEXT:  PL/pgSQL function datalink.dl_datalink_ref(datalink,datalink.dl_lco,regclass,name) line 34 at RAISE
 PL/pgSQL function datalink.dl_trigger_table() line 98 at assignment

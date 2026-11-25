@@ -29,6 +29,7 @@ Version 0.26
 - datalinker better transaction handling
 - datalinker does not restore SUID sticky bits. This is to prevent db superuser from compromising the system by making SUID files.
 - `datalink.modlco()` improvements
+- bunch of bugfixes suggested by claude
 
 Version 0.25
 ------------

@@ -64,6 +64,8 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | curl_perform(file_path,text,text[])                                                          | plperlu  | Access WWW with CURL. CURL groks URLs.
  datalink     | curl_save(file_path,text,integer)                                                            | sql      | Save content of remote URL to a local file with CURL.
  datalink     | dl_authorize(file_path,"char",regrole)                                                       | plpgsql  | Authorize access to READ ACCESS DB file via embedded read token
+ datalink     | dl_datalink_exists(datalink)                                                                 | plpgsql  | Does the file or web resource a datalink points to exist?
+ datalink     | dl_file_exists(file_path)                                                                    | sql      | Does a local file exist?
  datalink     | dl_lco(datalink)                                                                             | sql      | Find dl_lco for a linked datalink
  datalink     | dl_lco(dl_link_control,dl_integrity,dl_read_access,dl_write_access,dl_recovery,dl_on_unlink) | sql      | Calculate dl_lco from enumerated options
  datalink     | dl_lco(regclass,name)                                                                        | sql      | Find dl_lco for a table column
@@ -139,6 +141,6 @@ select p.pronamespace::regnamespace,p.oid::regprocedure,l.lanname,obj_descriptio
  datalink     | require_datalinker(integer,text)                                                             | plpgsql  | 
  datalink     | revoke(text,file_path,name)                                                                  | plpgsql  | 
  datalink     | uuid_generate_v4()                                                                           | c        | 
-(114 rows)
+(116 rows)
 
 truncate datalink.dl_directory;  -- clean for tests
