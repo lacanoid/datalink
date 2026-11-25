@@ -2281,7 +2281,7 @@ IS 'SQL/MED - Returns the file path from URL';
 
 --------------------------------------------------------------- ---------------
 
-CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink, ttl interval default '10 minutes')
+CREATE FUNCTION pg_catalog.dlurlpathwrite(link datalink, ttl interval default '0')
  RETURNS text LANGUAGE plpgsql STRICT AS $function$
 DECLARE
   path datalink.file_path;
@@ -2312,7 +2312,9 @@ BEGIN
   path   := datalink.filepathwrite(l1);
   wtoken := datalink.dl_newtoken();
   url    := pg_catalog.dlurlcomplete(link);
-  perform datalink.dl_file_new(path,'e',link,wtoken,expires=>now()+ttl);
+  -- ttl > 0: the write token expires after ttl; otherwise it never expires
+  perform datalink.dl_file_new(path,'e',link,wtoken,
+                               expires=>case when ttl > '0' then now()+ttl end);
   r := datalink.curl_save(path,url,2);
   if not r.ok then
     raise exception e'DATALINK EXCEPTION - failed to copy resource\nURL: %',url
