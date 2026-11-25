@@ -830,7 +830,7 @@ begin
         raise exception 'DATALINK EXCEPTION - waiting for datalinker' 
               using errcode = 'HW000', 
                     detail = format(
-                              'file is ''%s'' waiting for unlink by the datalinker process',
+                              'file ''%s'' is waiting for unlink by the datalinker process',
                               r.path),
                       hint = 'start datalinker with "dlfs start"';
 
